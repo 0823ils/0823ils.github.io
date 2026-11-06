@@ -1,0 +1,14 @@
+name = "twc-api"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+# コメント認証に使うScratchプロジェクトのID
+AUTH_PROJECT_ID = "1410118669"
+# このAPIを呼んでよいサイトのオリジン（カンマ区切り）。GitHub Pagesのオリジンに合わせる
+ALLOWED_ORIGINS = "https://0823ils.github.io,http://localhost:5001"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "twc-ratings"
+database_id = "f483147b-acc4-466c-ad21-00bfff8dcf93"

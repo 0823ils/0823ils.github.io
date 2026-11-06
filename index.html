@@ -113,6 +113,40 @@
         input:checked + .tw-slider { background: rgba(255,255,255,0.9); }
         input:checked + .tw-slider:before { transform: translateX(16px); background: #4D97FF; }
 
+
+        /* ===== ログイン ===== */
+        .header-login-btn { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 16px; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; max-width: 140px; transition: all 0.2s; }
+        .header-login-btn:hover { background: rgba(255,255,255,0.3); }
+        .header-login-btn.logged-in { background: white; color: #4D97FF; }
+        .header-login-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .login-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .login-input { width: 100%; margin-bottom: 14px; }
+        .login-code { font-family: monospace; font-size: 22px; font-weight: bold; letter-spacing: 2px; text-align: center; background: #f0f4ff; color: #3a7fd4; border-radius: 8px; padding: 14px; margin-bottom: 12px; user-select: all; word-break: break-all; }
+        .login-msg { font-size: 0.85em; color: #888; margin-bottom: 12px; min-height: 1.2em; line-height: 1.5; }
+        .login-msg.error { color: #e55; }
+        .login-msg.ok { color: #2a9d4a; }
+
+
+        /* ===== 技術力評価 ===== */
+        .project-rating { font-size: 0.78em; color: #888; margin-top: 3px; cursor: pointer; display: inline-block; padding: 1px 6px; margin-left: -6px; border-radius: 10px; transition: background 0.2s; }
+        .project-rating:hover { background: #fff7e0; }
+        .project-rating .rate-star { color: #f5b301; }
+        .project-rating.rated { color: #b07d00; font-weight: bold; }
+        .rate-stars { display: flex; justify-content: center; gap: 4px; margin: 6px 0 10px; }
+        .rate-star-btn { font-size: 36px; line-height: 1; border: none; background: transparent; color: #ddd; cursor: pointer; padding: 2px 4px; transition: transform 0.1s, color 0.1s; }
+        .rate-star-btn.on { color: #f5b301; }
+        .rate-star-btn:hover { transform: scale(1.12); }
+        .rate-hint { text-align: center; font-size: 0.85em; color: #888; margin-bottom: 8px; }
+
+
+        /* ===== 保存 ===== */
+        .project-card { position: relative; }
+        .save-btn { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(0,0,0,0.25); font-size: 17px; line-height: 1; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, color 0.15s; z-index: 2; }
+        .save-btn:hover { transform: scale(1.12); color: #4D97FF; }
+        .save-btn.saved { color: #4D97FF; }
+        .save-btn.saved svg path { fill: currentColor; }
+        .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: rgba(40,40,40,0.92); color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 2000; max-width: 90vw; text-align: center; }
+
         /* 言語切替はヘッダーに移動 */
     </style>
 </head>
@@ -124,6 +158,7 @@
         <div class="header-mode-tabs">
             <button class="header-mode-tab active" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
             <button class="header-mode-tab" id="mode-browse-btn" onclick="setMode('browse')" data-i18n="modeBrowse">全作品</button>
+            <button class="header-mode-tab" id="mode-saved-btn" onclick="setMode('saved')" style="display:none" data-i18n="modeSaved">保存</button>
         </div>
         <div class="header-spacer"></div>
         <div class="header-tw-wrap">
@@ -133,6 +168,7 @@
                 <span class="tw-slider"></span>
             </label>
         </div>
+        <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
         <div class="header-lang-switch">
             <button class="header-lang-btn active" id="lang-ja" onclick="setLang('ja')">日本語</button>
             <button class="header-lang-btn" id="lang-en" onclick="setLang('en')">English</button>
@@ -231,6 +267,15 @@
                 <span class="browse-count-text" id="b-count"></span>
             </div>
         </div>
+
+        <!-- 保存モード -->
+        <div id="saved-section" style="display:none">
+            <div class="status-text" id="sv-status"></div>
+            <div id="sv-results" class="project-grid"></div>
+            <div class="load-more-wrap" id="sv-more-wrap" style="display:none">
+                <button class="load-more-btn" id="sv-more-btn" onclick="savedLoadMore()" data-i18n="loadMore">もっと読み込む</button>
+            </div>
+        </div>
 </div>
 
 <script>
@@ -273,6 +318,42 @@ const LANG = {
         twWarnOpenTw: 'TurboWarp で開く',
         twWarnOpenScratch: 'Scratch で開く',
         twWarnCancel: 'キャンセル',
+        loginBtn: 'ログイン',
+        loginTitle: 'ログイン',
+        loginIntro: 'Scratchのユーザー名を入力すると、確認用のコードが発行されます。そのコードを認証用プロジェクトにコメントすると、ログインできます。',
+        loginUserPlaceholder: 'Scratchのユーザー名',
+        loginIssue: 'コードを発行',
+        loginCodeIntro: '次のコードを、認証用プロジェクトに新しいコメントとして投稿してください（返信ではなく、通常のコメントで）。',
+        loginCopy: 'コードをコピー',
+        loginCopied: 'コピーしました',
+        loginOpenProject: '認証用プロジェクトを開く',
+        loginVerify: 'コメントを確認してログイン',
+        loginBack: '戻る',
+        loginLoggedAs: function(n) { return n + ' としてログイン中'; },
+        loginLogout: 'ログアウト',
+        loginClose: '閉じる',
+        loginErrUsername: 'ユーザー名は、半角英数字・ハイフン・アンダースコアの3〜20文字で入力してください',
+        loginVerifying: 'コメントを確認中...',
+        loginNotFound: 'コメントが見つかりませんでした。投稿が反映されるまで少し時間がかかることがあるので、しばらく待ってからもう一度押してください。',
+        loginErrFetch: 'Scratchのコメントを取得できませんでした。時間をおいてやり直してください。',
+        loginExpired: 'コードの有効期限（10分）が切れました。もう一度コードを発行してください。',
+        loginSuccess: function(n) { return n + ' としてログインしました'; },
+        loginErrTooMany: 'コードの発行回数が多すぎます。しばらく待ってからやり直してください。',
+        rateLabel: '技術力',
+        rateNone: '未評価',
+        rateTitle: '技術力を評価',
+        rateNeedLogin: '評価するにはログインが必要です。',
+        rateRemove: '評価を取り消す',
+        rateSaved: '評価を保存しました',
+        rateRemoved: '評価を取り消しました',
+        rateErr: '保存できませんでした。時間をおいてやり直してください。',
+        modeSaved: '保存',
+        saveTitle: '保存する',
+        unsaveTitle: '保存を解除',
+        savedEmpty: 'まだ保存した作品がありません。作品カード右上のしおりを押すと保存できます。',
+        saveErr: '保存の変更に失敗しました。時間をおいてやり直してください。',
+        saveLimit: '保存できる上限（1000件）に達しました。',
+        rateSummary: function(avg, n) { return n ? '平均 ' + avg.toFixed(1) + '（' + n + '人）' : 'まだ評価がありません'; },
     },
     en: {
         loading: 'Loading database...',
@@ -311,6 +392,42 @@ const LANG = {
         twWarnOpenTw: 'Open in TurboWarp',
         twWarnOpenScratch: 'Open in Scratch',
         twWarnCancel: 'Cancel',
+        loginBtn: 'Log in',
+        loginTitle: 'Log in',
+        loginIntro: 'Enter your Scratch username to get a verification code. Post that code as a comment on the verification project to log in.',
+        loginUserPlaceholder: 'Scratch username',
+        loginIssue: 'Get code',
+        loginCodeIntro: 'Post the code below as a new comment on the verification project (a regular comment, not a reply).',
+        loginCopy: 'Copy code',
+        loginCopied: 'Copied',
+        loginOpenProject: 'Open verification project',
+        loginVerify: 'Check comment and log in',
+        loginBack: 'Back',
+        loginLoggedAs: function(n) { return 'Logged in as ' + n; },
+        loginLogout: 'Log out',
+        loginClose: 'Close',
+        loginErrUsername: 'Usernames are 3-20 characters: letters, numbers, hyphens and underscores only.',
+        loginVerifying: 'Checking comments...',
+        loginNotFound: "Couldn't find your comment. It can take a little while to show up, so wait a moment and try again.",
+        loginErrFetch: "Couldn't load comments from Scratch. Please try again later.",
+        loginExpired: 'The code expired (10 minutes). Please get a new code.',
+        loginSuccess: function(n) { return 'Logged in as ' + n; },
+        loginErrTooMany: 'Too many codes requested. Please wait a while and try again.',
+        rateLabel: 'Skill',
+        rateNone: 'Not rated',
+        rateTitle: 'Rate technical skill',
+        rateNeedLogin: 'Log in to rate this project.',
+        rateRemove: 'Remove my rating',
+        rateSaved: 'Rating saved',
+        rateRemoved: 'Rating removed',
+        rateErr: "Couldn't save. Please try again later.",
+        modeSaved: 'Saved',
+        saveTitle: 'Save',
+        unsaveTitle: 'Remove from saved',
+        savedEmpty: 'Nothing saved yet. Tap the bookmark on a project card to save it.',
+        saveErr: "Couldn't update your saved list. Please try again later.",
+        saveLimit: "You've reached the limit of 1,000 saved projects.",
+        rateSummary: function(avg, n) { return n ? 'Average ' + avg.toFixed(1) + ' (' + n + (n === 1 ? ' rating' : ' ratings') + ')' : 'No ratings yet'; },
     }
 };
 
@@ -359,6 +476,10 @@ function applyLang() {
     // load more button (if not in loading state)
     var lmb = document.getElementById('b-load-more-btn');
     if (lmb && !lmb.disabled) lmb.innerText = t('loadMore');
+    updateLoginUI();
+    refreshLoginViewText();
+    refreshRatingTexts();
+    refreshSaveButtons();
 }
 
 function loadLangPref() {
@@ -462,6 +583,7 @@ function openUser(u, e) { e.stopPropagation(); window.open('https://scratch.mit.
 
 function cardHTML(p) {
     return '<div class="project-card" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
+        saveBtnHTML(p.id) +
         '<img class="project-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + p.id + '_480x360.png"' +
         ' alt="' + esc(p.title) + '" loading="lazy"' +
         ' onerror="this.outerHTML=\'<div class=\\\'thumb-placeholder\\\'>?</div>\'">' +
@@ -469,6 +591,7 @@ function cardHTML(p) {
             '<div class="project-title">' + esc(p.title) + '</div>' +
             '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">by ' + esc(p.author_username) + '</div>' +
             '<div class="project-meta">' + t('lovesCount', p.loves || 0) + '</div>' +
+            (apiEnabled() ? '<div class="project-rating" data-rate-id="' + Number(p.id) + '" onclick="openRate(' + Number(p.id) + ',event)"></div>' : '') +
         '</div>' +
     '</div>';
 }
@@ -527,10 +650,13 @@ function setMode(mode) {
     document.getElementById('browse-section').style.display = mode === 'browse' ? '' : 'none';
     document.getElementById('mode-search-btn').classList.toggle('active', mode === 'search');
     document.getElementById('mode-browse-btn').classList.toggle('active', mode === 'browse');
+    document.getElementById('saved-section').style.display = mode === 'saved' ? '' : 'none';
+    document.getElementById('mode-saved-btn').classList.toggle('active', mode === 'saved');
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
         browseReset();
     }
+    if (mode === 'saved') enterSaved();
 }
 
 // ===== 検索モード =====
@@ -599,6 +725,7 @@ function doSearch() {
         }
         document.getElementById('s-results').innerHTML=
             '<div class="project-grid">'+projects.map(cardHTML).join('')+'</div>';
+        loadRatings(document.getElementById('s-results'));
         document.getElementById('s-pagination').style.display='flex';
         document.getElementById('s-page-info').innerText = t('pageInfo', sPage, sTotalPages);
         document.getElementById('s-prev').disabled=sPage<=1;
@@ -668,6 +795,7 @@ function browseLoadMore() {
             tmp.innerHTML=cardHTML(p);
             grid.appendChild(tmp.firstElementChild);
         });
+        loadRatings(grid);
 
         const shown=Math.min(bPage*PAGE_SIZE,bTotal);
         document.getElementById('b-count').innerText = t('countText', shown, bTotal);
@@ -687,9 +815,458 @@ function browseLoadMore() {
     bLoading=false;
 }
 
+// ===== サーバーAPI (Cloudflare Workers) =====
+// Workers をデプロイしたら、そのURL（末尾の / なし）をここに入れる。
+// 例: 'https://twc-api.<あなたのサブドメイン>.workers.dev'
+// 空のままだと、ログインと技術力評価の表示は隠れる。
+var TWC_API = 'https://twc-api.twc-scratch.workers.dev';
+
+function apiEnabled() { return !!TWC_API; }
+
+async function apiCall(method, path, body) {
+    var headers = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (loginUser && loginUser.token) headers['Authorization'] = 'Bearer ' + loginUser.token;
+    var r = await fetch(TWC_API + path, {
+        method: method,
+        headers: headers,
+        body: body === undefined ? undefined : JSON.stringify(body)
+    });
+    var data = null;
+    try { data = await r.json(); } catch(e) {}
+    if (r.status === 401 && loginUser) { clearLogin(); }
+    if (!r.ok) {
+        var err = new Error((data && data.error) || ('HTTP ' + r.status));
+        err.status = r.status;
+        throw err;
+    }
+    return data;
+}
+
+// ===== ログイン（Scratchコメント認証。確認はサーバー側で行う） =====
+var AUTH_CODE_TTL = 10 * 60 * 1000;   // コードの有効期限（サーバーと同じ）
+var loginUser = null;     // { username, id, token, expires_at }
+var loginPending = null;  // { username, code, at }
+
+function loadLogin() {
+    try {
+        var raw = localStorage.getItem('twc_user');
+        if (raw) {
+            var u = JSON.parse(raw);
+            if (u && u.username && u.token && u.expires_at > Date.now()) loginUser = u;
+            else localStorage.removeItem('twc_user');
+        }
+        var pr = sessionStorage.getItem('twc_pending');
+        if (pr) {
+            var p = JSON.parse(pr);
+            if (p && p.code && Date.now() - p.at < AUTH_CODE_TTL) loginPending = p;
+            else sessionStorage.removeItem('twc_pending');
+        }
+    } catch(e) {}
+    updateLoginUI();
+}
+
+function updateLoginUI() {
+    var btn = document.getElementById('login-btn');
+    if (!btn) return;
+    btn.style.display = apiEnabled() ? '' : 'none';
+    var svTab = document.getElementById('mode-saved-btn');
+    if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
+    if (loginUser) {
+        btn.classList.add('logged-in');
+        btn.innerHTML = '<img class="login-avatar" alt="" src="https://uploads.scratch.mit.edu/get_image/user/' +
+            encodeURIComponent(loginUser.id) + '_32x32.png" onerror="this.style.display=\'none\'">' +
+            '<span>' + esc(loginUser.username) + '</span>';
+    } else {
+        btn.classList.remove('logged-in');
+        btn.innerText = t('loginBtn');
+    }
+}
+
+function showLoginView(name) {
+    ['input', 'code', 'done'].forEach(function(v) {
+        document.getElementById('login-view-' + v).style.display = (v === name) ? '' : 'none';
+    });
+    refreshLoginViewText();
+}
+
+function refreshLoginViewText() {
+    var el = document.getElementById('login-logged-as');
+    if (el && loginUser) el.innerText = t('loginLoggedAs', loginUser.username);
+}
+
+function setLoginMsg(text, kind) {
+    ['login-msg-input', 'login-msg-code'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.innerText = text || '';
+        el.className = 'login-msg' + (kind ? ' ' + kind : '');
+    });
+}
+
+function openLogin() {
+    setLoginMsg('');
+    if (loginUser) {
+        showLoginView('done');
+    } else if (loginPending) {
+        document.getElementById('login-code').innerText = loginPending.code;
+        showLoginView('code');
+    } else {
+        showLoginView('input');
+    }
+    document.getElementById('login-overlay').style.display = 'flex';
+}
+
+function closeLogin() {
+    document.getElementById('login-overlay').style.display = 'none';
+}
+
+async function issueLoginCode() {
+    var name = document.getElementById('login-username').value.trim();
+    if (!/^[A-Za-z0-9_-]{3,20}$/.test(name)) {
+        setLoginMsg(t('loginErrUsername'), 'error');
+        return;
+    }
+    setLoginMsg('');
+    try {
+        var data = await apiCall('POST', '/api/auth/start', { username: name });
+        loginPending = { username: name, code: data.code, at: Date.now() };
+        try { sessionStorage.setItem('twc_pending', JSON.stringify(loginPending)); } catch(e) {}
+        document.getElementById('login-code').innerText = loginPending.code;
+        showLoginView('code');
+    } catch(e) {
+        setLoginMsg(e.status === 429 ? t('loginErrTooMany') : (e.status === 400 ? t('loginErrUsername') : t('loginErrFetch')), 'error');
+    }
+}
+
+function backToLoginInput() {
+    loginPending = null;
+    try { sessionStorage.removeItem('twc_pending'); } catch(e) {}
+    setLoginMsg('');
+    showLoginView('input');
+}
+
+function copyLoginCode() {
+    if (!loginPending) return;
+    var btn = document.getElementById('login-copy-btn');
+    var done = function() {
+        btn.innerText = t('loginCopied');
+        setTimeout(function() { btn.innerText = t('loginCopy'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(loginPending.code).then(done, function() {});
+    }
+}
+
+async function verifyLogin() {
+    if (!loginPending) return;
+    if (Date.now() - loginPending.at > AUTH_CODE_TTL) {
+        backToLoginInput();
+        setLoginMsg(t('loginExpired'), 'error');
+        return;
+    }
+    var btn = document.getElementById('login-verify-btn');
+    btn.disabled = true;
+    setLoginMsg(t('loginVerifying'));
+    try {
+        var data = await apiCall('POST', '/api/auth/verify', { code: loginPending.code });
+        loginUser = { username: data.username, id: data.id, token: data.token, expires_at: data.expires_at };
+        loginPending = null;
+        try {
+            localStorage.setItem('twc_user', JSON.stringify(loginUser));
+            sessionStorage.removeItem('twc_pending');
+        } catch(e) {}
+        updateLoginUI();
+        showLoginView('done');
+        setLoginMsg(t('loginSuccess', loginUser.username), 'ok');
+        refreshAllRatings();
+        loadSaves().catch(function() {});
+    } catch(e) {
+        if (e.message === 'comment_not_found') {
+            setLoginMsg(t('loginNotFound'), 'error');
+        } else if (e.message === 'no_challenge' || e.message === 'expired') {
+            backToLoginInput();
+            setLoginMsg(t('loginExpired'), 'error');
+        } else {
+            setLoginMsg(t('loginErrFetch'), 'error');
+        }
+    }
+    btn.disabled = false;
+}
+
+function clearLogin() {
+    loginUser = null;
+    try { localStorage.removeItem('twc_user'); } catch(e) {}
+    savedSet = {};
+    savedOrder = [];
+    updateLoginUI();
+    refreshAllRatings();
+    refreshSaveButtons();
+    if (currentMode === 'saved') setMode('search');
+}
+
+function logout() {
+    clearLogin();
+    closeLogin();
+}
+
+// ===== 技術力評価 =====
+var ratingCache = {};     // projectId -> { avg, count, mine }
+var currentRateId = null;
+
+function renderRatingEl(el) {
+    var id = el.getAttribute('data-rate-id');
+    var r = ratingCache[id];
+    el.classList.toggle('rated', !!(r && r.mine));
+    if (!r) { el.innerText = t('rateLabel'); return; }
+    if (r.count) {
+        el.innerHTML = esc(t('rateLabel')) + ' <span class="rate-star">★</span>' + r.avg.toFixed(1) + ' (' + r.count + ')';
+    } else {
+        el.innerText = t('rateLabel') + ' ' + t('rateNone');
+    }
+}
+
+function refreshRatingTexts() {
+    document.querySelectorAll('[data-rate-id]').forEach(renderRatingEl);
+    if (currentRateId !== null && document.getElementById('rate-overlay').style.display !== 'none') renderRateModal();
+}
+
+async function loadRatings(container) {
+    if (!apiEnabled() || !container) return;
+    var need = [];
+    container.querySelectorAll('[data-rate-id]').forEach(function(el) {
+        var id = el.getAttribute('data-rate-id');
+        renderRatingEl(el);
+        if (!ratingCache[id] && need.indexOf(id) === -1) need.push(id);
+    });
+    for (var i = 0; i < need.length; i += 100) {
+        try {
+            var data = await apiCall('GET', '/api/ratings?ids=' + need.slice(i, i + 100).join(','));
+            for (var id in data.ratings) ratingCache[id] = data.ratings[id];
+        } catch(e) {}
+    }
+    container.querySelectorAll('[data-rate-id]').forEach(renderRatingEl);
+}
+
+function refreshAllRatings() {
+    ratingCache = {};
+    loadRatings(document);
+}
+
+function openRate(id, ev) {
+    if (ev) ev.stopPropagation();
+    currentRateId = Number(id);
+    var card = ev && ev.currentTarget ? ev.currentTarget.closest('.project-card') : null;
+    var titleEl = card ? card.querySelector('.project-title') : null;
+    document.getElementById('rate-project-title').innerText = titleEl ? titleEl.innerText : '';
+    document.getElementById('rate-msg').innerText = '';
+    document.getElementById('rate-overlay').style.display = 'flex';
+    renderRateModal();
+    // 最新の評価を取り直す（他の人の評価が増えているかもしれない）
+    apiCall('GET', '/api/ratings?ids=' + currentRateId).then(function(data) {
+        ratingCache[currentRateId] = data.ratings[currentRateId];
+        document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
+        renderRateModal();
+    }).catch(function() {});
+}
+
+function closeRate() {
+    document.getElementById('rate-overlay').style.display = 'none';
+    currentRateId = null;
+}
+
+function renderRateModal() {
+    var loggedIn = !!loginUser;
+    document.getElementById('rate-view-login').style.display = loggedIn ? 'none' : '';
+    document.getElementById('rate-view-stars').style.display = loggedIn ? '' : 'none';
+    if (!loggedIn || currentRateId === null) return;
+    var r = ratingCache[currentRateId] || { avg: 0, count: 0, mine: null };
+    rateHover(0);
+    document.getElementById('rate-hint').innerText = t('rateSummary', r.avg, r.count);
+    document.getElementById('rate-remove-btn').style.display = r.mine ? '' : 'none';
+}
+
+// マウスを乗せた星まで色を付ける。n=0 のときは自分の評価に戻す
+function rateHover(n) {
+    var r = (currentRateId !== null && ratingCache[currentRateId]) || { mine: null };
+    var shown = n || r.mine || 0;
+    document.querySelectorAll('#rate-stars .rate-star-btn').forEach(function(b) {
+        b.classList.toggle('on', Number(b.getAttribute('data-score')) <= shown);
+    });
+}
+
+async function submitRating(score) {
+    if (currentRateId === null) return;
+    var msg = document.getElementById('rate-msg');
+    try {
+        var data = await apiCall('PUT', '/api/ratings/' + currentRateId, { score: score });
+        ratingCache[currentRateId] = data;
+        document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
+        renderRateModal();
+        msg.className = 'login-msg ok';
+        msg.innerText = t('rateSaved');
+    } catch(e) {
+        if (e.status === 401) { renderRateModal(); return; }
+        msg.className = 'login-msg error';
+        msg.innerText = t('rateErr');
+    }
+}
+
+async function removeRating() {
+    if (currentRateId === null) return;
+    var msg = document.getElementById('rate-msg');
+    try {
+        var data = await apiCall('DELETE', '/api/ratings/' + currentRateId);
+        ratingCache[currentRateId] = data;
+        document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
+        renderRateModal();
+        msg.className = 'login-msg ok';
+        msg.innerText = t('rateRemoved');
+    } catch(e) {
+        if (e.status === 401) { renderRateModal(); return; }
+        msg.className = 'login-msg error';
+        msg.innerText = t('rateErr');
+    }
+}
+
+// ===== 保存（ブックマーク） =====
+var savedSet = {};     // 作品ID -> true
+var savedOrder = [];   // 保存した新しい順の作品ID
+var savedShown = 0;    // 保存タブで表示済みの件数
+var SAVED_PAGE = 50;
+var toastTimer = null;
+
+function showToast(msg) {
+    var el = document.getElementById('toast');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'toast';
+        el.className = 'toast';
+        document.body.appendChild(el);
+    }
+    el.innerText = msg;
+    el.style.display = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+function saveBtnHTML(id) {
+    if (!apiEnabled()) return '';
+    id = Number(id);
+    var on = !!savedSet[id];
+    return '<button class="save-btn' + (on ? ' saved' : '') + '" data-save-id="' + id + '" title="' +
+        esc(on ? t('unsaveTitle') : t('saveTitle')) + '" onclick="toggleSave(' + id + ',event)">' +
+        '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>';
+}
+
+// 表示中の保存ボタンを、現在の保存状態に合わせる
+function refreshSaveButtons() {
+    document.querySelectorAll('[data-save-id]').forEach(function(b) {
+        var id = Number(b.getAttribute('data-save-id'));
+        var on = !!savedSet[id];
+        b.classList.toggle('saved', on);
+        b.title = on ? t('unsaveTitle') : t('saveTitle');
+    });
+}
+
+async function loadSaves() {
+    if (!apiEnabled() || !loginUser) return;
+    var data = await apiCall('GET', '/api/saves');
+    savedOrder = data.ids.map(Number);
+    savedSet = {};
+    savedOrder.forEach(function(id) { savedSet[id] = true; });
+    refreshSaveButtons();
+}
+
+function setSavedLocal(id, on) {
+    var idx = savedOrder.indexOf(id);
+    if (on) {
+        savedSet[id] = true;
+        if (idx === -1) savedOrder.unshift(id);
+    } else {
+        delete savedSet[id];
+        if (idx !== -1) {
+            savedOrder.splice(idx, 1);
+            if (idx < savedShown) savedShown--;   // 保存タブの読み込み位置をずらさない
+        }
+    }
+    refreshSaveButtons();
+}
+
+async function toggleSave(id, ev) {
+    if (ev) ev.stopPropagation();
+    id = Number(id);
+    if (!loginUser) { openLogin(); return; }
+    var was = !!savedSet[id];
+    setSavedLocal(id, !was);
+    try {
+        await apiCall(was ? 'DELETE' : 'PUT', '/api/saves/' + id);
+    } catch(e) {
+        if (e.status === 401) return;   // ログインが切れた。clearLogin 済み
+        setSavedLocal(id, was);
+        showToast(e.message === 'too_many_saves' ? t('saveLimit') : t('saveErr'));
+        if (currentMode === 'saved') enterSaved();
+        return;
+    }
+    if (currentMode === 'saved' && was) {
+        document.querySelectorAll('#sv-results [data-save-id="' + id + '"]').forEach(function(b) {
+            var card = b.closest('.project-card');
+            if (card) card.remove();
+        });
+        updateSavedStatus();
+    }
+}
+
+function updateSavedStatus() {
+    var total = savedOrder.length;
+    var st = document.getElementById('sv-status');
+    if (total === 0) { st.innerText = ''; document.getElementById('sv-results').innerHTML = '<div class="empty" style="grid-column:1/-1">' + esc(t('savedEmpty')) + '</div>'; document.getElementById('sv-more-wrap').style.display = 'none'; return; }
+    st.innerText = t('countText', Math.min(savedShown, total), total);
+    document.getElementById('sv-more-wrap').style.display = savedShown < total ? 'flex' : 'none';
+}
+
+async function enterSaved() {
+    var grid = document.getElementById('sv-results');
+    grid.innerHTML = '';
+    savedShown = 0;
+    document.getElementById('sv-more-wrap').style.display = 'none';
+    document.getElementById('sv-status').innerText = t('loadingMore');
+    try {
+        await loadSaves();
+    } catch(e) {
+        document.getElementById('sv-status').innerText = t('error') + e.message;
+        return;
+    }
+    if (currentMode !== 'saved') return;
+    savedLoadMore();
+}
+
+function savedLoadMore() {
+    if (!db) return;
+    var grid = document.getElementById('sv-results');
+    if (savedOrder.length === 0) { updateSavedStatus(); return; }
+    var ids = savedOrder.slice(savedShown, savedShown + SAVED_PAGE);
+    if (ids.length) {
+        var ph = ids.map(function() { return '?'; }).join(',');
+        var byId = {};
+        queryAll('SELECT * FROM projects WHERE id IN (' + ph + ')', ids).forEach(function(r) { byId[r.id] = r; });
+        ids.forEach(function(id) {
+            var p = byId[id];
+            if (!p) return;   // データベースに無い作品（取得対象から外れた等）は飛ばす
+            var tmp = document.createElement('div');
+            tmp.innerHTML = cardHTML(p);
+            grid.appendChild(tmp.firstElementChild);
+        });
+        savedShown += ids.length;
+        loadRatings(grid);
+    }
+    updateSavedStatus();
+}
+
 // 起動
+loadLogin();
 loadLangPref();
 initDB();
+loadSaves().catch(function() {});
 </script>
 
 <div class="tw-warn-overlay" id="tw-warn-overlay" style="display:none" onclick="if(event.target===this)closeTWWarn()">
@@ -700,6 +1277,76 @@ initDB();
             <button class="tw-warn-btn tw-warn-btn-tw" id="tw-warn-open-tw">TurboWarp で開く</button>
             <button class="tw-warn-btn tw-warn-btn-scratch" id="tw-warn-open-scratch">Scratch で開く</button>
             <button class="tw-warn-btn tw-warn-btn-cancel" id="tw-warn-cancel-btn" onclick="closeTWWarn()">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+<div class="tw-warn-overlay" id="login-overlay" style="display:none" onclick="if(event.target===this)closeLogin()">
+    <div class="tw-warn-box">
+        <div class="tw-warn-title" data-i18n="loginTitle">ログイン</div>
+
+        <div id="login-view-input">
+            <div class="tw-warn-body" data-i18n="loginIntro"></div>
+            <input type="text" id="login-username" class="login-input" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"
+                   placeholder="Scratchのユーザー名" data-i18n-placeholder="loginUserPlaceholder"
+                   onkeydown="if(event.key==='Enter')issueLoginCode()">
+            <div class="login-msg" id="login-msg-input"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-tw" onclick="issueLoginCode()" data-i18n="loginIssue">コードを発行</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeLogin()" data-i18n="twWarnCancel">キャンセル</button>
+            </div>
+        </div>
+
+        <div id="login-view-code" style="display:none">
+            <div class="tw-warn-body" data-i18n="loginCodeIntro"></div>
+            <div class="login-code" id="login-code"></div>
+            <div class="login-msg" id="login-msg-code"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-scratch" id="login-copy-btn" onclick="copyLoginCode()" data-i18n="loginCopy">コードをコピー</button>
+                <a class="tw-warn-btn tw-warn-btn-scratch" style="display:block;text-align:center;text-decoration:none"
+                   href="https://scratch.mit.edu/projects/1410118669/#comments" target="_blank" rel="noopener" data-i18n="loginOpenProject">認証用プロジェクトを開く</a>
+                <button class="tw-warn-btn tw-warn-btn-tw" id="login-verify-btn" onclick="verifyLogin()" data-i18n="loginVerify">コメントを確認してログイン</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="backToLoginInput()" data-i18n="loginBack">戻る</button>
+            </div>
+        </div>
+
+        <div id="login-view-done" style="display:none">
+            <div class="tw-warn-body" id="login-logged-as"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-scratch" onclick="logout()" data-i18n="loginLogout">ログアウト</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeLogin()" data-i18n="loginClose">閉じる</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tw-warn-overlay" id="rate-overlay" style="display:none" onclick="if(event.target===this)closeRate()">
+    <div class="tw-warn-box">
+        <div class="tw-warn-title" data-i18n="rateTitle">技術力を評価</div>
+        <div class="tw-warn-body" id="rate-project-title" style="margin-bottom:10px"></div>
+
+        <div id="rate-view-login" style="display:none">
+            <div class="tw-warn-body" data-i18n="rateNeedLogin"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-tw" onclick="closeRate();openLogin()" data-i18n="loginBtn">ログイン</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeRate()" data-i18n="loginClose">閉じる</button>
+            </div>
+        </div>
+
+        <div id="rate-view-stars" style="display:none">
+            <div class="rate-stars" id="rate-stars" onmouseleave="rateHover(0)">
+                <button class="rate-star-btn" data-score="1" onmouseenter="rateHover(1)" onclick="submitRating(1)">★</button>
+                <button class="rate-star-btn" data-score="2" onmouseenter="rateHover(2)" onclick="submitRating(2)">★</button>
+                <button class="rate-star-btn" data-score="3" onmouseenter="rateHover(3)" onclick="submitRating(3)">★</button>
+                <button class="rate-star-btn" data-score="4" onmouseenter="rateHover(4)" onclick="submitRating(4)">★</button>
+                <button class="rate-star-btn" data-score="5" onmouseenter="rateHover(5)" onclick="submitRating(5)">★</button>
+            </div>
+            <div class="rate-hint" id="rate-hint"></div>
+            <div class="login-msg" id="rate-msg"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-scratch" id="rate-remove-btn" onclick="removeRating()" data-i18n="rateRemove">評価を取り消す</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeRate()" data-i18n="loginClose">閉じる</button>
+            </div>
         </div>
     </div>
 </div>

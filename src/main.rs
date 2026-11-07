@@ -22,6 +22,12 @@ struct FollowedUser {
     username: String,
 }
 
+// /api/applications/approved-users のレスポンス
+#[derive(Deserialize, Debug)]
+struct ApprovedUsers {
+    users: Vec<FollowedUser>,
+}
+
 #[derive(Deserialize, Debug, Default)]
 struct ProjectStats {
     loves: Option<u64>,
@@ -141,6 +147,28 @@ async fn main() {
     let mut user_set: HashSet<(u64, String)> = HashSet::new();
     for u in followed {
         user_set.insert((u.id, u.username));
+    }
+
+    // 参加申請で承認されたユーザーも対象に加える（環境変数 TWC_API にWorkerのURLを入れたときだけ）。
+    // 取得に失敗しても、フォロー先だけで続行する（申請分が一時的に抜けるだけで、壊れたデータにはならない）
+    if let Ok(api) = std::env::var("TWC_API") {
+        let api = api.trim().trim_end_matches('/').to_string();
+        if !api.is_empty() {
+            let url = format!("{}/api/applications/approved-users", api);
+            match client.get(&url).send().await {
+                Ok(resp) if resp.status().is_success() => match resp.json::<ApprovedUsers>().await {
+                    Ok(a) => {
+                        println!("  承認済みの参加申請: {} 人", a.users.len());
+                        for u in a.users {
+                            user_set.insert((u.id, u.username));
+                        }
+                    }
+                    Err(e) => eprintln!("承認済み申請のJSONパース失敗（スキップ）: {}", e),
+                },
+                Ok(resp) => eprintln!("承認済み申請の取得に失敗（スキップ）: HTTP {}", resp.status()),
+                Err(e) => eprintln!("承認済み申請の取得に失敗（スキップ）: {}", e),
+            }
+        }
     }
 
     let users: Vec<(u64, String)> = user_set.into_iter().collect();

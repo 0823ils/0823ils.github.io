@@ -27,6 +27,9 @@ jobs:
         run: rm -f scratch_projects.jsonl users.jsonl projects.db
       - name: Fetch
         run: ./target/release/scratch-mega-fetcher
+        env:
+          # 参加申請で承認されたユーザーも収集する
+          TWC_API: https://twc-api.twc-scratch.workers.dev
       - name: Import
         run: timeout 120 bun run server.ts || true
       - name: Deploy

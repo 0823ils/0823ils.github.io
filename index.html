@@ -163,6 +163,25 @@
         .login-msg.ok { color: #2a9d4a; }
 
 
+        /* ===== 参加申請 ===== */
+        .apply-scroll { max-height: 62vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+        .apply-kind { display: flex; gap: 6px; margin-bottom: 10px; }
+        .apply-kind-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #ddd; background: white; color: #777; font-size: 0.9em; cursor: pointer; }
+        .apply-kind-btn.active { background: #4D97FF; border-color: #4D97FF; color: white; font-weight: bold; }
+        .apply-textarea { width: 100%; box-sizing: border-box; min-height: 60px; resize: vertical; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font: inherit; font-size: 0.9em; margin-bottom: 14px; }
+        .apply-h { font-size: 0.85em; font-weight: bold; color: #666; margin: 14px 0 6px; }
+        .apply-item { border: 1px solid #eee; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.85em; line-height: 1.5; word-break: break-word; }
+        .apply-item a { color: #4D97FF; text-decoration: none; }
+        .apply-item .apply-msg { color: #888; margin-top: 2px; }
+        .apply-badge { display: inline-block; font-size: 0.8em; padding: 0 8px; border-radius: 10px; margin-left: 4px; background: #eee; color: #888; }
+        .apply-badge.approved { background: #e3f6e8; color: #2a9d4a; }
+        .apply-badge.rejected { background: #fde8e8; color: #e55; }
+        .apply-actions { display: flex; gap: 6px; margin-top: 6px; }
+        .apply-actions button { flex: 1; padding: 5px; border-radius: 6px; border: none; font-size: 0.85em; font-weight: bold; cursor: pointer; }
+        .apply-ok { background: #2a9d4a; color: white; }
+        .apply-ng { background: #f0f0f0; color: #777; }
+
+
         /* ===== 技術力評価 ===== */
         .project-rating { font-size: 0.78em; color: #888; margin-top: 3px; cursor: pointer; display: inline-block; padding: 1px 6px; margin-left: -6px; border-radius: 10px; transition: background 0.2s; }
         .project-rating:hover { background: #fff7e0; }
@@ -204,6 +223,7 @@
                 <span class="tw-slider"></span>
             </label>
         </div>
+        <button class="header-login-btn" id="apply-btn" onclick="openApply()" style="display:none" data-i18n="applyBtn">参加申請</button>
         <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
         <div class="header-lang-switch">
             <button class="header-lang-btn active" id="lang-ja" onclick="setLang('ja')">日本語</button>
@@ -439,6 +459,36 @@ const LANG = {
         savedEmpty: 'まだ保存した作品がありません。作品カード右上のしおりを押すと保存できます。',
         saveErr: '保存の変更に失敗しました。時間をおいてやり直してください。',
         saveLimit: '保存できる上限（1000件）に達しました。',
+        applyBtn: '参加申請',
+        applyTitle: '参加申請',
+        applyIntro: 'scratch TWCに載せたいユーザーや作品を申請できます（自分以外の人・作品の推薦も可）。承認されると、次回の更新から収録されます。作品を申請した場合は、その作者の作品が収録されます。',
+        applyNeedLogin: '申請するにはログインが必要です。',
+        applyKindUser: 'ユーザー',
+        applyKindProject: '作品',
+        applyTargetUser: 'Scratchのユーザー名、またはプロフィールのURL',
+        applyTargetProject: '作品のURL、またはID',
+        applyMessage: '申請の理由・おすすめポイント（任意・300字まで）',
+        applySubmit: '申請する',
+        applySending: '送信中...',
+        applyDone: '申請しました。審査をお待ちください。',
+        applyAlready: 'すでに収録されています。',
+        applyDup: 'このユーザー／作品はすでに申請されています。',
+        applyBadTarget: '入力内容を確認してください。',
+        applyNoUser: 'Scratchにそのユーザーが見つかりませんでした。',
+        applyNoProject: 'その作品が見つかりませんでした（公開されていない可能性があります）。',
+        applyTooMany: '審査待ちの申請が多すぎます（10件まで）。審査されるまでお待ちください。',
+        applyErr: '申請できませんでした。時間をおいてやり直してください。',
+        applyMine: '自分の申請',
+        applyMineEmpty: 'まだ申請はありません。',
+        applyAdmin: '審査待ち（管理者）',
+        applyAdminEmpty: '審査待ちの申請はありません。',
+        applyBy: function(n) { return '申請者: ' + n; },
+        applyStatus: { pending: '審査中', approved: '承認', rejected: '却下' },
+        applyApprove: '承認',
+        applyReject: '却下',
+        applyReviewed: '更新しました',
+        applyUserKindLabel: 'ユーザー',
+        applyProjectKindLabel: '作品',
         rateSummary: function(avg, n) { return n ? '平均 ' + avg.toFixed(1) + '（' + n + '人）' : 'まだ評価がありません'; },
     },
     en: {
@@ -524,6 +574,36 @@ const LANG = {
         savedEmpty: 'Nothing saved yet. Tap the bookmark on a project card to save it.',
         saveErr: "Couldn't update your saved list. Please try again later.",
         saveLimit: "You've reached the limit of 1,000 saved projects.",
+        applyBtn: 'Apply',
+        applyTitle: 'Apply to be included',
+        applyIntro: 'Suggest a Scratch user or project for scratch TWC (you can also recommend other people or projects). Approved entries are included from the next update. For a project, its creator\'s projects are included.',
+        applyNeedLogin: 'Log in to apply.',
+        applyKindUser: 'User',
+        applyKindProject: 'Project',
+        applyTargetUser: 'Scratch username or profile URL',
+        applyTargetProject: 'Project URL or ID',
+        applyMessage: 'Why / highlights (optional, up to 300 characters)',
+        applySubmit: 'Submit',
+        applySending: 'Sending...',
+        applyDone: 'Application sent. Please wait for review.',
+        applyAlready: 'Already included.',
+        applyDup: 'This user / project has already been applied for.',
+        applyBadTarget: 'Please check what you entered.',
+        applyNoUser: "Couldn't find that user on Scratch.",
+        applyNoProject: "Couldn't find that project (it may not be shared).",
+        applyTooMany: 'Too many pending applications (max 10). Please wait for them to be reviewed.',
+        applyErr: "Couldn't submit. Please try again later.",
+        applyMine: 'My applications',
+        applyMineEmpty: 'No applications yet.',
+        applyAdmin: 'Pending review (admin)',
+        applyAdminEmpty: 'Nothing pending.',
+        applyBy: function(n) { return 'By ' + n; },
+        applyStatus: { pending: 'Pending', approved: 'Approved', rejected: 'Rejected' },
+        applyApprove: 'Approve',
+        applyReject: 'Reject',
+        applyReviewed: 'Updated',
+        applyUserKindLabel: 'User',
+        applyProjectKindLabel: 'Project',
         rateSummary: function(avg, n) { return n ? 'Average ' + avg.toFixed(1) + ' (' + n + (n === 1 ? ' rating' : ' ratings') + ')' : 'No ratings yet'; },
     }
 };
@@ -577,6 +657,7 @@ function applyLang() {
     refreshLoginViewText();
     refreshRatingTexts();
     refreshSaveButtons();
+    if (typeof refreshApplyText === 'function') refreshApplyText();
 }
 
 function loadLangPref() {
@@ -1005,6 +1086,8 @@ function updateLoginUI() {
     var btn = document.getElementById('login-btn');
     if (!btn) return;
     btn.style.display = apiEnabled() ? '' : 'none';
+    var apBtn = document.getElementById('apply-btn');
+    if (apBtn) apBtn.style.display = apiEnabled() ? '' : 'none';
     var svTab = document.getElementById('mode-saved-btn');
     if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
     if (loginUser) {
@@ -1133,6 +1216,9 @@ function clearLogin() {
     try { localStorage.removeItem('twc_user'); } catch(e) {}
     savedSet = {};
     savedOrder = [];
+    applyMineItems = [];
+    applyAdminItems = [];
+    applyIsAdmin = false;
     updateLoginUI();
     refreshAllRatings();
     refreshSaveButtons();
@@ -1607,6 +1693,146 @@ function updateSortOptions() {
 }
 
 // 起動
+// ===== 参加申請 =====
+var applyKind = 'user';
+var applyMineItems = [];
+var applyAdminItems = [];
+var applyIsAdmin = false;
+
+function refreshApplyText() {
+    var ov = document.getElementById('apply-overlay');
+    if (!ov || ov.style.display === 'none') return;
+    renderApply();
+}
+
+function openApply() {
+    setApplyMsg('');
+    document.getElementById('apply-overlay').style.display = 'flex';
+    renderApply();
+    if (loginUser) loadApplications();
+}
+
+function closeApply() {
+    document.getElementById('apply-overlay').style.display = 'none';
+}
+
+function setApplyKind(k) {
+    applyKind = k;
+    document.getElementById('apply-target').value = '';
+    renderApply();
+}
+
+function setApplyMsg(text, kind) {
+    var el = document.getElementById('apply-msg');
+    el.innerText = text || '';
+    el.className = 'login-msg' + (kind ? ' ' + kind : '');
+}
+
+function applyTargetLabel(a) {
+    var h = '<a href="https://scratch.mit.edu/users/' + encodeURIComponent(a.target_username) + '/" target="_blank" rel="noopener">' + esc(a.target_username) + '</a>';
+    if (a.kind === 'project') {
+        h = '<a href="https://scratch.mit.edu/projects/' + Number(a.project_id) + '/" target="_blank" rel="noopener">' + esc(a.project_title || a.project_id) + '</a> / ' + h;
+    }
+    return '[' + esc(a.kind === 'project' ? t('applyProjectKindLabel') : t('applyUserKindLabel')) + '] ' + h;
+}
+
+function applyItemHTML(a, admin) {
+    var st = t('applyStatus')[a.status] || a.status;
+    var h = '<div class="apply-item">' + applyTargetLabel(a);
+    if (!admin) h += '<span class="apply-badge ' + esc(a.status) + '">' + esc(st) + '</span>';
+    if (admin) h += '<div class="apply-msg">' + esc(t('applyBy', a.applicant_username)) + '</div>';
+    if (a.message) h += '<div class="apply-msg">' + esc(a.message) + '</div>';
+    if (admin) {
+        h += '<div class="apply-actions">' +
+            '<button class="apply-ok" onclick="reviewApplication(' + Number(a.id) + ',\'approved\')">' + esc(t('applyApprove')) + '</button>' +
+            '<button class="apply-ng" onclick="reviewApplication(' + Number(a.id) + ',\'rejected\')">' + esc(t('applyReject')) + '</button></div>';
+    }
+    return h + '</div>';
+}
+
+function renderApply() {
+    var logged = !!loginUser;
+    document.getElementById('apply-view-login').style.display = logged ? 'none' : '';
+    document.getElementById('apply-view-form').style.display = logged ? '' : 'none';
+    document.getElementById('apply-kind-user').classList.toggle('active', applyKind === 'user');
+    document.getElementById('apply-kind-project').classList.toggle('active', applyKind === 'project');
+    document.getElementById('apply-target').placeholder = t(applyKind === 'user' ? 'applyTargetUser' : 'applyTargetProject');
+    document.getElementById('apply-mine').innerHTML = applyMineItems.length
+        ? applyMineItems.map(function(a) { return applyItemHTML(a, false); }).join('')
+        : '<div class="login-msg">' + esc(t('applyMineEmpty')) + '</div>';
+    var adm = document.getElementById('apply-admin-wrap');
+    adm.style.display = applyIsAdmin ? '' : 'none';
+    if (applyIsAdmin) {
+        document.getElementById('apply-admin').innerHTML = applyAdminItems.length
+            ? applyAdminItems.map(function(a) { return applyItemHTML(a, true); }).join('')
+            : '<div class="login-msg">' + esc(t('applyAdminEmpty')) + '</div>';
+    }
+}
+
+async function loadApplications() {
+    try {
+        var r = await apiCall('GET', '/api/applications/mine');
+        applyMineItems = r.items || [];
+        applyIsAdmin = !!r.is_admin;
+        if (applyIsAdmin) {
+            var a = await apiCall('GET', '/api/admin/applications?status=pending');
+            applyAdminItems = a.items || [];
+        }
+    } catch(e) {}
+    renderApply();
+}
+
+function applyErrKey(e) {
+    var m = e.message;
+    if (m === 'already_applied') return 'applyDup';
+    if (m === 'bad_target' || m === 'bad_kind') return 'applyBadTarget';
+    if (m === 'no_such_user') return 'applyNoUser';
+    if (m === 'no_such_project') return 'applyNoProject';
+    if (m === 'too_many_applications') return 'applyTooMany';
+    return 'applyErr';
+}
+
+// すでに収録済みか（読み込み済みのデータベースで調べる）
+function alreadyIncluded(kind, target) {
+    if (!db) return false;
+    try {
+        if (kind === 'user') {
+            var name = target.replace(/^.*\/users\//, '').replace(/\/.*$/, '');
+            return !!queryOne('SELECT 1 AS x FROM users WHERE lower(username) = lower(?)', [name]);
+        }
+        var m = target.match(/^(\d{1,12})$/) || target.match(/\/projects\/(\d{1,12})/);
+        return !!(m && queryOne('SELECT 1 AS x FROM projects WHERE id = ?', [Number(m[1])]));
+    } catch(e) { return false; }
+}
+
+async function submitApplication() {
+    var target = document.getElementById('apply-target').value.trim();
+    var message = document.getElementById('apply-message').value.trim();
+    if (!target) { setApplyMsg(t('applyBadTarget'), 'error'); return; }
+    if (alreadyIncluded(applyKind, target)) { setApplyMsg(t('applyAlready'), 'error'); return; }
+    var btn = document.getElementById('apply-submit-btn');
+    btn.disabled = true;
+    setApplyMsg(t('applySending'));
+    try {
+        await apiCall('POST', '/api/applications', { kind: applyKind, target: target, message: message });
+        document.getElementById('apply-target').value = '';
+        document.getElementById('apply-message').value = '';
+        setApplyMsg(t('applyDone'), 'ok');
+        await loadApplications();
+    } catch(e) {
+        setApplyMsg(t(applyErrKey(e)), 'error');
+    }
+    btn.disabled = false;
+}
+
+async function reviewApplication(id, status) {
+    try {
+        await apiCall('POST', '/api/admin/applications/' + id, { status: status });
+        showToast(t('applyReviewed'));
+        await loadApplications();
+    } catch(e) { showToast(t('applyErr')); }
+}
+
 loadLogin();
 updateSortOptions();
 loadLangPref();
@@ -1660,6 +1886,44 @@ loadSaves().catch(function() {});
             <div class="tw-warn-btns">
                 <button class="tw-warn-btn tw-warn-btn-scratch" onclick="logout()" data-i18n="loginLogout">ログアウト</button>
                 <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeLogin()" data-i18n="loginClose">閉じる</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tw-warn-overlay" id="apply-overlay" style="display:none" onclick="if(event.target===this)closeApply()">
+    <div class="tw-warn-box">
+        <div class="tw-warn-title" data-i18n="applyTitle">参加申請</div>
+
+        <div id="apply-view-login" style="display:none">
+            <div class="tw-warn-body" data-i18n="applyNeedLogin"></div>
+            <div class="tw-warn-btns">
+                <button class="tw-warn-btn tw-warn-btn-tw" onclick="closeApply();openLogin()" data-i18n="loginBtn">ログイン</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeApply()" data-i18n="loginClose">閉じる</button>
+            </div>
+        </div>
+
+        <div id="apply-view-form" style="display:none">
+            <div class="apply-scroll">
+                <div class="tw-warn-body" data-i18n="applyIntro"></div>
+                <div class="apply-kind">
+                    <button class="apply-kind-btn active" id="apply-kind-user" onclick="setApplyKind('user')" data-i18n="applyKindUser">ユーザー</button>
+                    <button class="apply-kind-btn" id="apply-kind-project" onclick="setApplyKind('project')" data-i18n="applyKindProject">作品</button>
+                </div>
+                <input type="text" id="apply-target" class="login-input" maxlength="200" autocomplete="off" autocapitalize="off" spellcheck="false"
+                       onkeydown="if(event.key==='Enter')submitApplication()">
+                <textarea id="apply-message" class="apply-textarea" maxlength="300" data-i18n-placeholder="applyMessage" placeholder="申請の理由・おすすめポイント（任意・300字まで）"></textarea>
+                <div class="login-msg" id="apply-msg"></div>
+                <div class="apply-h" data-i18n="applyMine">自分の申請</div>
+                <div id="apply-mine"></div>
+                <div id="apply-admin-wrap" style="display:none">
+                    <div class="apply-h" data-i18n="applyAdmin">審査待ち（管理者）</div>
+                    <div id="apply-admin"></div>
+                </div>
+            </div>
+            <div class="tw-warn-btns" style="margin-top:12px">
+                <button class="tw-warn-btn tw-warn-btn-tw" id="apply-submit-btn" onclick="submitApplication()" data-i18n="applySubmit">申請する</button>
+                <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeApply()" data-i18n="loginClose">閉じる</button>
             </div>
         </div>
     </div>

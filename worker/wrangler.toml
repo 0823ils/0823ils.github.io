@@ -8,6 +8,9 @@ AUTH_PROJECT_ID = "1410118669"
 # このAPIを呼んでよいサイトのオリジン（カンマ区切り）。GitHub Pagesのオリジンに合わせる
 ALLOWED_ORIGINS = "https://0823ils.github.io,http://localhost:5001"
 
+# 参加申請を審査できるScratchユーザー名（カンマ区切り）
+ADMIN_USERS = "TWC-ils"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "twc-ratings"

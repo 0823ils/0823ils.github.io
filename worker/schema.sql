@@ -31,3 +31,22 @@ CREATE TABLE IF NOT EXISTS project_authors (
   project_id INTEGER PRIMARY KEY,
   author_id INTEGER NOT NULL
 );
+
+-- 参加申請（ユーザー or 作品を収録してほしいという申請）
+CREATE TABLE IF NOT EXISTS applications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL CHECK (kind IN ('user', 'project')),
+  target_user_id INTEGER NOT NULL,   -- 収録されるユーザー（作品の場合は作者）
+  target_username TEXT NOT NULL,
+  project_id INTEGER,                -- kind = 'project' のときだけ
+  project_title TEXT,
+  applicant_id INTEGER NOT NULL,
+  applicant_username TEXT NOT NULL,
+  message TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at INTEGER NOT NULL,
+  reviewed_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_app_status ON applications(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_app_applicant ON applications(applicant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_app_target ON applications(target_user_id);

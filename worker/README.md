@@ -63,6 +63,15 @@ var TWC_API = 'https://twc-api.xxxx.workers.dev';
 | GET | `/api/saves` | 自分が保存した作品IDの一覧（新しい順・最大1000件。要ログイン） |
 | PUT | `/api/saves/:projectId` | 作品を保存（要ログイン。1ユーザー1000件まで） |
 | DELETE | `/api/saves/:projectId` | 保存を解除（要ログイン） |
+| POST | `/api/applications` | `{kind: "user"\|"project", target, message}` で参加申請（要ログイン。ユーザー名/URL・作品URL/IDを指定。同じ対象の重複は409、審査待ちは10件まで） |
+| GET | `/api/applications/mine` | 自分の申請一覧と `is_admin`（要ログイン） |
+| GET | `/api/applications/approved-users` | 承認済みユーザーの一覧（公開。収集ツールが使う） |
+| GET | `/api/admin/applications?status=pending` | 申請の一覧（管理者のみ） |
+| POST | `/api/admin/applications/:id` | `{status: "approved"\|"rejected"\|"pending"}` で審査（管理者のみ） |
+
+## 参加申請
+
+ログインしたユーザーは、サイト右上の「参加申請」から、ユーザーまたは作品の収録を申請できます。`wrangler.toml` の `ADMIN_USERS`（既定は `TWC-ils`）に入っているユーザーでログインすると、同じ画面に審査待ち一覧が出て、承認・却下できます。承認されたユーザーは、毎日の更新（`update.yml`）でフォロー先と一緒に収集されます（`TWC_API` 環境変数で指定）。
 
 ## ローカルで試す
 

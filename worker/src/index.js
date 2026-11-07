@@ -8,6 +8,11 @@
 //   GET    /api/saves                          -> { ids: [新しい順の作品ID] }   (要ログイン)
 //   PUT    /api/saves/:projectId               -> { saved: true }              (要ログイン)
 //   DELETE /api/saves/:projectId               -> { saved: false }             (要ログイン)
+//   POST   /api/applications { kind, target, message } -> { application }      (要ログイン。参加申請)
+//   GET    /api/applications/mine              -> { items, is_admin }          (要ログイン)
+//   GET    /api/applications/approved-users    -> { users: [{ id, username }] } (公開。収集ツール用)
+//   GET    /api/admin/applications?status=pending -> { items }                 (管理者のみ)
+//   POST   /api/admin/applications/:id { status } -> { application }           (管理者のみ。approved / rejected / pending)
 
 const SCRATCH_API = 'https://api.scratch.mit.edu';
 const CODE_TTL = 10 * 60 * 1000;            // コードの有効期限
@@ -20,7 +25,9 @@ const MAX_SAVES = 1000;
 const MAX_RANKING = 5000;                   // 順位表に載せる作品数の上限
 // 順位は、評価が少ない作品に偏らないよう「平均3点の評価が2件ある」ものとして計算する
 const PRIOR_MEAN = 3;
-const PRIOR_WEIGHT = 2;                     // 1ユーザーが保存できる作品数の上限
+const PRIOR_WEIGHT = 2;
+const MAX_PENDING_APPLICATIONS = 10;        // 1ユーザーが同時に出せる未審査の申請数
+const MAX_APP_MESSAGE = 300;
 
 class HttpError extends Error {
   constructor(status, code) { super(code); this.status = status; this.code = code; }
@@ -86,6 +93,13 @@ async function route(request, env) {
     if (method === 'PUT') return putRating(request, env, projectId);
     if (method === 'DELETE') return deleteRating(request, env, projectId);
   }
+  if (path === '/api/applications' && method === 'POST') return postApplication(request, env);
+  if (path === '/api/applications/mine' && method === 'GET') return myApplications(request, env);
+  if (path === '/api/applications/approved-users' && method === 'GET') return approvedUsers(env);
+  if (path === '/api/admin/applications' && method === 'GET') return adminList(request, env, url);
+  const am = path.match(/^\/api\/admin\/applications\/(\d{1,12})$/);
+  if (am && method === 'POST') return adminReview(request, env, Number(am[1]));
+
   const sm = path.match(/^\/api\/saves\/(\d{1,12})$/);
   if (sm) {
     const projectId = Number(sm[1]);
@@ -356,4 +370,123 @@ async function getRanking(env) {
   return json({
     items: rows.results.map(r => ({ id: r.project_id, avg: Math.round(r.a * 100) / 100, count: r.c })),
   });
+}
+
+
+// ---------- 参加申請 ----------
+
+function isAdmin(user, env) {
+  const admins = String(env.ADMIN_USERS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  return admins.includes(String(user.u).toLowerCase());
+}
+async function requireAdmin(request, env) {
+  const user = await requireUser(request, env);
+  if (!isAdmin(user, env)) throw new HttpError(403, 'forbidden');
+  return user;
+}
+
+async function scratchUser(name) {
+  let r;
+  try { r = await fetch(`${SCRATCH_API}/users/${encodeURIComponent(name)}`, { headers: { 'User-Agent': 'scratch-twc/1.0' } }); }
+  catch { throw new HttpError(502, 'scratch_unreachable'); }
+  if (r.status === 404) throw new HttpError(404, 'no_such_user');
+  if (!r.ok) throw new HttpError(502, 'scratch_error');
+  let u;
+  try { u = await r.json(); } catch { throw new HttpError(502, 'scratch_error'); }
+  if (!u || !Number.isInteger(u.id) || !u.username) throw new HttpError(502, 'scratch_error');
+  return u;
+}
+
+function appRow(r) {
+  return {
+    id: r.id, kind: r.kind,
+    target_user_id: r.target_user_id, target_username: r.target_username,
+    project_id: r.project_id, project_title: r.project_title,
+    applicant_username: r.applicant_username,
+    message: r.message, status: r.status,
+    created_at: r.created_at, reviewed_at: r.reviewed_at,
+  };
+}
+
+async function postApplication(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const kind = body.kind;
+  if (kind !== 'user' && kind !== 'project') throw new HttpError(400, 'bad_kind');
+  const message = String(body.message || '').trim().slice(0, MAX_APP_MESSAGE);
+  const target = String(body.target || '').trim();
+
+  const pending = await env.DB.prepare(
+    "SELECT COUNT(*) AS c FROM applications WHERE applicant_id = ? AND status = 'pending'"
+  ).bind(user.uid).first();
+  if (pending && pending.c >= MAX_PENDING_APPLICATIONS) throw new HttpError(429, 'too_many_applications');
+
+  let targetId, targetName, projectId = null, projectTitle = null;
+  if (kind === 'user') {
+    const name = target.replace(/^.*\/users\//, '').replace(/\/.*$/, '');
+    if (!/^[A-Za-z0-9_-]{3,20}$/.test(name)) throw new HttpError(400, 'bad_target');
+    const u = await scratchUser(name);
+    targetId = u.id; targetName = u.username;
+  } else {
+    const m = target.match(/^(\d{1,12})$/) || target.match(/\/projects\/(\d{1,12})/);
+    if (!m) throw new HttpError(400, 'bad_target');
+    projectId = Number(m[1]);
+    const pj = await scratchProject(projectId);
+    if (!pj || !pj.author || !Number.isInteger(pj.author.id) || !pj.author.username) throw new HttpError(502, 'scratch_error');
+    targetId = pj.author.id; targetName = pj.author.username;
+    projectTitle = String(pj.title || '').slice(0, 200);
+  }
+
+  // 同じ内容の申請が審査待ち・承認済みなら重複させない
+  const dup = await env.DB.prepare(
+    `SELECT id FROM applications
+      WHERE kind = ? AND target_user_id = ? AND COALESCE(project_id, 0) = ? AND status IN ('pending', 'approved') LIMIT 1`
+  ).bind(kind, targetId, projectId || 0).first();
+  if (dup) throw new HttpError(409, 'already_applied');
+
+  const now = Date.now();
+  const res = await env.DB.prepare(
+    `INSERT INTO applications (kind, target_user_id, target_username, project_id, project_title,
+                               applicant_id, applicant_username, message, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).bind(kind, targetId, targetName, projectId, projectTitle, user.uid, user.u, message, now).run();
+  const row = await env.DB.prepare('SELECT * FROM applications WHERE id = ?').bind(res.meta.last_row_id).first();
+  return json({ application: appRow(row) }, 201);
+}
+
+async function myApplications(request, env) {
+  const user = await requireUser(request, env);
+  const rows = await env.DB.prepare(
+    'SELECT * FROM applications WHERE applicant_id = ? ORDER BY created_at DESC, id DESC LIMIT 50'
+  ).bind(user.uid).all();
+  return json({ items: rows.results.map(appRow), is_admin: isAdmin(user, env) });
+}
+
+async function adminList(request, env, url) {
+  await requireAdmin(request, env);
+  const status = url.searchParams.get('status') || 'pending';
+  if (!['pending', 'approved', 'rejected'].includes(status)) throw new HttpError(400, 'bad_status');
+  const rows = await env.DB.prepare(
+    'SELECT * FROM applications WHERE status = ? ORDER BY created_at ASC, id ASC LIMIT 200'
+  ).bind(status).all();
+  return json({ items: rows.results.map(appRow) });
+}
+
+async function adminReview(request, env, id) {
+  await requireAdmin(request, env);
+  const body = await readJson(request);
+  if (!['pending', 'approved', 'rejected'].includes(body.status)) throw new HttpError(400, 'bad_status');
+  const res = await env.DB.prepare('UPDATE applications SET status = ?, reviewed_at = ? WHERE id = ?')
+    .bind(body.status, Date.now(), id).run();
+  if (!res.meta.changes) throw new HttpError(404, 'not_found');
+  const row = await env.DB.prepare('SELECT * FROM applications WHERE id = ?').bind(id).first();
+  return json({ application: appRow(row) });
+}
+
+// 承認済みのユーザー（収集ツールが、フォロー先と合わせて作品を集める）
+async function approvedUsers(env) {
+  const rows = await env.DB.prepare(
+    "SELECT DISTINCT target_user_id AS id, target_username AS username FROM applications WHERE status = 'approved'"
+  ).all();
+  return json({ users: rows.results });
 }

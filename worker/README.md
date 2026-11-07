@@ -82,3 +82,18 @@ npx wrangler dev        # http://localhost:8787
 ```
 
 このときは `index.html` の `TWC_API` を `http://localhost:8787` にして、`ALLOWED_ORIGINS` に、サイトを開いているオリジンを追加してください。
+
+## チャット
+
+全員で入る1つの部屋です。読むだけならログイン不要、投稿はログイン（Scratchコメント認証）が必要です。テーブルが増えているので、更新時は次を実行してください。
+
+```bash
+cd worker
+npx wrangler d1 execute twc-ratings --remote --file=schema.sql
+npx wrangler deploy
+```
+
+- 1メッセージ300字まで。連投は2秒以上あける、1分15件まで。
+- 通報が3件たまったメッセージは自動で非表示になります（管理者は画面で「再表示」できます）。
+- 管理者（`ADMIN_USERS`）は、削除・非表示・投稿禁止ができます。
+- リンクは自動では開けないよう、テキストとしてだけ表示します。

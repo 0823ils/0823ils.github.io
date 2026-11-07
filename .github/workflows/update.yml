@@ -25,6 +25,19 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - name: Clean old data
         run: rm -f scratch_projects.jsonl users.jsonl projects.db
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Follow approved users
+        continue-on-error: true
+        run: |
+          pip install scratchattach requests
+          python3 follow_approved.py
+        env:
+          TWC_API: https://twc-api.twc-scratch.workers.dev
+          SCRATCH_USERNAME: TWC-ils
+          SCRATCH_SESSION_ID: ${{ secrets.SCRATCH_SESSION_ID }}
+          SCRATCH_PASSWORD: ${{ secrets.SCRATCH_PASSWORD }}
       - name: Fetch
         run: ./target/release/scratch-mega-fetcher
         env:

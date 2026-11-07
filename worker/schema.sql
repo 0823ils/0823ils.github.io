@@ -50,3 +50,30 @@ CREATE TABLE IF NOT EXISTS applications (
 CREATE INDEX IF NOT EXISTS idx_app_status ON applications(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_app_applicant ON applications(applicant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_app_target ON applications(target_user_id);
+
+-- チャット（全員で入る1つの部屋）
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  hidden INTEGER NOT NULL DEFAULT 0,   -- 1: 通報で自動非表示 or 管理者が非表示
+  deleted INTEGER NOT NULL DEFAULT 0   -- 1: 削除（本人 or 管理者）
+);
+CREATE INDEX IF NOT EXISTS idx_chat_user_time ON chat_messages(user_id, created_at);
+
+-- 通報（1ユーザー1メッセージにつき1回）
+CREATE TABLE IF NOT EXISTS chat_reports (
+  message_id INTEGER NOT NULL,
+  reporter_id INTEGER NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (message_id, reporter_id)
+);
+
+-- 投稿禁止のユーザー
+CREATE TABLE IF NOT EXISTS chat_bans (
+  user_id INTEGER PRIMARY KEY,
+  username TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);

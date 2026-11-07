@@ -106,6 +106,18 @@ async function route(request, env) {
     if (method === 'PUT') return putSave(request, env, projectId);
     if (method === 'DELETE') return deleteSave(request, env, projectId);
   }
+  if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env);
+  if (path === '/api/chat/messages' && method === 'POST') return chatPost(request, env);
+  const cm = path.match(/^\/api\/chat\/messages\/(\d{1,12})(\/report)?$/);
+  if (cm) {
+    const id = Number(cm[1]);
+    if (cm[2] && method === 'POST') return chatReport(request, env, id);
+    if (!cm[2] && method === 'DELETE') return chatDelete(request, env, id);
+  }
+  const cam = path.match(/^\/api\/admin\/chat\/messages\/(\d{1,12})$/);
+  if (cam && method === 'POST') return chatAdminAction(request, env, Number(cam[1]));
+  if (path === '/api/admin/chat/bans' && method === 'POST') return chatAdminBan(request, env);
+
   throw new HttpError(404, 'not_found');
 }
 
@@ -489,4 +501,112 @@ async function approvedUsers(env) {
     "SELECT DISTINCT target_user_id AS id, target_username AS username FROM applications WHERE status = 'approved'"
   ).all();
   return json({ users: rows.results });
+}
+
+
+// ---------- チャット ----------
+//   GET    /api/chat/messages                    -> { messages: [...最新50件、古い順], is_admin }  (公開。管理者は非表示のものも見える)
+//   POST   /api/chat/messages { content }        -> { message }       (要ログイン。禁止ユーザー・連投は不可)
+//   DELETE /api/chat/messages/:id                -> { deleted }       (本人 or 管理者)
+//   POST   /api/chat/messages/:id/report         -> { reported }      (要ログイン。通報が3件で自動的に非表示)
+//   POST   /api/admin/chat/messages/:id { action: hide | restore | delete }   (管理者のみ)
+//   POST   /api/admin/chat/bans { username, banned }                          (管理者のみ。投稿禁止/解除)
+const CHAT_MAX_LEN = 300;
+const CHAT_PAGE = 50;
+const CHAT_REPORT_HIDE = 3;       // この件数の通報で自動的に非表示にする
+const CHAT_MIN_INTERVAL = 2000;   // 連投の最短間隔(ms)
+const CHAT_PER_MINUTE = 15;       // 1分あたりの投稿数の上限
+
+function chatRow(r) {
+  return { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
+           created_at: r.created_at, hidden: !!r.hidden };
+}
+
+async function chatList(request, env) {
+  const user = await getUser(request, env);
+  const admin = !!(user && isAdmin(user, env));
+  const rows = await env.DB.prepare(
+    `SELECT id, user_id, username, content, created_at, hidden FROM chat_messages
+      WHERE deleted = 0 ${admin ? '' : 'AND hidden = 0'} ORDER BY id DESC LIMIT ?`
+  ).bind(CHAT_PAGE).all();
+  return json({ messages: rows.results.reverse().map(chatRow), is_admin: admin });
+}
+
+async function chatPost(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, CHAT_MAX_LEN);
+  if (!content) throw new HttpError(400, 'empty');
+
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+
+  const now = Date.now();
+  const recent = await env.DB.prepare(
+    'SELECT COUNT(*) AS c, MAX(created_at) AS m FROM chat_messages WHERE user_id = ? AND created_at > ?'
+  ).bind(user.uid, now - 60000).first();
+  if (recent && ((recent.m && now - recent.m < CHAT_MIN_INTERVAL) || recent.c >= CHAT_PER_MINUTE)) {
+    throw new HttpError(429, 'too_fast');
+  }
+
+  const res = await env.DB.prepare(
+    'INSERT INTO chat_messages (user_id, username, content, created_at) VALUES (?, ?, ?, ?)'
+  ).bind(user.uid, user.u, content, now).run();
+  return json({ message: { id: res.meta.last_row_id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false } }, 201);
+}
+
+async function chatDelete(request, env, id) {
+  const user = await requireUser(request, env);
+  const row = await env.DB.prepare('SELECT user_id FROM chat_messages WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!row) throw new HttpError(404, 'not_found');
+  if (row.user_id !== user.uid && !isAdmin(user, env)) throw new HttpError(403, 'forbidden');
+  await env.DB.prepare('UPDATE chat_messages SET deleted = 1 WHERE id = ?').bind(id).run();
+  return json({ deleted: true });
+}
+
+async function chatReport(request, env, id) {
+  const user = await requireUser(request, env);
+  const row = await env.DB.prepare('SELECT user_id FROM chat_messages WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!row) throw new HttpError(404, 'not_found');
+  if (row.user_id === user.uid) throw new HttpError(400, 'own_message');
+  await env.DB.prepare('INSERT OR IGNORE INTO chat_reports (message_id, reporter_id, created_at) VALUES (?, ?, ?)')
+    .bind(id, user.uid, Date.now()).run();
+  const c = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_reports WHERE message_id = ?').bind(id).first();
+  if (c && c.c >= CHAT_REPORT_HIDE) {
+    await env.DB.prepare('UPDATE chat_messages SET hidden = 1 WHERE id = ?').bind(id).run();
+  }
+  return json({ reported: true });
+}
+
+async function chatAdminAction(request, env, id) {
+  await requireAdmin(request, env);
+  const body = await readJson(request);
+  const action = body.action;
+  let sql;
+  if (action === 'hide') sql = 'UPDATE chat_messages SET hidden = 1 WHERE id = ?';
+  else if (action === 'restore') sql = 'UPDATE chat_messages SET hidden = 0 WHERE id = ?';
+  else if (action === 'delete') sql = 'UPDATE chat_messages SET deleted = 1 WHERE id = ?';
+  else throw new HttpError(400, 'bad_action');
+  const res = await env.DB.prepare(sql).bind(id).run();
+  if (!res.meta.changes) throw new HttpError(404, 'not_found');
+  // 再表示したら通報をリセットする（残すと、次の1件でまた非表示になるため）
+  if (action === 'restore') await env.DB.prepare('DELETE FROM chat_reports WHERE message_id = ?').bind(id).run();
+  return json({ ok: true });
+}
+
+async function chatAdminBan(request, env) {
+  await requireAdmin(request, env);
+  const body = await readJson(request);
+  const name = String(body.username || '').trim();
+  if (!/^[A-Za-z0-9_-]{3,20}$/.test(name)) throw new HttpError(400, 'bad_username');
+  const u = await scratchUser(name);
+  if (isAdmin({ u: u.username }, env)) throw new HttpError(400, 'cannot_ban_admin');
+  const banned = body.banned !== false;
+  if (banned) {
+    await env.DB.prepare('INSERT OR REPLACE INTO chat_bans (user_id, username, created_at) VALUES (?, ?, ?)')
+      .bind(u.id, u.username, Date.now()).run();
+  } else {
+    await env.DB.prepare('DELETE FROM chat_bans WHERE user_id = ?').bind(u.id).run();
+  }
+  return json({ username: u.username, banned });
 }

@@ -202,6 +202,18 @@
         .save-btn.saved svg path { fill: currentColor; }
         .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: rgba(40,40,40,0.92); color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 2000; max-width: 90vw; text-align: center; }
 
+        /* ===== チャット ===== */
+        .tw-warn-box.chat-box { max-width: 440px; display: flex; flex-direction: column; height: min(80vh, 600px); }
+        #chat-list { flex: 1; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 6px 8px; margin: 10px 0; background: #fafbfc; font-size: 13px; }
+        .chat-msg { padding: 5px 2px; border-bottom: 1px solid #f0f0f0; word-break: break-word; }
+        .chat-msg.hidden { opacity: 0.5; }
+        .chat-name { font-weight: bold; color: #4D97FF; margin-right: 6px; }
+        .chat-time { color: #aaa; font-size: 11px; margin-right: 4px; }
+        .chat-text { white-space: pre-wrap; margin-top: 2px; color: #333; }
+        .chat-act { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0 4px; }
+        .chat-act:hover { color: #e55; }
+        .chat-row { display: flex; gap: 8px; align-items: stretch; }
+        .chat-row textarea { flex: 1; min-height: 44px; resize: none; }
         /* 言語切替はヘッダーに移動 */
     </style>
 </head>
@@ -223,6 +235,7 @@
                 <span class="tw-slider"></span>
             </label>
         </div>
+        <button class="header-login-btn" id="chat-btn" onclick="openChat()" style="display:none" data-i18n="chatBtn">チャット</button>
         <button class="header-login-btn" id="apply-btn" onclick="openApply()" style="display:none" data-i18n="applyBtn">参加申請</button>
         <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
         <div class="header-lang-switch">
@@ -460,6 +473,7 @@ const LANG = {
         saveErr: '保存の変更に失敗しました。時間をおいてやり直してください。',
         saveLimit: '保存できる上限（1000件）に達しました。',
         applyBtn: '参加申請',
+        chatBtn: 'チャット',
         applyTitle: '参加申請',
         applyIntro: 'scratch TWCに載せたいユーザーや作品を申請できます（自分以外の人・作品の推薦も可）。承認されると、次回の更新から収録されます。作品を申請した場合は、その作者の作品が収録されます。',
         applyNeedLogin: '申請するにはログインが必要です。',
@@ -575,6 +589,7 @@ const LANG = {
         saveErr: "Couldn't update your saved list. Please try again later.",
         saveLimit: "You've reached the limit of 1,000 saved projects.",
         applyBtn: 'Apply',
+        chatBtn: 'Chat',
         applyTitle: 'Apply to be included',
         applyIntro: 'Suggest a Scratch user or project for scratch TWC (you can also recommend other people or projects). Approved entries are included from the next update. For a project, its creator\'s projects are included.',
         applyNeedLogin: 'Log in to apply.',
@@ -1088,6 +1103,8 @@ function updateLoginUI() {
     btn.style.display = apiEnabled() ? '' : 'none';
     var apBtn = document.getElementById('apply-btn');
     if (apBtn) apBtn.style.display = apiEnabled() ? '' : 'none';
+    var chBtn = document.getElementById('chat-btn');
+    if (chBtn) chBtn.style.display = apiEnabled() ? '' : 'none';
     var svTab = document.getElementById('mode-saved-btn');
     if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
     if (loginUser) {
@@ -1693,6 +1710,149 @@ function updateSortOptions() {
 }
 
 // 起動
+// ===== チャット =====
+var CHAT_T = {
+    ja: { title: 'チャット', ph: 'メッセージ（300字まで）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
+          empty: 'まだメッセージがありません', report: '通報', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
+          banned_done: ' さんを投稿禁止にしました',
+          e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
+          e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
+    en: { title: 'Chat', ph: 'Message (max 300 chars)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
+          empty: 'No messages yet', report: 'Report', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
+          banned_done: ' was banned',
+          e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
+          e_own_message: 'You cannot report your own message', e_other: 'Something went wrong' }
+};
+var chatTimer = null;
+var chatSig = '';
+var chatIsAdmin = false;
+
+function ct(k) { return (CHAT_T[currentLang] || CHAT_T.ja)[k] || k; }
+function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
+function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
+
+function openChat() {
+    document.getElementById('chat-overlay').style.display = 'flex';
+    document.getElementById('chat-title').innerText = ct('title');
+    document.getElementById('chat-close-btn').innerText = ct('close');
+    setChatMsg('');
+    chatSig = '';
+    renderChatInput();
+    loadChat(true);
+    clearInterval(chatTimer);
+    chatTimer = setInterval(function() { if (!document.hidden) loadChat(false); }, 8000);
+}
+
+function closeChat() {
+    document.getElementById('chat-overlay').style.display = 'none';
+    clearInterval(chatTimer);
+    chatTimer = null;
+}
+
+function renderChatInput() {
+    var w = document.getElementById('chat-input-wrap');
+    if (!loginUser) {
+        w.innerHTML = '<div class="tw-warn-body">' + esc(ct('login')) + '</div>' +
+            '<button class="tw-warn-btn tw-warn-btn-tw" onclick="closeChat();openLogin()">' + esc(ct('loginBtn')) + '</button>';
+        return;
+    }
+    w.innerHTML = '<div class="chat-row"><textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
+        esc(ct('ph')) + '"></textarea><button class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
+    document.getElementById('chat-text').addEventListener('keydown', function(e) {
+        // 日本語入力の変換確定のEnterでは送信しない
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat(); }
+    });
+}
+
+async function loadChat(forceScroll) {
+    try {
+        var d = await apiCall('GET', '/api/chat/messages');
+        chatIsAdmin = !!d.is_admin;
+        var sig = d.messages.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
+            '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0);
+        if (sig === chatSig) return;
+        chatSig = sig;
+        renderChat(d.messages, forceScroll);
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+function renderChat(msgs, forceScroll) {
+    var box = document.getElementById('chat-list');
+    var atBottom = forceScroll || (box.scrollHeight - box.scrollTop - box.clientHeight < 40);
+    if (!msgs.length) {
+        box.innerHTML = '<div class="chat-time">' + esc(ct('empty')) + '</div>';
+        return;
+    }
+    var me = loginUser ? loginUser.id : 0;
+    box.innerHTML = msgs.map(function(m) {
+        var d = new Date(m.created_at);
+        var time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+        var acts = '';
+        if (loginUser && m.user_id !== me) {
+            acts += '<button class="chat-act" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
+        }
+        if (loginUser && (m.user_id === me || chatIsAdmin)) {
+            acts += '<button class="chat-act" onclick="chatDelete(' + m.id + ')">' + esc(ct('del')) + '</button>';
+        }
+        if (chatIsAdmin) {
+            var act = m.hidden ? 'restore' : 'hide';
+            acts += '<button class="chat-act" data-a="' + act + '" onclick="chatAdmin(' + m.id + ',this.dataset.a)">' + esc(ct(act)) + '</button>';
+            if (m.user_id !== me) {
+                acts += '<button class="chat-act" data-u="' + esc(m.username) + '" onclick="chatBan(this.dataset.u)">' + esc(ct('ban')) + '</button>';
+            }
+        }
+        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '">' +
+            '<span class="chat-name">' + esc(m.username) + '</span>' +
+            '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts +
+            '<div class="chat-text">' + esc(m.content) + '</div></div>';
+    }).join('');
+    if (atBottom) box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+    var ta = document.getElementById('chat-text');
+    if (!ta || !ta.value.trim()) return;
+    setChatMsg('');
+    try {
+        await apiCall('POST', '/api/chat/messages', { content: ta.value });
+        ta.value = '';
+        await loadChat(true);
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+async function chatReport(id) {
+    try {
+        await apiCall('POST', '/api/chat/messages/' + id + '/report');
+        setChatMsg(ct('reported'));
+        loadChat(false);
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+async function chatDelete(id) {
+    if (!confirm(ct('confirmDel'))) return;
+    try {
+        await apiCall('DELETE', '/api/chat/messages/' + id);
+        loadChat(false);
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+async function chatAdmin(id, action) {
+    try {
+        await apiCall('POST', '/api/admin/chat/messages/' + id, { action: action });
+        loadChat(false);
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+async function chatBan(name) {
+    if (!confirm(name + ct('confirmBan'))) return;
+    try {
+        await apiCall('POST', '/api/admin/chat/bans', { username: name, banned: true });
+        setChatMsg(name + ct('banned_done'));
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+
 // ===== 参加申請 =====
 var applyKind = 'user';
 var applyMineItems = [];
@@ -1925,6 +2085,18 @@ loadSaves().catch(function() {});
                 <button class="tw-warn-btn tw-warn-btn-tw" id="apply-submit-btn" onclick="submitApplication()" data-i18n="applySubmit">申請する</button>
                 <button class="tw-warn-btn tw-warn-btn-cancel" onclick="closeApply()" data-i18n="loginClose">閉じる</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="tw-warn-overlay" id="chat-overlay" style="display:none" onclick="if(event.target===this)closeChat()">
+    <div class="tw-warn-box chat-box">
+        <div class="tw-warn-title" id="chat-title">チャット</div>
+        <div id="chat-list"></div>
+        <div id="chat-input-wrap"></div>
+        <div class="login-msg" id="chat-msg"></div>
+        <div class="tw-warn-btns">
+            <button class="tw-warn-btn tw-warn-btn-cancel" id="chat-close-btn" onclick="closeChat()">閉じる</button>
         </div>
     </div>
 </div>

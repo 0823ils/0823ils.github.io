@@ -212,8 +212,9 @@
         .chat-text { white-space: pre-wrap; margin-top: 2px; color: #333; }
         .chat-act { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0 4px; }
         .chat-act:hover { color: #e55; }
-        .chat-row { display: flex; gap: 8px; align-items: stretch; }
-        .chat-row textarea { flex: 1; min-height: 44px; resize: none; }
+        .chat-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
+        .chat-row textarea { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; margin-bottom: 0; resize: none; }
+        .chat-row .tw-warn-btn { width: auto; flex: 0 0 auto; padding: 0 20px; }
         /* 言語切替はヘッダーに移動 */
     </style>
 </head>

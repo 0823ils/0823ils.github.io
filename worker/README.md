@@ -97,3 +97,15 @@ npx wrangler deploy
 - 通報が3件たまったメッセージは自動で非表示になります（管理者は画面で「再表示」できます）。
 - 管理者（`ADMIN_USERS`）は、削除・非表示・投稿禁止ができます。
 - リンクは自動では開けないよう、テキストとしてだけ表示します。
+
+### チャットの部屋
+
+部屋は「3D」「数学」「物理」「三角形」の4つです（`index.js` の `CHAT_ROOMS`）。すでにチャットを使っているDBでは、**先に1回だけ**次を実行してから、デプロイしてください。既存のメッセージは「3D」の部屋に入ります。
+
+```bash
+cd worker
+npx wrangler d1 execute twc-ratings --remote --file=migrate_chat_rooms.sql
+npx wrangler deploy
+```
+
+新しくDBを作る場合は、`schema.sql` だけで足ります。

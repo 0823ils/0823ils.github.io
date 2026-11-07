@@ -106,7 +106,7 @@ async function route(request, env) {
     if (method === 'PUT') return putSave(request, env, projectId);
     if (method === 'DELETE') return deleteSave(request, env, projectId);
   }
-  if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env);
+  if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env, url);
   if (path === '/api/chat/messages' && method === 'POST') return chatPost(request, env);
   const cm = path.match(/^\/api\/chat\/messages\/(\d{1,12})(\/report)?$/);
   if (cm) {
@@ -505,7 +505,7 @@ async function approvedUsers(env) {
 
 
 // ---------- チャット ----------
-//   GET    /api/chat/messages                    -> { messages: [...最新50件、古い順], is_admin }  (公開。管理者は非表示のものも見える)
+//   GET    /api/chat/messages?room=3d|math|physics|triangle  -> { messages: [...最新50件、古い順], is_admin }  (公開。管理者は非表示のものも見える)
 //   POST   /api/chat/messages { content }        -> { message }       (要ログイン。禁止ユーザー・連投は不可)
 //   DELETE /api/chat/messages/:id                -> { deleted }       (本人 or 管理者)
 //   POST   /api/chat/messages/:id/report         -> { reported }      (要ログイン。通報が3件で自動的に非表示)
@@ -516,19 +516,27 @@ const CHAT_PAGE = 50;
 const CHAT_REPORT_HIDE = 3;       // この件数の通報で自動的に非表示にする
 const CHAT_MIN_INTERVAL = 2000;   // 連投の最短間隔(ms)
 const CHAT_PER_MINUTE = 15;       // 1分あたりの投稿数の上限
+const CHAT_ROOMS = ['3d', 'math', 'physics', 'triangle'];  // 部屋（3D / 数学 / 物理 / 三角形）
+
+function chatRoom(v) {
+  const r = String(v || '3d');
+  if (!CHAT_ROOMS.includes(r)) throw new HttpError(400, 'bad_room');
+  return r;
+}
 
 function chatRow(r) {
   return { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
            created_at: r.created_at, hidden: !!r.hidden };
 }
 
-async function chatList(request, env) {
+async function chatList(request, env, url) {
+  const room = chatRoom(url.searchParams.get('room'));
   const user = await getUser(request, env);
   const admin = !!(user && isAdmin(user, env));
   const rows = await env.DB.prepare(
     `SELECT id, user_id, username, content, created_at, hidden FROM chat_messages
-      WHERE deleted = 0 ${admin ? '' : 'AND hidden = 0'} ORDER BY id DESC LIMIT ?`
-  ).bind(CHAT_PAGE).all();
+      WHERE room = ? AND deleted = 0 ${admin ? '' : 'AND hidden = 0'} ORDER BY id DESC LIMIT ?`
+  ).bind(room, CHAT_PAGE).all();
   return json({ messages: rows.results.reverse().map(chatRow), is_admin: admin });
 }
 
@@ -537,6 +545,7 @@ async function chatPost(request, env) {
   const body = await readJson(request);
   const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, CHAT_MAX_LEN);
   if (!content) throw new HttpError(400, 'empty');
+  const room = chatRoom(body.room);
 
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
@@ -550,8 +559,8 @@ async function chatPost(request, env) {
   }
 
   const res = await env.DB.prepare(
-    'INSERT INTO chat_messages (user_id, username, content, created_at) VALUES (?, ?, ?, ?)'
-  ).bind(user.uid, user.u, content, now).run();
+    'INSERT INTO chat_messages (user_id, username, content, created_at, room) VALUES (?, ?, ?, ?, ?)'
+  ).bind(user.uid, user.u, content, now, room).run();
   return json({ message: { id: res.meta.last_row_id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false } }, 201);
 }
 

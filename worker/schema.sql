@@ -58,10 +58,12 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   username TEXT NOT NULL,
   content TEXT NOT NULL,
   created_at INTEGER NOT NULL,
+  room TEXT NOT NULL DEFAULT '3d',     -- 部屋: 3d / math / physics / triangle
   hidden INTEGER NOT NULL DEFAULT 0,   -- 1: 通報で自動非表示 or 管理者が非表示
   deleted INTEGER NOT NULL DEFAULT 0   -- 1: 削除（本人 or 管理者）
 );
 CREATE INDEX IF NOT EXISTS idx_chat_user_time ON chat_messages(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_chat_room ON chat_messages(room, id);
 
 -- 通報（1ユーザー1メッセージにつき1回）
 CREATE TABLE IF NOT EXISTS chat_reports (

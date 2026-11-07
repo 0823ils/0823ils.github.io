@@ -215,6 +215,10 @@
         .chat-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
         .chat-row textarea { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; margin-bottom: 0; resize: none; }
         .chat-row .tw-warn-btn { width: auto; flex: 0 0 auto; padding: 0 20px; }
+        .chat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .chat-tab { padding: 5px 12px; border-radius: 14px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .chat-tab:hover { border-color: #4D97FF; color: #4D97FF; }
+        .chat-tab.active { background: #4D97FF; border-color: #4D97FF; color: #fff; }
         /* 言語切替はヘッダーに移動 */
     </style>
 </head>
@@ -1713,13 +1717,13 @@ function updateSortOptions() {
 // 起動
 // ===== チャット =====
 var CHAT_T = {
-    ja: { title: 'チャット', ph: 'メッセージ（300字まで）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
+    ja: { room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', ph: 'メッセージ（300字まで）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { title: 'Chat', ph: 'Message (max 300 chars)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
+    en: { room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', ph: 'Message (max 300 chars)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
@@ -1729,6 +1733,9 @@ var CHAT_T = {
 var chatTimer = null;
 var chatSig = '';
 var chatIsAdmin = false;
+var CHAT_ROOMS = ['3d', 'math', 'physics', 'triangle'];
+var chatRoom = '3d';
+try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
 
 function ct(k) { return (CHAT_T[currentLang] || CHAT_T.ja)[k] || k; }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
@@ -1740,6 +1747,7 @@ function openChat() {
     document.getElementById('chat-close-btn').innerText = ct('close');
     setChatMsg('');
     chatSig = '';
+    renderChatTabs();
     renderChatInput();
     loadChat(true);
     clearInterval(chatTimer);
@@ -1750,6 +1758,24 @@ function closeChat() {
     document.getElementById('chat-overlay').style.display = 'none';
     clearInterval(chatTimer);
     chatTimer = null;
+}
+
+function renderChatTabs() {
+    document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
+        return '<button class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r +
+            '" onclick="setChatRoom(this.dataset.r)">' + esc(ct('room_' + r)) + '</button>';
+    }).join('');
+}
+
+function setChatRoom(r) {
+    if (r === chatRoom) return;
+    chatRoom = r;
+    try { localStorage.setItem('twc_chat_room', r); } catch (e) {}
+    chatSig = '';
+    document.getElementById('chat-list').innerHTML = '';
+    setChatMsg('');
+    renderChatTabs();
+    loadChat(true);
 }
 
 function renderChatInput() {
@@ -1769,10 +1795,12 @@ function renderChatInput() {
 
 async function loadChat(forceScroll) {
     try {
-        var d = await apiCall('GET', '/api/chat/messages');
+        var room = chatRoom;
+        var d = await apiCall('GET', '/api/chat/messages?room=' + encodeURIComponent(room));
+        if (room !== chatRoom) return;  // 取得中に部屋を切り替えた場合は捨てる
         chatIsAdmin = !!d.is_admin;
         var sig = d.messages.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
-            '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0);
+            '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;
         chatSig = sig;
         renderChat(d.messages, forceScroll);
@@ -1817,7 +1845,7 @@ async function sendChat() {
     if (!ta || !ta.value.trim()) return;
     setChatMsg('');
     try {
-        await apiCall('POST', '/api/chat/messages', { content: ta.value });
+        await apiCall('POST', '/api/chat/messages', { content: ta.value, room: chatRoom });
         ta.value = '';
         await loadChat(true);
     } catch (e) { setChatMsg(chatErr(e)); }
@@ -2093,6 +2121,7 @@ loadSaves().catch(function() {});
 <div class="tw-warn-overlay" id="chat-overlay" style="display:none" onclick="if(event.target===this)closeChat()">
     <div class="tw-warn-box chat-box">
         <div class="tw-warn-title" id="chat-title">チャット</div>
+        <div class="chat-tabs" id="chat-tabs"></div>
         <div id="chat-list"></div>
         <div id="chat-input-wrap"></div>
         <div class="login-msg" id="chat-msg"></div>

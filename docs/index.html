@@ -2,7 +2,37 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Scratch TWC (Technical Works Collection)</title>
+    <title>scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション</title>
+    <meta name="description" content="scratch TWC（Scratch Technical Works Collection）は、Scratchの技術作品を検索・閲覧できるコレクションサイト。scratch技術作品をプロジェクト名・ユーザー名で検索し、技術力順・いいね順で探せます。TurboWarpでも開けます。">
+    <meta name="keywords" content="scratch TWC,scratch-TWC,Scratch TWC,scratch技術作品,Scratch技術作品,scratch,スクラッチ,技術作品,Technical Works Collection,Scratch Technical Works Collection,TurboWarp">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta name="author" content="0823ils">
+    <link rel="canonical" href="https://0823ils.github.io/scratch-TWC/">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="alternate" hreflang="ja" href="https://0823ils.github.io/scratch-TWC/">
+    <link rel="alternate" hreflang="x-default" href="https://0823ils.github.io/scratch-TWC/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="scratch TWC">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:title" content="scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション">
+    <meta property="og:description" content="Scratchの技術作品（scratch技術作品）を検索・閲覧できる scratch-TWC。技術力順・いいね順で探せます。">
+    <meta property="og:url" content="https://0823ils.github.io/scratch-TWC/">
+    <meta property="og:image" content="https://0823ils.github.io/scratch-TWC/icon.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション">
+    <meta name="twitter:description" content="Scratchの技術作品（scratch技術作品）を検索・閲覧できる scratch-TWC。">
+    <meta name="twitter:image" content="https://0823ils.github.io/scratch-TWC/icon.png">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "scratch TWC",
+      "alternateName": ["scratch-TWC", "Scratch TWC", "Scratch Technical Works Collection", "Scratch技術作品コレクション", "scratch技術作品"],
+      "url": "https://0823ils.github.io/scratch-TWC/",
+      "inLanguage": ["ja", "en"],
+      "description": "Scratchの技術作品（Technical Works Collection）を検索・閲覧できるサイト。"
+    }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,6 +54,12 @@
         .header-lang-btn { padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.75); transition: all 0.2s; }
         .header-lang-btn.active { background: white; color: #4D97FF; }
         .header-lang-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.25); }
+
+        .about-section { margin-top: 32px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 0.85em; line-height: 1.8; }
+        .about-section h2 { font-size: 1.05em; color: #555; margin-bottom: 8px; }
+        .about-section h3 { font-size: 0.95em; color: #666; margin: 14px 0 4px; }
+        .about-section p { margin-bottom: 6px; }
+        .about-section a { color: #4D97FF; }
 
         #loading-screen { text-align: center; padding: 40px 0; }
         #loading-screen p { color: #888; margin-top: 12px; font-size: 0.95em; }
@@ -154,7 +190,7 @@
 <!-- ===== サイトヘッダー ===== -->
 <header class="site-header">
     <div class="header-inner">
-        <div class="header-logo">scratch TWC</div>
+        <h1 class="header-logo">scratch TWC</h1>
         <div class="header-mode-tabs">
             <button class="header-mode-tab active" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
             <button class="header-mode-tab" id="mode-browse-btn" onclick="setMode('browse')" data-i18n="modeBrowse">全作品</button>
@@ -301,6 +337,21 @@
             </div>
         </div>
 </div>
+
+    <!-- 検索エンジン向け・初めての方向けの説明（常時表示） -->
+    <section class="about-section" id="about">
+        <h2>scratch TWC（Scratch Technical Works Collection）とは</h2>
+        <p>scratch TWC（scratch-TWC）は、Scratchの<strong>技術作品</strong>を集めた検索・閲覧サイトです。3D表現、物理演算、高速描画、ゲームエンジン、独自のアルゴリズムなど、Scratchで作られた技術作品（scratch技術作品）を、プロジェクト名やユーザー名で検索できます。</p>
+        <h3>主な機能</h3>
+        <p>・scratch技術作品をプロジェクト名・ユーザー名で検索<br>
+           ・技術力順・いいね順・新しい順・古い順・ランダムで並び替え<br>
+           ・作品をTurboWarpまたはScratchで開く<br>
+           ・気になった作品の保存、技術力の評価</p>
+        <h3>ユーザー別・作品別ページ</h3>
+        <p><a href="authors.html">収録ユーザー一覧</a>から、ユーザーごとのscratch技術作品ページを見られます。</p>
+        <h3>About</h3>
+        <p>scratch TWC (Scratch Technical Works Collection) is a searchable collection of technically impressive Scratch projects. Browse and search Scratch technical works by project name or creator, and open them in Scratch or TurboWarp.</p>
+    </section>
 
 <script>
 // ===== 翻訳 / Translations =====

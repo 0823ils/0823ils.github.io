@@ -17,6 +17,9 @@ mkdir -p docs
 cp index.html docs/index.html
 cp projects.db docs/projects.db
 
+# 4. 検索エンジン向けの静的ページ（作品・ユーザー・sitemap）を生成
+python3 generate_pages.py projects.db docs
+
 DB_SIZE=$(du -sh docs/projects.db | cut -f1)
 echo ""
 echo "完了！"

@@ -2,7 +2,8 @@
 //   POST   /api/auth/start      { username }   -> { code }
 //   POST   /api/auth/verify     { code }       -> { token, username, id, expires_at }
 //   GET    /api/ratings?ids=1,2,3              -> { ratings: { "1": { avg, count, mine } } }
-//   PUT    /api/ratings/:projectId { score }   -> { avg, count, mine }   (要ログイン)
+//   GET    /api/ratings/ranking                -> { items: [{ id, avg, count }] }  技術力の高い順
+//   PUT    /api/ratings/:projectId { score }   -> { avg, count, mine }   (要ログイン。自分の作品・存在しない作品は不可)
 //   DELETE /api/ratings/:projectId             -> { avg, count, mine }   (要ログイン)
 //   GET    /api/saves                          -> { ids: [新しい順の作品ID] }   (要ログイン)
 //   PUT    /api/saves/:projectId               -> { saved: true }              (要ログイン)
@@ -15,7 +16,11 @@ const CLOCK_SKEW = 2 * 60 * 1000;           // 時計ずれの許容
 const MAX_COMMENT_PAGES = 10;               // コメントを遡る最大ページ数(40件/ページ)
 const MAX_PENDING_PER_USER = 5;             // 同一ユーザー名の同時発行数の上限
 const MAX_IDS = 100;
-const MAX_SAVES = 1000;                     // 1ユーザーが保存できる作品数の上限
+const MAX_SAVES = 1000;
+const MAX_RANKING = 5000;                   // 順位表に載せる作品数の上限
+// 順位は、評価が少ない作品に偏らないよう「平均3点の評価が2件ある」ものとして計算する
+const PRIOR_MEAN = 3;
+const PRIOR_WEIGHT = 2;                     // 1ユーザーが保存できる作品数の上限
 
 class HttpError extends Error {
   constructor(status, code) { super(code); this.status = status; this.code = code; }
@@ -71,6 +76,7 @@ async function route(request, env) {
   if (path === '/api/auth/start' && method === 'POST') return authStart(request, env);
   if (path === '/api/auth/verify' && method === 'POST') return authVerify(request, env);
   if (path === '/api/ratings' && method === 'GET') return getRatings(request, env, url);
+  if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
 
@@ -263,11 +269,38 @@ async function getRatings(request, env, url) {
   return json({ ratings: out });
 }
 
+// 作品の作者のIDを返す。一度調べたらD1に覚えておく（作者は変わらない）。
+// 公開されていない・存在しない作品は 404 にする。
+async function getProjectAuthorId(env, projectId) {
+  const cached = await env.DB.prepare('SELECT author_id FROM project_authors WHERE project_id = ?')
+    .bind(projectId).first();
+  if (cached) return cached.author_id;
+
+  const pj = await scratchProject(projectId);
+  const authorId = pj && pj.author && pj.author.id;
+  if (!Number.isInteger(authorId)) throw new HttpError(502, 'scratch_error');
+  await env.DB.prepare('INSERT OR IGNORE INTO project_authors (project_id, author_id) VALUES (?, ?)')
+    .bind(projectId, authorId).run();
+  return authorId;
+}
+
+async function scratchProject(projectId) {
+  let r;
+  try { r = await fetch(`${SCRATCH_API}/projects/${projectId}`, { headers: { 'User-Agent': 'scratch-twc/1.0' } }); }
+  catch { throw new HttpError(502, 'scratch_unreachable'); }
+  if (r.status === 404) throw new HttpError(404, 'no_such_project');
+  if (!r.ok) throw new HttpError(502, 'scratch_error');
+  try { return await r.json(); } catch { throw new HttpError(502, 'scratch_error'); }
+}
+
 async function putRating(request, env, projectId) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
   const score = body.score;
   if (!Number.isInteger(score) || score < 1 || score > 5) throw new HttpError(400, 'bad_score');
+  // 自分の作品には付けられない（存在しない作品への書き込みも、ここで止まる）
+  const authorId = await getProjectAuthorId(env, projectId);
+  if (authorId === user.uid) throw new HttpError(403, 'own_project');
   await env.DB.prepare(
     `INSERT INTO ratings (project_id, user_id, username, score, updated_at) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(project_id, user_id) DO UPDATE SET score = excluded.score, username = excluded.username, updated_at = excluded.updated_at`
@@ -308,4 +341,19 @@ async function deleteSave(request, env, projectId) {
   const user = await requireUser(request, env);
   await env.DB.prepare('DELETE FROM saves WHERE user_id = ? AND project_id = ?').bind(user.uid, projectId).run();
   return json({ saved: false });
+}
+
+// ---------- 技術力の順位表 ----------
+
+async function getRanking(env) {
+  const rows = await env.DB.prepare(
+    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a,
+            (SUM(score) + ?) * 1.0 / (COUNT(*) + ?) AS w
+       FROM ratings GROUP BY project_id
+      ORDER BY w DESC, c DESC, project_id DESC
+      LIMIT ?`
+  ).bind(PRIOR_MEAN * PRIOR_WEIGHT, PRIOR_WEIGHT, MAX_RANKING).all();
+  return json({
+    items: rows.results.map(r => ({ id: r.project_id, avg: Math.round(r.a * 100) / 100, count: r.c })),
+  });
 }

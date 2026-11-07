@@ -201,9 +201,13 @@
                     <option value="loves" data-i18n="sortLoves">いいね順</option>
                     <option value="newest" data-i18n="sortNewest">新しい順</option>
                     <option value="oldest" data-i18n="sortOldest">古い順</option>
+                    <option value="skill" data-i18n="sortSkill">技術力順</option>
                 </select>
                 <button class="filter-toggle-btn" id="s-filter-btn" onclick="toggleFilter('s')" data-i18n-title="filterTitle" title="絞り込み">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4h14M5 9h8M8 14h2" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <button class="filter-toggle-btn" onclick="copyShareLink()" data-i18n-title="shareTitle" title="この条件のリンクをコピー">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <button class="refresh-btn" id="s-refresh-btn" onclick="doSearch()" data-i18n-title="refreshTitle" title="再抽選">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2M13.5 2v3h-3" stroke="#4D97FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -219,6 +223,14 @@
                 <div class="filter-row">
                     <span class="filter-label" data-i18n="authorLabel">ユーザー名</span>
                     <input class="filter-input filter-input-wide" type="text" id="s-author-exact" placeholder="完全一致" oninput="onSearchInput()" autocomplete="off" data-i18n-placeholder="authorPlaceholder">
+                </div>
+                <div class="filter-row" id="s-skill-row">
+                    <span class="filter-label" data-i18n="skillLabel">技術力</span>
+                    <select class="sort-select" id="s-skill-filter" onchange="onSkillFilterChange('s')">
+                        <option value="all" data-i18n="skillAll">すべて</option>
+                        <option value="rated" data-i18n="skillRated">評価あり</option>
+                        <option value="high" data-i18n="skillHigh">★4以上</option>
+                    </select>
                 </div>
             </div>
             <div class="status-text" id="s-status"></div>
@@ -240,9 +252,13 @@
                     <option value="loves" data-i18n="sortLoves">いいね順</option>
                     <option value="newest" data-i18n="sortNewest">新しい順</option>
                     <option value="oldest" data-i18n="sortOldest">古い順</option>
+                    <option value="skill" data-i18n="sortSkill">技術力順</option>
                 </select>
                 <button class="filter-toggle-btn" id="b-filter-btn" onclick="toggleFilter('b')" data-i18n-title="filterTitle" title="絞り込み">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4h14M5 9h8M8 14h2" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <button class="filter-toggle-btn" onclick="copyShareLink()" data-i18n-title="shareTitle" title="この条件のリンクをコピー">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <button class="refresh-btn" id="b-refresh-btn" onclick="browseReset()" data-i18n-title="refreshTitle" title="再抽選">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.8 0 3.4.87 4.4 2.2M13.5 2v3h-3" stroke="#4D97FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -258,6 +274,14 @@
                 <div class="filter-row">
                     <span class="filter-label" data-i18n="authorLabel">ユーザー名</span>
                     <input class="filter-input filter-input-wide" type="text" id="b-author-exact" placeholder="完全一致" oninput="onBrowseFilterChange()" autocomplete="off" data-i18n-placeholder="authorPlaceholder">
+                </div>
+                <div class="filter-row" id="b-skill-row">
+                    <span class="filter-label" data-i18n="skillLabel">技術力</span>
+                    <select class="sort-select" id="b-skill-filter" onchange="onSkillFilterChange('b')">
+                        <option value="all" data-i18n="skillAll">すべて</option>
+                        <option value="rated" data-i18n="skillRated">評価あり</option>
+                        <option value="high" data-i18n="skillHigh">★4以上</option>
+                    </select>
                 </div>
             </div>
             <div class="status-text" id="b-status"></div>
@@ -295,6 +319,17 @@ const LANG = {
         sortLoves: 'いいね順',
         sortNewest: '新しい順',
         sortOldest: '古い順',
+        sortSkill: '技術力順',
+        skillLabel: '技術力',
+        skillAll: 'すべて',
+        skillRated: '評価あり',
+        skillHigh: '★4以上',
+        shareTitle: 'この条件のリンクをコピー',
+        shareCopied: 'リンクをコピーしました',
+        rateOwn: '自分の作品は評価できません',
+        rateNoProject: 'この作品は評価できません（公開されていない可能性があります）',
+        rateScratchErr: 'Scratchに確認できませんでした。時間をおいてやり直してください。',
+        skillErr: '技術力の順位を取得できませんでした。時間をおいてやり直してください。',
         filterTitle: '絞り込み',
         refreshTitle: '再抽選',
         lovesLabel: 'いいね数',
@@ -369,6 +404,17 @@ const LANG = {
         sortLoves: 'Most loved',
         sortNewest: 'Newest',
         sortOldest: 'Oldest',
+        sortSkill: 'Top skill',
+        skillLabel: 'Skill',
+        skillAll: 'All',
+        skillRated: 'Rated',
+        skillHigh: '4★ or higher',
+        shareTitle: 'Copy a link to these results',
+        shareCopied: 'Link copied',
+        rateOwn: "You can't rate your own project",
+        rateNoProject: "This project can't be rated (it may not be shared)",
+        rateScratchErr: "Couldn't check with Scratch. Please try again later.",
+        skillErr: "Couldn't load the skill ranking. Please try again later.",
         filterTitle: 'Filter',
         refreshTitle: 'Reshuffle',
         lovesLabel: 'Loves',
@@ -530,6 +576,8 @@ async function initDB() {
 
         db = new SQL.Database(buf);
 
+        await applyDefaultView();
+
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('main-ui').style.display = 'block';
         loadTWPref();
@@ -611,7 +659,7 @@ function queryOne(sql, params) {
     return Object.fromEntries(columns.map((c, i) => [c, values[0][i]]));
 }
 
-function buildWhere(col, q, lovesMin, lovesMax, authorExact) {
+function buildWhere(col, q, lovesMin, lovesMax, authorExact, idList) {
     const conds = [];
     const params = [];
     if (q) {
@@ -623,6 +671,7 @@ function buildWhere(col, q, lovesMin, lovesMax, authorExact) {
     if (lovesMin !== '') { conds.push('loves >= ?'); params.push(Number(lovesMin)); }
     if (lovesMax !== '') { conds.push('loves <= ?'); params.push(Number(lovesMax)); }
     if (authorExact) { conds.push('author_username = ?'); params.push(authorExact); }
+    if (idList) conds.push('id IN (' + idList + ')');   // 技術力での絞り込み（整数だけのリスト）
     return { where: conds.length ? 'WHERE ' + conds.join(' AND ') : '', params };
 }
 
@@ -657,10 +706,11 @@ function setMode(mode) {
         browseReset();
     }
     if (mode === 'saved') enterSaved();
+    updateUrl();
 }
 
 // ===== 検索モード =====
-let sTimer=null, sTab='title', sSort='random', sPage=1, sTotalPages=1;
+let sTimer=null, sTab='title', sSort='random', sPage=1, sTotalPages=1, sSkillFilter='all';
 
 function setSearchTab(tab, el) {
     sTab=tab; sPage=1;
@@ -677,6 +727,12 @@ function setSearchSort(sort) {
     } else {
         refreshBtn.style.display = 'none';
     }
+    if (sort === 'skill') {
+        loadSkillRanking().then(triggerSearch).catch(function() {
+            document.getElementById('s-status').innerText = t('skillErr');
+        });
+        return;
+    }
     triggerSearch();
 }
 function changeSearchPage(d) { sPage=Math.max(1,Math.min(sTotalPages,sPage+d)); doSearch(); window.scrollTo(0,0); }
@@ -688,7 +744,8 @@ function triggerSearch() {
     const lMin=document.getElementById('s-loves-min').value;
     const lMax=document.getElementById('s-loves-max').value;
     const auth=document.getElementById('s-author-exact').value.trim();
-    if (!q && !lMin && !lMax && !auth) {
+    updateUrl();
+    if (!q && !lMin && !lMax && !auth && sSkillFilter === 'all') {
         document.getElementById('s-status').innerText='';
         document.getElementById('s-results').innerHTML='';
         document.getElementById('s-pagination').style.display='none';
@@ -708,12 +765,20 @@ function doSearch() {
         const lMax=document.getElementById('s-loves-max').value;
         const auth=document.getElementById('s-author-exact').value.trim();
         const col = sTab==='author' ? 'author_username' : 'title';
-        const { where, params } = buildWhere(col, q, lMin, lMax, auth);
+        const { where, params } = buildWhere(col, q, lMin, lMax, auth, skillFilterSql(sSkillFilter));
         const order = orderByClause(sSort);
         const offset = (sPage-1)*PAGE_SIZE;
 
-        const total = queryOne('SELECT COUNT(*) as c FROM projects ' + where, params).c;
-        const projects = queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params);
+        let total, projects;
+        if (sSort === 'skill') {
+            if (!skillRank) throw new Error(t('skillErr'));
+            const r = skillPage(where, params, offset, PAGE_SIZE, sSkillFilter !== 'all');
+            total = r.total;
+            projects = r.rows;
+        } else {
+            total = queryOne('SELECT COUNT(*) as c FROM projects ' + where, params).c;
+            projects = queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params);
+        }
         sTotalPages = Math.max(1, Math.ceil(total/PAGE_SIZE));
 
         document.getElementById('s-status').innerText = t('hits', total);
@@ -736,12 +801,20 @@ function doSearch() {
 }
 
 // ===== 全作品モード =====
-let bSort='random', bPage=1, bTotal=0, bTotalPages=1, bLoading=false;
+let bSort='random', bPage=1, bTotal=0, bTotalPages=1, bLoading=false, bSkillFilter='all';
 let bFilterTimer=null;
 
 function setBrowseSort(sort) {
     bSort=sort;
     document.getElementById('b-refresh-btn').style.display = sort==='random' ? '' : 'none';
+    if (sort === 'skill') {
+        loadSkillRanking().then(browseReset).catch(function() {
+            document.getElementById('b-results').innerHTML = '';
+            document.getElementById('b-load-more-wrap').style.display = 'none';
+            document.getElementById('b-status').innerText = t('skillErr');
+        });
+        return;
+    }
     browseReset();
 }
 function onBrowseFilterChange() {
@@ -751,6 +824,7 @@ function onBrowseFilterChange() {
 
 function browseReset() {
     if (!db) return;
+    updateUrl();
     bPage=1; bTotal=0; bTotalPages=1;
     document.getElementById('b-results').innerHTML='';
     document.getElementById('b-load-more-wrap').style.display='none';
@@ -771,16 +845,26 @@ function browseLoadMore() {
         const lMin=document.getElementById('b-loves-min').value;
         const lMax=document.getElementById('b-loves-max').value;
         const auth=document.getElementById('b-author-exact').value.trim();
-        const { where, params } = buildWhere('title', '', lMin, lMax, auth);
+        const { where, params } = buildWhere('title', '', lMin, lMax, auth, skillFilterSql(bSkillFilter));
         const order = orderByClause(bSort);
         const offset=(bPage-1)*PAGE_SIZE;
 
-        if (bPage===1) {
-            bTotal=queryOne('SELECT COUNT(*) as c FROM projects ' + where, params).c;
-            bTotalPages=Math.max(1,Math.ceil(bTotal/PAGE_SIZE));
+        let projects;
+        if (bSort === 'skill') {
+            if (!skillRank) throw new Error(t('skillErr'));
+            const r = skillPage(where, params, offset, PAGE_SIZE, bSkillFilter !== 'all');
+            if (bPage===1) {
+                bTotal = r.total;
+                bTotalPages = Math.max(1, Math.ceil(bTotal/PAGE_SIZE));
+            }
+            projects = r.rows;
+        } else {
+            if (bPage===1) {
+                bTotal=queryOne('SELECT COUNT(*) as c FROM projects ' + where, params).c;
+                bTotalPages=Math.max(1,Math.ceil(bTotal/PAGE_SIZE));
+            }
+            projects=queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params);
         }
-
-        const projects=queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params);
         document.getElementById('b-status').innerText='';
 
         if (bPage===1 && projects.length===0) {
@@ -1107,8 +1191,15 @@ async function submitRating(score) {
     } catch(e) {
         if (e.status === 401) { renderRateModal(); return; }
         msg.className = 'login-msg error';
-        msg.innerText = t('rateErr');
+        msg.innerText = t(rateErrKey(e));
     }
+}
+
+function rateErrKey(e) {
+    if (e.message === 'own_project') return 'rateOwn';
+    if (e.message === 'no_such_project') return 'rateNoProject';
+    if (e.message === 'scratch_error' || e.message === 'scratch_unreachable') return 'rateScratchErr';
+    return 'rateErr';
 }
 
 async function removeRating() {
@@ -1262,8 +1353,211 @@ function savedLoadMore() {
     updateSavedStatus();
 }
 
+// ===== 技術力順 =====
+// サーバーの順位表（評価のある作品だけ）を取得し、検索条件に合う作品を、その順に並べる。
+var skillRank = null;    // { ids: [技術力の高い順の作品ID], pos: { 作品ID: 順位 } }
+
+async function loadSkillRanking() {
+    var data = await apiCall('GET', '/api/ratings/ranking');
+    var ids = [], pos = {}, avg = {};
+    data.items.forEach(function(it) {
+        var id = Number(it.id);
+        if (Number.isInteger(id) && id > 0 && pos[id] === undefined) {
+            pos[id] = ids.length; ids.push(id); avg[id] = Number(it.avg) || 0;
+        }
+    });
+    skillRank = { ids: ids, pos: pos, avg: avg };
+}
+
+// 技術力順の1ページ分を返す。
+// 先頭は、評価のある作品（技術力の高い順）。そのあとに、評価のない作品をいいね順で続ける。
+function skillPage(where, params, offset, limit, ratedOnly) {
+    var ids = skillRank ? skillRank.ids : [];
+    var inList = ids.join(',');   // サーバーから来たIDも、整数だけに絞ってある
+    var join = where ? where + ' AND ' : 'WHERE ';
+    var rated = [];
+    if (ids.length) {
+        rated = queryAll('SELECT * FROM projects ' + join + 'id IN (' + inList + ')', params);
+        rated.sort(function(a, b) { return skillRank.pos[a.id] - skillRank.pos[b.id]; });
+    }
+    var rows = rated.slice(offset, offset + limit);
+    if (ratedOnly) return { total: rated.length, rows: rows };   // 技術力で絞り込み中は、評価のない作品を続けない
+    var restWhere = ids.length ? join + 'id NOT IN (' + inList + ')' : where;
+    var restTotal = queryOne('SELECT COUNT(*) as c FROM projects ' + restWhere, params).c;
+    var need = limit - rows.length;
+    if (need > 0) {
+        var restOffset = Math.max(0, offset - rated.length);
+        rows = rows.concat(queryAll(
+            'SELECT * FROM projects ' + restWhere + ' ORDER BY loves DESC, id DESC LIMIT ' + need + ' OFFSET ' + restOffset, params));
+    }
+    return { total: rated.length + restTotal, rows: rows };
+}
+
+// 起動時の表示。URLに条件があればそれを再現し、なければ「全作品」を技術力順で開く。
+// 順位表が取れなければ、ランダムで開く
+async function applyDefaultView() {
+    var st = readUrlState();
+    var rankingOk = false;
+    if (apiEnabled()) {
+        try {
+            await Promise.race([
+                loadSkillRanking(),
+                new Promise(function(_, reject) { setTimeout(function() { reject(new Error('timeout')); }, 4000); })
+            ]);
+            rankingOk = true;
+        } catch(e) {
+            skillRank = null;
+        }
+    }
+    if (rankingOk) {
+        bSort = 'skill';
+        document.getElementById('b-sort-select').value = 'skill';
+        document.getElementById('b-refresh-btn').style.display = 'none';
+    }
+    if (st) applyUrlState(st, rankingOk);
+    setMode(st && st.m === 's' ? 'search' : 'browse');
+    if (st && st.m === 's') triggerSearch();
+}
+
+// ===== 技術力での絞り込み =====
+// 'all' = 絞り込まない / 'rated' = 評価のある作品 / 'high' = 平均が4以上の作品
+function skillFilterSql(mode) {
+    if (mode !== 'rated' && mode !== 'high') return null;
+    var ids = (skillRank ? skillRank.ids : []).filter(function(id) {
+        return mode === 'rated' || skillRank.avg[id] >= 4;
+    });
+    return ids.length ? ids.join(',') : '0';   // 該当なしのときは、何にも一致しない条件にする
+}
+
+function onSkillFilterChange(prefix) {
+    var sel = document.getElementById(prefix + '-skill-filter');
+    var val = sel.value;
+    var apply = function() {
+        if (prefix === 's') { sSkillFilter = val; sPage = 1; triggerSearch(); }
+        else { bSkillFilter = val; browseReset(); }
+    };
+    if (val === 'all') { apply(); return; }
+    loadSkillRanking().then(apply).catch(function() {
+        sel.value = (prefix === 's' ? sSkillFilter : bSkillFilter);   // 取得できないので、元に戻す
+        showToast(t('skillErr'));
+    });
+}
+
+// ===== 検索条件のURL共有 =====
+// 画面の条件を、アドレスバーのURLに反映する。そのURLを開くと、同じ条件で表示される。
+function shareParams() {
+    var p = new URLSearchParams();
+    var put = function(k, v) { if (v !== '' && v !== null && v !== undefined) p.set(k, v); };
+    var val = function(id) { return document.getElementById(id).value.trim(); };
+    if (currentMode === 'search') {
+        p.set('m', 's');
+        put('q', val('query'));
+        if (sTab === 'author') p.set('t', 'author');
+        p.set('sort', sSort);
+        put('lmin', val('s-loves-min')); put('lmax', val('s-loves-max')); put('author', val('s-author-exact'));
+        if (sSkillFilter !== 'all') p.set('skill', sSkillFilter);
+    } else if (currentMode === 'browse') {
+        p.set('m', 'b');
+        p.set('sort', bSort);
+        put('lmin', val('b-loves-min')); put('lmax', val('b-loves-max')); put('author', val('b-author-exact'));
+        if (bSkillFilter !== 'all') p.set('skill', bSkillFilter);
+    } else {
+        return null;   // 保存タブは、個人のものなので共有しない
+    }
+    return p;
+}
+
+function shareUrl() {
+    var base = location.href.split(/[?#]/)[0];
+    var p = shareParams();
+    return p ? base + '?' + p.toString() : base;
+}
+
+function updateUrl() {
+    try { history.replaceState(null, '', shareUrl()); } catch(e) {}
+}
+
+function copyShareLink() {
+    updateUrl();
+    var url = shareUrl();
+    var done = function() { showToast(t('shareCopied')); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function() { showToast(url); });
+    } else {
+        showToast(url);
+    }
+}
+
+// URLの条件を読む。不正な値は捨てる（読めた分だけ使う）
+function readUrlState() {
+    var p = new URLSearchParams(location.search);
+    var m = p.get('m');
+    if (m !== 's' && m !== 'b') return null;
+    var sort = p.get('sort');
+    if (['random', 'loves', 'newest', 'oldest', 'skill'].indexOf(sort) === -1) sort = null;
+    var skill = p.get('skill');
+    if (skill !== 'rated' && skill !== 'high') skill = 'all';
+    var num = function(k) { var v = p.get(k); return (v !== null && /^\d{1,9}$/.test(v)) ? v : ''; };
+    return {
+        m: m,
+        q: (p.get('q') || '').slice(0, 200),
+        t: p.get('t') === 'author' ? 'author' : 'title',
+        sort: sort,
+        lmin: num('lmin'), lmax: num('lmax'),
+        author: (p.get('author') || '').slice(0, 50),
+        skill: skill
+    };
+}
+
+// 読んだ条件を、画面の部品と内部の状態に入れる
+function applyUrlState(st, rankingOk) {
+    var sort = st.sort, skill = st.skill;
+    if (!rankingOk) {                       // 順位表が使えないときは、技術力の条件を外す
+        if (sort === 'skill') sort = 'random';
+        skill = 'all';
+    }
+    var setVal = function(id, v) { document.getElementById(id).value = v; };
+    var openFilter = function(prefix) {
+        document.getElementById(prefix + '-filter-box').classList.remove('hidden');
+        document.getElementById(prefix + '-filter-btn').classList.add('active');
+    };
+    var anyFilter = st.lmin || st.lmax || st.author || skill !== 'all';
+
+    if (st.m === 's') {
+        sTab = st.t;
+        document.querySelectorAll('#search-section .tab').forEach(function(el, i) {
+            el.classList.toggle('active', (i === 1) === (sTab === 'author'));
+        });
+        setVal('query', st.q);
+        sSort = sort || 'random';
+        setVal('s-sort-select', sSort);
+        document.getElementById('s-refresh-btn').style.setProperty('display', sSort === 'random' ? 'flex' : 'none', 'important');
+        setVal('s-loves-min', st.lmin); setVal('s-loves-max', st.lmax); setVal('s-author-exact', st.author);
+        sSkillFilter = skill; setVal('s-skill-filter', skill);
+        if (anyFilter) openFilter('s');
+    } else {
+        if (sort) { bSort = sort; setVal('b-sort-select', sort); }
+        document.getElementById('b-refresh-btn').style.display = bSort === 'random' ? '' : 'none';
+        setVal('b-loves-min', st.lmin); setVal('b-loves-max', st.lmax); setVal('b-author-exact', st.author);
+        bSkillFilter = skill; setVal('b-skill-filter', skill);
+        if (anyFilter) openFilter('b');
+    }
+}
+
+// 技術力の評価（サーバー）を使わない設定のときは、選択肢も隠す
+function updateSortOptions() {
+    document.querySelectorAll('option[value="skill"]').forEach(function(o) {
+        o.disabled = !apiEnabled();
+        o.hidden = !apiEnabled();
+    });
+    ['s-skill-row', 'b-skill-row'].forEach(function(id) {
+        document.getElementById(id).style.display = apiEnabled() ? '' : 'none';
+    });
+}
+
 // 起動
 loadLogin();
+updateSortOptions();
 loadLangPref();
 initDB();
 loadSaves().catch(function() {});

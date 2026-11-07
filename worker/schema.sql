@@ -25,3 +25,9 @@ CREATE TABLE IF NOT EXISTS saves (
   PRIMARY KEY (user_id, project_id)
 );
 CREATE INDEX IF NOT EXISTS idx_saves_user_time ON saves(user_id, created_at DESC);
+
+-- 作品の作者（自分の作品への評価を止めるための記憶。Scratchに何度も問い合わせないため）
+CREATE TABLE IF NOT EXISTS project_authors (
+  project_id INTEGER PRIMARY KEY,
+  author_id INTEGER NOT NULL
+);

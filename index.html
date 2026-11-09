@@ -263,6 +263,16 @@
         .stat-box { background: #f4f7fd; border-radius: 10px; padding: 10px 12px; }
         .stat-box b { display: block; font-size: 20px; color: #333; }
         .stat-box span { font-size: 11px; color: #888; }
+        .pp-card { background: #fff; border: 1px solid #e3e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+        .pp-title { margin: 0 0 4px; font-size: 20px; } .pp-meta { color: #666; font-size: 13px; margin-bottom: 10px; }
+        .pp-embed iframe { width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 8px; background: #000; }
+        .pp-thumb { width: 100%; max-width: 480px; border-radius: 8px; cursor: pointer; display: block; }
+        .pp-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+        .pp-btns a { text-decoration: none; display: inline-block; }
+        .pp-h { font-weight: bold; margin-bottom: 6px; } .pp-stars { display: flex; gap: 2px; }
+        .pp-dist-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
+        .pp-dist-star { width: 28px; color: #f5b301; } .pp-dist-n { width: 44px; text-align: right; color: #666; }
+        .pp-dist-bar { flex: 1; height: 10px; background: #eef1f6; border-radius: 5px; overflow: hidden; } .pp-dist-bar div { height: 100%; background: #f5b301; }
         .back-btn { border: none; background: none; color: #4D97FF; font-weight: bold; font-size: 13px; cursor: pointer; padding: 0 0 10px; }
         .genre-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; justify-content: center; }
         .genre-chip { padding: 4px 10px; border-radius: 14px; border: 1px solid #d5dbe6; background: #fff; color: #666; font-size: 12px; cursor: pointer; }
@@ -370,7 +380,7 @@
             </div>
         </div>
         <button class="header-login-btn" id="apply-btn" onclick="openApply()" style="display:none" data-i18n="applyBtn">参加申請</button>
-        <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
+        <button class="header-login-btn" id="login-btn" onclick="onLoginBtn()">ログイン</button>
         <div class="header-menu-wrap">
             <button class="header-icon-btn" id="menu-btn" onclick="toggleHeaderMenu(event)" aria-label="Settings" title="Settings">
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
@@ -574,6 +584,12 @@
             <div class="load-more-wrap" id="profile-more-wrap" style="display:none; text-align:center; margin: 16px 0;">
                 <button class="load-more-btn" id="profile-more" onclick="profileLoadMore()"></button>
             </div>
+        </div>
+
+        <!-- 作品ページ -->
+        <div id="project-section" style="display:none">
+            <button class="back-btn" id="pp-back" onclick="closeProjectPage()"></button>
+            <div id="pp-body"></div>
         </div>
 
         <!-- 管理 -->
@@ -959,12 +975,115 @@ async function initDB() {
     }
 }
 
+
+// ===== 作品ページ =====
+var ppId = null, ppDist = null, ppPlaying = false;
+function openProjectPage(id) {
+    id = Number(id);
+    if (!Number.isInteger(id)) return;
+    ppId = id; ppDist = null; ppPlaying = false;
+    setMode('project');
+    renderProjectPage();
+    window.scrollTo(0, 0);
+    ppLoadDetail();
+}
+function closeProjectPage() { ppStopEmbed(); setMode(prevMode && prevMode !== 'user' && prevMode !== 'project' ? prevMode : 'browse'); }
+function ppStopEmbed() { ppPlaying = false; var f = document.getElementById('pp-embed'); if (f) f.innerHTML = ''; }
+function ppPlay() {
+    ppPlaying = !ppPlaying;
+    var box = document.getElementById('pp-embed'), b = document.getElementById('pp-play-btn'), th = document.querySelector('#pp-body .pp-thumb');
+    if (ppPlaying) {
+        box.innerHTML = '<iframe src="https://turbowarp.org/' + Number(ppId) + '/embed" allowfullscreen allow="autoplay; fullscreen" loading="lazy"></iframe>';
+        if (b) b.innerText = nt('ppStop');
+        if (th) th.style.display = 'none';
+    } else {
+        box.innerHTML = '';
+        if (b) b.innerText = nt('ppPlay');
+        if (th) th.style.display = '';
+    }
+}
+async function ppLoadDetail() {
+    if (!apiEnabled()) return;
+    var id = ppId;
+    try {
+        var d = await apiCall('GET', '/api/ratings/detail?id=' + id);
+        if (id !== ppId) return;
+        ratingCache[id] = { avg: d.avg, count: d.count, mine: d.mine };
+        if (myRatings) { if (d.mine) myRatings[id] = d.mine; else delete myRatings[id]; }
+        ppDist = d.dist || [0,0,0,0,0];
+        renderPpRate();
+    } catch (e) {}
+}
+function ppRateBox() {
+    if (!apiEnabled()) return '';
+    var r = ratingCache[ppId] || { avg: 0, count: 0, mine: null };
+    var h = '<div class="pp-h">' + esc(nt('ppRate')) + '</div>';
+    if (!loginUser) {
+        h += '<button class="tw-warn-btn tw-warn-btn-scratch" onclick="openLogin()">' + esc(nt('ppLoginRate')) + '</button>';
+    } else {
+        h += '<div class="pp-stars">';
+        for (var i = 1; i <= 5; i++) h += '<button class="rate-star-btn' + (r.mine && i <= r.mine ? ' on' : '') + '" onclick="ppSubmit(' + i + ')">★</button>';
+        h += '</div>';
+        if (r.mine) h += '<button class="back-btn" onclick="ppRemove()">' + esc(nt('ppRemove')) + '</button>';
+    }
+    h += '<div id="pp-msg" class="login-msg"></div>';
+    h += '<div class="pp-h" style="margin-top:12px">' + esc(nt('ppDist')) + (r.count ? ' ・ ' + esc(nt('ppAvg', r.avg.toFixed(1), r.count)) : '') + '</div>';
+    if (!ppDist) h += '<div class="status-text">' + esc(t('loading')) + '</div>';
+    else if (!r.count) h += '<div class="status-text">' + esc(nt('ppNoRate')) + '</div>';
+    else {
+        var max = Math.max.apply(null, ppDist.concat([1]));
+        for (var s = 5; s >= 1; s--) {
+            var n = ppDist[s - 1] || 0;
+            h += '<div class="pp-dist-row"><span class="pp-dist-star">★' + s + '</span><div class="pp-dist-bar"><div style="width:' + Math.round(n / max * 100) + '%"></div></div><span class="pp-dist-n">' + esc(nt('ppPeople', n)) + '</span></div>';
+        }
+    }
+    return h;
+}
+function renderPpRate() { var el = document.getElementById('pp-rate'); if (el) el.innerHTML = ppRateBox(); }
+async function ppSubmit(score) {
+    var id = ppId;
+    try {
+        await apiCall('PUT', '/api/ratings/' + id, { score: score });
+        await ppLoadDetail();
+        document.querySelectorAll('[data-rate-id="' + id + '"]').forEach(renderRatingEl);
+        var m = document.getElementById('pp-msg'); if (m) { m.className = 'login-msg ok'; m.innerText = nt('ppSaved'); }
+    } catch (e) {
+        if (e.status === 401) { renderPpRate(); return; }
+        var m2 = document.getElementById('pp-msg'); if (m2) { m2.className = 'login-msg error'; m2.innerText = t(rateErrKey(e)); }
+    }
+}
+async function ppRemove() {
+    var id = ppId;
+    try {
+        await apiCall('DELETE', '/api/ratings/' + id);
+        await ppLoadDetail();
+        document.querySelectorAll('[data-rate-id="' + id + '"]').forEach(renderRatingEl);
+    } catch (e) { var m = document.getElementById('pp-msg'); if (m) { m.className = 'login-msg error'; m.innerText = nt('ppFail'); } }
+}
+function renderProjectPage() {
+    var back = document.getElementById('pp-back'); if (back) back.innerText = nt('back');
+    var box = document.getElementById('pp-body'); if (!box || ppId === null) return;
+    var p = db ? queryOne('SELECT * FROM projects WHERE id = ' + Number(ppId)) : null;
+    if (!p) { box.innerHTML = '<div class="status-text">' + esc(db ? nt('ppNotFound') : t('loading')) + '</div>'; if (!db) setTimeout(function() { if (currentMode === 'project') renderProjectPage(); }, 600); return; }
+    box.innerHTML =
+        '<div class="pp-card"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
+        '<div class="pp-meta">' + esc(nt('ppBy')) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a> ・ ♥ ' + Number(p.loves || 0) + ' ・ 👁 ' + Number(p.views || 0) + '</div>' +
+        '<div id="pp-embed" class="pp-embed"></div>' +
+        '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()">' +
+        '<div class="pp-btns"><button class="tw-warn-btn tw-warn-btn-scratch" id="pp-play-btn" onclick="ppPlay()">' + esc(nt('ppPlay')) + '</button>' +
+        '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + Number(p.id) + '">' + esc(nt('ppScratch')) + '</a>' +
+        '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a></div></div>' +
+        '<div class="pp-card" id="pp-rate"></div>';
+    renderPpRate();
+}
+
 // ===== 共通 =====
 function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function openProject(id, hasTw) {
+function openProject(id, hasTw) { openProjectPage(id); }
+function openProjectExternal(id, hasTw) {
     const tw = document.getElementById('tw-toggle-cb').checked;
     if (tw) {
         window.open('https://turbowarp.org/' + id, '_blank', 'noopener');
@@ -1120,12 +1239,12 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
-var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', admin: 'admin-section' };
+var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', admin: 'admin-section' };
 var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
 function setMode(mode) {
-    if (mode === 'user' && currentMode !== 'user') prevMode = currentMode;
+    if ((mode === 'user' || mode === 'project') && currentMode !== 'user' && currentMode !== 'project') prevMode = currentMode;
     currentMode = mode;
     Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
     Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
@@ -1138,6 +1257,7 @@ function setMode(mode) {
     if (mode === 'saved') enterSaved();
     if (mode === 'rank') enterRank();
     if (mode === 'admin') enterAdmin();
+    if (mode !== 'project') ppStopEmbed();
     updateNavDots();
     updateUrl();
 }
@@ -1947,9 +2067,10 @@ async function applyDefaultView() {
         document.getElementById('b-refresh-btn').style.display = 'none';
     }
     // URLにジャンルがあれば、先にその一覧を取っておく
-    if (st && st.m !== 'u' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
+    if (st && st.m !== 'u' && st.m !== 'p' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
     if (st && (st.m === 's' || st.m === 'b')) applyUrlState(st, rankingOk);
     if (st && st.m === 'u') { openProfile(st.u); return; }
+    if (st && st.m === 'p') { prevMode = 'browse'; openProjectPage(st.id); return; }
     if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
     if (st && st.m === 'c' && apiEnabled()) {
         if (st.room) { chatRoom = st.room; try { localStorage.setItem('twc_chat_room', st.room); } catch (e) {} }
@@ -2006,6 +2127,8 @@ function shareParams() {
         if (bGenre) p.set('g', bGenre);
     } else if (currentMode === 'user' && profileUser) {
         p.set('m', 'u'); p.set('u', profileUser);
+    } else if (currentMode === 'project' && ppId) {
+        p.set('m', 'p'); p.set('id', ppId);
     } else if (currentMode === 'rank') {
         p.set('m', 'r'); p.set('p', rankPeriod);
     } else if (currentMode === 'chat') {
@@ -2042,6 +2165,7 @@ function readUrlState() {
     var p = new URLSearchParams(location.search);
     var m = p.get('m');
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
+    if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
     if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '' };
     if (m !== 's' && m !== 'b') return null;
@@ -2893,13 +3017,15 @@ var NT = {
     g_3d: '3D', g_physics: '物理', g_engine: 'ゲームエンジン', g_render: '描画・レンダリング', g_algorithm: 'アルゴリズム', g_math: '数学', g_tool: 'ツール', g_media: '映像・画像', g_audio: '音', g_ai: 'AI・機械学習', g_other: 'その他',
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
-    sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順' },
+    sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
+    ppBy: '作者', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
-    sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest' }
+    sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
+    ppBy: 'By', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 
@@ -3024,6 +3150,7 @@ function openProfile(name) {
     renderProfile();
     window.scrollTo(0, 0);
 }
+function onLoginBtn() { if (loginUser) openProfile(loginUser.username); else openLogin(); }
 function closeProfile() { setMode(prevMode && prevMode !== 'user' ? prevMode : 'browse'); }
 function setProfileSort(v) { profileSort = v; profileLoad(); }
 async function renderProfile() {

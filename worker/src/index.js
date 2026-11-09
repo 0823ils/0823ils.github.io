@@ -1,10 +1,10 @@
 // scratch-TWC API (Cloudflare Workers + D1)
 //   POST   /api/auth/start      { username }   -> { code }
 //   POST   /api/auth/verify     { code }       -> { token, username, id, expires_at }
-//   GET    /api/ratings?ids=1,2,3              -> { ratings: { "1": { avg, count, mine } } }
-//   GET    /api/ratings/ranking                -> { items: [{ id, avg, count }] }  技術力の高い順
-//   PUT    /api/ratings/:projectId { score }   -> { avg, count, mine }   (要ログイン。自分の作品・存在しない作品は不可)
-//   DELETE /api/ratings/:projectId             -> { avg, count, mine }   (要ログイン)
+//   GET    /api/ratings?ids=1,2,3              -> { ratings: { "1": { avg(RMS), count, mine } } }
+//   GET    /api/ratings/ranking                -> { items: [{ id, score, avg(RMS), count }] } 技術力の高い順
+//   PUT    /api/ratings/:projectId { score }   -> { avg(RMS), count, mine } (要ログイン。自分の作品・存在しない作品は不可)
+//   DELETE /api/ratings/:projectId             -> { avg(RMS), count, mine } (要ログイン)
 //   GET    /api/saves                          -> { ids: [新しい順の作品ID] }   (要ログイン)
 //   PUT    /api/saves/:projectId               -> { saved: true }              (要ログイン)
 //   DELETE /api/saves/:projectId               -> { saved: false }             (要ログイン)
@@ -23,7 +23,7 @@ const MAX_PENDING_PER_USER = 5;             // 同一ユーザー名の同時発
 const MAX_IDS = 100;
 const MAX_SAVES = 1000;
 const MAX_RANKING = 5000;                   // 順位表に載せる作品数の上限
-// 順位は、評価が少ない作品に偏らないよう「平均3点の評価が2件ある」ものとして計算する
+// 今週ランキング用の少数評価補正（技術力順位の計算には使用しない）
 const PRIOR_MEAN = 3;
 const PRIOR_WEIGHT = 2;
 const MAX_PENDING_APPLICATIONS = 10;        // 1ユーザーが同時に出せる未審査の申請数
@@ -280,11 +280,13 @@ async function requireUser(request, env) {
 
 function summarize(row, mine) {
   const count = row ? row.c : 0;
-  return { avg: count ? Math.round(row.a * 100) / 100 : 0, count, mine: mine ?? null };
+  // message.txt の helper → helper2 と同じ変換。平均二乗平方根 (RMS) を表示する。
+  const avg = count ? Math.sqrt(Math.max(0, row.a)) : 0;
+  return { avg: Math.round(avg * 100) / 100, count, mine: mine ?? null };
 }
 
 async function summaryFor(env, projectId, userId) {
-  const row = await env.DB.prepare('SELECT COUNT(*) AS c, AVG(score) AS a FROM ratings WHERE project_id = ?').bind(projectId).first();
+  const row = await env.DB.prepare('SELECT COUNT(*) AS c, AVG(score * score) AS a FROM ratings WHERE project_id = ?').bind(projectId).first();
   let mine = null;
   if (userId) {
     const r = await env.DB.prepare('SELECT score FROM ratings WHERE project_id = ? AND user_id = ?').bind(projectId, userId).first();
@@ -301,7 +303,7 @@ async function getRatings(request, env, url) {
 
   const ph = ids.map(() => '?').join(',');
   const rows = await env.DB.prepare(
-    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a FROM ratings WHERE project_id IN (${ph}) GROUP BY project_id`
+    `SELECT project_id, COUNT(*) AS c, AVG(score * score) AS a FROM ratings WHERE project_id IN (${ph}) GROUP BY project_id`
   ).bind(...ids).all();
 
   const mineMap = new Map();
@@ -418,17 +420,107 @@ async function deleteSave(request, env, projectId) {
 
 // ---------- 技術力の順位表 ----------
 
+function displayRatingValue(value) {
+  return Math.sqrt(Math.max(value, 0) / 5) * 5;
+}
+
+// message.txt の calculate_scores と同じアルゴリズム。
+// raw rating -> (rating / 5)^2 * 5 -> 評価者補正・相関重み -> helper2。
+function calculateRatingRanking(rows) {
+  const projects = new Map();
+  for (const row of rows) {
+    const projectId = Number(row.project_id);
+    const userId = Number(row.user_id);
+    const rawRating = Number(row.score);
+    if (!Number.isFinite(projectId) || !Number.isFinite(userId) || !Number.isFinite(rawRating)) continue;
+    if (!projects.has(projectId)) projects.set(projectId, new Map());
+    projects.get(projectId).set(userId, (rawRating / 5) ** 2 * 5);
+  }
+
+  const projectAverages = new Map();
+  const users = new Map();
+  for (const [projectId, ratings] of projects) {
+    let sum = 0;
+    for (const [userId, rating] of ratings) {
+      sum += rating;
+      if (!users.has(userId)) users.set(userId, new Map());
+      users.get(userId).set(projectId, rating);
+    }
+    projectAverages.set(projectId, sum / ratings.size);
+  }
+
+  const userStats = new Map();
+  for (const [userId, ratings] of users) {
+    const values = [...ratings.values()];
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, x) => sum + (x - mean) ** 2, 0) / values.length;
+    userStats.set(userId, { mean, sd: Math.sqrt(variance) });
+  }
+
+  const correlations = new Map();
+  for (const [userId, ratings] of users) {
+    const pairs = [];
+    for (const [projectId, rating] of ratings) {
+      const projectRatings = projects.get(projectId);
+      const n = projectRatings.size;
+      if (n < 2) continue;
+      const otherAverage = (projectAverages.get(projectId) * n - rating) / (n - 1);
+      pairs.push([rating, otherAverage]);
+    }
+
+    const xs = pairs.map(pair => pair[0]);
+    const ys = pairs.map(pair => pair[1]);
+    if (pairs.length < 2 || new Set(xs).size < 2 || new Set(ys).size < 2) {
+      correlations.set(userId, 0);
+      continue;
+    }
+    const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+    const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+    let numerator = 0, dx2 = 0, dy2 = 0;
+    for (const [x, y] of pairs) {
+      numerator += (x - mx) * (y - my);
+      dx2 += (x - mx) ** 2;
+      dy2 += (y - my) ** 2;
+    }
+    correlations.set(userId, numerator / (Math.sqrt(dx2) * Math.sqrt(dy2)));
+  }
+
+  const items = [];
+  for (const [projectId, ratings] of projects) {
+    let weightedSum = 0;
+    let importanceSum = 0;
+    for (const [userId, rating] of ratings) {
+      const stats = userStats.get(userId);
+      const hensachi = stats.sd === 0
+        ? 50
+        : 50 + 10 * (rating - stats.mean) / stats.sd;
+      const adjusted = (
+        rating / 2
+        + Math.atan((hensachi - 50) / 6) * (5 / Math.PI)
+        + 2.5
+      ) / 1.5;
+      const importance = Math.max(correlations.get(userId) + 0.3, 0.1);
+      weightedSum += adjusted * importance;
+      importanceSum += importance;
+    }
+    const internalScore = weightedSum / importanceSum;
+    items.push({
+      id: projectId,
+      score: Math.round(displayRatingValue(internalScore) * 100) / 100,
+      avg: Math.round(displayRatingValue(projectAverages.get(projectId)) * 100) / 100,
+      count: ratings.size,
+    });
+  }
+
+  items.sort((a, b) => (b.score - a.score) || (b.count - a.count) || (b.id - a.id));
+  return items.slice(0, MAX_RANKING);
+}
+
 async function getRanking(env) {
   const rows = await env.DB.prepare(
-    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a,
-            (SUM(score) + ?) * 1.0 / (COUNT(*) + ?) AS w
-       FROM ratings GROUP BY project_id
-      ORDER BY w DESC, c DESC, project_id DESC
-      LIMIT ?`
-  ).bind(PRIOR_MEAN * PRIOR_WEIGHT, PRIOR_WEIGHT, MAX_RANKING).all();
-  return json({
-    items: rows.results.map(r => ({ id: r.project_id, avg: Math.round(r.a * 100) / 100, count: r.c })),
-  });
+    'SELECT project_id, user_id, score FROM ratings'
+  ).all();
+  return json({ items: calculateRatingRanking(rows.results) });
 }
 
 

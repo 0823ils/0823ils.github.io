@@ -56,8 +56,8 @@ var TWC_API = 'https://twc-api.xxxx.workers.dev';
 | --- | --- | --- |
 | POST | `/api/auth/start` | `{username}` → 確認コードを発行（10分有効・1回限り） |
 | POST | `/api/auth/verify` | `{code}` → Scratchのコメントを確認して、ログイントークンを返す（30日有効） |
-| GET | `/api/ratings?ids=1,2,3` | 作品ごとの平均・件数・自分の評価（最大100件） |
-| GET | `/api/ratings/ranking` | 評価のある作品の順位表（技術力の高い順。評価が少ない作品が上位に偏らないよう、平均3点の評価2件を足して計算。最大5000件） |
+| GET | `/api/ratings?ids=1,2,3` | 作品ごとの二乗平均平方根 (RMS)・件数・自分の評価（最大100件） |
+| GET | `/api/ratings/ranking` | message.txt と同じ評価者補正・相関重み付けによる技術力順位（最大5000件）。`score` が順位用補正スコア、`avg` が表示用RMS |
 | PUT | `/api/ratings/:projectId` | `{score: 1〜5}` で評価（要ログイン。同じ作品は上書き。自分の作品は403、Scratchに存在しない・非公開の作品は404） |
 | DELETE | `/api/ratings/:projectId` | 自分の評価を取り消す（要ログイン） |
 | GET | `/api/saves` | 自分が保存した作品IDの一覧（新しい順・最大1000件。要ログイン） |

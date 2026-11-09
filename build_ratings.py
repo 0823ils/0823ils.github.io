@@ -12,12 +12,13 @@
   python3 build_ratings.py [出力先 (既定 docs/ratings.json)]
   python3 build_ratings.py --selftest     # 計算だけ試す（通信しない）
 
-スコアの考え方（作品ごと）:
-  1. 評価者ごとに、自分の平均・ばらつきを使って「偏差値」にする（甘い人・辛い人の差をならす）
-  2. 偏差値と元の点から、補正後の評価（0.33〜5）を作る
-  3. 評価者の重みは、「その人の点が、自分以外の平均とどれだけ似ているか」（相関）で決める
-  4. 重みつき平均を出す。評価が少ない作品は、全体の平均に少し引き寄せる（1人の5点で1位にならないように）
-  5. 最後に、平方根で下のほうを持ち上げて 0〜5 の表示用スコアにする
+スコアの考え方（message.txt と同じ計算）:
+  1. 各評価を (点数 / 5)² × 5 に変換する
+  2. 変換後の点数から、評価者ごとの平均・標準偏差と作品ごとの平均を求める
+  3. 自分の評価を除いた作品平均との相関から、評価者ごとの重要度を求める
+  4. 偏差値を atan 関数で補正し、重要度による重みつき平均を求める
+  5. 最後に √(点数 / 5) × 5 で表示用スコアに戻す
+  ※ 評価数が少ない作品を全体平均へ寄せる追加補正は行わない
 """
 import json
 import math
@@ -28,83 +29,125 @@ import time
 import requests
 
 HEADERS = {"User-Agent": "scratch-twc/1.0"}
-PRIOR_K = 1.0            # 少ない評価を全体平均に引き寄せる強さ（平均的な評価者の何人ぶんか）
 MAX_ITEMS = 5000         # 載せる作品数の上限
 WEEK_MS = 7 * 24 * 3600 * 1000
 WEEKLY_LIMIT = 30
 WEEKLY_PRIOR_MEAN, WEEKLY_PRIOR_WEIGHT = 3.0, 2.0
 
 
-def calculate_scores(projects):
-    """projects: {作品: {評価者: 点}} -> {scores, averages, counts, correlations}"""
-    by_user = {}
-    for project, ratings in projects.items():
-        for user, score in ratings.items():
-            by_user.setdefault(user, {})[project] = score
+def helper(projects):
+    """各評価を message.txt と同じ二乗スケールへ変換する。"""
+    return {
+        project: {
+            user: (rating / 5) ** 2 * 5
+            for user, rating in ratings.items()
+        }
+        for project, ratings in projects.items()
+        if ratings
+    }
 
-    averages = {p: sum(r.values()) / len(r) for p, r in projects.items()}
 
-    # 評価者ごとの平均・標準偏差
+def helper2(values):
+    """二乗スケールの値を表示用の 0〜5 に戻す。"""
+    return {
+        project: (max(score, 0.0) / 5) ** 0.5 * 5
+        for project, score in values.items()
+    }
+
+
+def calculate_scores(project_points):
+    """projects: {作品: {評価者: 点}} -> {scores, averages, counts, correlations, user_stats}"""
+    projects = helper(project_points)
+    users = {
+        user
+        for ratings in projects.values()
+        for user in ratings
+    }
+
+    # 各プロジェクトの平均評価（変換後）
+    project_averages = {
+        project: sum(ratings.values()) / len(ratings)
+        for project, ratings in projects.items()
+    }
+
+    # 各ユーザーの平均・標準偏差
     user_stats = {}
-    for user, rs in by_user.items():
-        vals = list(rs.values())
-        mean = sum(vals) / len(vals)
-        sd = math.sqrt(sum((x - mean) ** 2 for x in vals) / len(vals))
-        user_stats[user] = (mean, sd)
+    for user in users:
+        ratings = [
+            project_ratings[user]
+            for project_ratings in projects.values()
+            if user in project_ratings
+        ]
+        mean = sum(ratings) / len(ratings)
+        variance = sum((x - mean) ** 2 for x in ratings) / len(ratings)
+        user_stats[user] = {
+            "mean": mean,
+            "sd": math.sqrt(variance),
+        }
 
-    # 評価者と「自分以外の平均」との相関（評価者が1人しかいない作品は除く）
+    # 各ユーザーと「自分自身を除いたプロジェクト平均」の相関係数
     correlations = {}
-    for user, rs in by_user.items():
-        xs, ys = [], []
-        for project, score in rs.items():
-            n = len(projects[project])
-            if n < 2:
+    for user in users:
+        pairs = []
+        for project, ratings in projects.items():
+            n = len(ratings)
+            # 評価者が1人のプロジェクトは除外
+            if n < 2 or user not in ratings:
                 continue
-            xs.append(score)
-            ys.append((averages[project] * n - score) / (n - 1))
-        if len(xs) < 2 or len(set(xs)) < 2 or len(set(ys)) < 2:
+            other_average = (
+                project_averages[project] * n - ratings[user]
+            ) / (n - 1)
+            pairs.append((ratings[user], other_average))
+
+        xs = [x for x, _ in pairs]
+        ys = [y for _, y in pairs]
+        # 相関係数を計算できない場合は 0
+        if len(pairs) < 2 or len(set(xs)) < 2 or len(set(ys)) < 2:
             correlations[user] = 0.0
             continue
-        mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
-        num = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+
+        mx = sum(xs) / len(xs)
+        my = sum(ys) / len(ys)
+        numerator = sum((x - mx) * (y - my) for x, y in pairs)
         dx = math.sqrt(sum((x - mx) ** 2 for x in xs))
         dy = math.sqrt(sum((y - my) ** 2 for y in ys))
-        correlations[user] = num / (dx * dy)
+        correlations[user] = numerator / (dx * dy)
 
-    def adjusted(user, rating):
-        mean, sd = user_stats[user]
-        hensachi = 50.0 if sd == 0 else 50 + 10 * (rating - mean) / sd
-        return (rating / 2 + math.atan((hensachi - 50) / 6.0) * (5.0 / math.pi) + 2.5) / 1.5
-
-    def importance(user):
-        return max(correlations[user] + 0.3, 0.1)
-
-    # 全体の重みつき平均（少ない評価の引き寄せ先）
-    tot_w = tot_s = 0.0
+    # プロジェクトごとの補正後スコア
+    scores_internal = {}
     for project, ratings in projects.items():
-        for user, rating in ratings.items():
-            w = importance(user)
-            tot_w += w
-            tot_s += adjusted(user, rating) * w
-    prior = tot_s / tot_w if tot_w else 2.5
-    n_ratings = sum(len(r) for r in projects.values())
-    prior_k = PRIOR_K * (tot_w / n_ratings if n_ratings else 1.0)   # 「平均的な評価者 PRIOR_K 人ぶん」の重み
+        weighted_sum = 0.0
+        importance_sum = 0.0
 
-    scores = {}
-    for project, ratings in projects.items():
-        w_sum = s_sum = 0.0
         for user, rating in ratings.items():
-            w = importance(user)
-            w_sum += w
-            s_sum += adjusted(user, rating) * w
-        m = (s_sum + prior_k * prior) / (w_sum + prior_k)
-        scores[project] = math.sqrt(max(m, 0.0) / 5) * 5
+            stats = user_stats[user]
+
+            # 偏差値
+            if stats["sd"] == 0:
+                hensachi = 50.0
+            else:
+                hensachi = 50 + 10 * (rating - stats["mean"]) / stats["sd"]
+
+            # 補正後評価
+            adjusted = (
+                rating / 2
+                + math.atan((hensachi - 50) / 6.0) * (5.0 / math.pi)
+                + 2.5
+            ) / 1.5
+
+            # 評価者の重要度
+            importance = max(correlations[user] + 0.3, 0.1)
+            weighted_sum += adjusted * importance
+            importance_sum += importance
+
+        scores_internal[project] = weighted_sum / importance_sum
 
     return {
-        "scores": scores,
-        "averages": averages,
-        "counts": {p: len(r) for p, r in projects.items()},
+        "scores": helper2(scores_internal),
+        "averages": helper2(project_averages),
+        "counts": {project: len(ratings) for project, ratings in projects.items()},
         "correlations": correlations,
+        "user_stats": user_stats,
     }
 
 
@@ -113,7 +156,9 @@ def build(rows, now_ms):
     projects = {}
     for pid, uid, score, _ in rows:
         projects.setdefault(int(pid), {})[int(uid)] = int(score)
-    res = calculate_scores(projects) if projects else {"scores": {}, "averages": {}, "counts": {}}
+    res = calculate_scores(projects) if projects else {
+        "scores": {}, "averages": {}, "counts": {}, "correlations": {}, "user_stats": {}
+    }
 
     items = [
         {"id": p, "score": round(res["scores"][p], 2), "avg": round(res["averages"][p], 2), "count": res["counts"][p]}
@@ -122,7 +167,8 @@ def build(rows, now_ms):
     items.sort(key=lambda x: (-x["score"], -x["count"], -x["id"]))
     items = items[:MAX_ITEMS]
 
-    # 今週: 直近7日につけられた評価だけで、少ない評価を引き寄せた平均
+    # 今週の一覧は、直近7日分の単純平均に従来の少数評価向け補正を適用する。
+    # message.txt の全期間スコア計算とは別枠のランキング。
     recent = {}
     for pid, uid, score, updated in rows:
         if now_ms - int(updated) <= WEEK_MS:

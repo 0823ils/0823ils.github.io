@@ -1552,7 +1552,7 @@ function logout() {
 }
 
 // ===== 技術力評価 =====
-var ratingCache = {};     // projectId -> { avg, count, mine }   avg は、静的ファイルがあれば補正後のスコア
+var ratingCache = {};     // projectId -> { avg, count, mine }   avg は表示用の変換後平均（RMS）。順位用スコアとは別
 var myRatings = null;     // { 作品ID: 自分がつけた点 }。ログイン中に1回だけ取る（null = 未取得）
 
 var myRatingsPromise = null;
@@ -1597,7 +1597,7 @@ async function loadRatings(container) {
         var id = el.getAttribute('data-rate-id');
         if (useSnap && !ratingCache[id]) {
             var sn = snapData.map[id];
-            ratingCache[id] = { avg: sn ? sn.score : 0, count: sn ? sn.count : 0, mine: (myRatings && myRatings[id] !== undefined) ? myRatings[id] : null };
+            ratingCache[id] = { avg: sn ? sn.avg : 0, count: sn ? sn.count : 0, mine: (myRatings && myRatings[id] !== undefined) ? myRatings[id] : null };
         }
         renderRatingEl(el);
         if (!ratingCache[id] && need.indexOf(id) === -1) need.push(id);

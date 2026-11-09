@@ -176,6 +176,7 @@
         .header-login-btn:hover { background: rgba(255,255,255,0.3); }
         .header-login-btn.logged-in { background: white; color: #4D97FF; }
         .header-login-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ava { border-radius: 50%; object-fit: cover; background: #e3ecfb; vertical-align: middle; flex-shrink: 0; cursor: pointer; }
         .login-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
         .login-input { width: 100%; margin-bottom: 14px; }
         .login-code { font-family: monospace; font-size: 22px; font-weight: bold; letter-spacing: 2px; text-align: center; background: #f0f4ff; color: #3a7fd4; border-radius: 8px; padding: 14px; margin-bottom: 12px; user-select: all; word-break: break-all; }
@@ -1097,9 +1098,9 @@ function renderProjectPage() {
     if (!p) { box.innerHTML = '<div class="status-text">' + esc(db ? nt('ppNotFound') : t('loading')) + '</div>'; if (!db) setTimeout(function() { if (currentMode === 'project') renderProjectPage(); }, 600); return; }
     box.innerHTML =
         '<div class="pp-card"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
-        '<div class="pp-meta">' + esc(nt('ppBy')) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a> ・ ♥ ' + Number(p.loves || 0) + ' ・ 👁 ' + Number(p.views || 0) + '</div>' +
+        '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a> ・ ♥ ' + Number(p.loves || 0) + ' ・ 👁 ' + Number(p.views || 0) + '</div>' +
  '<div class="pp-stage"><div id="pp-embed" class="pp-embed"></div>' +
-        '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + ' _480x360.png" alt="" onclick="ppPlay()"></div>' +
+        '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div>' +
         '<div class="pp-btns"><button class="tw-warn-btn tw-warn-btn-scratch" id="pp-play-btn" onclick="ppPlay()">' + esc(nt('ppPlay')) + '</button>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + Number(p.id) + '">' + esc(nt('ppScratch')) + '</a>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a></div></div>' +
@@ -1107,6 +1108,29 @@ function renderProjectPage() {
         '<div class="pp-card" id="pp-rate"></div>';
     renderPpRate();
     ppLoadInfo();
+}
+
+// ===== アイコン =====
+var uidCache = {};
+function avatarImg(id, size, name) {
+    id = Number(id);
+    if (!id) return '';
+    var px = size <= 24 ? 32 : 90;
+    return '<img class="ava" width="' + size + '" height="' + size + '" alt="" loading="lazy" src="https://uploads.scratch.mit.edu/get_image/user/' + id + '_' + px + 'x' + px + '.png"' +
+        (name ? ' onclick="openUser(this.dataset.u,event)" data-u="' + esc(name) + '"' : '') + ' onerror="this.style.visibility=\'hidden\'">';
+}
+// ユーザー名から Scratch のIDを調べる（収録データにいない人用）
+async function resolveUserId(name) {
+    var k = String(name).toLowerCase();
+    if (loginUser && loginUser.username.toLowerCase() === k) return loginUser.id;
+    if (db) { var r = queryOne('SELECT id FROM users WHERE lower(username) = lower(?)', [name]); if (r && r.id) return r.id; }
+    if (uidCache[k] !== undefined) return uidCache[k];
+    try {
+        var res = await fetch('https://api.scratch.mit.edu/users/' + encodeURIComponent(name));
+        var j = res.ok ? await res.json() : null;
+        uidCache[k] = j && j.id ? j.id : 0;
+    } catch (e) { uidCache[k] = 0; }
+    return uidCache[k];
 }
 
 // ===== 共通 =====
@@ -1174,7 +1198,7 @@ function cardHTML(p) {
         ' onerror="this.outerHTML=\'<div class=\\\'thumb-placeholder\\\'>?</div>\'">' +
         '<div class="project-info">' +
             '<div class="project-title">' + hlHTML(p.title) + '</div>' +
-            '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">by ' + hlHTML(p.author_username) + '</div>' +
+            '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">' + avatarImg(p.author_id, 16) + '<span>by ' + hlHTML(p.author_username) + '</span></div>' +
             '<div class="project-meta">' + t('lovesCount', p.loves || 0) + '</div>' +
             (apiEnabled() ? '<div class="project-rating" data-rate-id="' + Number(p.id) + '" onclick="openRate(' + Number(p.id) + ',event)"></div>' : '') +
         '</div>' +
@@ -2837,7 +2861,7 @@ function renderChat(msgs, forceScroll) {
                 : '<div class="chat-quote" onclick="chatJump(' + Number(m.reply.id) + ')">↪ @' + esc(m.reply.username) + ': ' + esc(m.reply.content) + '</div>';
         }
         return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
-            '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
+            avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
             '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? '<div class="chat-text">' + chatTextHTML(m.content) + '</div>' : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
@@ -3195,7 +3219,11 @@ async function renderProfile() {
     var row = db ? queryOne('SELECT * FROM users WHERE lower(username) = lower(?)', [u]) : null;
     if (row) u = profileUser = row.username;
     var cnt = db ? queryOne('SELECT COUNT(*) AS c, COALESCE(SUM(loves),0) AS l FROM projects WHERE author_username = ? COLLATE NOCASE', [u]) : { c: 0, l: 0 };
-    document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" alt="" src="https://uploads.scratch.mit.edu/get_image/user/' + encodeURIComponent(row && row.id ? row.id : 0) + '_90x90.png" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + '</div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
+    document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" id="profile-avatar" alt="" src="" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + '</div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
+    resolveUserId(u).then(function(id) {
+        var im = document.getElementById('profile-avatar');
+        if (id && im && profileUser === u) { im.style.visibility = ''; im.src = 'https://uploads.scratch.mit.edu/get_image/user/' + encodeURIComponent(id) + '_90x90.png'; }
+    });
     var cell = function(v, l) { return '<div class="stat-box"><b>' + esc(String(v)) + '</b><span>' + esc(l) + '</span></div>'; };
     var statsEl = document.getElementById('profile-stats');
     statsEl.className = 'profile-stats';

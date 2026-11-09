@@ -2095,7 +2095,7 @@ async function notifReadAll() {
 var CHAT_T = {
     ja: { room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
           attachTitle: '動画・写真を添付（動画は20MBまで）', uploading: 'アップロード中', attached: '添付済み',
-          e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4かWebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
+          e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
           videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
@@ -2109,7 +2109,7 @@ var CHAT_T = {
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a video or photo (video up to 20MB)', uploading: 'Uploading', attached: 'Attached',
-          e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
+          e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/MOV/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
           videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
@@ -2330,7 +2330,7 @@ function renderChatInput() {
     w.innerHTML = '<div class="chat-row">' +
         (chatVideoEnabled ? '<button class="chat-attach-btn" title="' + esc(ct('attachTitle')) + '" onclick="document.getElementById(\'chat-file\').click()">' +
             '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
-            '<input type="file" id="chat-file" accept="video/mp4,video/webm,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
+            '<input type="file" id="chat-file" accept="video/mp4,video/webm,video/quicktime,.mov,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
         '<textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
         esc(ct('ph')) + '"></textarea><button class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
     var ta = document.getElementById('chat-text');
@@ -2392,7 +2392,9 @@ async function chatVideoChosen(inp) {
     if (!f || (chatAttach && chatAttach.status === 'uploading')) return;
     setChatMsg('');
     var isImage = /^image\/(jpeg|png|webp|gif)$/.test(f.type);
-    var isVideo = f.type === 'video/mp4' || f.type === 'video/webm';
+    var isMov = f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name));
+    var vtype = isMov ? 'video/quicktime' : f.type;
+    var isVideo = vtype === 'video/mp4' || vtype === 'video/webm' || vtype === 'video/quicktime';
     if (!isImage && !isVideo) { setChatMsg(ct('e_bad_video_type')); return; }
     if (isVideo && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_video_too_big')); return; }
     if (isImage && f.size > 30 * 1048576) { setChatMsg(ct('e_image_too_big')); return; }
@@ -2407,7 +2409,7 @@ async function chatVideoChosen(inp) {
     renderAttachBar();
     var mine = chatAttach;
     try {
-        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : f.type });
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype });
         mine.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');

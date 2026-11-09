@@ -843,7 +843,7 @@ const VIDEO_MAX_BYTES = 20 * 1024 * 1024;
 const VIDEO_PER_DAY = 3;
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;     // ブラウザ側で縮小してから送るので、実際は数百KB程度
 const IMAGE_PER_DAY = 10;
-const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 const isImageType = (t) => String(t).startsWith('image/');
 const VIDEO_PRESIGN_SECONDS = 600;
 

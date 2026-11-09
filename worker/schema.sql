@@ -127,6 +127,12 @@ CREATE TABLE IF NOT EXISTS chat_videos (
 CREATE INDEX IF NOT EXISTS idx_videos_user_time ON chat_videos(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_videos_message ON chat_videos(message_id);
 
+-- 添付した .sb3 の元のファイル名（表示用）
+CREATE TABLE IF NOT EXISTS chat_video_names (
+  video_id TEXT PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
 -- 作品のジャンル（みんなの投票。2票以上、または管理者・キュレターの1票で確定）
 CREATE TABLE IF NOT EXISTS project_genres (
   project_id INTEGER NOT NULL,

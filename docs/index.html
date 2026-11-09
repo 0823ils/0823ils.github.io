@@ -300,6 +300,12 @@
         .chat-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
         .chat-text a { color: #4D97FF; word-break: break-all; }
         .chat-video { display: block; max-width: min(100%, 400px); max-height: 320px; margin-top: 6px; border-radius: 10px; background: #000; }
+        .chat-file { display: inline-flex; align-items: center; gap: 10px; margin-top: 6px; max-width: min(100%, 360px); padding: 8px 12px; border: 1px solid #dfe5ef; border-radius: 10px; background: #f6f8fc; color: inherit; text-decoration: none; }
+        .chat-file:hover { border-color: #4D97FF; }
+        .chat-file .cf-icon { font-size: 22px; }
+        .chat-file .cf-body { display: flex; flex-direction: column; min-width: 0; }
+        .chat-file .cf-body b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chat-file .cf-body small { color: #888; font-size: 12px; }
         .chat-image { display: block; max-width: min(100%, 360px); max-height: 300px; margin-top: 6px; border-radius: 10px; cursor: zoom-in; background: #eef1f6; object-fit: contain; }
         #img-lightbox { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; padding: 16px; }
         #img-lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
@@ -2146,7 +2152,7 @@ async function notifReadAll() {
 var CHAT_T = {
     ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
           attachTitle: '動画・写真を添付（動画は20MBまで）', uploading: 'アップロード中', attached: '添付済み',
-          e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
+          e_video_too_big: '動画は20MBまでです', e_sb3_too_big: 'sb3は20MBまでです', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIF、作品は.sb3にしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
           videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
@@ -2160,7 +2166,7 @@ var CHAT_T = {
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a video or photo (video up to 20MB)', uploading: 'Uploading', attached: 'Attached',
-          e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/MOV/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
+          e_video_too_big: 'Videos can be up to 20MB', e_sb3_too_big: '.sb3 files can be up to 20MB', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: 'Use MP4/MOV/WebM for videos, JPEG/PNG/WebP/GIF for photos, or .sb3 for projects', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
           videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
@@ -2373,6 +2379,14 @@ function chatVideoHTML(v) {
     return '<video class="chat-video" controls preload="none" playsinline src="' + esc(v.url) + '"></video>';
 }
 
+function chatFileHTML(f) {
+    if (!f) return '';
+    if (f.expired || !f.url) return '<div class="chat-video-gone">' + esc(ct('fileGone')) + '</div>';
+    var mb = (f.size / 1048576).toFixed(1) + 'MB';
+    return '<a class="chat-file" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">' +
+        '<span class="cf-icon">📦</span><span class="cf-body"><b>' + esc(f.name) + '</b><small>' + mb + ' ・ ' + esc(ct('fileDownload')) + '</small></span></a>';
+}
+
 function chatJump(id) {
     var el = document.getElementById('chat-msg-' + id);
     if (!el) { showToast(ct('jumpMissing')); return; }
@@ -2394,7 +2408,7 @@ function renderChatInput() {
     w.innerHTML = '<div class="chat-row">' +
         (chatVideoEnabled ? '<button class="chat-attach-btn" title="' + esc(ct('attachTitle')) + '" onclick="document.getElementById(\'chat-file\').click()">' +
             '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
-            '<input type="file" id="chat-file" accept="video/mp4,video/webm,video/quicktime,.mov,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
+            '<input type="file" id="chat-file" accept="video/mp4,video/webm,video/quicktime,.mov,.sb3,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
         '<textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
         esc(ct('ph')) + '"></textarea><button class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
     var ta = document.getElementById('chat-text');
@@ -2415,7 +2429,7 @@ function renderAttachBar() {
     var mb = (chatAttach.size / 1048576).toFixed(1) + 'MB';
     var up = chatAttach.status === 'uploading';
     bar.style.display = 'flex';
-    bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>🎞</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
+    bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>' + (chatAttach.sb3 ? '📦' : '🎞') + '</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
         (up ? '<span class="ab-prog"><i style="width:' + Math.round(chatAttach.progress * 100) + '%"></i></span><span>' + esc(ct('uploading')) + '</span>'
             : '<span>' + esc(ct('attached')) + '</span><button onclick="chatDiscardAttach()" title="' + esc(ct('cancel')) + '">✕</button>');
 }
@@ -2455,11 +2469,13 @@ async function chatVideoChosen(inp) {
     inp.value = '';
     if (!f || (chatAttach && chatAttach.status === 'uploading')) return;
     setChatMsg('');
-    var isImage = /^image\/(jpeg|png|webp|gif)$/.test(f.type);
-    var isMov = f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name));
-    var vtype = isMov ? 'video/quicktime' : f.type;
+    var isSb3 = /\.sb3$/i.test(f.name);
+    var isImage = !isSb3 && /^image\/(jpeg|png|webp|gif)$/.test(f.type);
+    var isMov = !isSb3 && (f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name)));
+    var vtype = isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type);
     var isVideo = vtype === 'video/mp4' || vtype === 'video/webm' || vtype === 'video/quicktime';
-    if (!isImage && !isVideo) { setChatMsg(ct('e_bad_video_type')); return; }
+    if (!isImage && !isVideo && !isSb3) { setChatMsg(ct('e_bad_video_type')); return; }
+    if (isSb3 && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_sb3_too_big')); return; }
     if (isVideo && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_video_too_big')); return; }
     if (isImage && f.size > 30 * 1048576) { setChatMsg(ct('e_image_too_big')); return; }
     if (chatAttach) await chatDiscardAttach();
@@ -2469,11 +2485,11 @@ async function chatVideoChosen(inp) {
         catch (e) { setChatMsg(ct('e_bad_image')); return; }
         preview = URL.createObjectURL(blob);
     }
-    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview };
+    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3 };
     renderAttachBar();
     var mine = chatAttach;
     try {
-        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype });
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype, name: isSb3 ? f.name : undefined });
         mine.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
@@ -2564,7 +2580,7 @@ function renderChat(msgs, forceScroll) {
             '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
             '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? '<div class="chat-text">' + chatTextHTML(m.content) + '</div>' : '') +
-            chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + '</div>';
+            chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
     }).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
     if (chatJumpTo) {

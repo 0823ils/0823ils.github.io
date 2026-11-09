@@ -566,6 +566,7 @@ function chatRow(r, env) {
               created_at: r.created_at, hidden: !!r.hidden, tags: r.tags || [] };
   if (r.video_id) {
     if (isImageType(r.video_type)) o.image = videoInfo(r, env);
+    else if (isSb3Type(r.video_type)) o.file = Object.assign(videoInfo(r, env), { name: r.video_name || 'project.sb3', size: r.video_size || 0 });
     else o.video = videoInfo(r, env);
   }
   if (r.reply_to) {
@@ -642,11 +643,13 @@ async function chatList(request, env, url) {
     `SELECT m.id, m.user_id, m.username, m.content, m.created_at, m.hidden,
             rp.reply_to, p.username AS reply_username, p.content AS reply_content,
             p.deleted AS reply_deleted, p.hidden AS reply_hidden,
-            v.id AS video_id, v.object_key AS video_key, v.content_type AS video_type, v.created_at AS video_created
+            v.id AS video_id, v.object_key AS video_key, v.content_type AS video_type, v.created_at AS video_created,
+            v.size AS video_size, n.name AS video_name
        FROM chat_messages m
        LEFT JOIN chat_replies rp ON rp.message_id = m.id
        LEFT JOIN chat_messages p ON p.id = rp.reply_to
        LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
+       LEFT JOIN chat_video_names n ON n.video_id = v.id
       WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
       ORDER BY m.id ${since !== null ? 'ASC' : 'DESC'} LIMIT ?`
   ).bind(...(since !== null ? [room, since, CHAT_PAGE] : [room, CHAT_PAGE])).all();
@@ -843,7 +846,10 @@ const VIDEO_MAX_BYTES = 20 * 1024 * 1024;
 const VIDEO_PER_DAY = 3;
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;     // ブラウザ側で縮小してから送るので、実際は数百KB程度
 const IMAGE_PER_DAY = 10;
-const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const SB3_TYPE = 'application/x.scratch.sb3';
+const SB3_PER_DAY = 5;
+const isSb3Type = (t) => t === SB3_TYPE;
+const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov', [SB3_TYPE]: 'sb3', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 const isImageType = (t) => String(t).startsWith('image/');
 const VIDEO_PRESIGN_SECONDS = 600;
 
@@ -878,7 +884,7 @@ async function mediaUrl(env, key) {
 }
 async function attachMediaUrls(env, rows) {
   for (const m of rows) {
-    for (const k of ['video', 'image']) {
+    for (const k of ['video', 'image', 'file']) {
       const x = m[k];
       if (x && x._key) { x.url = await mediaUrl(env, x._key); delete x._key; }
     }
@@ -966,9 +972,9 @@ async function videoStart(request, env) {
   const type = String(body.type || '');
   const size = body.size;
   if (!VIDEO_TYPES[type]) throw new HttpError(400, 'bad_video_type');
-  const image = isImageType(type);
+  const image = isImageType(type), sb3 = isSb3Type(type);
   if (!Number.isInteger(size) || size < 1) throw new HttpError(400, 'bad_video_size');
-  if (size > (image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES)) throw new HttpError(413, image ? 'image_too_big' : 'video_too_big');
+  if (size > (image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES)) throw new HttpError(413, image ? 'image_too_big' : sb3 ? 'sb3_too_big' : 'video_too_big');
 
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
@@ -976,15 +982,21 @@ async function videoStart(request, env) {
   const now = Date.now();
   const used = await env.DB.prepare(
     `SELECT COUNT(*) AS c FROM chat_videos WHERE user_id = ? AND created_at > ? AND state != 'deleted'
-       AND content_type ${image ? 'LIKE' : 'NOT LIKE'} 'image/%'`
+       AND ${image ? "content_type LIKE 'image/%'" : sb3 ? `content_type = '${SB3_TYPE}'` : `content_type NOT LIKE 'image/%' AND content_type != '${SB3_TYPE}'`}`
   ).bind(user.uid, now - 24 * 3600 * 1000).first();
-  if (used && used.c >= (image ? IMAGE_PER_DAY : VIDEO_PER_DAY)) throw new HttpError(429, image ? 'image_limit' : 'video_limit');
+  if (used && used.c >= (image ? IMAGE_PER_DAY : sb3 ? SB3_PER_DAY : VIDEO_PER_DAY)) throw new HttpError(429, image ? 'image_limit' : sb3 ? 'sb3_limit' : 'video_limit');
 
   const id = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
   const key = `v/${id}.${VIDEO_TYPES[type]}`;
   await env.DB.prepare(
     'INSERT INTO chat_videos (id, user_id, username, object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, ?)'
   ).bind(id, user.uid, user.u, key, type, now).run();
+  if (sb3) {
+    // 元のファイル名（表示用）。制御文字と、長すぎる分は落とす
+    let name = String(body.name || 'project.sb3').replace(/[\u0000-\u001f\u007f<>"\\/]/g, '').trim().slice(0, 100);
+    if (!/\.sb3$/i.test(name)) name = (name || 'project') + '.sb3';
+    await env.DB.prepare('INSERT OR REPLACE INTO chat_video_names (video_id, name) VALUES (?, ?)').bind(id, name).run();
+  }
 
   const uploadUrl = await presignUrl({
     method: 'PUT',
@@ -1006,7 +1018,7 @@ async function videoComplete(request, env, id) {
   if (!v) throw new HttpError(404, 'not_found');
   // 先頭1バイトだけ読んで、大きさと種類を確かめる（HEADが拒否されたため、GETの範囲指定で代用）
   let r;
-  try { r = await s3Fetch(env, 'GET', v.object_key, { Range: 'bytes=0-0' }); } catch { throw new HttpError(502, 'storage_unreachable'); }
+  try { r = await s3Fetch(env, 'GET', v.object_key, { Range: 'bytes=0-3' }); } catch { throw new HttpError(502, 'storage_unreachable'); }
   if (r.status === 404) throw new HttpError(409, 'not_uploaded');
   if (!r.ok) {
     let body = ''; try { body = (await r.text()).slice(0, 300); } catch {}
@@ -1016,12 +1028,15 @@ async function videoComplete(request, env, id) {
   const cr = String(r.headers.get('content-range') || '').match(/\/(\d+)$/);
   const size = cr ? Number(cr[1]) : Number(r.headers.get('content-length') || 0);
   const type = String(r.headers.get('content-type') || '').split(';')[0].trim();
-  const image = isImageType(v.content_type);
+  const image = isImageType(v.content_type), sb3 = isSb3Type(v.content_type);
   const maxBytes = image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES;
-  if (!size || size > maxBytes || type !== v.content_type) {
+  // sb3 は zip なので、先頭が "PK\x03\x04" であることも確かめる
+  let magicOk = true;
+  if (sb3) { const h = new Uint8Array(await r.arrayBuffer()); magicOk = h.length >= 4 && h[0] === 0x50 && h[1] === 0x4b && h[2] === 3 && h[3] === 4; }
+  if (!size || size > maxBytes || type !== v.content_type || !magicOk) {
     await b2Delete(env, v.object_key);
     await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
-    throw new HttpError(size > maxBytes ? 413 : 400, size > maxBytes ? (image ? 'image_too_big' : 'video_too_big') : 'bad_video');
+    throw new HttpError(size > maxBytes ? 413 : 400, size > maxBytes ? (image ? 'image_too_big' : sb3 ? 'sb3_too_big' : 'video_too_big') : 'bad_video');
   }
   await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ? WHERE id = ?").bind(size, id).run();
   return json({ id, type, url: await mediaUrl(env, v.object_key) });
@@ -1180,7 +1195,7 @@ async function adminReports(request, env) {
   return json({ items: rows.results.map(r => ({
     id: r.id, room: r.room, username: r.username, content: r.content, hidden: !!r.hidden,
     reports: r.c, created_at: r.created_at,
-    attachment: r.vtype ? (isImageType(r.vtype) ? 'image' : 'video') : null,
+    attachment: r.vtype ? (isImageType(r.vtype) ? 'image' : isSb3Type(r.vtype) ? 'file' : 'video') : null,
   })) });
 }
 

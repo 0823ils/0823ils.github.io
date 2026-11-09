@@ -234,7 +234,7 @@
         }
         .chat-msg { padding: 7px 4px; border-bottom: 1px solid #f3f3f3; word-break: break-word; }
         .chat-msg.hidden { opacity: 0.5; }
-        .chat-name { font-weight: bold; color: #4D97FF; margin-right: 6px; }
+        .chat-name { font-weight: bold; color: #4D97FF; margin-right: 5px; }
         mark { background: #fff3c4; color: inherit; padding: 0; border-radius: 2px; }
         .header-mode-tab.has-unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ffd24d; margin-left: 6px; vertical-align: middle; }
         .chat-tab.unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-left: 6px; vertical-align: middle; }
@@ -275,7 +275,7 @@
         .admin-acts button.ng { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
         .admin-form { display: flex; gap: 6px; margin-bottom: 12px; }
         .admin-form input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        .chat-tag { display: inline-block; font-size: 10px; font-weight: bold; color: #fff; padding: 0 6px; border-radius: 8px; margin-right: 5px; vertical-align: 1px; line-height: 16px; }
+        .chat-tag { display: inline-block; font-size: 10px; font-weight: bold; color: #fff; padding: 0 6px; border-radius: 8px; margin-right: 4px; vertical-align: 1px; line-height: 16px; }
         .chat-tag.tag-TWC { background: #4D97FF; }
         .chat-tag.tag-GAS { background: #f39c12; }
         .chat-name { cursor: pointer; }
@@ -2093,7 +2093,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
+    ja: { room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
           attachTitle: '動画・写真を添付（動画は20MBまで）', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4かWebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
@@ -2107,7 +2107,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
+    en: { room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a video or photo (video up to 20MB)', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
@@ -2125,8 +2125,8 @@ var CHAT_T = {
 var chatTimer = null;
 var chatSig = '';
 var chatIsAdmin = false;
-var CHAT_ROOMS = ['3d', 'math', 'physics', 'triangle'];
-var chatRoom = '3d';
+var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle'];
+var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ
 var chatPolls = 0;        // 自動更新の回数（8回に1回は全件を取り直す）
@@ -2495,7 +2495,7 @@ function renderChat(msgs, forceScroll) {
                 : '<div class="chat-quote" onclick="chatJump(' + Number(m.reply.id) + ')">↪ @' + esc(m.reply.username) + ': ' + esc(m.reply.content) + '</div>';
         }
         return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
-            tags + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' +
+            '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
             '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? '<div class="chat-text">' + chatTextHTML(m.content) + '</div>' : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + '</div>';

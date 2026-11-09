@@ -538,7 +538,7 @@ const CHAT_PAGE = 50;
 const CHAT_REPORT_HIDE = 3;       // この件数の通報で自動的に非表示にする
 const CHAT_MIN_INTERVAL = 2000;   // 連投の最短間隔(ms)
 const CHAT_PER_MINUTE = 15;       // 1分あたりの投稿数の上限
-const CHAT_ROOMS = ['3d', 'math', 'physics', 'triangle'];  // 部屋（3D / 数学 / 物理 / 三角形）
+const CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle'];  // 部屋（一般 / 3D / 数学 / 物理 / 三角形）
 
 function chatRoom(v) {
   const r = String(v || '3d');

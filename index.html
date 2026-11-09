@@ -226,6 +226,10 @@
         .chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
         .chat-head { font-size: 15px; font-weight: bold; color: #444; padding: 2px 2px 10px; border-bottom: 1px solid #eee; }
         .chat-head span { color: #4D97FF; margin-right: 4px; }
+        .chat-head { display: flex; align-items: center; }
+        .chat-head-link { margin-left: auto; background: none; border: 1px solid #ddd; border-radius: 8px; padding: 5px 8px; cursor: pointer; line-height: 0; }
+        .chat-head-link:hover { border-color: #4D97FF; }
+        a.chat-tab { display: block; text-decoration: none; }
         #chat-list { flex: 1; overflow-y: auto; border-radius: 8px; padding: 6px 4px; margin: 8px 0; font-size: 14px; }
         @media (max-width: 640px) {
             .chat-layout { flex-direction: column; gap: 8px; height: calc(100vh - 220px); }
@@ -413,6 +417,7 @@
                     <option value="newest" data-i18n="sortNewest">新しい順</option>
                     <option value="oldest" data-i18n="sortOldest">古い順</option>
                     <option value="skill" data-i18n="sortSkill">技術力順</option>
+                    <option value="fewest" data-i18n="sortFewest">評価数が少ない順</option>
                     <option value="relevance" data-i18n="sortRelevance">関連度順</option>
                 </select>
                 <button class="filter-toggle-btn" id="s-filter-btn" onclick="toggleFilter('s')" data-i18n-title="filterTitle" title="絞り込み">
@@ -469,6 +474,7 @@
                     <option value="newest" data-i18n="sortNewest">新しい順</option>
                     <option value="oldest" data-i18n="sortOldest">古い順</option>
                     <option value="skill" data-i18n="sortSkill">技術力順</option>
+                    <option value="fewest" data-i18n="sortFewest">評価数が少ない順</option>
                 </select>
                 <button class="filter-toggle-btn" id="b-filter-btn" onclick="toggleFilter('b')" data-i18n-title="filterTitle" title="絞り込み">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4h14M5 9h8M8 14h2" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
@@ -535,6 +541,7 @@
             <div class="rank-toggle">
                 <button id="rank-week-btn" class="active" onclick="setRankPeriod('week')"></button>
                 <button id="rank-all-btn" onclick="setRankPeriod('all')"></button>
+                <button onclick="copyShareLink()" style="margin-left:auto" data-i18n-title="shareTitle" title="この条件のリンクをコピー"><svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
             <div id="rank-list"></div>
         </div>
@@ -603,6 +610,7 @@ const LANG = {
         sortNewest: '新しい順',
         sortOldest: '古い順',
         sortSkill: '技術力順',
+        sortFewest: '評価数が少ない順',
         skillLabel: '技術力',
         skillAll: 'すべて',
         skillRated: '評価あり',
@@ -720,6 +728,7 @@ const LANG = {
         sortNewest: 'Newest',
         sortOldest: 'Oldest',
         sortSkill: 'Top skill',
+        sortFewest: 'Fewest ratings',
         skillLabel: 'Skill',
         skillAll: 'All',
         skillRated: 'Rated',
@@ -1136,7 +1145,7 @@ function setSearchSort(sort) {
     } else {
         refreshBtn.style.display = 'none';
     }
-    if (sort === 'skill') {
+    if (sort === 'skill' || sort === 'fewest') {
         loadSkillRanking().then(triggerSearch).catch(function() {
             document.getElementById('s-status').innerText = t('skillErr');
         });
@@ -1188,9 +1197,9 @@ function doSearch() {
         const offset = (sPage-1)*PAGE_SIZE;
 
         let total, projects;
-        if (sSort === 'skill') {
+        if (sSort === 'skill' || sSort === 'fewest') {
             if (!skillRank) throw new Error(t('skillErr'));
-            const r = skillPage(where, params, offset, PAGE_SIZE, sSkillFilter !== 'all');
+            const r = (sSort === 'fewest' ? fewestPage : skillPage)(where, params, offset, PAGE_SIZE, sSkillFilter !== 'all');
             total = r.total;
             projects = r.rows;
         } else {
@@ -1227,7 +1236,7 @@ let bFilterTimer=null;
 function setBrowseSort(sort) {
     bSort=sort;
     document.getElementById('b-refresh-btn').style.display = sort==='random' ? '' : 'none';
-    if (sort === 'skill') {
+    if (sort === 'skill' || sort === 'fewest') {
         loadSkillRanking().then(browseReset).catch(function() {
             document.getElementById('b-results').innerHTML = '';
             document.getElementById('b-load-more-wrap').style.display = 'none';
@@ -1270,9 +1279,9 @@ function browseLoadMore() {
         const offset=(bPage-1)*PAGE_SIZE;
 
         let projects;
-        if (bSort === 'skill') {
+        if (bSort === 'skill' || bSort === 'fewest') {
             if (!skillRank) throw new Error(t('skillErr'));
-            const r = skillPage(where, params, offset, PAGE_SIZE, bSkillFilter !== 'all');
+            const r = (bSort === 'fewest' ? fewestPage : skillPage)(where, params, offset, PAGE_SIZE, bSkillFilter !== 'all');
             if (bPage===1) {
                 bTotal = r.total;
                 bTotalPages = Math.max(1, Math.ceil(bTotal/PAGE_SIZE));
@@ -1793,14 +1802,14 @@ var skillRank = null;    // { ids: [技術力の高い順の作品ID], pos: { �
 
 async function loadSkillRanking() {
     var data = await apiCall('GET', '/api/ratings/ranking');
-    var ids = [], pos = {}, avg = {};
+    var ids = [], pos = {}, avg = {}, cnt = {};
     data.items.forEach(function(it) {
         var id = Number(it.id);
         if (Number.isInteger(id) && id > 0 && pos[id] === undefined) {
-            pos[id] = ids.length; ids.push(id); avg[id] = Number(it.avg) || 0;
+            pos[id] = ids.length; ids.push(id); avg[id] = Number(it.avg) || 0; cnt[id] = Number(it.count) || 0;
         }
     });
-    skillRank = { ids: ids, pos: pos, avg: avg };
+    skillRank = { ids: ids, pos: pos, avg: avg, cnt: cnt };
 }
 
 // 技術力順の1ページ分を返す。
@@ -1827,6 +1836,34 @@ function skillPage(where, params, offset, limit, ratedOnly) {
     return { total: rated.length + restTotal, rows: rows };
 }
 
+// 評価数が少ない順の1ページ分を返す。
+// 先頭は、評価のない作品（いいね順）。そのあとに、評価のある作品を、評価数が少ない順（同数なら技術力の高い順）で続ける。
+function fewestPage(where, params, offset, limit, ratedOnly) {
+    var ids = skillRank ? skillRank.ids : [];
+    var inList = ids.join(',');   // サーバーから来たIDも、整数だけに絞ってある
+    var join = where ? where + ' AND ' : 'WHERE ';
+    var rated = [];
+    if (ids.length) {
+        rated = queryAll('SELECT * FROM projects ' + join + 'id IN (' + inList + ')', params);
+        rated.sort(function(a, b) {
+            return (skillRank.cnt[a.id] - skillRank.cnt[b.id]) || (skillRank.pos[a.id] - skillRank.pos[b.id]);
+        });
+    }
+    if (ratedOnly) return { total: rated.length, rows: rated.slice(offset, offset + limit) };   // 技術力で絞り込み中は、評価のない作品を出さない
+    var restWhere = ids.length ? join + 'id NOT IN (' + inList + ')' : where;
+    var restTotal = queryOne('SELECT COUNT(*) as c FROM projects ' + restWhere, params).c;
+    var rows = [];
+    if (offset < restTotal) {
+        rows = queryAll('SELECT * FROM projects ' + restWhere + ' ORDER BY loves DESC, id DESC LIMIT ' + limit + ' OFFSET ' + offset, params);
+    }
+    var need = limit - rows.length;
+    if (need > 0) {
+        var ratedOffset = Math.max(0, offset - restTotal);
+        rows = rows.concat(rated.slice(ratedOffset, ratedOffset + need));
+    }
+    return { total: restTotal + rated.length, rows: rows };
+}
+
 // 起動時の表示。URLに条件があればそれを再現し、なければ「全作品」を技術力順で開く。
 // 順位表が取れなければ、ランダムで開く
 async function applyDefaultView() {
@@ -1850,8 +1887,14 @@ async function applyDefaultView() {
     }
     // URLにジャンルがあれば、先にその一覧を取っておく
     if (st && st.m !== 'u' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
-    if (st && st.m !== 'u') applyUrlState(st, rankingOk);
+    if (st && (st.m === 's' || st.m === 'b')) applyUrlState(st, rankingOk);
     if (st && st.m === 'u') { openProfile(st.u); return; }
+    if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
+    if (st && st.m === 'c' && apiEnabled()) {
+        if (st.room) { chatRoom = st.room; try { localStorage.setItem('twc_chat_room', st.room); } catch (e) {} }
+        setMode('chat');
+        return;
+    }
     setMode(st && st.m === 's' ? 'search' : 'browse');
     if (st && st.m === 's') triggerSearch();
 }
@@ -1902,6 +1945,10 @@ function shareParams() {
         if (bGenre) p.set('g', bGenre);
     } else if (currentMode === 'user' && profileUser) {
         p.set('m', 'u'); p.set('u', profileUser);
+    } else if (currentMode === 'rank') {
+        p.set('m', 'r'); p.set('p', rankPeriod);
+    } else if (currentMode === 'chat') {
+        p.set('m', 'c'); p.set('room', chatRoom);
     } else {
         return null;   // 保存タブは、個人のものなので共有しない
     }
@@ -1934,9 +1981,11 @@ function readUrlState() {
     var p = new URLSearchParams(location.search);
     var m = p.get('m');
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
+    if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
+    if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '' };
     if (m !== 's' && m !== 'b') return null;
     var sort = p.get('sort');
-    if (['random', 'loves', 'newest', 'oldest', 'skill', 'relevance'].indexOf(sort) === -1) sort = null;
+    if (['random', 'loves', 'newest', 'oldest', 'skill', 'fewest', 'relevance'].indexOf(sort) === -1) sort = null;
     var skill = p.get('skill');
     if (skill !== 'rated' && skill !== 'high') skill = 'all';
     var num = function(k) { var v = p.get(k); return (v !== null && /^\d{1,9}$/.test(v)) ? v : ''; };
@@ -1956,7 +2005,7 @@ function readUrlState() {
 function applyUrlState(st, rankingOk) {
     var sort = st.sort, skill = st.skill;
     if (!rankingOk) {                       // 順位表が使えないときは、技術力の条件を外す
-        if (sort === 'skill') sort = 'random';
+        if (sort === 'skill' || sort === 'fewest') sort = 'random';
         skill = 'all';
     }
     var setVal = function(id, v) { document.getElementById(id).value = v; };
@@ -1992,7 +2041,7 @@ function applyUrlState(st, rankingOk) {
 
 // 技術力の評価（サーバー）を使わない設定のときは、選択肢も隠す
 function updateSortOptions() {
-    document.querySelectorAll('option[value="skill"]').forEach(function(o) {
+    document.querySelectorAll('option[value="skill"], option[value="fewest"]').forEach(function(o) {
         o.disabled = !apiEnabled();
         o.hidden = !apiEnabled();
     });
@@ -2093,7 +2142,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
+    ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
           attachTitle: '動画・写真を添付（動画は20MBまで）', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
@@ -2107,7 +2156,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
+    en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a video or photo (video up to 20MB)', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/MOV/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
@@ -2162,18 +2211,31 @@ function leaveChat() {
     chatTimer = null;
 }
 
+var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function chatLinkUrl(r) { return location.href.split(/[?#]/)[0] + '?m=c&room=' + r; }
+
+// 通常のクリックはその場で切り替え、Cmd/Ctrl/Shiftクリックは、リンクとして別タブなどで開く
+function chatTabClick(e, r) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return true;
+    setChatRoom(r);
+    return false;
+}
+
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
-        return '<button class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r +
-            '" onclick="setChatRoom(this.dataset.r)"># ' + esc(ct('room_' + r)) + '</button>';
+        return '<a class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
+            '" onclick="return chatTabClick(event, this.dataset.r)"># ' + esc(ct('room_' + r)) + '</a>';
     }).join('');
-    document.getElementById('chat-title').innerHTML = '<span>#</span>' + esc(ct('room_' + chatRoom));
+    document.getElementById('chat-title').innerHTML = '<span>#</span>' + esc(ct('room_' + chatRoom)) +
+        '<button class="chat-head-link" onclick="copyShareLink()" title="' + esc(ct('copyLink')) + '">' + LINK_SVG + '</button>';
 }
 
 function setChatRoom(r) {
     if (r === chatRoom) return;
     chatRoom = r;
     try { localStorage.setItem('twc_chat_room', r); } catch (e) {}
+    updateUrl();
     chatSig = '';
     chatMsgs = [];
     chatReplyTo = null;
@@ -2797,7 +2859,7 @@ async function toggleGenreVote(g) {
 
 // --- ランキング ---
 var rankPeriod = 'week';
-function setRankPeriod(p) { rankPeriod = p; enterRank(); }
+function setRankPeriod(p) { rankPeriod = p; enterRank(); updateUrl(); }
 function rankCard(p, i, stat) {
     return '<div class="rank-wrap"><span class="rank-num' + (i < 3 ? ' r' + (i + 1) : '') + '">' + (i + 1) + '</span>' + cardHTML(p) + (stat ? '<div class="rank-stat">' + esc(stat) + '</div>' : '') + '</div>';
 }

@@ -1,0 +1,36 @@
+name: Update Ratings
+
+# 評価からスコアを計算して docs/ratings.json を作り直す。
+# サイトはこのファイルを読むので、順位表や評価数の表示でWorkerを使わない。
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+# データ更新（update.yml）と同時にpushしないよう、順番に実行する
+concurrency:
+  group: data-push
+  cancel-in-progress: false
+
+jobs:
+  ratings:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - name: Build ratings.json
+        run: python3 build_ratings.py docs/ratings.json
+        env:
+          TWC_API: https://twc-api.twc-scratch.workers.dev
+          EXPORT_TOKEN: ${{ secrets.EXPORT_TOKEN }}
+      - name: Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/ratings.json
+          git diff --cached --quiet || (git commit -m "update ratings" && git pull --rebase && git push)

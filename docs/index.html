@@ -1550,7 +1550,23 @@ function logout() {
 }
 
 // ===== 技術力評価 =====
-var ratingCache = {};     // projectId -> { avg, count, mine }
+var ratingCache = {};     // projectId -> { avg, count, mine }   avg は、静的ファイルがあれば補正後のスコア
+var myRatings = null;     // { 作品ID: 自分がつけた点 }。ログイン中に1回だけ取る（null = 未取得）
+
+var myRatingsPromise = null;
+async function loadMyRatings() {
+    if (!loginUser) { myRatings = null; return; }
+    if (myRatings !== null) return;
+    if (!myRatingsPromise) {   // 同時に何度呼ばれても、問い合わせは1回
+        myRatingsPromise = apiCall('GET', '/api/ratings/mine')
+            .then(function(d) { myRatings = d.ratings || {}; })
+            .catch(function() { myRatings = null; })
+            .then(function() { myRatingsPromise = null; });
+    }
+    await myRatingsPromise;
+}
+// 静的ファイルと、自分の評価の両方が使えるとき true（このとき評価の表示にWorkerは要らない）
+function snapMode() { return !!snapData && (!loginUser || myRatings !== null); }
 var currentRateId = null;
 
 function renderRatingEl(el) {
@@ -1572,9 +1588,15 @@ function refreshRatingTexts() {
 
 async function loadRatings(container) {
     if (!apiEnabled() || !container) return;
+    if (await loadSnapshot() && loginUser) await loadMyRatings();
+    var useSnap = snapMode();
     var need = [];
     container.querySelectorAll('[data-rate-id]').forEach(function(el) {
         var id = el.getAttribute('data-rate-id');
+        if (useSnap && !ratingCache[id]) {
+            var sn = snapData.map[id];
+            ratingCache[id] = { avg: sn ? sn.score : 0, count: sn ? sn.count : 0, mine: (myRatings && myRatings[id] !== undefined) ? myRatings[id] : null };
+        }
         renderRatingEl(el);
         if (!ratingCache[id] && need.indexOf(id) === -1) need.push(id);
     });
@@ -1589,6 +1611,7 @@ async function loadRatings(container) {
 
 function refreshAllRatings() {
     ratingCache = {};
+    myRatings = null;
     loadRatings(document);
 }
 
@@ -1601,7 +1624,8 @@ function openRate(id, ev) {
     document.getElementById('rate-msg').innerText = '';
     document.getElementById('rate-overlay').style.display = 'flex';
     renderRateModal();
-    // 最新の評価を取り直す（他の人の評価が増えているかもしれない）
+    // 最新の評価を取り直す（他の人の評価が増えているかもしれない）。静的ファイルで足りるときは問い合わせない
+    if (snapMode()) return;
     apiCall('GET', '/api/ratings?ids=' + currentRateId).then(function(data) {
         ratingCache[currentRateId] = data.ratings[currentRateId];
         document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
@@ -1640,6 +1664,7 @@ async function submitRating(score) {
     try {
         var data = await apiCall('PUT', '/api/ratings/' + currentRateId, { score: score });
         ratingCache[currentRateId] = data;
+        if (myRatings) myRatings[currentRateId] = data.mine;
         document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
         renderRateModal();
         msg.className = 'login-msg ok';
@@ -1664,6 +1689,7 @@ async function removeRating() {
     try {
         var data = await apiCall('DELETE', '/api/ratings/' + currentRateId);
         ratingCache[currentRateId] = data;
+        if (myRatings) delete myRatings[currentRateId];
         document.querySelectorAll('[data-rate-id="' + currentRateId + '"]').forEach(renderRatingEl);
         renderRateModal();
         msg.className = 'login-msg ok';
@@ -1813,8 +1839,28 @@ function savedLoadMore() {
 // サーバーの順位表（評価のある作品だけ）を取得し、検索条件に合う作品を、その順に並べる。
 var skillRank = null;    // { ids: [技術力の高い順の作品ID], pos: { 作品ID: 順位 } }
 
+// ratings.json（GitHub Actionsが数時間おきに作る静的ファイル）。順位表・評価数の表示はここから読み、Workerを使わない。
+// 読めないとき（まだ作られていない等）は、従来どおりWorkerに問い合わせる
+var snapData = null, snapPromise = null;
+function loadSnapshot() {
+    if (snapPromise) return snapPromise;
+    snapPromise = fetch('ratings.json').then(function(r) {
+        if (!r.ok) throw new Error('no snapshot');
+        return r.json();
+    }).then(function(d) {
+        var map = {};
+        (d.items || []).forEach(function(it) { map[it.id] = it; });
+        snapData = { map: map, items: d.items || [], weekly: d.weekly || [] };
+        return map;
+    }).catch(function() { return null; });
+    return snapPromise;
+}
+
 async function loadSkillRanking() {
-    var data = await apiCall('GET', '/api/ratings/ranking');
+    var items;
+    if (await loadSnapshot()) items = snapData.items;
+    else items = (await apiCall('GET', '/api/ratings/ranking')).items;
+    var data = { items: items };
     var ids = [], pos = {}, avg = {}, cnt = {};
     data.items.forEach(function(it) {
         var id = Number(it.id);
@@ -2096,7 +2142,7 @@ async function refreshNotifCount() {
     if (!loginUser) return;
     try { setNotifBadge((await apiCall('GET', '/api/notifications/count')).unread); } catch (e) {}
 }
-setInterval(function() { if (loginUser && !document.hidden) refreshNotifCount(); }, 30000);
+// 通知の未読数は、チャットの未読確認（pollBackground）と一緒に取る。別に定期確認はしない
 
 function toggleNotifMenu(e) {
     if (e) e.stopPropagation();
@@ -2201,6 +2247,35 @@ function ct(k) { return (CHAT_T[currentLang] || CHAT_T.ja)[k] || k; }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
 function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
 
+// ----- 自動更新（Workerの無料枠を節約する）-----
+// 新しい発言がないあいだは、確認の間隔を少しずつ延ばす（8秒 → 最大60秒）。
+// 発言・送信・画面に戻ったときは8秒に戻す。画面が見えていない、または10分操作がないときは確認しない。
+var CHAT_POLL_MIN = 8000, CHAT_POLL_MAX = 60000, IDLE_MS = 10 * 60 * 1000;
+var chatDelay = CHAT_POLL_MIN;
+var lastActivity = Date.now();
+['mousemove', 'keydown', 'touchstart', 'scroll', 'click'].forEach(function(ev) {
+    document.addEventListener(ev, function() { lastActivity = Date.now(); }, { passive: true });
+});
+function userIdle() { return Date.now() - lastActivity > IDLE_MS; }
+function chatTopId() { var m = 0; (chatMsgs || []).forEach(function(x) { if (x.id > m) m = x.id; }); return m; }
+function chatSchedule(ms) {
+    clearTimeout(chatTimer);
+    chatTimer = setTimeout(chatTick, ms === undefined ? chatDelay : ms);
+}
+async function chatTick() {
+    if (currentMode !== 'chat') return;
+    if (document.hidden || userIdle()) { chatSchedule(); return; }
+    chatPolls++;
+    var before = chatTopId();
+    try { await loadChat(false, chatPolls % 12 !== 0); } catch (e) {}
+    chatDelay = chatTopId() !== before ? CHAT_POLL_MIN : Math.min(Math.round(chatDelay * 1.5), CHAT_POLL_MAX);
+    if (currentMode === 'chat') chatSchedule();
+}
+function chatKick() { chatDelay = CHAT_POLL_MIN; if (currentMode === 'chat') chatSchedule(); }
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) { lastActivity = Date.now(); if (currentMode === 'chat') { chatDelay = CHAT_POLL_MIN; chatSchedule(0); } }
+});
+
 function enterChat() {
     document.getElementById('chat-rooms-title').innerText = ct('rooms');
     setChatMsg('');
@@ -2211,16 +2286,12 @@ function enterChat() {
     renderChatInput();
     renderAttachBar();
     loadChat(true);
-    clearInterval(chatTimer);
-    chatTimer = setInterval(function() {
-        if (document.hidden) return;
-        chatPolls++;
-        loadChat(false, chatPolls % 8 !== 0);
-    }, 8000);
+    chatDelay = CHAT_POLL_MIN;
+    chatSchedule();
 }
 
 function leaveChat() {
-    clearInterval(chatTimer);
+    clearTimeout(chatTimer);
     chatTimer = null;
 }
 
@@ -2638,6 +2709,7 @@ async function sendChat() {
         renderAttachBar();
         renderReplyBar();
         await loadChat(true);
+        chatKick();
     } catch (e) { setChatMsg(chatErr(e)); }
 }
 
@@ -2922,7 +2994,7 @@ async function enterRank() {
     try {
         var items = [], stats = {};
         if (rankPeriod === 'week') {
-            var r = await apiCall('GET', '/api/ranking/weekly');
+            var r = (await loadSnapshot()) ? { items: snapData.weekly } : await apiCall('GET', '/api/ranking/weekly');
             items = r.items || [];
             items.forEach(function(it) { stats[it.id] = nt('rankStat', it.avg, it.count, it.saves); });
         } else {
@@ -3064,8 +3136,12 @@ function markChatSeen() {
     updateNavDots();
 }
 async function pollBackground() {
-    if (document.hidden || !apiEnabled()) return;
-    try { chatLatestMap = (await apiCall('GET', '/api/chat/latest')).rooms || {}; } catch (e) { return; }
+    if (document.hidden || userIdle() || !apiEnabled()) return;
+    try {
+        var r = await apiCall('GET', '/api/chat/latest');
+        chatLatestMap = r.rooms || {};
+        if (typeof r.unread === 'number') setNotifBadge(r.unread);
+    } catch (e) { return; }
     updateNavDots();
 }
 function chatRoomUnread(r) {
@@ -3087,12 +3163,13 @@ function initUnread() {
     // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする
     apiCall('GET', '/api/chat/latest').then(function(r) {
         chatLatestMap = r.rooms || {};
+        if (typeof r.unread === 'number') setNotifBadge(r.unread);
         var ch = false;
         CHAT_ROOMS.forEach(function(k) { if (chatSeen[k] === undefined) { chatSeen[k] = chatLatestMap[k] || 0; ch = true; } });
         if (ch) try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
         updateNavDots();
     }).catch(function() {});
-    setInterval(pollBackground, 60000);
+    setInterval(pollBackground, 90000);
 }
 (function() {
     var o1 = renderChatTabs; renderChatTabs = function() { o1(); updateNavDots(); };

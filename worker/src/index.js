@@ -84,6 +84,8 @@ async function route(request, env) {
   if (path === '/api/auth/verify' && method === 'POST') return authVerify(request, env);
   if (path === '/api/ratings' && method === 'GET') return getRatings(request, env, url);
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
+  if (path === '/api/ratings/mine' && method === 'GET') return myRatings(request, env);
+  if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
 
@@ -123,7 +125,7 @@ async function route(request, env) {
   if (vm && !vm[2] && method === 'DELETE') return videoDiscard(request, env, vm[1]);
   if (path === '/api/admin/chat/reports' && method === 'GET') return adminReports(request, env);
   if (path === '/api/admin/chat/bans' && method === 'GET') return adminBans(request, env);
-  if (path === '/api/chat/latest' && method === 'GET') return chatLatest(env);
+  if (path === '/api/chat/latest' && method === 'GET') return chatLatest(request, env);
   if (path === '/api/ranking/weekly' && method === 'GET') return weeklyRanking(env);
   if (path === '/api/ratings/stats' && method === 'POST') return ratingStats(request, env);
   if (path === '/api/genres' && method === 'GET') return genreIds(env, url);
@@ -315,6 +317,29 @@ async function getRatings(request, env, url) {
   const out = {};
   for (const id of ids) out[id] = summarize(byId.get(id) || null, mineMap.get(id));
   return json({ ratings: out });
+}
+
+// 自分がつけた評価を全部返す（画面は、ここから「自分の評価」を知る。作品ごとに問い合わせない）
+async function myRatings(request, env) {
+  const user = await requireUser(request, env);
+  const rows = await env.DB.prepare('SELECT project_id, score FROM ratings WHERE user_id = ? LIMIT 5000').bind(user.uid).all();
+  const out = {};
+  for (const r of rows.results) out[r.project_id] = r.score;
+  return json({ ratings: out });
+}
+
+// 全評価の書き出し（GitHub Actions が、スコアを計算して docs/ratings.json にするために使う）。
+// EXPORT_TOKEN が合わなければ見せない。誰がどれをつけたかを含むので、公開はしない
+async function exportRatings(request, env) {
+  const token = String(env.EXPORT_TOKEN || '');
+  if (token.length < 16) throw new HttpError(503, 'export_disabled');
+  const given = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  const a = new TextEncoder().encode(given), b = new TextEncoder().encode(token);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < b.length; i++) diff |= (a[i] || 0) ^ b[i];
+  if (diff !== 0) throw new HttpError(403, 'forbidden');
+  const rows = await env.DB.prepare('SELECT project_id, user_id, score, updated_at FROM ratings').all();
+  return json({ ratings: rows.results.map(r => [r.project_id, r.user_id, r.score, r.updated_at]) });
 }
 
 // 作品の作者のIDを返す。一度調べたらD1に覚えておく（作者は変わらない）。
@@ -870,16 +895,22 @@ function videoInfo(r, env) {
   return { id: r.video_id, type: r.video_type, _key: r.video_key };   // url は mediaUrl() であとから付ける
 }
 
-// 閲覧URL。公開バケットならそのまま、非公開なら署名つき（1時間ごとに切り替わるので、同じ時間帯は同じURL＝ブラウザがキャッシュできる）
-const VIEW_HOUR = 3600 * 1000;
-const VIEW_EXPIRES = 6 * 3600;
+// 閲覧URL。公開バケットならそのまま、非公開なら署名つき。
+// 署名の時刻を3日ごとに区切るので、同じファイルのURLは3日間変わらない＝ブラウザが保存したものを使い回せる
+// （毎時間変わると、見るたびにB2から取り直すことになり、転送量を食う）。
+// 署名の有効期間は6日なので、どの時点でも最低3日は使える。
+const VIEW_WINDOW = 3 * 24 * 3600 * 1000;
+const VIEW_EXPIRES = 6 * 24 * 3600;
 async function mediaUrl(env, key) {
   if (env.VIDEO_BASE_URL) return String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + key;
-  const now = Math.floor(Date.now() / VIEW_HOUR) * VIEW_HOUR;
+  const now = Math.floor(Date.now() / VIEW_WINDOW) * VIEW_WINDOW;
+  // ブラウザに長く覚えさせる指定。うまく働かないときは VIEW_CACHE_SECONDS = "0" にすると外れる
+  const cache = Number(env.VIEW_CACHE_SECONDS === undefined || env.VIEW_CACHE_SECONDS === '' ? 604800 : env.VIEW_CACHE_SECONDS);
   return presignUrl({
     method: 'GET', host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`, path: '/' + key,
     region: regionOf(env.B2_ENDPOINT), keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
     now, expires: VIEW_EXPIRES,
+    extraQuery: cache > 0 ? { 'response-cache-control': `private, max-age=${Math.floor(cache)}, immutable` } : undefined,
   });
 }
 async function attachMediaUrls(env, rows) {
@@ -917,7 +948,7 @@ function regionOf(endpoint) {                       // s3.us-west-004.backblazeb
 }
 
 // 署名付きURL（クエリ方式）。signHeaders は署名に含めるヘッダー（host以外）
-async function presignUrl({ method, host, path, region, keyId, secret, now, expires, signHeaders }) {
+async function presignUrl({ method, host, path, region, keyId, secret, now, expires, signHeaders, extraQuery }) {
   const { amzDate, date } = amzDates(now);
   const scope = `${date}/${region}/s3/aws4_request`;
   const headers = { host, ...(signHeaders || {}) };
@@ -929,6 +960,7 @@ async function presignUrl({ method, host, path, region, keyId, secret, now, expi
     'X-Amz-Date': amzDate,
     'X-Amz-Expires': String(expires),
     'X-Amz-SignedHeaders': signedHeaders,
+    ...(extraQuery || {}),
   };
   const canonicalQuery = Object.keys(q).sort().map(k => `${rfc3986(k)}=${rfc3986(q[k])}`).join('&');
   const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), String(v).trim()]));
@@ -1167,8 +1199,8 @@ async function userProfile(env, name) {
 }
 
 // ---------- チャットの未読 ----------
-//   GET /api/chat/latest -> { rooms: { "3d": 最新ID, ... } }   （部屋ごとの最新のメッセージID。公開）
-async function chatLatest(env) {
+//   GET /api/chat/latest -> { rooms: { "3d": 最新ID, ... }, unread? }   （部屋ごとの最新のメッセージID。公開。ログイン中は通知の未読数 unread も返す）
+async function chatLatest(request, env) {
   const rooms = {};
   for (const r of CHAT_ROOMS) {
     const row = await env.DB.prepare(
@@ -1176,7 +1208,11 @@ async function chatLatest(env) {
     ).bind(r).first();
     rooms[r] = row && row.m ? row.m : 0;
   }
-  return json({ rooms });
+  // ログインしていれば、通知の未読数も一緒に返す（通知の確認を別に行わなくて済む）
+  const out = { rooms };
+  const user = await getUser(request, env);
+  if (user) out.unread = await unreadCount(env, user);
+  return json(out);
 }
 
 // ---------- 管理者用の一覧 ----------

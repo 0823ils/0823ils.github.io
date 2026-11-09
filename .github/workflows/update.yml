@@ -5,6 +5,11 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+# 評価の更新（ratings.yml）と同時にpushしないよう、順番に実行する
+concurrency:
+  group: data-push
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest

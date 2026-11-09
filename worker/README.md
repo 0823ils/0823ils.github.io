@@ -149,3 +149,38 @@ npx wrangler deploy
 npx wrangler d1 execute twc-ratings --remote --file=schema.sql
 npx wrangler deploy
 ```
+
+## 無料枠の節約（評価の静的ファイル化・自動更新・B2）
+
+### 評価を静的ファイル（docs/ratings.json）で配る
+順位表・評価数・今週のランキングは、GitHub Actions（`.github/workflows/ratings.yml`、6時間おき）が
+`build_ratings.py` で計算して `docs/ratings.json` に書き出します。サイトはこのファイルを GitHub Pages から読むので、
+**表示のためにWorker/D1を使いません**（ファイルが読めないときだけ、従来のAPIに戻ります）。
+
+初回だけ、次の準備が要ります。
+
+1. 合言葉を作る: `openssl rand -hex 24`
+2. Worker に登録: `cd worker && npx wrangler secret put EXPORT_TOKEN`（上の値を貼る）→ `npx wrangler deploy`
+3. GitHub のリポジトリ → Settings → Secrets and variables → Actions → New repository secret
+   名前 `EXPORT_TOKEN`、値は同じもの
+4. Actions → Update Ratings → Run workflow（最初の `ratings.json` を作る）
+
+| メソッド | パス | 内容 |
+|---|---|---|
+| GET | `/api/ratings/export` | 全評価の書き出し。`Authorization: Bearer <EXPORT_TOKEN>` が合うときだけ（Actions用） |
+| GET | `/api/ratings/mine` | 自分がつけた評価を全部返す（要ログイン）。画面は作品ごとに問い合わせず、これを1回だけ使う |
+| GET | `/api/chat/latest` | 部屋ごとの最新ID。ログイン中は通知の未読数 `unread` も返す（通知の定期確認が不要） |
+
+スコアは、評価者ごとの偏差値で甘辛をならし、「自分以外の平均との相関」で評価者の重みを決め、
+評価が少ない作品は全体の平均に少し寄せます（`build_ratings.py` の説明を参照）。
+`python3 build_ratings.py --selftest` で計算だけ試せます。
+
+### チャットの自動更新
+新しい発言がないあいだは、確認の間隔を8秒から最大60秒まで延ばします。画面が見えていないとき、
+10分操作がないときは確認しません。未読の点と通知の数は、90秒おきの1回の確認にまとめています。
+
+### B2 の転送量
+- 閲覧URLの署名時刻を3日ごとに区切り、同じファイルのURLを3日間変えません（ブラウザが保存したものを使い回せる）。
+- 閲覧URLに `response-cache-control`（既定7日）を付けて、ブラウザに長く覚えさせます。
+  B2が受け付けず見られなくなった場合は、`wrangler.toml` の `VIEW_CACHE_SECONDS = "0"` にして再デプロイすると外れます。
+- 動画は再生を押すまで読み込みません。写真は画面に入るまで読み込みません。

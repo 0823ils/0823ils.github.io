@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>scratch TWC</title>
+<script>
+(function () {
+  var p = location.pathname;
+  if (p.indexOf('/scratch-TWC/') === 0) {
+    location.replace(p.slice('/scratch-TWC'.length) + location.search + location.hash);
+  }
+})();
+</script>
+</head>
+<body style="font-family:sans-serif;text-align:center;padding:48px">
+<h1>ページが見つかりません</h1>
+<p><a href="/">scratch TWC のトップへ</a></p>
+</body>
+</html>

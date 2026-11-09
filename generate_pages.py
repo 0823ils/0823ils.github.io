@@ -26,7 +26,7 @@ from urllib.parse import quote
 DB_PATH = sys.argv[1] if len(sys.argv) > 1 else "projects.db"
 OUT_DIR = sys.argv[2] if len(sys.argv) > 2 else "docs"
 # 末尾スラッシュなし。独自ドメインにしたら SITE_URL を変える。
-SITE_URL = os.environ.get("SITE_URL", "https://0823ils.github.io/scratch-TWC").rstrip("/")
+SITE_URL = os.environ.get("SITE_URL", "https://0823ils.github.io").rstrip("/")
 
 SITE_NAME = "scratch TWC"
 SITE_FULL = "scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション"

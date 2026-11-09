@@ -26,6 +26,14 @@ struct FollowedUser {
 #[derive(Deserialize, Debug)]
 struct ApprovedUsers {
     users: Vec<FollowedUser>,
+    // 作品として承認されたもの（その作品だけを載せる。作者の他の作品は載せない）
+    #[serde(default)]
+    projects: Vec<ApprovedProject>,
+}
+
+#[derive(Deserialize, Debug)]
+struct ApprovedProject {
+    id: u64,
 }
 
 #[derive(Deserialize, Debug, Default)]
@@ -100,6 +108,49 @@ async fn fetch_all<T: DeserializeOwned>(client: &reqwest::Client, base: &str) ->
     Ok(all)
 }
 
+// 1件（JSONオブジェクト）を取得。429 / 5xx / 通信エラーは再試行する
+async fn fetch_one<T: DeserializeOwned>(client: &reqwest::Client, url: &str) -> Result<T, String> {
+    let mut attempt: u32 = 0;
+    loop {
+        let err = match client.get(url).send().await {
+            Ok(resp) => {
+                let status = resp.status();
+                if status.is_success() {
+                    match resp.json::<T>().await {
+                        Ok(v) => return Ok(v),
+                        Err(e) => format!("JSONパース失敗: {}", e),
+                    }
+                } else if status.as_u16() == 429 || status.is_server_error() {
+                    format!("HTTP {}", status)
+                } else {
+                    return Err(format!("HTTP {}", status));
+                }
+            }
+            Err(e) => format!("リクエスト失敗: {}", e),
+        };
+        attempt += 1;
+        if attempt > MAX_RETRIES {
+            return Err(format!("{}（{}回リトライして失敗）", err, MAX_RETRIES));
+        }
+        tokio::time::sleep(Duration::from_secs(2u64.pow(attempt))).await;
+    }
+}
+
+fn project_line(p: &ApiProject, fallback_author: &str) -> String {
+    let author_name = p.author.username.as_deref().unwrap_or(fallback_author);
+    let has_tw = if has_turbowarp(&p.description) || has_turbowarp(&p.instructions) { 1 } else { 0 };
+    format!(
+        "{{\"id\":{},\"title\":\"{}\",\"author_id\":{},\"author_username\":\"{}\",\"loves\":{},\"views\":{},\"has_tw\":{}}}\n",
+        p.id,
+        esc(&p.title),
+        p.author.id,
+        esc(author_name),
+        p.stats.loves.unwrap_or(0),
+        p.stats.views.unwrap_or(0),
+        has_tw,
+    )
+}
+
 fn has_turbowarp(text: &str) -> bool {
     let lower = text.to_lowercase();
     lower.contains("turbowarp") || lower.contains("turbo warp")
@@ -151,6 +202,7 @@ async fn main() {
 
     // 参加申請で承認されたユーザーも対象に加える（環境変数 TWC_API にWorkerのURLを入れたときだけ）。
     // 取得に失敗しても、フォロー先だけで続行する（申請分が一時的に抜けるだけで、壊れたデータにはならない）
+    let mut approved_projects: Vec<u64> = Vec::new();
     if let Ok(api) = std::env::var("TWC_API") {
         let api = api.trim().trim_end_matches('/').to_string();
         if !api.is_empty() {
@@ -158,7 +210,8 @@ async fn main() {
             match client.get(&url).send().await {
                 Ok(resp) if resp.status().is_success() => match resp.json::<ApprovedUsers>().await {
                     Ok(a) => {
-                        println!("  承認済みの参加申請: {} 人", a.users.len());
+                        println!("  承認済みの参加申請: ユーザー {} 人 / 作品 {} 件", a.users.len(), a.projects.len());
+                        approved_projects = a.projects.iter().map(|p| p.id).collect();
                         for u in a.users {
                             user_set.insert((u.id, u.username));
                         }
@@ -241,6 +294,24 @@ async fn main() {
 
     users_writer.lock().await.flush().await.ok();
     proj_writer.lock().await.flush().await.ok();
+
+    // 作品として承認されたものを、1件ずつ追加する（重複はあとの取り込みで無視される）
+    if !approved_projects.is_empty() {
+        println!("\n承認済みの作品 {} 件を追加します...", approved_projects.len());
+        let mut f = OpenOptions::new().create(true).append(true)
+            .open("scratch_projects.jsonl").await.expect("scratch_projects.jsonl を開けません");
+        for id in &approved_projects {
+            let url = format!("https://api.scratch.mit.edu/projects/{}", id);
+            match fetch_one::<ApiProject>(&client, &url).await {
+                Ok(p) => {
+                    f.write_all(project_line(&p, "").as_bytes()).await.ok();
+                    println!("  {} → {}", id, p.title);
+                }
+                Err(e) => eprintln!("  承認済み作品 {} の取得に失敗（スキップ）: {}", id, e),
+            }
+        }
+        f.flush().await.ok();
+    }
 
     println!(
         "\n完了！ ユーザー: {} 人 / 作品: {} 件",

@@ -10,7 +10,7 @@
 //   DELETE /api/saves/:projectId               -> { saved: false }             (要ログイン)
 //   POST   /api/applications { kind, target, message } -> { application }      (要ログイン。参加申請)
 //   GET    /api/applications/mine              -> { items, is_admin }          (要ログイン)
-//   GET    /api/applications/approved-users    -> { users: [{ id, username }] } (公開。収集ツール用)
+//   GET    /api/applications/approved-users    -> { users: [{ id, username }], projects: [{ id }] } (公開。収集ツール用。users=ユーザーとして承認、projects=作品として承認)
 //   GET    /api/admin/applications?status=pending -> { items }                 (管理者のみ)
 //   POST   /api/admin/applications/:id { status } -> { application }           (管理者のみ。approved / rejected / pending)
 
@@ -517,12 +517,17 @@ async function adminReview(request, env, id) {
   return json({ application: appRow(row) });
 }
 
-// 承認済みのユーザー（収集ツールが、フォロー先と合わせて作品を集める）
+// 承認済みのもの（収集ツールが、フォロー先と合わせて集める）
+//   users    : ユーザーとして承認された人（その人の公開作品を全部集める）
+//   projects : 作品として承認されたもの（その作品だけを載せる）
 async function approvedUsers(env) {
   const rows = await env.DB.prepare(
-    "SELECT DISTINCT target_user_id AS id, target_username AS username FROM applications WHERE status = 'approved'"
+    "SELECT DISTINCT target_user_id AS id, target_username AS username FROM applications WHERE status = 'approved' AND kind = 'user'"
   ).all();
-  return json({ users: rows.results });
+  const pj = await env.DB.prepare(
+    "SELECT DISTINCT project_id AS id FROM applications WHERE status = 'approved' AND kind = 'project' AND project_id IS NOT NULL"
+  ).all();
+  return json({ users: rows.results, projects: pj.results });
 }
 
 

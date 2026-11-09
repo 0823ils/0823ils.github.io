@@ -2203,7 +2203,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
+    ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
           attachTitle: 'ファイルを添付（動画・sb3は20MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3（Scratchの作品）', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は20MBまでです', e_sb3_too_big: 'sb3は20MBまでです', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIF、作品は.sb3にしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
@@ -2217,7 +2217,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
+    en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a file (video / .sb3 up to 20MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: '.sb3 (Scratch project)', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to 20MB', e_sb3_too_big: '.sb3 files can be up to 20MB', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: 'Use MP4/MOV/WebM for videos, JPEG/PNG/WebP/GIF for photos, or .sb3 for projects', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
@@ -2235,7 +2235,7 @@ var CHAT_T = {
 var chatTimer = null;
 var chatSig = '';
 var chatIsAdmin = false;
-var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle'];
+var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback'];
 var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ

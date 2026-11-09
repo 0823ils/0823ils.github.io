@@ -28,7 +28,7 @@ OUT_DIR = sys.argv[2] if len(sys.argv) > 2 else "docs"
 # 末尾スラッシュなし。独自ドメインにしたら SITE_URL を変える。
 SITE_URL = os.environ.get("SITE_URL", "https://0823ils.github.io").rstrip("/")
 
-SITE_NAME = "scratch TWC"
+SITE_NAME = "scratch-TWC"
 SITE_FULL = "scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション"
 
 CSS = """\
@@ -162,7 +162,7 @@ def main():
                 )
             desc = (
                 "「%s」はScratchユーザー %s さんの作品。Scratchの技術作品を集めた "
-                "scratch TWC（scratch-TWC）に収録されています。ScratchまたはTurboWarpで開けます。"
+                "scratch-TWC（スクラッチTWC・scratch TWC）に収録されています。ScratchまたはTurboWarpで開けます。"
                 % (short(title, 60), author)
             )
             body = f"""<div class="crumbs"><a href="../">{SITE_NAME}</a> › <a href="{u_href}">{esc(author)}</a> › 作品</div>
@@ -206,7 +206,7 @@ def main():
             '<li><a href="../p/%d.html">%s</a></li>' % (i, esc(short(t, 40))) for i, t in items
         )
         desc = (
-            "Scratchユーザー %s さんの技術作品 %d 件。scratch TWC（scratch-TWC）に収録されているscratch技術作品の一覧です。"
+            "Scratchユーザー %s さんの技術作品 %d 件。scratch-TWC（スクラッチTWC・scratch TWC）に収録されているscratch技術作品の一覧です。"
             % (author, len(items))
         )
         body = f"""<div class="crumbs"><a href="../">{SITE_NAME}</a> › <a href="../authors.html">ユーザー一覧</a> › {esc(author)}</div>
@@ -252,7 +252,7 @@ def main():
 """
     page = layout(
         title="ユーザー一覧｜scratch技術作品 - scratch TWC",
-        description="scratch TWC（scratch-TWC）に収録されているScratch技術作品の作者一覧。%d人・%d作品。" % (len(by_author), len(rows)),
+        description="scratch-TWC（スクラッチTWC・scratch TWC）に収録されているScratch技術作品の作者一覧。%d人・%d作品。" % (len(by_author), len(rows)),
         canonical=SITE_URL + "/authors.html",
         rel="",
         body=body,

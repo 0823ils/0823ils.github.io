@@ -79,3 +79,65 @@ CREATE TABLE IF NOT EXISTS chat_bans (
   username TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
+
+-- チャットの返信（返信先のメッセージID）
+CREATE TABLE IF NOT EXISTS chat_replies (
+  message_id INTEGER PRIMARY KEY,
+  reply_to INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_chat_replies_to ON chat_replies(reply_to);
+
+-- 通知（返信・メンション）。to_username は小文字
+CREATE TABLE IF NOT EXISTS chat_notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  to_username TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('reply', 'mention')),
+  message_id INTEGER NOT NULL,
+  room TEXT NOT NULL,
+  from_username TEXT NOT NULL,
+  snippet TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  is_read INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_notif_user ON chat_notifications(to_username, is_read, id DESC);
+
+-- スタジオのキュレター・マネージャー（チャットのタグ表示用。Scratchから定期的に取り直す）
+CREATE TABLE IF NOT EXISTS studio_roles (
+  studio_id TEXT NOT NULL,
+  username TEXT NOT NULL,            -- 小文字
+  PRIMARY KEY (studio_id, username)
+);
+CREATE TABLE IF NOT EXISTS studio_sync (
+  studio_id TEXT PRIMARY KEY,
+  synced_at INTEGER NOT NULL
+);
+
+-- チャットの動画（Backblaze B2 に保存。ここには場所と状態だけ持つ）
+CREATE TABLE IF NOT EXISTS chat_videos (
+  id TEXT PRIMARY KEY,               -- ランダムID（ファイル名にも使う）
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  object_key TEXT NOT NULL,          -- B2 上のキー（例: v/xxxx.mp4）
+  content_type TEXT NOT NULL,
+  size INTEGER NOT NULL DEFAULT 0,   -- アップロード確認後の実サイズ
+  state TEXT NOT NULL DEFAULT 'pending' CHECK (state IN ('pending', 'ready', 'deleted')),
+  message_id INTEGER,                -- 投稿に紐づいたら入る
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_videos_user_time ON chat_videos(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_videos_message ON chat_videos(message_id);
+
+-- 作品のジャンル（みんなの投票。2票以上、または管理者・キュレターの1票で確定）
+CREATE TABLE IF NOT EXISTS project_genres (
+  project_id INTEGER NOT NULL,
+  genre TEXT NOT NULL,
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  trusted INTEGER NOT NULL DEFAULT 0,   -- 1: 投票した時点で管理者かキュレターだった
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (project_id, genre, user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_genres_genre ON project_genres(genre, project_id);
+CREATE INDEX IF NOT EXISTS idx_genres_user ON project_genres(user_id);
+CREATE INDEX IF NOT EXISTS idx_ratings_time ON ratings(updated_at);
+CREATE INDEX IF NOT EXISTS idx_saves_time ON saves(created_at);

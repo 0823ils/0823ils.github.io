@@ -117,6 +117,28 @@ async function route(request, env) {
   const cam = path.match(/^\/api\/admin\/chat\/messages\/(\d{1,12})$/);
   if (cam && method === 'POST') return chatAdminAction(request, env, Number(cam[1]));
   if (path === '/api/admin/chat/bans' && method === 'POST') return chatAdminBan(request, env);
+  if (path === '/api/chat/videos/start' && method === 'POST') return videoStart(request, env);
+  const vm = path.match(/^\/api\/chat\/videos\/([a-f0-9]{32})(\/complete)?$/);
+  if (vm && vm[2] && method === 'POST') return videoComplete(request, env, vm[1]);
+  if (vm && !vm[2] && method === 'DELETE') return videoDiscard(request, env, vm[1]);
+  if (path === '/api/admin/chat/reports' && method === 'GET') return adminReports(request, env);
+  if (path === '/api/admin/chat/bans' && method === 'GET') return adminBans(request, env);
+  if (path === '/api/chat/latest' && method === 'GET') return chatLatest(env);
+  if (path === '/api/ranking/weekly' && method === 'GET') return weeklyRanking(env);
+  if (path === '/api/ratings/stats' && method === 'POST') return ratingStats(request, env);
+  if (path === '/api/genres' && method === 'GET') return genreIds(env, url);
+  const gm = path.match(/^\/api\/genres\/project\/(\d{1,12})(?:\/([a-z0-9]{2,12}))?$/);
+  if (gm) {
+    const projectId = Number(gm[1]);
+    if (!gm[2] && method === 'GET') return genreOfProject(request, env, projectId);
+    if (gm[2] && method === 'PUT') return genreVote(request, env, projectId, gm[2], true);
+    if (gm[2] && method === 'DELETE') return genreVote(request, env, projectId, gm[2], false);
+  }
+  const um = path.match(/^\/api\/users\/([A-Za-z0-9_-]{3,20})\/profile$/);
+  if (um && method === 'GET') return userProfile(env, um[1]);
+  if (path === '/api/notifications' && method === 'GET') return notifList(request, env);
+  if (path === '/api/notifications/count' && method === 'GET') return notifCount(request, env);
+  if (path === '/api/notifications/read' && method === 'POST') return notifRead(request, env);
 
   throw new HttpError(404, 'not_found');
 }
@@ -524,28 +546,127 @@ function chatRoom(v) {
   return r;
 }
 
-function chatRow(r) {
-  return { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
-           created_at: r.created_at, hidden: !!r.hidden };
+// スタジオのキュレター・マネージャーに付けるタグ（スタジオID -> タグ名）
+//   51603915 -> TWC / 32030084 -> GAS
+const STUDIO_TAGS = { '51603915': 'TWC', '32030084': 'GAS' };
+const STUDIO_TTL = 60 * 60 * 1000;          // 取り直す間隔
+const STUDIO_RETRY = 5 * 60 * 1000;         // 取得に失敗したときの再試行までの間隔
+const STUDIO_MAX_PAGES = 25;                // 1種類につき最大 25 × 40 = 1000人
+const NOTIF_PAGE = 50;
+const NOTIF_KEEP = 30 * 24 * 3600 * 1000;   // 通知を残す期間
+const MAX_MENTIONS = 5;
+
+function chatRow(r, env) {
+  const o = { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
+              created_at: r.created_at, hidden: !!r.hidden, tags: r.tags || [] };
+  if (r.video_id) {
+    if (isImageType(r.video_type)) o.image = videoInfo(r, env);
+    else o.video = videoInfo(r, env);
+  }
+  if (r.reply_to) {
+    o.reply = (r.reply_username && !r.reply_deleted && !r.reply_hidden)
+      ? { id: r.reply_to, username: r.reply_username, content: String(r.reply_content).slice(0, 80) || '[添付]' }
+      : { id: r.reply_to, gone: true };
+  }
+  return o;
+}
+
+async function scratchList(url) {
+  const r = await fetch(url, { headers: { 'User-Agent': 'scratch-twc/1.0' } });
+  if (!r.ok) throw new Error('http ' + r.status);
+  const j = await r.json();
+  if (!Array.isArray(j)) throw new Error('bad json');
+  return j;
+}
+
+// スタジオのキュレター・マネージャーを取り直す（古いときだけ）。失敗したら、前の結果をそのまま使う
+async function syncStudioRoles(env) {
+  const now = Date.now();
+  for (const studio of Object.keys(STUDIO_TAGS)) {
+    const st = await env.DB.prepare('SELECT synced_at FROM studio_sync WHERE studio_id = ?').bind(studio).first();
+    if (st && now - st.synced_at < STUDIO_TTL) continue;
+    try {
+      const names = new Set();
+      for (const kind of ['curators', 'managers']) {
+        for (let page = 0; page < STUDIO_MAX_PAGES; page++) {
+          const list = await scratchList(`${SCRATCH_API}/studios/${studio}/${kind}/?limit=40&offset=${page * 40}`);
+          for (const u of list) if (u && u.username) names.add(String(u.username).toLowerCase());
+          if (list.length < 40) break;
+        }
+      }
+      const stmts = [env.DB.prepare('DELETE FROM studio_roles WHERE studio_id = ?').bind(studio)];
+      for (const n of names) {
+        stmts.push(env.DB.prepare('INSERT OR IGNORE INTO studio_roles (studio_id, username) VALUES (?, ?)').bind(studio, n));
+      }
+      stmts.push(env.DB.prepare('INSERT OR REPLACE INTO studio_sync (studio_id, synced_at) VALUES (?, ?)').bind(studio, now));
+      await env.DB.batch(stmts);
+    } catch (e) {
+      console.error('studio sync failed', studio, e);
+      await env.DB.prepare('INSERT OR REPLACE INTO studio_sync (studio_id, synced_at) VALUES (?, ?)')
+        .bind(studio, now - STUDIO_TTL + STUDIO_RETRY).run();
+    }
+  }
+}
+
+// ユーザー名（小文字）の配列 -> { 小文字名: [タグ...] }
+async function tagsFor(env, namesLower) {
+  const out = {};
+  if (!namesLower.length) return out;
+  const ph = namesLower.map(() => '?').join(',');
+  const rows = await env.DB.prepare(`SELECT studio_id, username FROM studio_roles WHERE username IN (${ph})`)
+    .bind(...namesLower).all();
+  for (const r of rows.results) {
+    const tag = STUDIO_TAGS[r.studio_id];
+    if (!tag) continue;
+    (out[r.username] = out[r.username] || []);
+    if (!out[r.username].includes(tag)) out[r.username].push(tag);
+  }
+  for (const k of Object.keys(out)) out[k].sort();
+  return out;
 }
 
 async function chatList(request, env, url) {
   const room = chatRoom(url.searchParams.get('room'));
   const user = await getUser(request, env);
   const admin = !!(user && isAdmin(user, env));
+  // since=<最後に見たID> のときは、それより新しいメッセージだけを返す（読み取りが軽い）
+  const sinceRaw = url.searchParams.get('since');
+  const since = sinceRaw !== null && /^\d{1,12}$/.test(sinceRaw) ? Number(sinceRaw) : null;
+  if (since === null) await syncStudioRoles(env);
   const rows = await env.DB.prepare(
-    `SELECT id, user_id, username, content, created_at, hidden FROM chat_messages
-      WHERE room = ? AND deleted = 0 ${admin ? '' : 'AND hidden = 0'} ORDER BY id DESC LIMIT ?`
-  ).bind(room, CHAT_PAGE).all();
-  return json({ messages: rows.results.reverse().map(chatRow), is_admin: admin });
+    `SELECT m.id, m.user_id, m.username, m.content, m.created_at, m.hidden,
+            rp.reply_to, p.username AS reply_username, p.content AS reply_content,
+            p.deleted AS reply_deleted, p.hidden AS reply_hidden,
+            v.id AS video_id, v.object_key AS video_key, v.content_type AS video_type, v.created_at AS video_created
+       FROM chat_messages m
+       LEFT JOIN chat_replies rp ON rp.message_id = m.id
+       LEFT JOIN chat_messages p ON p.id = rp.reply_to
+       LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
+      WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
+      ORDER BY m.id ${since !== null ? 'ASC' : 'DESC'} LIMIT ?`
+  ).bind(...(since !== null ? [room, since, CHAT_PAGE] : [room, CHAT_PAGE])).all();
+  const list = since !== null ? rows.results : rows.results.reverse();
+  const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
+  for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
+  return json({ messages: list.map(r => chatRow(r, env)), is_admin: admin, partial: since !== null, video_enabled: videoEnabled(env) });
 }
 
 async function chatPost(request, env) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
   const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, CHAT_MAX_LEN);
-  if (!content) throw new HttpError(400, 'empty');
   const room = chatRoom(body.room);
+
+  // 動画（先にアップロードして確認済みのものだけ）
+  let video = null;
+  if (body.video_id !== undefined && body.video_id !== null) {
+    if (!/^[a-f0-9]{32}$/.test(String(body.video_id))) throw new HttpError(400, 'bad_video');
+    video = await env.DB.prepare(
+      "SELECT id FROM chat_videos WHERE id = ? AND user_id = ? AND state = 'ready' AND message_id IS NULL"
+    ).bind(body.video_id, user.uid).first();
+    if (!video) throw new HttpError(404, 'video_not_found');
+  }
+  if (!content && !video) throw new HttpError(400, 'empty');
 
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
@@ -558,10 +679,44 @@ async function chatPost(request, env) {
     throw new HttpError(429, 'too_fast');
   }
 
+  // 返信先（同じ部屋の、削除されていないメッセージだけ）
+  let parent = null;
+  if (body.reply_to !== undefined && body.reply_to !== null) {
+    if (!Number.isInteger(body.reply_to) || body.reply_to < 1) throw new HttpError(400, 'bad_reply');
+    parent = await env.DB.prepare(
+      'SELECT id, username FROM chat_messages WHERE id = ? AND room = ? AND deleted = 0 AND hidden = 0'
+    ).bind(body.reply_to, room).first();
+    if (!parent) throw new HttpError(404, 'reply_not_found');
+  }
+
   const res = await env.DB.prepare(
     'INSERT INTO chat_messages (user_id, username, content, created_at, room) VALUES (?, ?, ?, ?, ?)'
   ).bind(user.uid, user.u, content, now, room).run();
-  return json({ message: { id: res.meta.last_row_id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false } }, 201);
+  const id = res.meta.last_row_id;
+  if (parent) await env.DB.prepare('INSERT INTO chat_replies (message_id, reply_to) VALUES (?, ?)').bind(id, parent.id).run();
+  if (video) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(id, video.id).run();
+
+  // 通知: 返信先の人（返信）と、@で呼ばれた人（メンション）。自分宛て・同じ人への重複は作らない
+  const me = user.u.toLowerCase();
+  const targets = new Map();
+  if (parent) targets.set(parent.username.toLowerCase(), 'reply');
+  for (const m of new Set([...content.matchAll(/@([A-Za-z0-9_-]{3,20})/g)].map(x => x[1].toLowerCase()))) {
+    if (targets.size >= MAX_MENTIONS + 1) break;
+    if (!targets.has(m)) targets.set(m, 'mention');
+  }
+  targets.delete(me);
+  const snippet = (content || '[添付]').replace(/\s+/g, ' ').slice(0, 80);
+  const stmts = [];
+  for (const [to, kind] of targets) {
+    stmts.push(env.DB.prepare(
+      `INSERT INTO chat_notifications (to_username, kind, message_id, room, from_username, snippet, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(to, kind, id, room, user.u, snippet, now));
+  }
+  stmts.push(env.DB.prepare('DELETE FROM chat_notifications WHERE created_at < ?').bind(now - NOTIF_KEEP));
+  await env.DB.batch(stmts);
+
+  return json({ message: { id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false, tags: [] } }, 201);
 }
 
 async function chatDelete(request, env, id) {
@@ -570,6 +725,7 @@ async function chatDelete(request, env, id) {
   if (!row) throw new HttpError(404, 'not_found');
   if (row.user_id !== user.uid && !isAdmin(user, env)) throw new HttpError(403, 'forbidden');
   await env.DB.prepare('UPDATE chat_messages SET deleted = 1 WHERE id = ?').bind(id).run();
+  await deleteVideosOfMessage(env, id);
   return json({ deleted: true });
 }
 
@@ -600,6 +756,7 @@ async function chatAdminAction(request, env, id) {
   if (!res.meta.changes) throw new HttpError(404, 'not_found');
   // 再表示したら通報をリセットする（残すと、次の1件でまた非表示になるため）
   if (action === 'restore') await env.DB.prepare('DELETE FROM chat_reports WHERE message_id = ?').bind(id).run();
+  if (action === 'delete') await deleteVideosOfMessage(env, id);
   return json({ ok: true });
 }
 
@@ -618,4 +775,393 @@ async function chatAdminBan(request, env) {
     await env.DB.prepare('DELETE FROM chat_bans WHERE user_id = ?').bind(u.id).run();
   }
   return json({ username: u.username, banned });
+}
+
+
+// ---------- 通知（返信・メンション） ----------
+//   GET  /api/notifications         -> { items: [...新しい順50件], unread }  (要ログイン)
+//   GET  /api/notifications/count   -> { unread }                            (要ログイン)
+//   POST /api/notifications/read { id } か { all: true }  -> { unread }     (要ログイン)
+// 削除・非表示になったメッセージの通知は出さない。
+
+const NOTIF_VISIBLE = `FROM chat_notifications n
+   JOIN chat_messages m ON m.id = n.message_id AND m.deleted = 0 AND m.hidden = 0
+  WHERE n.to_username = ?`;
+
+async function unreadCount(env, user) {
+  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0`)
+    .bind(user.u.toLowerCase()).first();
+  return r ? r.c : 0;
+}
+
+async function notifList(request, env) {
+  const user = await requireUser(request, env);
+  const rows = await env.DB.prepare(
+    `SELECT n.id, n.kind, n.message_id, n.room, n.from_username, n.snippet, n.created_at, n.is_read
+       ${NOTIF_VISIBLE} ORDER BY n.id DESC LIMIT ?`
+  ).bind(user.u.toLowerCase(), NOTIF_PAGE).all();
+  return json({
+    items: rows.results.map(r => ({ id: r.id, kind: r.kind, message_id: r.message_id, room: r.room,
+      from_username: r.from_username, snippet: r.snippet, created_at: r.created_at, read: !!r.is_read })),
+    unread: await unreadCount(env, user),
+  });
+}
+
+async function notifCount(request, env) {
+  const user = await requireUser(request, env);
+  return json({ unread: await unreadCount(env, user) });
+}
+
+async function notifRead(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const me = user.u.toLowerCase();
+  if (body.all === true) {
+    await env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE to_username = ? AND is_read = 0').bind(me).run();
+  } else if (Number.isInteger(body.id)) {
+    await env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE id = ? AND to_username = ?').bind(body.id, me).run();
+  } else {
+    throw new HttpError(400, 'bad_request');
+  }
+  return json({ unread: await unreadCount(env, user) });
+}
+
+
+// ---------- 動画（Backblaze B2 / S3互換API） ----------
+//   POST   /api/chat/videos/start { size, type }  -> { id, upload_url, headers }   (要ログイン。動画(mp4/webm)・写真(jpeg/png/webp)を、B2へ直接アップロードするための一時URL)
+//   POST   /api/chat/videos/:id/complete          -> { id, url, type }             (アップロード後に確認。大きすぎたら消す)
+//   DELETE /api/chat/videos/:id                   -> { deleted }                   (投稿前の動画を取り消す)
+// 投稿は POST /api/chat/messages に video_id を付ける。メッセージを削除すると、動画も消える。
+// 設定（worker/B2_SETUP.md）: 変数 B2_ENDPOINT, B2_BUCKET, VIDEO_BASE_URL, VIDEO_TTL_DAYS、
+//   シークレット B2_KEY_ID, B2_APP_KEY。未設定なら動画機能は無効（video_enabled: false）。
+const VIDEO_MAX_BYTES = 20 * 1024 * 1024;
+const VIDEO_PER_DAY = 3;
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;     // ブラウザ側で縮小してから送るので、実際は数百KB程度
+const IMAGE_PER_DAY = 10;
+const VIDEO_TYPES = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const isImageType = (t) => String(t).startsWith('image/');
+const VIDEO_PRESIGN_SECONDS = 600;
+
+function videoEnabled(env) {
+  return !!(env.B2_ENDPOINT && env.B2_BUCKET && env.VIDEO_BASE_URL && env.B2_KEY_ID && env.B2_APP_KEY);
+}
+function requireVideo(env) {
+  if (!videoEnabled(env)) throw new HttpError(503, 'video_disabled');
+}
+function videoTtlMs(env) {
+  const d = Number(env.VIDEO_TTL_DAYS);
+  return (Number.isFinite(d) && d > 0 ? d : 14) * 24 * 3600 * 1000;
+}
+// B2のライフサイクル設定で消えた後は、再生できないことを知らせる
+function videoInfo(r, env) {
+  if (Date.now() - r.video_created > videoTtlMs(env)) return { id: r.video_id, type: r.video_type, expired: true };
+  return { id: r.video_id, type: r.video_type, url: String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + r.video_key };
+}
+
+// --- AWS Signature V4（S3互換。B2用） ---
+const enc = new TextEncoder();
+function hex(buf) { return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+async function sha256Hex(data) { return hex(await crypto.subtle.digest('SHA-256', typeof data === 'string' ? enc.encode(data) : data)); }
+async function hmac(key, data) {
+  const k = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(data)));
+}
+async function signingKey(secret, date, region) {
+  let k = await hmac(enc.encode('AWS4' + secret), date);
+  k = await hmac(k, region);
+  k = await hmac(k, 's3');
+  return hmac(k, 'aws4_request');
+}
+function rfc3986(s) { return encodeURIComponent(s).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase()); }
+function amzDates(now) {
+  const iso = new Date(now).toISOString().replace(/[:-]|\.\d{3}/g, '');   // 20130524T000000Z
+  return { amzDate: iso, date: iso.slice(0, 8) };
+}
+function regionOf(endpoint) {                       // s3.us-west-004.backblazeb2.com -> us-west-004
+  const m = String(endpoint).match(/^s3\.([^.]+)\./);
+  return m ? m[1] : 'us-east-1';
+}
+
+// 署名付きURL（クエリ方式）。signHeaders は署名に含めるヘッダー（host以外）
+async function presignUrl({ method, host, path, region, keyId, secret, now, expires, signHeaders }) {
+  const { amzDate, date } = amzDates(now);
+  const scope = `${date}/${region}/s3/aws4_request`;
+  const headers = { host, ...(signHeaders || {}) };
+  const names = Object.keys(headers).map(h => h.toLowerCase()).sort();
+  const signedHeaders = names.join(';');
+  const q = {
+    'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+    'X-Amz-Credential': `${keyId}/${scope}`,
+    'X-Amz-Date': amzDate,
+    'X-Amz-Expires': String(expires),
+    'X-Amz-SignedHeaders': signedHeaders,
+  };
+  const canonicalQuery = Object.keys(q).sort().map(k => `${rfc3986(k)}=${rfc3986(q[k])}`).join('&');
+  const lower = Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), String(v).trim()]));
+  const canonicalHeaders = names.map(n => `${n}:${lower[n]}\n`).join('');
+  const canonicalRequest = [method, path, canonicalQuery, canonicalHeaders, signedHeaders, 'UNSIGNED-PAYLOAD'].join('\n');
+  const toSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonicalRequest)].join('\n');
+  const sig = hex(await hmac(await signingKey(secret, date, region), toSign));
+  return `https://${host}${path}?${canonicalQuery}&X-Amz-Signature=${sig}`;
+}
+
+// ヘッダー方式で署名したリクエストを送る（HEAD / DELETE 用）
+async function s3Fetch(env, method, key) {
+  const region = regionOf(env.B2_ENDPOINT);
+  const host = `${env.B2_BUCKET}.${env.B2_ENDPOINT}`;
+  const path = '/' + key;
+  const { amzDate, date } = amzDates(Date.now());
+  const scope = `${date}/${region}/s3/aws4_request`;
+  const payloadHash = await sha256Hex('');
+  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
+  const canonicalRequest = [method, path, '', canonicalHeaders, signedHeaders, payloadHash].join('\n');
+  const toSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonicalRequest)].join('\n');
+  const sig = hex(await hmac(await signingKey(env.B2_APP_KEY, date, region), toSign));
+  return fetch(`https://${host}${path}`, {
+    method,
+    headers: {
+      'x-amz-date': amzDate,
+      'x-amz-content-sha256': payloadHash,
+      'Authorization': `AWS4-HMAC-SHA256 Credential=${env.B2_KEY_ID}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`,
+    },
+  });
+}
+
+async function b2Delete(env, key) {
+  try { await s3Fetch(env, 'DELETE', key); } catch (e) { console.error('b2 delete failed', key, e); }
+}
+
+async function deleteVideosOfMessage(env, messageId) {
+  if (!videoEnabled(env)) return;
+  const rows = await env.DB.prepare("SELECT id, object_key FROM chat_videos WHERE message_id = ? AND state != 'deleted'").bind(messageId).all();
+  for (const v of rows.results) {
+    await b2Delete(env, v.object_key);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(v.id).run();
+  }
+}
+
+async function videoStart(request, env) {
+  const user = await requireUser(request, env);
+  requireVideo(env);
+  const body = await readJson(request);
+  const type = String(body.type || '');
+  const size = body.size;
+  if (!VIDEO_TYPES[type]) throw new HttpError(400, 'bad_video_type');
+  const image = isImageType(type);
+  if (!Number.isInteger(size) || size < 1) throw new HttpError(400, 'bad_video_size');
+  if (size > (image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES)) throw new HttpError(413, image ? 'image_too_big' : 'video_too_big');
+
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+
+  const now = Date.now();
+  const used = await env.DB.prepare(
+    `SELECT COUNT(*) AS c FROM chat_videos WHERE user_id = ? AND created_at > ? AND state != 'deleted'
+       AND content_type ${image ? 'LIKE' : 'NOT LIKE'} 'image/%'`
+  ).bind(user.uid, now - 24 * 3600 * 1000).first();
+  if (used && used.c >= (image ? IMAGE_PER_DAY : VIDEO_PER_DAY)) throw new HttpError(429, image ? 'image_limit' : 'video_limit');
+
+  const id = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
+  const key = `v/${id}.${VIDEO_TYPES[type]}`;
+  await env.DB.prepare(
+    'INSERT INTO chat_videos (id, user_id, username, object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+  ).bind(id, user.uid, user.u, key, type, now).run();
+
+  const uploadUrl = await presignUrl({
+    method: 'PUT',
+    host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`,
+    path: '/' + key,
+    region: regionOf(env.B2_ENDPOINT),
+    keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+    now, expires: VIDEO_PRESIGN_SECONDS,
+    signHeaders: { 'content-type': type },
+  });
+  return json({ id, upload_url: uploadUrl, headers: { 'Content-Type': type }, max_bytes: image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES });
+}
+
+// アップロードされたものを確認する。署名ではサイズを縛れないので、ここで実サイズを調べる
+async function videoComplete(request, env, id) {
+  const user = await requireUser(request, env);
+  requireVideo(env);
+  const v = await env.DB.prepare("SELECT * FROM chat_videos WHERE id = ? AND user_id = ? AND state != 'deleted'").bind(id, user.uid).first();
+  if (!v) throw new HttpError(404, 'not_found');
+  let r;
+  try { r = await s3Fetch(env, 'HEAD', v.object_key); } catch { throw new HttpError(502, 'storage_unreachable'); }
+  if (r.status === 404) throw new HttpError(409, 'not_uploaded');
+  if (!r.ok) throw new HttpError(502, 'storage_error');
+  const size = Number(r.headers.get('content-length') || 0);
+  const type = String(r.headers.get('content-type') || '').split(';')[0].trim();
+  const image = isImageType(v.content_type);
+  const maxBytes = image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES;
+  if (!size || size > maxBytes || type !== v.content_type) {
+    await b2Delete(env, v.object_key);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
+    throw new HttpError(size > maxBytes ? 413 : 400, size > maxBytes ? (image ? 'image_too_big' : 'video_too_big') : 'bad_video');
+  }
+  await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ? WHERE id = ?").bind(size, id).run();
+  return json({ id, type, url: String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + v.object_key });
+}
+
+async function videoDiscard(request, env, id) {
+  const user = await requireUser(request, env);
+  const v = await env.DB.prepare("SELECT object_key FROM chat_videos WHERE id = ? AND user_id = ? AND message_id IS NULL AND state != 'deleted'")
+    .bind(id, user.uid).first();
+  if (!v) throw new HttpError(404, 'not_found');
+  if (videoEnabled(env)) await b2Delete(env, v.object_key);
+  await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
+  return json({ deleted: true });
+}
+
+
+// ---------- ジャンル（みんなで付ける） ----------
+//   GET    /api/genres?genre=3d                    -> { ids: [...] }                       (確定したものだけ。公開)
+//   GET    /api/genres/project/:id                 -> { confirmed, votes, mine }           (mine はログイン時のみ)
+//   PUT    /api/genres/project/:id/:genre          -> { ... }                              (要ログイン。投票)
+//   DELETE /api/genres/project/:id/:genre          -> { ... }                              (要ログイン。自分の投票を取り消す)
+// 確定: 2票以上、または管理者・キュレター（TWC/GASタグの人）の1票。
+const GENRES = ['3d', 'physics', 'engine', 'render', 'algorithm', 'math', 'tool', 'media', 'audio', 'ai', 'other'];
+const MAX_GENRE_IDS = 3000;
+const MAX_GENRE_VOTES_PER_USER = 500;
+const GENRE_CONFIRMED = 'COUNT(*) >= 2 OR SUM(trusted) >= 1';
+
+async function genreIds(env, url) {
+  const g = url.searchParams.get('genre') || '';
+  if (!GENRES.includes(g)) throw new HttpError(400, 'bad_genre');
+  const rows = await env.DB.prepare(
+    `SELECT project_id FROM project_genres WHERE genre = ? GROUP BY project_id HAVING ${GENRE_CONFIRMED}
+      ORDER BY project_id DESC LIMIT ?`
+  ).bind(g, MAX_GENRE_IDS).all();
+  return json({ ids: rows.results.map(r => r.project_id) });
+}
+
+async function genreSummary(env, projectId, user) {
+  const rows = await env.DB.prepare(
+    'SELECT genre, COUNT(*) AS c, SUM(trusted) AS t FROM project_genres WHERE project_id = ? GROUP BY genre'
+  ).bind(projectId).all();
+  const votes = {}, confirmed = [];
+  for (const r of rows.results) {
+    votes[r.genre] = r.c;
+    if (r.c >= 2 || r.t >= 1) confirmed.push(r.genre);
+  }
+  let mine = [];
+  if (user) {
+    const m = await env.DB.prepare('SELECT genre FROM project_genres WHERE project_id = ? AND user_id = ?').bind(projectId, user.uid).all();
+    mine = m.results.map(r => r.genre);
+  }
+  return { confirmed, votes, mine };
+}
+
+async function genreOfProject(request, env, projectId) {
+  const user = await getUser(request, env);
+  return json(await genreSummary(env, projectId, user));
+}
+
+async function genreVote(request, env, projectId, genre, on) {
+  const user = await requireUser(request, env);
+  if (!GENRES.includes(genre)) throw new HttpError(400, 'bad_genre');
+  if (on) {
+    const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM project_genres WHERE user_id = ?').bind(user.uid).first();
+    if (n && n.c >= MAX_GENRE_VOTES_PER_USER) throw new HttpError(429, 'too_many_votes');
+    await syncStudioRoles(env);
+    const tg = await tagsFor(env, [user.u.toLowerCase()]);
+    const trusted = isAdmin(user, env) || (tg[user.u.toLowerCase()] || []).length > 0 ? 1 : 0;
+    await env.DB.prepare(
+      'INSERT OR IGNORE INTO project_genres (project_id, genre, user_id, username, trusted, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(projectId, genre, user.uid, user.u, trusted, Date.now()).run();
+  } else {
+    await env.DB.prepare('DELETE FROM project_genres WHERE project_id = ? AND genre = ? AND user_id = ?')
+      .bind(projectId, genre, user.uid).run();
+  }
+  return json(await genreSummary(env, projectId, user));
+}
+
+// ---------- 今週のランキング ----------
+//   GET /api/ranking/weekly -> { items: [{ id, avg, count, saves }], since }
+// 直近7日間につけられた評価で並べる（評価が少ない作品が、1件の★5だけで1位にならないよう、全体の平均に寄せる）
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+const WEEKLY_LIMIT = 30;
+
+async function weeklyRanking(env) {
+  const since = Date.now() - WEEK_MS;
+  const rows = await env.DB.prepare(
+    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a,
+            (SUM(score) + ?) * 1.0 / (COUNT(*) + ?) AS w
+       FROM ratings WHERE updated_at >= ?
+      GROUP BY project_id
+      ORDER BY w DESC, c DESC, project_id DESC LIMIT ?`
+  ).bind(PRIOR_MEAN * PRIOR_WEIGHT, PRIOR_WEIGHT, since, WEEKLY_LIMIT).all();
+  const items = rows.results.map(r => ({ id: r.project_id, avg: Math.round(r.a * 100) / 100, count: r.c, saves: 0 }));
+  if (items.length) {
+    const ph = items.map(() => '?').join(',');
+    const sv = await env.DB.prepare(
+      `SELECT project_id, COUNT(*) AS c FROM saves WHERE created_at >= ? AND project_id IN (${ph}) GROUP BY project_id`
+    ).bind(since, ...items.map(i => i.id)).all();
+    const m = new Map(sv.results.map(r => [r.project_id, r.c]));
+    for (const it of items) it.saves = m.get(it.id) || 0;
+  }
+  return json({ items, since });
+}
+
+// ---------- プロフィール ----------
+//   POST /api/ratings/stats { ids: [...] }  -> { count, avg, projects }   指定した作品が受けた評価のまとめ（最大500作品）
+//   GET  /api/users/:name/profile           -> { username, tags, chat_posts, ratings_given }
+async function ratingStats(request, env) {
+  const body = await readJson(request);
+  const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).filter(n => Number.isInteger(n) && n > 0))];
+  if (ids.length > 500) throw new HttpError(400, 'too_many_ids');
+  if (!ids.length) return json({ count: 0, avg: 0, projects: 0 });
+  const ph = ids.map(() => '?').join(',');
+  const r = await env.DB.prepare(
+    `SELECT COUNT(*) AS c, AVG(score) AS a, COUNT(DISTINCT project_id) AS p FROM ratings WHERE project_id IN (${ph})`
+  ).bind(...ids).first();
+  return json({ count: r.c || 0, avg: r.c ? Math.round(r.a * 100) / 100 : 0, projects: r.p || 0 });
+}
+
+async function userProfile(env, name) {
+  await syncStudioRoles(env);
+  const lower = name.toLowerCase();
+  const tags = (await tagsFor(env, [lower]))[lower] || [];
+  const posts = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_messages WHERE lower(username) = ? AND deleted = 0 AND hidden = 0').bind(lower).first();
+  const given = await env.DB.prepare('SELECT COUNT(*) AS c FROM ratings WHERE lower(username) = ?').bind(lower).first();
+  return json({ username: name, tags, chat_posts: posts ? posts.c : 0, ratings_given: given ? given.c : 0 });
+}
+
+// ---------- チャットの未読 ----------
+//   GET /api/chat/latest -> { rooms: { "3d": 最新ID, ... } }   （部屋ごとの最新のメッセージID。公開）
+async function chatLatest(env) {
+  const rooms = {};
+  for (const r of CHAT_ROOMS) {
+    const row = await env.DB.prepare(
+      'SELECT MAX(id) AS m FROM chat_messages WHERE room = ? AND deleted = 0 AND hidden = 0'
+    ).bind(r).first();
+    rooms[r] = row && row.m ? row.m : 0;
+  }
+  return json({ rooms });
+}
+
+// ---------- 管理者用の一覧 ----------
+//   GET /api/admin/chat/reports -> { items: [{ id, room, username, content, hidden, reports, created_at, attachment }] }
+//   GET /api/admin/chat/bans    -> { items: [{ user_id, username, created_at }] }
+async function adminReports(request, env) {
+  await requireAdmin(request, env);
+  const rows = await env.DB.prepare(
+    `SELECT m.id, m.room, m.username, m.content, m.hidden, m.created_at, COUNT(r.reporter_id) AS c,
+            v.content_type AS vtype
+       FROM chat_reports r
+       JOIN chat_messages m ON m.id = r.message_id AND m.deleted = 0
+       LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
+      GROUP BY m.id ORDER BY c DESC, m.id DESC LIMIT 100`
+  ).all();
+  return json({ items: rows.results.map(r => ({
+    id: r.id, room: r.room, username: r.username, content: r.content, hidden: !!r.hidden,
+    reports: r.c, created_at: r.created_at,
+    attachment: r.vtype ? (isImageType(r.vtype) ? 'image' : 'video') : null,
+  })) });
+}
+
+async function adminBans(request, env) {
+  await requireAdmin(request, env);
+  const rows = await env.DB.prepare('SELECT user_id, username, created_at FROM chat_bans ORDER BY created_at DESC LIMIT 200').all();
+  return json({ items: rows.results });
 }

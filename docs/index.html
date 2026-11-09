@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション</title>
+    <title>Scratch technical works collection（スクラッチ技術作品集）</title>
     <meta name="description" content="scratch TWC（Scratch Technical Works Collection）は、Scratchの技術作品を検索・閲覧できるコレクションサイト。scratch技術作品をプロジェクト名・ユーザー名で検索し、技術力順・いいね順で探せます。TurboWarpでも開けます。">
     <meta name="keywords" content="scratch TWC,scratch-TWC,Scratch TWC,scratch技術作品,Scratch技術作品,scratch,スクラッチ,技術作品,Technical Works Collection,Scratch Technical Works Collection,TurboWarp">
     <meta name="robots" content="index,follow,max-image-preview:large">
@@ -14,12 +14,12 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="scratch TWC">
     <meta property="og:locale" content="ja_JP">
-    <meta property="og:title" content="scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション">
+    <meta property="og:title" content="Scratch technical works collection（スクラッチ技術作品集）">
     <meta property="og:description" content="Scratchの技術作品（scratch技術作品）を検索・閲覧できる scratch-TWC。技術力順・いいね順で探せます。">
     <meta property="og:url" content="https://0823ils.github.io/scratch-TWC/">
     <meta property="og:image" content="https://0823ils.github.io/scratch-TWC/icon.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="scratch TWC｜Technical Works Collection スクラッチ技術作品コレクション">
+    <meta name="twitter:title" content="Scratch technical works collection（スクラッチ技術作品集）">
     <meta name="twitter:description" content="Scratchの技術作品（scratch技術作品）を検索・閲覧できる scratch-TWC。">
     <meta name="twitter:image" content="https://0823ils.github.io/scratch-TWC/icon.png">
     <script type="application/ld+json">
@@ -36,24 +36,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background: #f0f2f5; padding-top: 70px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 700px; background: white; padding: 24px 30px 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 20px 0 20px; }
+        body { font-family: sans-serif; background: #f0f2f5; padding-top: 106px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 700px; background: white; padding: 24px 30px 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 20px 0 20px; transition: max-width 0.2s; }
+        body.mode-chat .container { max-width: 940px; }
 
         /* ===== ヘッダー ===== */
         .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #4D97FF; box-shadow: 0 2px 12px rgba(77,151,255,0.35); }
-        .header-inner { max-width: 700px; margin: 0 auto; padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 14px; }
-        .header-logo { font-size: 17px; font-weight: 800; color: white; letter-spacing: -0.3px; white-space: nowrap; flex-shrink: 0; }
-        .header-mode-tabs { display: flex; background: rgba(255,255,255,0.18); border-radius: 8px; overflow: hidden; flex-shrink: 0; padding: 3px; gap: 2px; }
-        .header-mode-tab { padding: 4px 14px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; color: rgba(255,255,255,0.75); background: transparent; border: none; border-radius: 6px; transition: all 0.2s; }
-        .header-mode-tab.active { background: white; color: #4D97FF; }
-        .header-mode-tab:not(.active):hover { background: rgba(255,255,255,0.25); color: white; }
+        .header-inner { max-width: 940px; margin: 0 auto; padding: 0 20px; height: 52px; display: flex; align-items: center; gap: 10px; }
+        .header-logo { font-size: 18px; font-weight: 800; color: white; letter-spacing: -0.3px; white-space: nowrap; flex-shrink: 0; }
         .header-spacer { flex: 1; }
-        .header-tw-wrap { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
-        .header-tw-label { font-size: 11px; color: rgba(255,255,255,0.85); white-space: nowrap; }
-        .header-lang-switch { display: flex; gap: 2px; background: rgba(255,255,255,0.18); border-radius: 16px; padding: 3px; flex-shrink: 0; }
-        .header-lang-btn { padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.75); transition: all 0.2s; }
-        .header-lang-btn.active { background: white; color: #4D97FF; }
-        .header-lang-btn:not(.active):hover { color: white; background: rgba(255,255,255,0.25); }
+        .header-nav { border-top: 1px solid rgba(255,255,255,0.18); }
+        .header-mode-tabs { max-width: 940px; margin: 0 auto; padding: 0 12px; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+        .header-mode-tabs::-webkit-scrollbar { display: none; }
+        .header-mode-tab { position: relative; padding: 10px 16px 9px; font-size: 14px; font-weight: bold; cursor: pointer; color: rgba(255,255,255,0.78); background: transparent; border: none; border-bottom: 3px solid transparent; white-space: nowrap; transition: color 0.15s, background 0.15s; }
+        .header-mode-tab.active { color: white; border-bottom-color: white; }
+        .header-mode-tab:not(.active):hover { color: white; background: rgba(255,255,255,0.12); }
+        .header-mode-tab .tab-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ffd24d; margin-left: 5px; vertical-align: middle; }
+        .header-icon-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.18); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+        .header-icon-btn:hover, .header-icon-btn.open { background: rgba(255,255,255,0.32); }
+        .header-menu-wrap { position: relative; flex-shrink: 0; }
+        .header-menu { position: absolute; right: 0; top: 42px; min-width: 220px; background: white; color: #444; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.22); padding: 6px 14px; z-index: 200; display: none; }
+        .header-menu.open { display: block; }
+        .header-menu-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; font-size: 13px; }
+        .header-menu-row + .header-menu-row { border-top: 1px solid #f0f0f0; }
+        .header-tw-label { white-space: nowrap; }
+        .header-lang-switch { display: flex; gap: 2px; background: #eef4ff; border-radius: 16px; padding: 3px; }
+        body.mode-chat .about-section { display: none; }
+        .header-lang-btn { white-space: nowrap; padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #7aa7e8; transition: all 0.2s; }
+        .header-lang-btn.active { background: #4D97FF; color: white; }
+        .header-lang-btn:not(.active):hover { color: #4D97FF; }
+        @media (max-width: 480px) {
+            .header-inner { padding: 0 12px; gap: 6px; }
+            .header-logo { font-size: 16px; }
+            .header-login-btn { padding: 5px 10px; }
+            .header-mode-tab { padding: 10px 12px 9px; font-size: 13px; }
+        }
 
         .about-section { margin-top: 32px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 0.85em; line-height: 1.8; }
         .about-section h2 { font-size: 1.05em; color: #555; margin-bottom: 8px; }
@@ -144,14 +161,14 @@
 
         .tw-toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
         .tw-toggle input { opacity: 0; width: 0; height: 0; }
-        .tw-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .tw-slider { position: absolute; inset: 0; background: #d5dbe6; border-radius: 20px; cursor: pointer; transition: 0.2s; }
         .tw-slider:before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
-        input:checked + .tw-slider { background: rgba(255,255,255,0.9); }
-        input:checked + .tw-slider:before { transform: translateX(16px); background: #4D97FF; }
+        input:checked + .tw-slider { background: #4D97FF; }
+        input:checked + .tw-slider:before { transform: translateX(16px); background: white; }
 
 
         /* ===== ログイン ===== */
-        .header-login-btn { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 16px; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; max-width: 140px; transition: all 0.2s; }
+        .header-login-btn { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 16px; border: none; background: rgba(255,255,255,0.18); color: white; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; max-width: 150px; white-space: nowrap; transition: all 0.2s; }
         .header-login-btn:hover { background: rgba(255,255,255,0.3); }
         .header-login-btn.logged-in { background: white; color: #4D97FF; }
         .header-login-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -203,11 +220,107 @@
         .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: rgba(40,40,40,0.92); color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 2000; max-width: 90vw; text-align: center; }
 
         /* ===== チャット ===== */
-        .tw-warn-box.chat-box { max-width: 440px; display: flex; flex-direction: column; height: min(80vh, 600px); }
-        #chat-list { flex: 1; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 6px 8px; margin: 10px 0; background: #fafbfc; font-size: 13px; }
-        .chat-msg { padding: 5px 2px; border-bottom: 1px solid #f0f0f0; word-break: break-word; }
+        .chat-layout { display: flex; gap: 14px; height: calc(100vh - 250px); min-height: 420px; }
+        .chat-rooms { width: 150px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
+        .chat-rooms-title { font-size: 11px; font-weight: bold; color: #aaa; letter-spacing: 0.5px; padding: 2px 10px 6px; }
+        .chat-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .chat-head { font-size: 15px; font-weight: bold; color: #444; padding: 2px 2px 10px; border-bottom: 1px solid #eee; }
+        .chat-head span { color: #4D97FF; margin-right: 4px; }
+        #chat-list { flex: 1; overflow-y: auto; border-radius: 8px; padding: 6px 4px; margin: 8px 0; font-size: 14px; }
+        @media (max-width: 640px) {
+            .chat-layout { flex-direction: column; gap: 8px; height: calc(100vh - 220px); }
+            .chat-rooms { width: auto; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
+            .chat-rooms-title { display: none; }
+        }
+        .chat-msg { padding: 7px 4px; border-bottom: 1px solid #f3f3f3; word-break: break-word; }
         .chat-msg.hidden { opacity: 0.5; }
         .chat-name { font-weight: bold; color: #4D97FF; margin-right: 6px; }
+        mark { background: #fff3c4; color: inherit; padding: 0; border-radius: 2px; }
+        .header-mode-tab.has-unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ffd24d; margin-left: 6px; vertical-align: middle; }
+        .chat-tab.unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-left: 6px; vertical-align: middle; }
+        .rank-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+        .rank-toggle button { padding: 6px 18px; border-radius: 20px; border: 2px solid #ddd; background: #fff; color: #888; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .rank-toggle button.active { border-color: #4D97FF; background: #4D97FF; color: #fff; }
+        .rank-wrap { position: relative; display: flex; flex-direction: column; }
+        .rank-wrap .project-card { flex: 1; }
+        .rank-num { position: absolute; top: -6px; left: -6px; z-index: 2; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 14px; background: #8a94a6; color: #fff; font-weight: 800; font-size: 14px; line-height: 28px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+        .rank-num.r1 { background: #f5b301; } .rank-num.r2 { background: #9aa5b1; } .rank-num.r3 { background: #c97b3b; }
+        .rank-stat { font-size: 12px; color: #888; text-align: center; padding: 4px 0 0; }
+        .profile-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+        .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: #e3ecfb; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: #4D97FF; }
+        .profile-name { font-size: 22px; font-weight: 800; color: #333; word-break: break-all; }
+        .profile-sub { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .profile-sub a { color: #4D97FF; font-size: 13px; text-decoration: none; font-weight: bold; }
+        .profile-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .stat-box { background: #f4f7fd; border-radius: 10px; padding: 10px 12px; }
+        .stat-box b { display: block; font-size: 20px; color: #333; }
+        .stat-box span { font-size: 11px; color: #888; }
+        .back-btn { border: none; background: none; color: #4D97FF; font-weight: bold; font-size: 13px; cursor: pointer; padding: 0 0 10px; }
+        .genre-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; justify-content: center; }
+        .genre-chip { padding: 4px 10px; border-radius: 14px; border: 1px solid #d5dbe6; background: #fff; color: #666; font-size: 12px; cursor: pointer; }
+        .genre-chip.mine { border-color: #4D97FF; background: #eef4ff; color: #4D97FF; font-weight: bold; }
+        .genre-chip.confirmed::before { content: '✓ '; color: #2a9d4a; }
+        .genre-chip small { color: #aaa; margin-left: 3px; }
+        .genre-title { font-size: 12px; color: #888; text-align: center; margin-top: 12px; }
+        .admin-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .admin-tabs button { padding: 6px 16px; border-radius: 20px; border: 2px solid #ddd; background: #fff; color: #888; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .admin-tabs button.active { border-color: #4D97FF; background: #4D97FF; color: #fff; }
+        .admin-item { border: 1px solid #eee; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; line-height: 1.55; word-break: break-word; }
+        .admin-item .a-meta { color: #999; font-size: 12px; }
+        .admin-item .a-body { margin: 4px 0; white-space: pre-wrap; }
+        .admin-item a { color: #4D97FF; text-decoration: none; }
+        .admin-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .admin-acts button { padding: 4px 12px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .admin-acts button.ok { background: #2a9d4a; border-color: #2a9d4a; color: #fff; }
+        .admin-acts button.ng { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+        .admin-form { display: flex; gap: 6px; margin-bottom: 12px; }
+        .admin-form input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .chat-tag { display: inline-block; font-size: 10px; font-weight: bold; color: #fff; padding: 0 6px; border-radius: 8px; margin-right: 5px; vertical-align: 1px; line-height: 16px; }
+        .chat-tag.tag-TWC { background: #4D97FF; }
+        .chat-tag.tag-GAS { background: #f39c12; }
+        .chat-name { cursor: pointer; }
+        .chat-quote { font-size: 12px; color: #888; border-left: 3px solid #d5dbe6; padding: 1px 8px; margin: 3px 0 2px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chat-quote:hover { color: #4D97FF; border-left-color: #4D97FF; }
+        .chat-quote.gone { cursor: default; font-style: italic; }
+        .chat-mention { color: #4D97FF; font-weight: bold; }
+        .chat-mention.me { background: #fff3c4; border-radius: 4px; padding: 0 2px; }
+        .chat-msg.flash { animation: chatflash 1.8s ease-out; }
+        @keyframes chatflash { 0%, 40% { background: #fff3c4; } 100% { background: transparent; } }
+        .chat-embed { position: relative; display: block; max-width: 400px; aspect-ratio: 16 / 9; margin-top: 6px; border-radius: 10px; overflow: hidden; background: #1f2a3c; cursor: pointer; }
+        .chat-embed.scratch { aspect-ratio: 4 / 3; max-width: 360px; }
+        .chat-embed img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.9; }
+        .chat-embed .play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 38px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .chat-embed .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 10px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.65)); }
+        .chat-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+        .chat-text a { color: #4D97FF; word-break: break-all; }
+        .chat-video { display: block; max-width: min(100%, 400px); max-height: 320px; margin-top: 6px; border-radius: 10px; background: #000; }
+        .chat-image { display: block; max-width: min(100%, 360px); max-height: 300px; margin-top: 6px; border-radius: 10px; cursor: zoom-in; background: #eef1f6; object-fit: contain; }
+        #img-lightbox { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; cursor: zoom-out; padding: 16px; }
+        #img-lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+        .ab-thumb { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
+        .chat-video-gone { margin-top: 6px; font-size: 12px; color: #aaa; font-style: italic; }
+        .chat-attach-btn { width: 44px; flex: 0 0 auto; border: 1px solid #ddd; border-radius: 8px; background: #fff; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .chat-attach-btn:hover { border-color: #4D97FF; color: #4D97FF; }
+        #chat-attach-bar { display: none; align-items: center; gap: 8px; font-size: 12px; color: #666; background: #f4f6fa; border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; }
+        #chat-attach-bar .ab-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #chat-attach-bar .ab-prog { height: 4px; width: 80px; border-radius: 2px; background: #dde3ee; overflow: hidden; }
+        #chat-attach-bar .ab-prog i { display: block; height: 100%; background: #4D97FF; }
+        #chat-attach-bar button { border: none; background: none; color: #888; cursor: pointer; font-size: 14px; }
+        #chat-reply-bar { display: none; align-items: center; gap: 8px; font-size: 12px; color: #666; background: #eef4ff; border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; }
+        #chat-reply-bar .rb-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #chat-reply-bar button { border: none; background: none; color: #888; cursor: pointer; font-size: 14px; }
+        .notif-badge { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff4d4d; color: #fff; font-size: 10px; font-weight: bold; line-height: 16px; text-align: center; display: none; }
+        .header-menu.notif-menu { min-width: 300px; max-width: 92vw; padding: 0; }
+        .notif-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; font-size: 13px; font-weight: bold; border-bottom: 1px solid #f0f0f0; }
+        .notif-head button { border: none; background: none; color: #4D97FF; font-size: 12px; cursor: pointer; }
+        .notif-list { max-height: 60vh; overflow-y: auto; }
+        .notif-item { padding: 9px 14px; font-size: 13px; line-height: 1.45; cursor: pointer; border-bottom: 1px solid #f6f6f6; }
+        .notif-item:hover { background: #f5f8ff; }
+        .notif-item.unread { background: #eef4ff; }
+        .notif-item .n-snip { color: #888; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .notif-item .n-time { color: #aaa; font-size: 11px; }
+        .notif-empty { padding: 18px 14px; color: #aaa; font-size: 13px; text-align: center; }
+        @media (max-width: 480px) { .header-menu.notif-menu { position: fixed; left: 8px; right: 8px; top: 56px; max-width: none; } }
         .chat-time { color: #aaa; font-size: 11px; margin-right: 4px; }
         .chat-text { white-space: pre-wrap; margin-top: 2px; color: #333; }
         .chat-act { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0 4px; }
@@ -215,10 +328,9 @@
         .chat-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
         .chat-row textarea { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; margin-bottom: 0; resize: none; }
         .chat-row .tw-warn-btn { width: auto; flex: 0 0 auto; padding: 0 20px; }
-        .chat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-        .chat-tab { padding: 5px 12px; border-radius: 14px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .chat-tab:hover { border-color: #4D97FF; color: #4D97FF; }
-        .chat-tab.active { background: #4D97FF; border-color: #4D97FF; color: #fff; }
+                .chat-tab { padding: 8px 12px; border-radius: 8px; border: none; background: transparent; color: #666; font-size: 13px; font-weight: bold; cursor: pointer; text-align: left; white-space: nowrap; }
+        .chat-tab:hover { background: #eef4ff; color: #4D97FF; }
+        .chat-tab.active { background: #4D97FF; color: #fff; }
         /* 言語切替はヘッダーに移動 */
     </style>
 </head>
@@ -227,27 +339,51 @@
 <header class="site-header">
     <div class="header-inner">
         <h1 class="header-logo">scratch TWC</h1>
+        <div class="header-spacer"></div>
+        <div class="header-menu-wrap" id="notif-wrap" style="display:none">
+            <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifMenu(event)" aria-label="Notifications" title="Notifications" style="position:relative">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+                <span class="notif-badge" id="notif-badge"></span>
+            </button>
+            <div class="header-menu notif-menu" id="notif-menu" onclick="event.stopPropagation()">
+                <div class="notif-head"><span id="notif-title">通知</span><button id="notif-readall" onclick="notifReadAll()">すべて既読</button></div>
+                <div class="notif-list" id="notif-list"></div>
+            </div>
+        </div>
+        <button class="header-login-btn" id="apply-btn" onclick="openApply()" style="display:none" data-i18n="applyBtn">参加申請</button>
+        <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
+        <div class="header-menu-wrap">
+            <button class="header-icon-btn" id="menu-btn" onclick="toggleHeaderMenu(event)" aria-label="Settings" title="Settings">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+            <div class="header-menu" id="header-menu" onclick="event.stopPropagation()">
+                <div class="header-menu-row">
+                    <span class="header-tw-label" data-i18n="twToggleLabel">TurboWarp で開く</span>
+                    <label class="tw-toggle">
+                        <input type="checkbox" id="tw-toggle-cb" onchange="saveTWPref()">
+                        <span class="tw-slider"></span>
+                    </label>
+                </div>
+                <div class="header-menu-row">
+                    <span>Language</span>
+                    <div class="header-lang-switch">
+                        <button class="header-lang-btn active" id="lang-ja" onclick="setLang('ja')">日本語</button>
+                        <button class="header-lang-btn" id="lang-en" onclick="setLang('en')">English</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <nav class="header-nav">
         <div class="header-mode-tabs">
             <button class="header-mode-tab active" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
             <button class="header-mode-tab" id="mode-browse-btn" onclick="setMode('browse')" data-i18n="modeBrowse">全作品</button>
+            <button class="header-mode-tab" id="mode-rank-btn" onclick="setMode('rank')" data-i18n="modeRank">ランキング</button>
+            <button class="header-mode-tab" id="mode-chat-btn" onclick="setMode('chat')" style="display:none" data-i18n="chatBtn">チャット</button>
             <button class="header-mode-tab" id="mode-saved-btn" onclick="setMode('saved')" style="display:none" data-i18n="modeSaved">保存</button>
+            <button class="header-mode-tab" id="mode-admin-btn" onclick="setMode('admin')" style="display:none" data-i18n="modeAdmin">管理</button>
         </div>
-        <div class="header-spacer"></div>
-        <div class="header-tw-wrap">
-            <span class="header-tw-label" data-i18n="twToggleLabel">TurboWarp で開く</span>
-            <label class="tw-toggle">
-                <input type="checkbox" id="tw-toggle-cb" onchange="saveTWPref()">
-                <span class="tw-slider"></span>
-            </label>
-        </div>
-        <button class="header-login-btn" id="chat-btn" onclick="openChat()" style="display:none" data-i18n="chatBtn">チャット</button>
-        <button class="header-login-btn" id="apply-btn" onclick="openApply()" style="display:none" data-i18n="applyBtn">参加申請</button>
-        <button class="header-login-btn" id="login-btn" onclick="openLogin()">ログイン</button>
-        <div class="header-lang-switch">
-            <button class="header-lang-btn active" id="lang-ja" onclick="setLang('ja')">日本語</button>
-            <button class="header-lang-btn" id="lang-en" onclick="setLang('en')">English</button>
-        </div>
-    </div>
+    </nav>
 </header>
 
 <div class="container">
@@ -266,7 +402,8 @@
         <div id="search-section">
             <input type="text" id="query" placeholder="検索したいものを入力..." oninput="onSearchInput()" autocomplete="off" data-i18n-placeholder="searchPlaceholder">
             <div class="row">
-                <button class="tab active" onclick="setSearchTab('title', this)" data-i18n="tabTitle">プロジェクト名</button>
+                <button class="tab active" onclick="setSearchTab('all', this)" data-i18n="tabAll">すべて</button>
+                <button class="tab" onclick="setSearchTab('title', this)" data-i18n="tabTitle">プロジェクト名</button>
                 <button class="tab" onclick="setSearchTab('author', this)" data-i18n="tabAuthor">ユーザー名</button>
                 <div class="spacer"></div>
                 <span class="sort-label" data-i18n="sortLabel">並び替え:</span>
@@ -276,6 +413,7 @@
                     <option value="newest" data-i18n="sortNewest">新しい順</option>
                     <option value="oldest" data-i18n="sortOldest">古い順</option>
                     <option value="skill" data-i18n="sortSkill">技術力順</option>
+                    <option value="relevance" data-i18n="sortRelevance">関連度順</option>
                 </select>
                 <button class="filter-toggle-btn" id="s-filter-btn" onclick="toggleFilter('s')" data-i18n-title="filterTitle" title="絞り込み">
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 4h14M5 9h8M8 14h2" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
@@ -297,6 +435,10 @@
                 <div class="filter-row">
                     <span class="filter-label" data-i18n="authorLabel">ユーザー名</span>
                     <input class="filter-input filter-input-wide" type="text" id="s-author-exact" placeholder="完全一致" oninput="onSearchInput()" autocomplete="off" data-i18n-placeholder="authorPlaceholder">
+                </div>
+                <div class="filter-row">
+                    <span class="filter-label" data-i18n="genreLabel">ジャンル</span>
+                    <select class="sort-select" id="s-genre-filter" onchange="onGenreFilterChange('s')"></select>
                 </div>
                 <div class="filter-row" id="s-skill-row">
                     <span class="filter-label" data-i18n="skillLabel">技術力</span>
@@ -349,6 +491,10 @@
                     <span class="filter-label" data-i18n="authorLabel">ユーザー名</span>
                     <input class="filter-input filter-input-wide" type="text" id="b-author-exact" placeholder="完全一致" oninput="onBrowseFilterChange()" autocomplete="off" data-i18n-placeholder="authorPlaceholder">
                 </div>
+                <div class="filter-row">
+                    <span class="filter-label" data-i18n="genreLabel">ジャンル</span>
+                    <select class="sort-select" id="b-genre-filter" onchange="onGenreFilterChange('b')"></select>
+                </div>
                 <div class="filter-row" id="b-skill-row">
                     <span class="filter-label" data-i18n="skillLabel">技術力</span>
                     <select class="sort-select" id="b-skill-filter" onchange="onSkillFilterChange('b')">
@@ -367,6 +513,53 @@
         </div>
 
         <!-- 保存モード -->
+        <div id="chat-section" style="display:none">
+            <div class="chat-layout">
+                <aside class="chat-rooms">
+                    <div class="chat-rooms-title" id="chat-rooms-title">ROOMS</div>
+                    <div id="chat-tabs" style="display:contents"></div>
+                </aside>
+                <div class="chat-main">
+                    <div class="chat-head" id="chat-title"></div>
+                    <div id="chat-list"></div>
+                    <div class="login-msg" id="chat-msg"></div>
+                    <div id="chat-reply-bar"></div>
+                    <div id="chat-attach-bar"></div>
+                    <div id="chat-input-wrap"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ランキング -->
+        <div id="rank-section" style="display:none">
+            <div class="rank-toggle">
+                <button id="rank-week-btn" class="active" onclick="setRankPeriod('week')"></button>
+                <button id="rank-all-btn" onclick="setRankPeriod('all')"></button>
+            </div>
+            <div id="rank-list"></div>
+        </div>
+
+        <!-- ユーザーのプロフィール -->
+        <div id="user-section" style="display:none">
+            <button class="back-btn" id="profile-back" onclick="closeProfile()"></button>
+            <div id="profile-head"></div>
+            <div id="profile-stats"></div>
+            <div class="row">
+                <div class="spacer"></div>
+                <select class="sort-select" id="profile-sort" onchange="setProfileSort(this.value)"></select>
+            </div>
+            <div id="profile-list"></div>
+            <div class="load-more-wrap" id="profile-more-wrap" style="display:none; text-align:center; margin: 16px 0;">
+                <button class="load-more-btn" id="profile-more" onclick="profileLoadMore()"></button>
+            </div>
+        </div>
+
+        <!-- 管理 -->
+        <div id="admin-section" style="display:none">
+            <div class="admin-tabs" id="admin-tabs"></div>
+            <div id="admin-body"></div>
+        </div>
+
         <div id="saved-section" style="display:none">
             <div class="status-text" id="sv-status"></div>
             <div id="sv-results" class="project-grid"></div>
@@ -403,6 +596,7 @@ const LANG = {
         searchPlaceholder: '検索したいものを入力...',
         tabTitle: 'プロジェクト名',
         tabAuthor: 'ユーザー名',
+        tabAll: 'すべて', sortRelevance: '関連度順', modeRank: 'ランキング', modeAdmin: '管理', genreLabel: 'ジャンル',
         sortLabel: '並び替え:',
         sortRandom: 'ランダム',
         sortLoves: 'いいね順',
@@ -519,6 +713,7 @@ const LANG = {
         searchPlaceholder: 'Search...',
         tabTitle: 'Project name',
         tabAuthor: 'Username',
+        tabAll: 'All', sortRelevance: 'Relevance', modeRank: 'Ranking', modeAdmin: 'Admin', genreLabel: 'Genre',
         sortLabel: 'Sort:',
         sortRandom: 'Random',
         sortLoves: 'Most loved',
@@ -678,6 +873,7 @@ function applyLang() {
     refreshRatingTexts();
     refreshSaveButtons();
     if (typeof refreshApplyText === 'function') refreshApplyText();
+    if (typeof renderChatTabs === 'function') { renderChatTabs(); renderChatInput(); if (currentMode === 'chat') { chatSig = ''; loadChat(false); } }
 }
 
 function loadLangPref() {
@@ -779,7 +975,21 @@ function saveTWPref() {
 function loadTWPref() {
     try { if (localStorage.getItem('tw_pref') === '1') document.getElementById('tw-toggle-cb').checked = true; } catch(e){}
 }
-function openUser(u, e) { e.stopPropagation(); window.open('https://scratch.mit.edu/users/' + encodeURIComponent(u), '_blank', 'noopener'); }
+function openUser(u, e) { if (e) e.stopPropagation(); openProfile(u); }
+
+var hlWords = [];   // いま強調する語（検索結果を作るあいだだけ入れる）
+function hlHTML(text) {
+    var str = String(text);
+    if (!hlWords.length) return esc(str);
+    var re = new RegExp(hlWords.map(function(w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|'), 'gi');
+    var out = '', last = 0, m;
+    while ((m = re.exec(str)) !== null) {
+        if (m[0] === '') { re.lastIndex++; continue; }
+        out += esc(str.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>';
+        last = m.index + m[0].length;
+    }
+    return out + esc(str.slice(last));
+}
 
 function cardHTML(p) {
     return '<div class="project-card" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
@@ -788,8 +998,8 @@ function cardHTML(p) {
         ' alt="' + esc(p.title) + '" loading="lazy"' +
         ' onerror="this.outerHTML=\'<div class=\\\'thumb-placeholder\\\'>?</div>\'">' +
         '<div class="project-info">' +
-            '<div class="project-title">' + esc(p.title) + '</div>' +
-            '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">by ' + esc(p.author_username) + '</div>' +
+            '<div class="project-title">' + hlHTML(p.title) + '</div>' +
+            '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">by ' + hlHTML(p.author_username) + '</div>' +
             '<div class="project-meta">' + t('lovesCount', p.loves || 0) + '</div>' +
             (apiEnabled() ? '<div class="project-rating" data-rate-id="' + Number(p.id) + '" onclick="openRate(' + Number(p.id) + ',event)"></div>' : '') +
         '</div>' +
@@ -811,20 +1021,61 @@ function queryOne(sql, params) {
     return Object.fromEntries(columns.map((c, i) => [c, values[0][i]]));
 }
 
-function buildWhere(col, q, lovesMin, lovesMax, authorExact, idList) {
+// ひらがな ⇔ カタカナ、全角 ⇔ 半角（英数字）を同じものとして探す
+function toKata(x) { return x.replace(/[\u3041-\u3096]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) + 0x60); }); }
+function toHira(x) { return x.replace(/[\u30A1-\u30F6]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); }); }
+function kwVariants(kw) {
+    var n = kw.normalize('NFKC');
+    var out = [n];
+    [toKata(n), toHira(n)].forEach(function(v) { if (out.indexOf(v) < 0) out.push(v); });
+    return out;
+}
+function escLike(x) { return x.replace(/[\\%_]/g, '\\$&'); }
+
+// 検索語を分ける: "a b"（引用符）はひとまとまり、-語 は除外
+function parseQuery(q) {
+    var pos = [], neg = [], re = /"([^"]+)"|(\S+)/g, m;
+    while ((m = re.exec(q)) !== null) {
+        var w = m[1] || m[2];
+        if (!m[1] && w.length > 1 && w.charAt(0) === '-') neg.push(w.slice(1)); else if (w) pos.push(w);
+    }
+    return { pos: pos, neg: neg };
+}
+
+// col: 'title' / 'author_username' / 'all'（作品名とユーザー名の両方）
+// 戻り値の words は、結果の中で強調する語
+function buildWhere(col, q, lovesMin, lovesMax, authorExact, idList, genreList) {
     const conds = [];
     const params = [];
+    const words = [];
     if (q) {
-        q.trim().split(/\s+/).filter(k=>k).forEach(kw => {
-            conds.push(col + ' LIKE ?');
-            params.push('%' + kw + '%');
-        });
+        var urlProj = q.match(/scratch\.mit\.edu\/projects\/(\d{1,12})/);
+        var urlUser = q.match(/scratch\.mit\.edu\/users\/([A-Za-z0-9_-]{1,30})/);
+        if (urlProj || /^\d{6,12}$/.test(q.trim())) {
+            conds.push('id = ?'); params.push(Number(urlProj ? urlProj[1] : q.trim()));
+        } else if (urlUser) {
+            conds.push('author_username = ? COLLATE NOCASE'); params.push(urlUser[1]);
+        } else {
+            var pq = parseQuery(q);
+            var cols = col === 'all' ? ['title', 'author_username'] : [col];
+            var add = function(kw, neg) {
+                var parts = [];
+                kwVariants(kw).forEach(function(v) {
+                    if (!neg) words.push(v);
+                    cols.forEach(function(c) { parts.push(c + " LIKE ? ESCAPE '\\'"); params.push('%' + escLike(v) + '%'); });
+                });
+                conds.push((neg ? 'NOT ' : '') + '(' + parts.join(' OR ') + ')');
+            };
+            pq.pos.forEach(function(kw) { add(kw, false); });
+            pq.neg.forEach(function(kw) { add(kw, true); });
+        }
     }
     if (lovesMin !== '') { conds.push('loves >= ?'); params.push(Number(lovesMin)); }
     if (lovesMax !== '') { conds.push('loves <= ?'); params.push(Number(lovesMax)); }
     if (authorExact) { conds.push('author_username = ?'); params.push(authorExact); }
-    if (idList) conds.push('id IN (' + idList + ')');   // 技術力での絞り込み（整数だけのリスト）
-    return { where: conds.length ? 'WHERE ' + conds.join(' AND ') : '', params };
+    if (idList) conds.push('id IN (' + idList + ')');       // 技術力での絞り込み（整数だけのリスト）
+    if (genreList) conds.push('id IN (' + genreList + ')'); // ジャンルでの絞り込み（整数だけのリスト）
+    return { where: conds.length ? 'WHERE ' + conds.join(' AND ') : '', params, words };
 }
 
 function orderByClause(sort) {
@@ -845,24 +1096,30 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
+var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', admin: 'admin-section' };
+var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
+var prevMode = 'browse';
+
 function setMode(mode) {
+    if (mode === 'user' && currentMode !== 'user') prevMode = currentMode;
     currentMode = mode;
-    document.getElementById('search-section').style.display = mode === 'search' ? '' : 'none';
-    document.getElementById('browse-section').style.display = mode === 'browse' ? '' : 'none';
-    document.getElementById('mode-search-btn').classList.toggle('active', mode === 'search');
-    document.getElementById('mode-browse-btn').classList.toggle('active', mode === 'browse');
-    document.getElementById('saved-section').style.display = mode === 'saved' ? '' : 'none';
-    document.getElementById('mode-saved-btn').classList.toggle('active', mode === 'saved');
+    Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
+    Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
+    document.body.classList.toggle('mode-chat', mode === 'chat');
+    if (mode === 'chat') enterChat(); else leaveChat();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
         browseReset();
     }
     if (mode === 'saved') enterSaved();
+    if (mode === 'rank') enterRank();
+    if (mode === 'admin') enterAdmin();
+    updateNavDots();
     updateUrl();
 }
 
 // ===== 検索モード =====
-let sTimer=null, sTab='title', sSort='random', sPage=1, sTotalPages=1, sSkillFilter='all';
+let sTimer=null, sTab='all', sSort='random', sPage=1, sTotalPages=1, sSkillFilter='all';
 
 function setSearchTab(tab, el) {
     sTab=tab; sPage=1;
@@ -916,9 +1173,18 @@ function doSearch() {
         const lMin=document.getElementById('s-loves-min').value;
         const lMax=document.getElementById('s-loves-max').value;
         const auth=document.getElementById('s-author-exact').value.trim();
-        const col = sTab==='author' ? 'author_username' : 'title';
-        const { where, params } = buildWhere(col, q, lMin, lMax, auth, skillFilterSql(sSkillFilter));
-        const order = orderByClause(sSort);
+        const col = sTab==='author' ? 'author_username' : (sTab==='title' ? 'title' : 'all');
+        const { where, params, words } = buildWhere(col, q, lMin, lMax, auth, skillFilterSql(sSkillFilter), genreFilterSql(sGenre));
+        let order = orderByClause(sSort);
+        let orderParams = [];
+        if (sSort === 'relevance') {
+            const first = parseQuery(q).pos[0];
+            if (first) {
+                const kw = first.normalize('NFKC');
+                order = "ORDER BY CASE WHEN title = ? COLLATE NOCASE THEN 0 WHEN title LIKE ? ESCAPE '\\' THEN 1 WHEN title LIKE ? ESCAPE '\\' THEN 2 ELSE 3 END, loves DESC";
+                orderParams = [kw, escLike(kw) + '%', '% ' + escLike(kw) + '%'];
+            }
+        }
         const offset = (sPage-1)*PAGE_SIZE;
 
         let total, projects;
@@ -929,7 +1195,7 @@ function doSearch() {
             projects = r.rows;
         } else {
             total = queryOne('SELECT COUNT(*) as c FROM projects ' + where, params).c;
-            projects = queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params);
+            projects = queryAll('SELECT * FROM projects ' + where + ' ' + order + ' LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset, params.concat(orderParams));
         }
         sTotalPages = Math.max(1, Math.ceil(total/PAGE_SIZE));
 
@@ -940,8 +1206,10 @@ function doSearch() {
             document.getElementById('s-pagination').style.display='none';
             return;
         }
+        hlWords = words;
         document.getElementById('s-results').innerHTML=
             '<div class="project-grid">'+projects.map(cardHTML).join('')+'</div>';
+        hlWords = [];
         loadRatings(document.getElementById('s-results'));
         document.getElementById('s-pagination').style.display='flex';
         document.getElementById('s-page-info').innerText = t('pageInfo', sPage, sTotalPages);
@@ -997,7 +1265,7 @@ function browseLoadMore() {
         const lMin=document.getElementById('b-loves-min').value;
         const lMax=document.getElementById('b-loves-max').value;
         const auth=document.getElementById('b-author-exact').value.trim();
-        const { where, params } = buildWhere('title', '', lMin, lMax, auth, skillFilterSql(bSkillFilter));
+        const { where, params } = buildWhere('title', '', lMin, lMax, auth, skillFilterSql(bSkillFilter), genreFilterSql(bGenre));
         const order = orderByClause(bSort);
         const offset=(bPage-1)*PAGE_SIZE;
 
@@ -1108,8 +1376,15 @@ function updateLoginUI() {
     btn.style.display = apiEnabled() ? '' : 'none';
     var apBtn = document.getElementById('apply-btn');
     if (apBtn) apBtn.style.display = apiEnabled() ? '' : 'none';
-    var chBtn = document.getElementById('chat-btn');
-    if (chBtn) chBtn.style.display = apiEnabled() ? '' : 'none';
+    var nw = document.getElementById('notif-wrap');
+    if (nw) {
+        nw.style.display = (apiEnabled() && loginUser) ? '' : 'none';
+        var uid = loginUser ? loginUser.id : 0;
+        if (uid !== notifUser) { notifUser = uid; setNotifBadge(0); if (uid) refreshNotifCount(); }
+    }
+    var chTab = document.getElementById('mode-chat-btn');
+    if (chTab) chTab.style.display = apiEnabled() ? '' : 'none';
+    if (typeof currentMode !== 'undefined' && currentMode === 'chat') { chatSig = ''; renderChatInput(); loadChat(true); }
     var svTab = document.getElementById('mode-saved-btn');
     if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
     if (loginUser) {
@@ -1573,7 +1848,10 @@ async function applyDefaultView() {
         document.getElementById('b-sort-select').value = 'skill';
         document.getElementById('b-refresh-btn').style.display = 'none';
     }
-    if (st) applyUrlState(st, rankingOk);
+    // URLにジャンルがあれば、先にその一覧を取っておく
+    if (st && st.m !== 'u' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
+    if (st && st.m !== 'u') applyUrlState(st, rankingOk);
+    if (st && st.m === 'u') { openProfile(st.u); return; }
     setMode(st && st.m === 's' ? 'search' : 'browse');
     if (st && st.m === 's') triggerSearch();
 }
@@ -1611,7 +1889,8 @@ function shareParams() {
     if (currentMode === 'search') {
         p.set('m', 's');
         put('q', val('query'));
-        if (sTab === 'author') p.set('t', 'author');
+        p.set('t', sTab);
+        if (sGenre) p.set('g', sGenre);
         p.set('sort', sSort);
         put('lmin', val('s-loves-min')); put('lmax', val('s-loves-max')); put('author', val('s-author-exact'));
         if (sSkillFilter !== 'all') p.set('skill', sSkillFilter);
@@ -1620,6 +1899,9 @@ function shareParams() {
         p.set('sort', bSort);
         put('lmin', val('b-loves-min')); put('lmax', val('b-loves-max')); put('author', val('b-author-exact'));
         if (bSkillFilter !== 'all') p.set('skill', bSkillFilter);
+        if (bGenre) p.set('g', bGenre);
+    } else if (currentMode === 'user' && profileUser) {
+        p.set('m', 'u'); p.set('u', profileUser);
     } else {
         return null;   // 保存タブは、個人のものなので共有しない
     }
@@ -1651,16 +1933,18 @@ function copyShareLink() {
 function readUrlState() {
     var p = new URLSearchParams(location.search);
     var m = p.get('m');
+    if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m !== 's' && m !== 'b') return null;
     var sort = p.get('sort');
-    if (['random', 'loves', 'newest', 'oldest', 'skill'].indexOf(sort) === -1) sort = null;
+    if (['random', 'loves', 'newest', 'oldest', 'skill', 'relevance'].indexOf(sort) === -1) sort = null;
     var skill = p.get('skill');
     if (skill !== 'rated' && skill !== 'high') skill = 'all';
     var num = function(k) { var v = p.get(k); return (v !== null && /^\d{1,9}$/.test(v)) ? v : ''; };
     return {
         m: m,
         q: (p.get('q') || '').slice(0, 200),
-        t: p.get('t') === 'author' ? 'author' : 'title',
+        t: ['all', 'title', 'author'].indexOf(p.get('t')) >= 0 ? p.get('t') : 'title',   // 古いリンク（tなし）は作品名
+        g: GENRES.indexOf(p.get('g')) >= 0 ? p.get('g') : '',
         sort: sort,
         lmin: num('lmin'), lmax: num('lmax'),
         author: (p.get('author') || '').slice(0, 50),
@@ -1680,12 +1964,13 @@ function applyUrlState(st, rankingOk) {
         document.getElementById(prefix + '-filter-box').classList.remove('hidden');
         document.getElementById(prefix + '-filter-btn').classList.add('active');
     };
-    var anyFilter = st.lmin || st.lmax || st.author || skill !== 'all';
+    var anyFilter = st.lmin || st.lmax || st.author || skill !== 'all' || st.g;
 
     if (st.m === 's') {
         sTab = st.t;
+        var tabOrder = ['all', 'title', 'author'];
         document.querySelectorAll('#search-section .tab').forEach(function(el, i) {
-            el.classList.toggle('active', (i === 1) === (sTab === 'author'));
+            el.classList.toggle('active', tabOrder[i] === sTab);
         });
         setVal('query', st.q);
         sSort = sort || 'random';
@@ -1693,12 +1978,14 @@ function applyUrlState(st, rankingOk) {
         document.getElementById('s-refresh-btn').style.setProperty('display', sSort === 'random' ? 'flex' : 'none', 'important');
         setVal('s-loves-min', st.lmin); setVal('s-loves-max', st.lmax); setVal('s-author-exact', st.author);
         sSkillFilter = skill; setVal('s-skill-filter', skill);
+        sGenre = st.g; setVal('s-genre-filter', st.g);
         if (anyFilter) openFilter('s');
     } else {
         if (sort) { bSort = sort; setVal('b-sort-select', sort); }
         document.getElementById('b-refresh-btn').style.display = bSort === 'random' ? '' : 'none';
         setVal('b-loves-min', st.lmin); setVal('b-loves-max', st.lmax); setVal('b-author-exact', st.author);
         bSkillFilter = skill; setVal('b-skill-filter', skill);
+        bGenre = st.g; setVal('b-genre-filter', st.g);
         if (anyFilter) openFilter('b');
     }
 }
@@ -1715,16 +2002,121 @@ function updateSortOptions() {
 }
 
 // 起動
+// ===== ヘッダーの設定メニュー =====
+function toggleHeaderMenu(e) {
+    if (e) e.stopPropagation();
+    var m = document.getElementById('header-menu');
+    var on = !m.classList.contains('open');
+    closeHeaderMenus();
+    m.classList.toggle('open', on);
+    document.getElementById('menu-btn').classList.toggle('open', on);
+}
+function closeHeaderMenus() {
+    document.getElementById('header-menu').classList.remove('open');
+    document.getElementById('menu-btn').classList.remove('open');
+    document.getElementById('notif-menu').classList.remove('open');
+    document.getElementById('notif-btn').classList.remove('open');
+}
+document.addEventListener('click', closeHeaderMenus);
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeHeaderMenus(); });
+
+// ===== 通知（返信・メンション） =====
+var notifUser = 0;
+
+function setNotifBadge(n) {
+    var b = document.getElementById('notif-badge');
+    if (!b) return;
+    b.innerText = n > 99 ? '99+' : String(n);
+    b.style.display = n > 0 ? 'block' : 'none';
+}
+
+async function refreshNotifCount() {
+    if (!loginUser) return;
+    try { setNotifBadge((await apiCall('GET', '/api/notifications/count')).unread); } catch (e) {}
+}
+setInterval(function() { if (loginUser && !document.hidden) refreshNotifCount(); }, 30000);
+
+function toggleNotifMenu(e) {
+    if (e) e.stopPropagation();
+    var m = document.getElementById('notif-menu');
+    var on = !m.classList.contains('open');
+    closeHeaderMenus();
+    if (!on) return;
+    m.classList.add('open');
+    document.getElementById('notif-btn').classList.add('open');
+    loadNotifs();
+}
+
+function notifTime(ts) {
+    var d = new Date(ts);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+}
+
+async function loadNotifs() {
+    document.getElementById('notif-title').innerText = ct('notifTitle');
+    document.getElementById('notif-readall').innerText = ct('markAll');
+    var box = document.getElementById('notif-list');
+    try {
+        var d = await apiCall('GET', '/api/notifications');
+        setNotifBadge(d.unread);
+        box.innerHTML = d.items.length ? d.items.map(function(n) {
+            return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-id="' + Number(n.id) + '" data-room="' + esc(n.room) +
+                '" data-m="' + Number(n.message_id) + '" onclick="openNotif(this)">' +
+                '<b>' + esc(n.from_username) + '</b>' + esc(ct(n.kind === 'reply' ? 'notifReply' : 'notifMention')) +
+                '<div class="n-snip">' + esc(n.snippet) + '</div><div class="n-time">' + esc(notifTime(n.created_at)) + '</div></div>';
+        }).join('') : '<div class="notif-empty">' + esc(ct('notifEmpty')) + '</div>';
+    } catch (e) { box.innerHTML = '<div class="notif-empty">' + esc(ct('e_other')) + '</div>'; }
+}
+
+async function openNotif(el) {
+    var room = el.dataset.room, mid = Number(el.dataset.m), id = Number(el.dataset.id);
+    closeHeaderMenus();
+    apiCall('POST', '/api/notifications/read', { id: id }).then(function(d) { setNotifBadge(d.unread); }).catch(function() {});
+    if (CHAT_ROOMS.indexOf(room) >= 0) {
+        chatRoom = room;
+        try { localStorage.setItem('twc_chat_room', room); } catch (e) {}
+    }
+    chatJumpTo = mid;
+    chatReplyTo = null;
+    renderReplyBar();
+    setMode('chat');
+    window.scrollTo(0, 0);
+}
+
+async function notifReadAll() {
+    try {
+        var d = await apiCall('POST', '/api/notifications/read', { all: true });
+        setNotifBadge(d.unread);
+        loadNotifs();
+    } catch (e) {}
+}
+
 // ===== チャット =====
 var CHAT_T = {
-    ja: { room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', ph: 'メッセージ（300字まで）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
-          empty: 'まだメッセージがありません', report: '通報', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+    ja: { room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', title: 'チャット', rooms: 'ルーム',
+          attachTitle: '動画・写真を添付（動画は20MBまで）', uploading: 'アップロード中', attached: '添付済み',
+          e_video_too_big: '動画は20MBまでです', e_bad_video_type: '動画はMP4かWebM、写真はJPEG・PNG・WebP・GIFにしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
+          e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
+          e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
+          videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
+          replyTo: ' への返信', cancel: '取り消し', quoteGone: '元のメッセージは削除されました', notifTitle: '通知', notifEmpty: '通知はありません',
+          notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
+          jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
+          empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', ph: 'Message (max 300 chars)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
-          empty: 'No messages yet', report: 'Report', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+    en: { room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', title: 'Chat', rooms: 'ROOMS',
+          attachTitle: 'Attach a video or photo (video up to 20MB)', uploading: 'Uploading', attached: 'Attached',
+          e_video_too_big: 'Videos can be up to 20MB', e_bad_video_type: 'Use MP4/WebM for videos, or JPEG/PNG/WebP/GIF for photos', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
+          e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
+          e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
+          videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
+          replyTo: '', cancel: 'Cancel', quoteGone: 'The original message was deleted', notifTitle: 'Notifications', notifEmpty: 'No notifications',
+          notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
+          jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
+          empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -1735,27 +2127,37 @@ var chatSig = '';
 var chatIsAdmin = false;
 var CHAT_ROOMS = ['3d', 'math', 'physics', 'triangle'];
 var chatRoom = '3d';
+var chatReplyTo = null;   // { id, username, content }
+var chatMsgs = [];        // 表示中のメッセージ
+var chatPolls = 0;        // 自動更新の回数（8回に1回は全件を取り直す）
+var chatVideoEnabled = false;
+var chatAttach = null;    // { name, size, status: 'uploading'|'ready', progress, id }
+var chatJumpTo = 0;       // 通知から開いたときに表示したいメッセージID
 try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
 
 function ct(k) { return (CHAT_T[currentLang] || CHAT_T.ja)[k] || k; }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
 function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
 
-function openChat() {
-    document.getElementById('chat-overlay').style.display = 'flex';
-    document.getElementById('chat-title').innerText = ct('title');
-    document.getElementById('chat-close-btn').innerText = ct('close');
+function enterChat() {
+    document.getElementById('chat-rooms-title').innerText = ct('rooms');
     setChatMsg('');
     chatSig = '';
+    chatMsgs = [];
+    chatPolls = 0;
     renderChatTabs();
     renderChatInput();
+    renderAttachBar();
     loadChat(true);
     clearInterval(chatTimer);
-    chatTimer = setInterval(function() { if (!document.hidden) loadChat(false); }, 8000);
+    chatTimer = setInterval(function() {
+        if (document.hidden) return;
+        chatPolls++;
+        loadChat(false, chatPolls % 8 !== 0);
+    }, 8000);
 }
 
-function closeChat() {
-    document.getElementById('chat-overlay').style.display = 'none';
+function leaveChat() {
     clearInterval(chatTimer);
     chatTimer = null;
 }
@@ -1763,8 +2165,9 @@ function closeChat() {
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
         return '<button class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r +
-            '" onclick="setChatRoom(this.dataset.r)">' + esc(ct('room_' + r)) + '</button>';
+            '" onclick="setChatRoom(this.dataset.r)"># ' + esc(ct('room_' + r)) + '</button>';
     }).join('');
+    document.getElementById('chat-title').innerHTML = '<span>#</span>' + esc(ct('room_' + chatRoom));
 }
 
 function setChatRoom(r) {
@@ -1772,33 +2175,281 @@ function setChatRoom(r) {
     chatRoom = r;
     try { localStorage.setItem('twc_chat_room', r); } catch (e) {}
     chatSig = '';
+    chatMsgs = [];
+    chatReplyTo = null;
+    renderReplyBar();
     document.getElementById('chat-list').innerHTML = '';
     setChatMsg('');
     renderChatTabs();
     loadChat(true);
 }
 
+function renderReplyBar() {
+    var bar = document.getElementById('chat-reply-bar');
+    if (!chatReplyTo) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+    bar.style.display = 'flex';
+    bar.innerHTML = '<span class="rb-text">↪ @' + esc(chatReplyTo.username) + esc(ct('replyTo')) + ': ' + esc(chatReplyTo.content) + '</span>' +
+        '<button title="' + esc(ct('cancel')) + '" onclick="chatCancelReply()">✕</button>';
+}
+
+function chatStartReply(id, username, content) {
+    chatReplyTo = { id: id, username: username, content: String(content).slice(0, 60) };
+    renderReplyBar();
+    var ta = document.getElementById('chat-text');
+    if (ta) ta.focus();
+}
+
+function chatCancelReply() { chatReplyTo = null; renderReplyBar(); }
+
+function chatMention(name) {
+    var ta = document.getElementById('chat-text');
+    if (!ta) return;
+    ta.value = (ta.value && !/\s$/.test(ta.value) ? ta.value + ' ' : ta.value) + '@' + name + ' ';
+    ta.focus();
+}
+
+// メッセージの本文。URLはリンクに、@ユーザー名は目立たせる（どちらも、先にエスケープしてから組み立てる）
+var CHAT_URL_RE = /https?:\/\/[^\s<>"']+/g;
+
+function chatMentionHTML(text) {
+    var me = loginUser ? loginUser.username.toLowerCase() : '';
+    return esc(text).replace(/@([A-Za-z0-9_-]{3,20})/g, function(all, n) {
+        return '<span class="chat-mention' + (n.toLowerCase() === me ? ' me' : '') + '">@' + n + '</span>';
+    });
+}
+
+function chatUrlsOf(content) {
+    var out = [], m;
+    CHAT_URL_RE.lastIndex = 0;
+    while ((m = CHAT_URL_RE.exec(content)) !== null) {
+        var url = m[0].replace(/[)\]、。，．!?,.]+$/, '');
+        out.push({ url: url, index: m.index });
+        CHAT_URL_RE.lastIndex = m.index + url.length;
+    }
+    return out;
+}
+
+function chatTextHTML(content) {
+    var html = '', last = 0;
+    chatUrlsOf(content).forEach(function(u) {
+        html += chatMentionHTML(content.slice(last, u.index));
+        html += '<a href="' + esc(u.url) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(u.url) + '</a>';
+        last = u.index + u.url.length;
+    });
+    return html + chatMentionHTML(content.slice(last));
+}
+
+// 作品・YouTube・ニコニコのURLを、クリックで再生できるカードにする（最大2つ）
+function chatEmbedOf(url) {
+    var m;
+    if ((m = url.match(/^https?:\/\/scratch\.mit\.edu\/projects\/(\d{1,12})/))) return { k: 'scratch', id: m[1] };
+    if ((m = url.match(/^https?:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:[^#]*&)?v=([\w-]{11})/))) return { k: 'yt', id: m[1] };
+    if ((m = url.match(/^https?:\/\/youtu\.be\/([\w-]{11})/))) return { k: 'yt', id: m[1] };
+    if ((m = url.match(/^https?:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|live)\/([\w-]{11})/))) return { k: 'yt', id: m[1] };
+    if ((m = url.match(/^https?:\/\/(?:www\.)?nicovideo\.jp\/watch\/((?:sm|nm|so)?\d{1,12})/))) return { k: 'nico', id: m[1] };
+    if ((m = url.match(/^https?:\/\/nico\.ms\/((?:sm|nm|so)\d{1,12})/))) return { k: 'nico', id: m[1] };
+    return null;
+}
+
+function chatEmbedsHTML(content) {
+    var seen = {}, html = '', n = 0;
+    chatUrlsOf(content).forEach(function(u) {
+        var e = chatEmbedOf(u.url);
+        if (!e || n >= 2 || seen[e.k + e.id]) return;
+        seen[e.k + e.id] = true;
+        n++;
+        var thumb = e.k === 'scratch' ? 'https://uploads.scratch.mit.edu/get_image/project/' + e.id + '_480x360.png'
+                  : e.k === 'yt' ? 'https://i.ytimg.com/vi/' + e.id + '/mqdefault.jpg' : '';
+        var cap = e.k === 'scratch' ? ct('embedScratch') : e.k === 'yt' ? ct('embedYt') : ct('embedNico');
+        html += '<div class="chat-embed ' + e.k + '" data-k="' + e.k + '" data-id="' + esc(e.id) + '" onclick="chatEmbedPlay(this)">' +
+            (thumb ? '<img loading="lazy" alt="" referrerpolicy="no-referrer" src="' + esc(thumb) + '" onerror="this.style.display=\'none\'">' : '') +
+            '<span class="play">▶</span><span class="cap">' + esc(cap) + '</span></div>';
+    });
+    return html;
+}
+
+function chatEmbedPlay(el) {
+    var k = el.dataset.k, id = el.dataset.id;
+    var src = k === 'scratch' ? 'https://turbowarp.org/' + encodeURIComponent(id) + '/embed'
+            : k === 'yt' ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1'
+            : 'https://embed.nicovideo.jp/watch/' + encodeURIComponent(id);
+    var f = document.createElement('iframe');
+    f.src = src;
+    f.setAttribute('allowfullscreen', '');
+    f.setAttribute('allow', 'autoplay; fullscreen');
+    f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
+    el.onclick = null;
+    el.innerHTML = '';
+    el.appendChild(f);
+}
+
+function chatImageHTML(v) {
+    if (!v) return '';
+    if (v.expired || !v.url) return '<div class="chat-video-gone">' + esc(ct('imageGone')) + '</div>';
+    return '<img class="chat-image" loading="lazy" alt="" src="' + esc(v.url) + '" onclick="chatImageOpen(this.src)">';
+}
+
+function chatImageOpen(src) {
+    var box = document.createElement('div');
+    box.id = 'img-lightbox';
+    var img = document.createElement('img');
+    img.src = src;
+    box.appendChild(img);
+    var close = function() { box.remove(); document.removeEventListener('keydown', onKey); };
+    var onKey = function(e) { if (e.key === 'Escape') close(); };
+    box.onclick = close;
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(box);
+}
+
+function chatVideoHTML(v) {
+    if (!v) return '';
+    if (v.expired || !v.url) return '<div class="chat-video-gone">' + esc(ct('videoGone')) + '</div>';
+    return '<video class="chat-video" controls preload="none" playsinline src="' + esc(v.url) + '"></video>';
+}
+
+function chatJump(id) {
+    var el = document.getElementById('chat-msg-' + id);
+    if (!el) { showToast(ct('jumpMissing')); return; }
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.remove('flash');
+    void el.offsetWidth;
+    el.classList.add('flash');
+}
+
 function renderChatInput() {
     var w = document.getElementById('chat-input-wrap');
+    var old = document.getElementById('chat-text');
+    var keep = old ? old.value : '';
     if (!loginUser) {
         w.innerHTML = '<div class="tw-warn-body">' + esc(ct('login')) + '</div>' +
-            '<button class="tw-warn-btn tw-warn-btn-tw" onclick="closeChat();openLogin()">' + esc(ct('loginBtn')) + '</button>';
+            '<button class="tw-warn-btn tw-warn-btn-tw" onclick="openLogin()">' + esc(ct('loginBtn')) + '</button>';
         return;
     }
-    w.innerHTML = '<div class="chat-row"><textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
+    w.innerHTML = '<div class="chat-row">' +
+        (chatVideoEnabled ? '<button class="chat-attach-btn" title="' + esc(ct('attachTitle')) + '" onclick="document.getElementById(\'chat-file\').click()">' +
+            '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+            '<input type="file" id="chat-file" accept="video/mp4,video/webm,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
+        '<textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
         esc(ct('ph')) + '"></textarea><button class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
-    document.getElementById('chat-text').addEventListener('keydown', function(e) {
+    var ta = document.getElementById('chat-text');
+    ta.value = keep;
+    ta.addEventListener('keydown', function(e) {
         // 日本語入力の変換確定のEnterでは送信しない
         if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat(); }
     });
 }
 
-async function loadChat(forceScroll) {
+// ----- 動画の添付（ブラウザからB2へ直接アップロード） -----
+var CHAT_VIDEO_MAX = 20 * 1024 * 1024;
+
+function renderAttachBar() {
+    var bar = document.getElementById('chat-attach-bar');
+    if (!bar) return;
+    if (!chatAttach) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+    var mb = (chatAttach.size / 1048576).toFixed(1) + 'MB';
+    var up = chatAttach.status === 'uploading';
+    bar.style.display = 'flex';
+    bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>🎞</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
+        (up ? '<span class="ab-prog"><i style="width:' + Math.round(chatAttach.progress * 100) + '%"></i></span><span>' + esc(ct('uploading')) + '</span>'
+            : '<span>' + esc(ct('attached')) + '</span><button onclick="chatDiscardAttach()" title="' + esc(ct('cancel')) + '">✕</button>');
+}
+
+function chatPutFile(url, headers, file, onProgress) {
+    return new Promise(function(resolve, reject) {
+        var x = new XMLHttpRequest();
+        x.open('PUT', url);
+        Object.keys(headers || {}).forEach(function(k) { x.setRequestHeader(k, headers[k]); });
+        x.upload.onprogress = function(e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+        x.onload = function() { (x.status >= 200 && x.status < 300) ? resolve() : reject(new Error('upload_failed')); };
+        x.onerror = function() { reject(new Error('upload_failed')); };
+        x.send(file);
+    });
+}
+
+// 写真は、送る前にブラウザで縮小・再圧縮する（容量の節約。位置情報などのEXIFも消える）
+var CHAT_IMAGE_SIDE = 1280;
+async function chatCompressImage(file) {
+    var bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    var scale = Math.min(1, CHAT_IMAGE_SIDE / Math.max(bmp.width, bmp.height));
+    var w = Math.max(1, Math.round(bmp.width * scale)), h = Math.max(1, Math.round(bmp.height * scale));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var g = c.getContext('2d');
+    g.fillStyle = '#fff';            // 透明なPNGの背景を白にする
+    g.fillRect(0, 0, w, h);
+    g.drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    return await new Promise(function(resolve, reject) {
+        c.toBlob(function(b) { b ? resolve(b) : reject(new Error('bad_image')); }, 'image/jpeg', 0.82);
+    });
+}
+
+async function chatVideoChosen(inp) {
+    var f = inp.files && inp.files[0];
+    inp.value = '';
+    if (!f || (chatAttach && chatAttach.status === 'uploading')) return;
+    setChatMsg('');
+    var isImage = /^image\/(jpeg|png|webp|gif)$/.test(f.type);
+    var isVideo = f.type === 'video/mp4' || f.type === 'video/webm';
+    if (!isImage && !isVideo) { setChatMsg(ct('e_bad_video_type')); return; }
+    if (isVideo && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_video_too_big')); return; }
+    if (isImage && f.size > 30 * 1048576) { setChatMsg(ct('e_image_too_big')); return; }
+    if (chatAttach) await chatDiscardAttach();
+    var blob = f, preview = '';
+    if (isImage) {
+        try { blob = await chatCompressImage(f); }
+        catch (e) { setChatMsg(ct('e_bad_image')); return; }
+        preview = URL.createObjectURL(blob);
+    }
+    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview };
+    renderAttachBar();
+    var mine = chatAttach;
+    try {
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : f.type });
+        mine.id = st.id;
+        await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
+        await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+        mine.status = 'ready';
+    } catch (e) {
+        if (chatAttach === mine) chatAttach = null;
+        if (mine.id) apiCall('DELETE', '/api/chat/videos/' + mine.id).catch(function() {});
+        if (preview) URL.revokeObjectURL(preview);
+        setChatMsg(chatErr(e));
+    }
+    renderAttachBar();
+}
+
+async function chatDiscardAttach() {
+    var a = chatAttach;
+    if (!a || a.status === 'uploading') return;
+    chatAttach = null;
+    if (a.preview) URL.revokeObjectURL(a.preview);
+    renderAttachBar();
+    if (a.id) { try { await apiCall('DELETE', '/api/chat/videos/' + a.id); } catch (e) {} }
+}
+
+// partialOk のときは、前回より新しいメッセージだけを取る（サーバーの読み取りが軽い）。
+// そうでないときは最新50件を取り直す（削除・非表示・タグの変化もここで反映される）
+async function loadChat(forceScroll, partialOk) {
     try {
         var room = chatRoom;
-        var d = await apiCall('GET', '/api/chat/messages?room=' + encodeURIComponent(room));
+        var partial = !!partialOk && chatMsgs.length > 0;
+        var path = '/api/chat/messages?room=' + encodeURIComponent(room) +
+            (partial ? '&since=' + chatMsgs[chatMsgs.length - 1].id : '');
+        var d = await apiCall('GET', path);
         if (room !== chatRoom) return;  // 取得中に部屋を切り替えた場合は捨てる
         chatIsAdmin = !!d.is_admin;
+        if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; renderChatInput(); }
+        if (d.partial) {
+            if (!d.messages.length) return;
+            chatMsgs = chatMsgs.concat(d.messages).slice(-50);
+            chatSig = '';
+            renderChat(chatMsgs, forceScroll);
+            return;
+        }
+        chatMsgs = d.messages;
         var sig = d.messages.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;
@@ -1819,6 +2470,10 @@ function renderChat(msgs, forceScroll) {
         var d = new Date(m.created_at);
         var time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
         var acts = '';
+        if (loginUser) {
+            acts += '<button class="chat-act" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
+                '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + esc(ct('reply')) + '</button>';
+        }
         if (loginUser && m.user_id !== me) {
             acts += '<button class="chat-act" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
         }
@@ -1832,21 +2487,43 @@ function renderChat(msgs, forceScroll) {
                 acts += '<button class="chat-act" data-u="' + esc(m.username) + '" onclick="chatBan(this.dataset.u)">' + esc(ct('ban')) + '</button>';
             }
         }
-        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '">' +
-            '<span class="chat-name">' + esc(m.username) + '</span>' +
-            '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts +
-            '<div class="chat-text">' + esc(m.content) + '</div></div>';
+        var tags = (m.tags || []).map(function(g) { return '<span class="chat-tag tag-' + esc(g) + '">' + esc(g) + '</span>'; }).join('');
+        var quote = '';
+        if (m.reply) {
+            quote = m.reply.gone
+                ? '<div class="chat-quote gone">↪ ' + esc(ct('quoteGone')) + '</div>'
+                : '<div class="chat-quote" onclick="chatJump(' + Number(m.reply.id) + ')">↪ @' + esc(m.reply.username) + ': ' + esc(m.reply.content) + '</div>';
+        }
+        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
+            tags + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' +
+            '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
+            (m.content ? '<div class="chat-text">' + chatTextHTML(m.content) + '</div>' : '') +
+            chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + '</div>';
     }).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
+    if (chatJumpTo) {
+        var target = chatJumpTo;
+        chatJumpTo = 0;
+        setTimeout(function() { chatJump(target); }, 50);
+    }
 }
 
 async function sendChat() {
     var ta = document.getElementById('chat-text');
-    if (!ta || !ta.value.trim()) return;
+    if (!ta) return;
+    if (chatAttach && chatAttach.status === 'uploading') return;
+    if (!ta.value.trim() && !chatAttach) return;
     setChatMsg('');
     try {
-        await apiCall('POST', '/api/chat/messages', { content: ta.value, room: chatRoom });
+        var payload = { content: ta.value, room: chatRoom };
+        if (chatAttach) payload.video_id = chatAttach.id;
+        if (chatReplyTo) payload.reply_to = chatReplyTo.id;
+        await apiCall('POST', '/api/chat/messages', payload);
         ta.value = '';
+        chatReplyTo = null;
+        chatAttach = null;
+        renderAttachBar();
+        renderReplyBar();
         await loadChat(true);
     } catch (e) { setChatMsg(chatErr(e)); }
 }
@@ -2022,6 +2699,301 @@ async function reviewApplication(id, status) {
     } catch(e) { showToast(t('applyErr')); }
 }
 
+// ===== 追加機能: ジャンル / ランキング / プロフィール / 管理 / 未読 =====
+var NT = {
+  ja: { back: '← もどる', rankWeek: '今週', rankAll: '総合', rankEmpty: '今週はまだ評価がありません', rankStat: function(a, c, s) { return '★' + a + '（' + c + '件）' + (s ? ' ・保存 ' + s : ''); },
+    genreAll: 'すべてのジャンル', genreTitle: 'ジャンル（あてはまるものを選ぶ。2人以上、または運営が選ぶと確定）', genreErr: 'ジャンルを保存できませんでした', genreMax: '投票できる数の上限に達しました',
+    g_3d: '3D', g_physics: '物理', g_engine: 'ゲームエンジン', g_render: '描画・レンダリング', g_algorithm: 'アルゴリズム', g_math: '数学', g_tool: 'ツール', g_media: '映像・画像', g_audio: '音', g_ai: 'AI・機械学習', g_other: 'その他',
+    pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
+    aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
+    sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順' },
+  en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
+    genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
+    g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
+    pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
+    aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
+    sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest' }
+};
+function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
+
+var GENRES = ['3d', 'physics', 'engine', 'render', 'algorithm', 'math', 'tool', 'media', 'audio', 'ai', 'other'];
+var sGenre = '', bGenre = '';
+var genreIdCache = {};
+async function loadGenreIds(g) {
+    if (!g || genreIdCache[g]) return;
+    var r = await apiCall('GET', '/api/genres?genre=' + encodeURIComponent(g));
+    genreIdCache[g] = (r.ids || []).filter(function(n) { return Number.isInteger(n); });
+}
+// ジャンルが選ばれていれば作品IDのリスト（空なら "NULL" で0件）
+function genreFilterSql(g) {
+    if (!g) return '';
+    var ids = genreIdCache[g] || [];
+    return ids.length ? ids.join(',') : 'NULL';
+}
+function fillGenreSelects() {
+    ['s', 'b'].forEach(function(p) {
+        var sel = document.getElementById(p + '-genre-filter');
+        if (!sel) return;
+        var cur = p === 's' ? sGenre : bGenre;
+        sel.innerHTML = '<option value="">' + esc(nt('genreAll')) + '</option>' + GENRES.map(function(g) { return '<option value="' + g + '">' + esc(nt('g_' + g)) + '</option>'; }).join('');
+        sel.value = cur;
+        sel.parentElement && (sel.parentElement.style.display = apiEnabled() ? '' : 'none');
+    });
+}
+function onGenreFilterChange(prefix) {
+    var sel = document.getElementById(prefix + '-genre-filter');
+    var val = sel.value;
+    var apply = function() {
+        if (prefix === 's') { sGenre = val; sPage = 1; triggerSearch(); }
+        else { bGenre = val; browseReset(); }
+    };
+    if (!val) { apply(); return; }
+    loadGenreIds(val).then(apply).catch(function() { sel.value = prefix === 's' ? sGenre : bGenre; showToast(t('skillErr')); });
+}
+
+// --- 評価ウィンドウでのジャンル投票 ---
+var rateGenre = null, rateGenreFor = null;
+async function loadRateGenres() {
+    var box = document.getElementById('rate-genres'), ttl = document.getElementById('rate-genre-title');
+    if (!box) return;
+    ttl.innerText = nt('genreTitle');
+    var id = currentRateId;
+    try { rateGenre = await apiCall('GET', '/api/genres/project/' + id); } catch (e) { return; }
+    if (id !== currentRateId) return;
+    renderRateGenres();
+}
+function renderRateGenres() {
+    var box = document.getElementById('rate-genres');
+    if (!box || !rateGenre) return;
+    document.getElementById('rate-genre-title').innerText = nt('genreTitle');
+    box.innerHTML = GENRES.map(function(g) {
+        var mine = rateGenre.mine.indexOf(g) >= 0, conf = rateGenre.confirmed.indexOf(g) >= 0, n = rateGenre.votes[g] || 0;
+        return '<span class="genre-chip' + (mine ? ' mine' : '') + (conf ? ' confirmed' : '') + '" data-g="' + g + '" onclick="toggleGenreVote(this.dataset.g)">' + esc(nt('g_' + g)) + (n ? '<small>' + n + '</small>' : '') + '</span>';
+    }).join('');
+}
+async function toggleGenreVote(g) {
+    if (!loginUser || currentRateId === null) return;
+    var on = rateGenre.mine.indexOf(g) < 0, id = currentRateId;
+    try {
+        rateGenre = await apiCall(on ? 'PUT' : 'DELETE', '/api/genres/project/' + id + '/' + g);
+        genreIdCache = {};
+        if (id === currentRateId) renderRateGenres();
+    } catch (e) { showToast(e.message === 'too_many_votes' ? nt('genreMax') : nt('genreErr')); }
+}
+(function() {
+    var oc = closeRate; closeRate = function() { rateGenreFor = null; oc(); };
+    var orig = renderRateModal;
+    renderRateModal = function() {
+        orig();
+        var show = !!loginUser && currentRateId !== null;
+        var box = document.getElementById('rate-genres'), ttl = document.getElementById('rate-genre-title');
+        if (box) box.style.display = show ? '' : 'none';
+        if (ttl) ttl.style.display = show ? '' : 'none';
+        if (show && rateGenreFor !== currentRateId) { rateGenreFor = currentRateId; rateGenre = null; box.innerHTML = ''; loadRateGenres(); }
+    };
+})();
+
+// --- ランキング ---
+var rankPeriod = 'week';
+function setRankPeriod(p) { rankPeriod = p; enterRank(); }
+function rankCard(p, i, stat) {
+    return '<div class="rank-wrap"><span class="rank-num' + (i < 3 ? ' r' + (i + 1) : '') + '">' + (i + 1) + '</span>' + cardHTML(p) + (stat ? '<div class="rank-stat">' + esc(stat) + '</div>' : '') + '</div>';
+}
+async function enterRank() {
+    document.getElementById('rank-week-btn').innerText = nt('rankWeek');
+    document.getElementById('rank-all-btn').innerText = nt('rankAll');
+    document.getElementById('rank-week-btn').classList.toggle('active', rankPeriod === 'week');
+    document.getElementById('rank-all-btn').classList.toggle('active', rankPeriod === 'all');
+    var list = document.getElementById('rank-list');
+    if (!db) { list.innerHTML = '<div class="status-text">' + esc(t('loading')) + '</div>'; setTimeout(function() { if (currentMode === 'rank' && db) enterRank(); }, 600); return; }
+    try {
+        var items = [], stats = {};
+        if (rankPeriod === 'week') {
+            var r = await apiCall('GET', '/api/ranking/weekly');
+            items = r.items || [];
+            items.forEach(function(it) { stats[it.id] = nt('rankStat', it.avg, it.count, it.saves); });
+        } else {
+            await loadSkillRanking();
+            items = (skillRank ? skillRank.ids : []).slice(0, 60).map(function(k) { return { id: Number(k) }; });
+        }
+        var ids = items.map(function(i) { return Number(i.id); }).filter(Number.isInteger);
+        var projs = ids.length ? queryAll('SELECT * FROM projects WHERE id IN (' + ids.join(',') + ')') : [];
+        var byId = {}; projs.forEach(function(p) { byId[p.id] = p; });
+        var ordered = ids.map(function(i) { return byId[i]; }).filter(Boolean);
+        if (rankPeriod === 'all') ordered = ordered.slice(0, 50);
+        list.innerHTML = ordered.length
+            ? '<div class="project-grid">' + ordered.map(function(p, i) { return rankCard(p, i, stats[p.id]); }).join('') + '</div>'
+            : '<div class="status-text">' + esc(nt('rankEmpty')) + '</div>';
+        loadRatings(list);
+    } catch (e) { list.innerHTML = '<div class="status-text">' + esc(t('skillErr')) + '</div>'; }
+}
+
+// --- プロフィール ---
+var profileUser = '', profileSort = 'loves', profileRows = [], profileShown = 0, PROFILE_PAGE = 30;
+function openProfile(name) {
+    profileUser = name;
+    if (currentMode !== 'user') prevMode = currentMode === 'user' ? prevMode : currentMode;
+    setMode('user');
+    renderProfile();
+    window.scrollTo(0, 0);
+}
+function closeProfile() { setMode(prevMode && prevMode !== 'user' ? prevMode : 'browse'); }
+function setProfileSort(v) { profileSort = v; profileLoad(); }
+async function renderProfile() {
+    var u = profileUser;
+    document.getElementById('profile-back').innerText = nt('back');
+    var sel = document.getElementById('profile-sort');
+    sel.innerHTML = [['loves', 'sortLoves'], ['newest', 'sortNewest'], ['oldest', 'sortOldest']].map(function(o) { return '<option value="' + o[0] + '">' + esc(nt(o[1])) + '</option>'; }).join('');
+    sel.value = profileSort;
+    document.getElementById('profile-more').innerText = nt('pMore');
+    var row = db ? queryOne('SELECT * FROM users WHERE lower(username) = lower(?)', [u]) : null;
+    if (row) u = profileUser = row.username;
+    var cnt = db ? queryOne('SELECT COUNT(*) AS c, COALESCE(SUM(loves),0) AS l FROM projects WHERE author_username = ? COLLATE NOCASE', [u]) : { c: 0, l: 0 };
+    document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" alt="" src="https://uploads.scratch.mit.edu/get_image/user/' + encodeURIComponent(row && row.id ? row.id : 0) + '_90x90.png" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + '</div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
+    var cell = function(v, l) { return '<div class="stat-box"><b>' + esc(String(v)) + '</b><span>' + esc(l) + '</span></div>'; };
+    var statsEl = document.getElementById('profile-stats');
+    statsEl.className = 'profile-stats';
+    statsEl.innerHTML = cell(cnt.c, nt('pProjects')) + cell(cnt.l, nt('pLoves'));
+    profileLoad();
+    if (!apiEnabled()) return;
+    try {
+        var ids = (db ? queryAll('SELECT id FROM projects WHERE author_username = ? COLLATE NOCASE LIMIT 500', [u]) : []).map(function(r) { return r.id; });
+        var res = await Promise.all([apiCall('GET', '/api/users/' + encodeURIComponent(u) + '/profile'), apiCall('POST', '/api/ratings/stats', { ids: ids })]);
+        if (u !== profileUser) return;
+        var prof = res[0], st = res[1];
+        var tg = document.getElementById('profile-tags');
+        if (tg) tg.innerHTML = (prof.tags || []).map(function(x) { return '<span class="chat-tag tag-' + esc(x) + '">' + esc(x) + '</span>'; }).join('') + tg.innerHTML;
+        statsEl.innerHTML = cell(cnt.c, nt('pProjects')) + cell(cnt.l, nt('pLoves')) + cell(st.count ? '★' + st.avg + ' (' + st.count + ')' : '–', nt('pAvg')) + cell(prof.chat_posts, nt('pPosts')) + cell(prof.ratings_given, nt('pGiven'));
+    } catch (e) {}
+}
+function profileLoad() {
+    var order = profileSort === 'newest' ? 'ORDER BY id DESC' : profileSort === 'oldest' ? 'ORDER BY id ASC' : 'ORDER BY loves DESC, id DESC';
+    profileRows = db ? queryAll('SELECT * FROM projects WHERE author_username = ? COLLATE NOCASE ' + order, [profileUser]) : [];
+    profileShown = 0;
+    document.getElementById('profile-list').innerHTML = '<div class="project-grid" id="profile-grid"></div>' + (profileRows.length ? '' : '<div class="status-text">' + esc(nt('pNone')) + '</div>');
+    profileLoadMore();
+}
+function profileLoadMore() {
+    var part = profileRows.slice(profileShown, profileShown + PROFILE_PAGE);
+    profileShown += part.length;
+    var g = document.getElementById('profile-grid');
+    if (g) g.insertAdjacentHTML('beforeend', part.map(cardHTML).join(''));
+    document.getElementById('profile-more-wrap').style.display = profileShown < profileRows.length ? '' : 'none';
+    if (part.length) loadRatings(document.getElementById('profile-list'));
+}
+
+// --- 管理画面 ---
+var adminTab = 'apps';
+function enterAdmin() { renderAdminTabs(); loadAdminTab(); }
+function renderAdminTabs() {
+    document.getElementById('admin-tabs').innerHTML = [['apps', 'aApps'], ['reports', 'aReports'], ['bans', 'aBans']].map(function(x) {
+        return '<button class="' + (adminTab === x[0] ? 'active' : '') + '" data-k="' + x[0] + '" onclick="setAdminTab(this.dataset.k)">' + esc(nt(x[1])) + '</button>';
+    }).join('');
+}
+function setAdminTab(k) { adminTab = k; enterAdmin(); }
+function adminDate(ms) { try { return new Date(ms).toLocaleString(); } catch (e) { return ''; } }
+async function loadAdminTab() {
+    var body = document.getElementById('admin-body');
+    var empty = '<div class="status-text">' + esc(nt('aEmpty')) + '</div>';
+    try {
+        if (adminTab === 'apps') {
+            var a = await apiCall('GET', '/api/admin/applications?status=pending');
+            applyAdminItems = a.items || [];
+            body.innerHTML = applyAdminItems.length ? applyAdminItems.map(function(x) { return applyItemHTML(x, true); }).join('') : empty;
+        } else if (adminTab === 'reports') {
+            var r = await apiCall('GET', '/api/admin/chat/reports');
+            body.innerHTML = (r.items || []).length ? r.items.map(function(m) {
+                return '<div class="admin-item"><div class="a-meta"># ' + esc(m.room) + ' ・ <a href="#" onclick="openUser(\'' + esc(m.username) + '\',event);return false">' + esc(m.username) + '</a> ・ ' + esc(adminDate(m.created_at)) + ' ・ ' + esc(nt('aReports2')) + ' ' + Number(m.reports || m.c || 0) + (m.hidden ? esc(nt('aHidden')) : '') + '</div><div class="a-body">' + esc(m.content || '') + '</div><div class="admin-acts">' +
+                    '<button onclick="adminMsg(' + Number(m.id) + ',\'' + (m.hidden ? 'restore' : 'hide') + '\')">' + esc(nt(m.hidden ? 'aRestore' : 'aHide')) + '</button>' +
+                    '<button class="ng" onclick="adminMsg(' + Number(m.id) + ',\'delete\')">' + esc(nt('aDelete')) + '</button>' +
+                    '<button onclick="adminBan(\'' + esc(m.username) + '\',true)">' + esc(nt('aBan')) + '</button></div></div>';
+            }).join('') : empty;
+        } else {
+            var b = await apiCall('GET', '/api/admin/chat/bans');
+            body.innerHTML = '<div class="admin-form"><input id="admin-ban-name" placeholder="' + esc(nt('aBanName')) + '"><button class="load-more-btn" onclick="adminBan(document.getElementById(\'admin-ban-name\').value.trim(),true)">' + esc(nt('aBanAdd')) + '</button></div>' +
+                ((b.items || []).length ? b.items.map(function(x) {
+                    return '<div class="admin-item"><b>' + esc(x.username) + '</b> <span class="a-meta">' + esc(adminDate(x.created_at)) + '</span><div class="admin-acts"><button onclick="adminBan(\'' + esc(x.username) + '\',false)">' + esc(nt('aUnban')) + '</button></div></div>';
+                }).join('') : empty);
+        }
+    } catch (e) { body.innerHTML = '<div class="status-text">' + esc(nt('aFail')) + '</div>'; }
+}
+async function adminMsg(id, action) {
+    if (action === 'delete' && !confirm(nt('aDelete') + '?')) return;
+    try { await apiCall('POST', '/api/admin/chat/messages/' + id, { action: action }); showToast(nt('aDone')); } catch (e) { showToast(nt('aFail')); }
+    loadAdminTab();
+}
+async function adminBan(name, banned) {
+    if (!name) return;
+    try { await apiCall('POST', '/api/admin/chat/bans', { username: name, banned: banned }); showToast(nt('aDone')); } catch (e) { showToast(nt('aFail')); }
+    loadAdminTab();
+}
+// 管理者だけに「管理」タブを見せる（申請の一覧を取りに行ったときに分かる）
+var adminChecked = 0;
+async function checkAdminTab() {
+    var tab = document.getElementById('mode-admin-btn');
+    if (!tab) return;
+    if (!apiEnabled() || !loginUser) { tab.style.display = 'none'; adminChecked = 0; return; }
+    if (adminChecked === loginUser.id) return;
+    adminChecked = loginUser.id;
+    try { var r = await apiCall('GET', '/api/applications/mine'); tab.style.display = r.is_admin ? '' : 'none'; } catch (e) {}
+}
+
+// --- チャットの未読（画面を見ていない間も、部屋ごとの最新IDを時々だけ確認する） ---
+var chatSeen = {}, chatLatestMap = {};
+try { chatSeen = JSON.parse(localStorage.getItem('twc_chat_seen') || '{}') || {}; } catch (e) {}
+function markChatSeen() {
+    if (!chatMsgs || !chatMsgs.length) return;
+    var top = 0; chatMsgs.forEach(function(m) { if (m.id > top) top = m.id; });
+    if (top > (chatSeen[chatRoom] || 0)) {
+        chatSeen[chatRoom] = top;
+        try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
+    }
+    updateNavDots();
+}
+async function pollBackground() {
+    if (document.hidden || !apiEnabled()) return;
+    try { chatLatestMap = (await apiCall('GET', '/api/chat/latest')).rooms || {}; } catch (e) { return; }
+    updateNavDots();
+}
+function chatRoomUnread(r) {
+    if (chatSeen[r] === undefined) return false;   // はじめて開く人には点を出さない
+    return (chatLatestMap[r] || 0) > chatSeen[r];
+}
+function updateNavDots() {
+    var any = false;
+    CHAT_ROOMS.forEach(function(r) {
+        var un = chatRoomUnread(r) && !(currentMode === 'chat' && r === chatRoom);
+        if (un) any = true;
+        var b = document.querySelector('#chat-tabs [data-r="' + r + '"]');
+        if (b) b.classList.toggle('unread', un);
+    });
+    var tab = document.getElementById('mode-chat-btn');
+    if (tab) tab.classList.toggle('has-unread', any && currentMode !== 'chat');
+}
+function initUnread() {
+    // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする
+    apiCall('GET', '/api/chat/latest').then(function(r) {
+        chatLatestMap = r.rooms || {};
+        var ch = false;
+        CHAT_ROOMS.forEach(function(k) { if (chatSeen[k] === undefined) { chatSeen[k] = chatLatestMap[k] || 0; ch = true; } });
+        if (ch) try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
+        updateNavDots();
+    }).catch(function() {});
+    setInterval(pollBackground, 60000);
+}
+(function() {
+    var o1 = renderChatTabs; renderChatTabs = function() { o1(); updateNavDots(); };
+    var o2 = loadChat; loadChat = async function() { var r = await o2.apply(this, arguments); markChatSeen(); return r; };
+    var o3 = updateLoginUI; updateLoginUI = function() { o3(); checkAdminTab(); };
+    var o4 = applyLang; applyLang = function() {
+        o4(); fillGenreSelects(); renderRateGenres();
+        var a = document.getElementById('rank-week-btn'); if (a) { a.innerText = nt('rankWeek'); document.getElementById('rank-all-btn').innerText = nt('rankAll'); }
+        document.getElementById('profile-back').innerText = nt('back');
+    };
+})();
+fillGenreSelects();
+if (apiEnabled()) initUnread();
+
 loadLogin();
 updateSortOptions();
 loadLangPref();
@@ -2118,19 +3090,6 @@ loadSaves().catch(function() {});
     </div>
 </div>
 
-<div class="tw-warn-overlay" id="chat-overlay" style="display:none" onclick="if(event.target===this)closeChat()">
-    <div class="tw-warn-box chat-box">
-        <div class="tw-warn-title" id="chat-title">チャット</div>
-        <div class="chat-tabs" id="chat-tabs"></div>
-        <div id="chat-list"></div>
-        <div id="chat-input-wrap"></div>
-        <div class="login-msg" id="chat-msg"></div>
-        <div class="tw-warn-btns">
-            <button class="tw-warn-btn tw-warn-btn-cancel" id="chat-close-btn" onclick="closeChat()">閉じる</button>
-        </div>
-    </div>
-</div>
-
 <div class="tw-warn-overlay" id="rate-overlay" style="display:none" onclick="if(event.target===this)closeRate()">
     <div class="tw-warn-box">
         <div class="tw-warn-title" data-i18n="rateTitle">技術力を評価</div>
@@ -2153,6 +3112,8 @@ loadSaves().catch(function() {});
                 <button class="rate-star-btn" data-score="5" onmouseenter="rateHover(5)" onclick="submitRating(5)">★</button>
             </div>
             <div class="rate-hint" id="rate-hint"></div>
+            <div class="genre-title" id="rate-genre-title"></div>
+            <div class="genre-chips" id="rate-genres"></div>
             <div class="login-msg" id="rate-msg"></div>
             <div class="tw-warn-btns">
                 <button class="tw-warn-btn tw-warn-btn-scratch" id="rate-remove-btn" onclick="removeRating()" data-i18n="rateRemove">評価を取り消す</button>

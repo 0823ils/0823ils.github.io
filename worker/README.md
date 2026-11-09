@@ -109,3 +109,43 @@ npx wrangler deploy
 ```
 
 新しくDBを作る場合は、`schema.sql` だけで足ります。
+
+
+## チャットのタグ・返信・通知
+
+- **タグ:** スタジオ [51603915](https://scratch.mit.edu/studios/51603915/) のキュレター・マネージャーに `TWC`、[32030084](https://scratch.mit.edu/studios/32030084/) のキュレター・マネージャーに `GAS` が付きます（両方なら2つ）。Scratchから1時間ごとに取り直します（取得に失敗したら前の結果を使い、5分後に再試行）。スタジオIDとタグ名は `src/index.js` の `STUDIO_TAGS` で変えられます。
+- **返信:** `POST /api/chat/messages` に `reply_to`（同じ部屋のメッセージID）を付けます。
+- **メンション:** 本文の `@ユーザー名` を通知します（1メッセージ5人まで）。返信と重複する人には、通知は1件だけです。自分宛ては作りません。
+- **通知:** `GET /api/notifications`（一覧と未読数）、`GET /api/notifications/count`（未読数）、`POST /api/notifications/read`（`{id}` か `{all:true}`）。30日で消えます。削除・非表示になったメッセージの通知は出ません。
+
+## チャットの動画（Backblaze B2）
+
+チャットに動画（MP4 / WebM・20MBまで・1人1日3本）を添付できます。写真（JPEG / PNG / WebP / GIF を選べる。ブラウザで長辺1280pxのJPEGに縮小・再圧縮してから送るので、位置情報などのEXIFも消える。サーバー側の上限は5MB・1人1日10枚）も同じ仕組みで送れます。写真は動画とは別に数え、メッセージには `image` として返ります（動画は `video`）。設定は [B2_SETUP.md](B2_SETUP.md) を見てください。未設定なら動画機能は無効です。
+
+- `POST /api/chat/videos/start` `{size, type}`: B2への一時的なアップロードURLを返す（要ログイン）
+- `POST /api/chat/videos/:id/complete`: アップロード後に実サイズを確認する（大きすぎたら消す）
+- `DELETE /api/chat/videos/:id`: 投稿前の動画を取り消す
+- `POST /api/chat/messages` に `video_id` を付けて投稿する。メッセージを削除すると動画も消える。
+- `GET /api/chat/messages?room=...&since=<ID>`: そのIDより新しいメッセージだけを返す（自動更新用。読み取りが軽い）
+
+チャットの本文に貼ったScratchの作品・YouTube・ニコニコ動画のURLは、サイト側でクリックして再生できるカードになります（Workerの設定は不要）。
+
+## ジャンル・ランキング・プロフィール・管理・未読
+
+| メソッド | パス | 内容 |
+|---|---|---|
+| GET | `/api/genres?genre=3d` | そのジャンルで確定した作品IDの一覧（公開） |
+| GET | `/api/genres/project/:id` | `{confirmed, votes, mine}` |
+| PUT / DELETE | `/api/genres/project/:id/:genre` | 投票 / 取り消し（要ログイン）。2人以上、または TWC・GAS のキュレーター/マネージャー1人で確定 |
+| GET | `/api/ranking/weekly` | 直近7日の評価で並べた今週のランキング |
+| POST | `/api/ratings/stats` | `{ids}` の作品が受けた評価のまとめ |
+| GET | `/api/users/:name/profile` | タグ・チャット投稿数・つけた評価数 |
+| GET | `/api/chat/latest` | 部屋ごとの最新メッセージID（未読の点に使う） |
+| GET | `/api/admin/chat/reports`, `/api/admin/chat/bans` | 管理画面用（管理者のみ） |
+
+新しいテーブル `project_genres` があるので、更新時は次を実行します。
+
+```
+npx wrangler d1 execute twc-ratings --remote --file=schema.sql
+npx wrangler deploy
+```

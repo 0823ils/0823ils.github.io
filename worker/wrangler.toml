@@ -11,6 +11,11 @@ ALLOWED_ORIGINS = "https://0823ils.github.io,http://localhost:5001"
 # 参加申請を審査できるScratchユーザー名（カンマ区切り）
 ADMIN_USERS = "TWC-ils"
 
+B2_ENDPOINT = "s3.us-west-004.backblazeb2.com"
+B2_BUCKET = "twc-chat-media-0823ils"
+VIDEO_BASE_URL = ""
+VIDEO_TTL_DAYS = "14"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "twc-ratings"

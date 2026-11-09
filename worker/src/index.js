@@ -648,7 +648,7 @@ async function chatList(request, env, url) {
   const list = since !== null ? rows.results : rows.results.reverse();
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
-  return json({ messages: list.map(r => chatRow(r, env)), is_admin: admin, partial: since !== null, video_enabled: videoEnabled(env) });
+  return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, video_enabled: videoEnabled(env) });
 }
 
 async function chatPost(request, env) {
@@ -843,7 +843,8 @@ const isImageType = (t) => String(t).startsWith('image/');
 const VIDEO_PRESIGN_SECONDS = 600;
 
 function videoEnabled(env) {
-  return !!(env.B2_ENDPOINT && env.B2_BUCKET && env.VIDEO_BASE_URL && env.B2_KEY_ID && env.B2_APP_KEY);
+  // VIDEO_BASE_URL が空なら「非公開バケット」。見るときは期限つきの閲覧URLを都度つくる
+  return !!(env.B2_ENDPOINT && env.B2_BUCKET && env.B2_KEY_ID && env.B2_APP_KEY);
 }
 function requireVideo(env) {
   if (!videoEnabled(env)) throw new HttpError(503, 'video_disabled');
@@ -855,7 +856,29 @@ function videoTtlMs(env) {
 // B2のライフサイクル設定で消えた後は、再生できないことを知らせる
 function videoInfo(r, env) {
   if (Date.now() - r.video_created > videoTtlMs(env)) return { id: r.video_id, type: r.video_type, expired: true };
-  return { id: r.video_id, type: r.video_type, url: String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + r.video_key };
+  return { id: r.video_id, type: r.video_type, _key: r.video_key };   // url は mediaUrl() であとから付ける
+}
+
+// 閲覧URL。公開バケットならそのまま、非公開なら署名つき（1時間ごとに切り替わるので、同じ時間帯は同じURL＝ブラウザがキャッシュできる）
+const VIEW_HOUR = 3600 * 1000;
+const VIEW_EXPIRES = 6 * 3600;
+async function mediaUrl(env, key) {
+  if (env.VIDEO_BASE_URL) return String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + key;
+  const now = Math.floor(Date.now() / VIEW_HOUR) * VIEW_HOUR;
+  return presignUrl({
+    method: 'GET', host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`, path: '/' + key,
+    region: regionOf(env.B2_ENDPOINT), keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+    now, expires: VIEW_EXPIRES,
+  });
+}
+async function attachMediaUrls(env, rows) {
+  for (const m of rows) {
+    for (const k of ['video', 'image']) {
+      const x = m[k];
+      if (x && x._key) { x.url = await mediaUrl(env, x._key); delete x._key; }
+    }
+  }
+  return rows;
 }
 
 // --- AWS Signature V4（S3互換。B2用） ---
@@ -905,27 +928,17 @@ async function presignUrl({ method, host, path, region, keyId, secret, now, expi
   return `https://${host}${path}?${canonicalQuery}&X-Amz-Signature=${sig}`;
 }
 
-// ヘッダー方式で署名したリクエストを送る（HEAD / DELETE 用）
-async function s3Fetch(env, method, key) {
-  const region = regionOf(env.B2_ENDPOINT);
-  const host = `${env.B2_BUCKET}.${env.B2_ENDPOINT}`;
-  const path = '/' + key;
-  const { amzDate, date } = amzDates(Date.now());
-  const scope = `${date}/${region}/s3/aws4_request`;
-  const payloadHash = await sha256Hex('');
-  const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
-  const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`;
-  const canonicalRequest = [method, path, '', canonicalHeaders, signedHeaders, payloadHash].join('\n');
-  const toSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonicalRequest)].join('\n');
-  const sig = hex(await hmac(await signingKey(env.B2_APP_KEY, date, region), toSign));
-  return fetch(`https://${host}${path}`, {
+// HEAD / DELETE も、アップロードと同じ「署名つきURL」で送る（実際に通ることを確認済みの方式）
+async function s3Fetch(env, method, key, extraHeaders) {
+  const url = await presignUrl({
     method,
-    headers: {
-      'x-amz-date': amzDate,
-      'x-amz-content-sha256': payloadHash,
-      'Authorization': `AWS4-HMAC-SHA256 Credential=${env.B2_KEY_ID}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`,
-    },
+    host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`,
+    path: '/' + key,
+    region: regionOf(env.B2_ENDPOINT),
+    keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+    now: Date.now(), expires: 120,
   });
+  return fetch(url, { method, headers: extraHeaders || {} });
 }
 
 async function b2Delete(env, key) {
@@ -986,11 +999,17 @@ async function videoComplete(request, env, id) {
   requireVideo(env);
   const v = await env.DB.prepare("SELECT * FROM chat_videos WHERE id = ? AND user_id = ? AND state != 'deleted'").bind(id, user.uid).first();
   if (!v) throw new HttpError(404, 'not_found');
+  // 先頭1バイトだけ読んで、大きさと種類を確かめる（HEADが拒否されたため、GETの範囲指定で代用）
   let r;
-  try { r = await s3Fetch(env, 'HEAD', v.object_key); } catch { throw new HttpError(502, 'storage_unreachable'); }
+  try { r = await s3Fetch(env, 'GET', v.object_key, { Range: 'bytes=0-0' }); } catch { throw new HttpError(502, 'storage_unreachable'); }
   if (r.status === 404) throw new HttpError(409, 'not_uploaded');
-  if (!r.ok) throw new HttpError(502, 'storage_error');
-  const size = Number(r.headers.get('content-length') || 0);
+  if (!r.ok) {
+    let body = ''; try { body = (await r.text()).slice(0, 300); } catch {}
+    console.error('b2 check failed', r.status, body);
+    throw new HttpError(502, 'storage_error');
+  }
+  const cr = String(r.headers.get('content-range') || '').match(/\/(\d+)$/);
+  const size = cr ? Number(cr[1]) : Number(r.headers.get('content-length') || 0);
   const type = String(r.headers.get('content-type') || '').split(';')[0].trim();
   const image = isImageType(v.content_type);
   const maxBytes = image ? IMAGE_MAX_BYTES : VIDEO_MAX_BYTES;
@@ -1000,7 +1019,7 @@ async function videoComplete(request, env, id) {
     throw new HttpError(size > maxBytes ? 413 : 400, size > maxBytes ? (image ? 'image_too_big' : 'video_too_big') : 'bad_video');
   }
   await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ? WHERE id = ?").bind(size, id).run();
-  return json({ id, type, url: String(env.VIDEO_BASE_URL).replace(/\/+$/, '') + '/' + v.object_key });
+  return json({ id, type, url: await mediaUrl(env, v.object_key) });
 }
 
 async function videoDiscard(request, env, id) {

@@ -85,6 +85,7 @@ async function route(request, env) {
   if (path === '/api/ratings' && method === 'GET') return getRatings(request, env, url);
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
   if (path === '/api/ratings/mine' && method === 'GET') return myRatings(request, env);
+  if (path === '/api/ratings/detail' && method === 'GET') return ratingDetail(request, env, url);
   if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
@@ -319,6 +320,26 @@ async function getRatings(request, env, url) {
   const out = {};
   for (const id of ids) out[id] = summarize(byId.get(id) || null, mineMap.get(id));
   return json({ ratings: out });
+}
+
+// 作品ページ用：平均・件数・自分の評価と、★1〜5それぞれの人数
+async function ratingDetail(request, env, url) {
+  const id = String(url.searchParams.get('id') || '');
+  if (!/^\d{1,12}$/.test(id)) throw new HttpError(400, 'bad_id');
+  const pid = Number(id);
+  const rows = await env.DB.prepare('SELECT score, COUNT(*) AS n FROM ratings WHERE project_id = ? GROUP BY score').bind(pid).all();
+  const dist = [0, 0, 0, 0, 0];
+  let c = 0, sq = 0;
+  for (const r of rows.results) {
+    if (r.score >= 1 && r.score <= 5) { dist[r.score - 1] = r.n; c += r.n; sq += r.n * r.score * r.score; }
+  }
+  const user = await getUser(request, env);
+  let mine = null;
+  if (user) {
+    const m = await env.DB.prepare('SELECT score FROM ratings WHERE project_id = ? AND user_id = ?').bind(pid, user.uid).first();
+    mine = m ? m.score : null;
+  }
+  return json({ ...summarize(c ? { c, a: sq / c } : null, mine), dist });
 }
 
 // 自分がつけた評価を全部返す（画面は、ここから「自分の評価」を知る。作品ごとに問い合わせない）

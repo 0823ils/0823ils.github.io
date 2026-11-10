@@ -258,6 +258,9 @@
         .rank-num.r1 { background: #f5b301; } .rank-num.r2 { background: #9aa5b1; } .rank-num.r3 { background: #c97b3b; }
         .rank-stat { font-size: 12px; color: #888; text-align: center; padding: 4px 0 0; }
         .profile-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+        .profile-account { margin-left: auto; align-self: flex-start; }
+        .profile-acct-btn { padding: 7px 14px; border-radius: 16px; border: 1px solid #ddd; background: #fff; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .profile-acct-btn:hover { border-color: #4D97FF; color: #4D97FF; }
         .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: #e3ecfb; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: #4D97FF; }
         .profile-name { font-size: 22px; font-weight: 800; color: #333; word-break: break-all; }
         .profile-sub { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -1807,6 +1810,7 @@ function updateLoginUI() {
         btn.classList.remove('logged-in');
         btn.innerText = t('loginBtn');
     }
+    renderProfileAccount();
 }
 
 function showLoginView(name) {
@@ -3309,14 +3313,14 @@ var NT = {
   ja: { back: '← もどる', rankWeek: '今週', rankAll: '総合', rankEmpty: '今週はまだ評価がありません', rankStat: function(a, c, s) { return '★' + a + '（' + c + '件）' + (s ? ' ・保存 ' + s : ''); },
     genreAll: 'すべてのジャンル', genreTitle: 'ジャンル（あてはまるものを選ぶ。2人以上、または運営が選ぶと確定）', genreErr: 'ジャンルを保存できませんでした', genreMax: '投票できる数の上限に達しました',
     g_3d: '3D', g_physics: '物理', g_engine: 'ゲームエンジン', g_render: '描画・レンダリング', g_algorithm: 'アルゴリズム', g_math: '数学', g_tool: 'ツール', g_media: '映像・画像', g_audio: '音', g_ai: 'AI・機械学習', g_other: 'その他',
-    pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
+    pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pAccount: 'アカウント / ログアウト', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
     ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
-    pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
+    pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pAccount: 'Account / Log out', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
     ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
@@ -3447,6 +3451,16 @@ function openProfile(name) {
 function onLoginBtn() { if (loginUser) openProfile(loginUser.username); else openLogin(); }
 function closeProfile() { if (history.state && history.state.twc) { history.back(); return; } setMode(prevMode && prevMode !== 'user' ? prevMode : 'browse'); }
 function setProfileSort(v) { profileSort = v; profileLoad(); }
+function renderProfileAccount() {
+    var head = document.querySelector('#profile-head .profile-head');
+    if (!head) return;
+    var old = head.querySelector('.profile-account');
+    if (old) old.remove();
+    if (loginUser && profileUser && String(loginUser.username).toLowerCase() === String(profileUser).toLowerCase()) {
+        head.insertAdjacentHTML('beforeend', '<div class="profile-account"><button class="profile-acct-btn" onclick="openLogin()">' + esc(nt('pAccount')) + '</button></div>');
+    }
+}
+
 async function renderProfile() {
     var u = profileUser;
     document.getElementById('profile-back').innerText = nt('back');
@@ -3458,6 +3472,7 @@ async function renderProfile() {
     if (row) u = profileUser = row.username;
     var cnt = db ? queryOne('SELECT COUNT(*) AS c, COALESCE(SUM(loves),0) AS l FROM projects WHERE author_username = ? COLLATE NOCASE', [u]) : { c: 0, l: 0 };
     document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" id="profile-avatar" alt="" src="" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + '</div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
+    renderProfileAccount();
     resolveUserId(u).then(function(id) {
         var im = document.getElementById('profile-avatar');
         if (id && im && profileUser === u) { im.style.visibility = ''; im.src = 'https://uploads.scratch.mit.edu/get_image/user/' + encodeURIComponent(id) + '_90x90.png'; }

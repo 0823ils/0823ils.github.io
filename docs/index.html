@@ -1058,22 +1058,26 @@ var ppInfoCache = {};
 function ppLinkify(txt) {
     return esc(txt).replace(/(https?:\/\/[^\s<]+)/g, function(u) { return '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>'; });
 }
-function renderPpInfo() {
+function renderPpInfo(failed) {
     var el = document.getElementById('pp-info'); if (!el) return;
     var d = ppInfoCache[ppId] || { instructions: '', description: '' };
-    el.innerHTML = '<div class="pp-h">' + esc(nt('ppHow')) + '</div><div class="pp-text">' + ppLinkify(d.instructions) + '</div>' +
-        '<div class="pp-h">' + esc(nt('ppNotes')) + '</div><div class="pp-text">' + ppLinkify(d.description) + '</div>';
+    var miss = failed ? '<span style="color:#999">' + esc(nt('ppInfoFail')) + ' <a href="#" onclick="ppLoadInfo();return false">↻</a></span>' : '';
+    el.innerHTML = '<div class="pp-h">' + esc(nt('ppHow')) + '</div><div class="pp-text">' + (failed ? miss : ppLinkify(d.instructions)) + '</div>' +
+        '<div class="pp-h">' + esc(nt('ppNotes')) + '</div><div class="pp-text">' + (failed ? '' : ppLinkify(d.description)) + '</div>';
+}
+async function ppFetchInfo(id) {
+    var j = null;
+    try {   // まず Scratch から直接。だめならWorker経由
+        var r = await fetch('https://api.scratch.mit.edu/projects/' + id);
+        if (r.ok) j = await r.json();
+    } catch (e) {}
+    if (!j && apiEnabled()) { try { j = await apiCall('GET', '/api/scratch/project?id=' + id); } catch (e) {} }
+    return j ? { instructions: String(j.instructions || '').trim(), description: String(j.description || '').trim() } : null;
 }
 async function ppLoadInfo() {
     var id = ppId;
-    if (ppInfoCache[id] === undefined) {
-        try {
-            var r = await fetch('https://api.scratch.mit.edu/projects/' + id);
-            var j = r.ok ? await r.json() : null;
-            ppInfoCache[id] = j ? { instructions: String(j.instructions || '').trim(), description: String(j.description || '').trim() } : null;
-        } catch (e) { ppInfoCache[id] = null; }
-    }
-    if (id === ppId) renderPpInfo();
+    if (!ppInfoCache[id]) ppInfoCache[id] = await ppFetchInfo(id);   // 失敗(null)は覚えず、次に開いたとき再挑戦
+    if (id === ppId) renderPpInfo(!ppInfoCache[id]);
 }
 function renderPpRate() { var el = document.getElementById('pp-rate'); if (el) el.innerHTML = ppRateBox(); }
 async function ppSubmit(score) {
@@ -3082,14 +3086,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

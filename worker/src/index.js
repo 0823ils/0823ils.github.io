@@ -86,6 +86,7 @@ async function route(request, env) {
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
   if (path === '/api/ratings/mine' && method === 'GET') return myRatings(request, env);
   if (path === '/api/ratings/detail' && method === 'GET') return ratingDetail(request, env, url);
+  if (path === '/api/scratch/project' && method === 'GET') return scratchProject(url);
   if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
@@ -340,6 +341,21 @@ async function ratingDetail(request, env, url) {
     mine = m ? m.score : null;
   }
   return json({ ...summarize(c ? { c, a: sq / c } : null, mine), dist });
+}
+
+// 作品の「使い方」「メモとクレジット」を Scratch から取って返す（ブラウザから直接取れないとき用）
+async function scratchProject(url) {
+  const id = String(url.searchParams.get('id') || '');
+  if (!/^\d{1,12}$/.test(id)) throw new HttpError(400, 'bad_id');
+  let r;
+  try {
+    r = await fetch(`${SCRATCH_API}/projects/${id}`, { headers: { 'User-Agent': 'scratch-TWC' }, cf: { cacheTtl: 3600, cacheEverything: true } });
+  } catch (e) { throw new HttpError(502, 'scratch_unreachable'); }
+  if (!r.ok) throw new HttpError(r.status === 404 ? 404 : 502, 'scratch_error');
+  const j = await r.json();
+  const res = json({ instructions: String(j.instructions || ''), description: String(j.description || '') });
+  res.headers.set('Cache-Control', 'public, max-age=600');
+  return res;
 }
 
 // 自分がつけた評価を全部返す（画面は、ここから「自分の評価」を知る。作品ごとに問い合わせない）

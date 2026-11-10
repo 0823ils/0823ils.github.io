@@ -147,6 +147,8 @@ async function route(request, env) {
   if (path === '/api/notifications' && method === 'GET') return notifList(request, env);
   if (path === '/api/notifications/count' && method === 'GET') return notifCount(request, env);
   if (path === '/api/notifications/read' && method === 'POST') return notifRead(request, env);
+  if (path === '/api/notifications/settings' && method === 'GET') return notifSettingsGet(request, env);
+  if (path === '/api/notifications/settings' && method === 'PUT') return notifSettingsPut(request, env);
   if (path === '/api/push/key' && method === 'GET') return pushKey(env);
   if (path === '/api/push/subscribe' && method === 'POST') return pushSubscribe(request, env);
   if (path === '/api/push/unsubscribe' && method === 'POST') return pushUnsubscribe(request, env);
@@ -952,33 +954,84 @@ async function chatAdminBan(request, env) {
 }
 
 
-// ---------- 通知（返信・メンション） ----------
-//   GET  /api/notifications         -> { items: [...新しい順50件], unread }  (要ログイン)
-//   GET  /api/notifications/count   -> { unread }                            (要ログイン)
-//   POST /api/notifications/read { id } か { all: true }  -> { unread }     (要ログイン)
+// ---------- 通知（返信・メンション・すべてのメッセージ） ----------
+//   GET  /api/notifications         -> { items: [...新しい順50件], unread, mode }  (要ログイン)
+//   GET  /api/notifications/count   -> { unread }                                   (要ログイン)
+//   POST /api/notifications/read { id } か { upto: メッセージID } か { all: true }  -> { unread }  (要ログイン)
+//   GET  /api/notifications/settings -> { mode }                                    (要ログイン)
+//   PUT  /api/notifications/settings { mode: 'all' | 'mentions' } -> { mode, unread } (要ログイン)
+// 通知の範囲（mode）:
+//   all      … すべてのメッセージ（初期設定）。返信・メンションに加えて、自分以外の全部屋の発言が通知される
+//   mentions … 返信・メンションだけ
+// 「all」の発言は、人数分の通知の行を書かない（無料枠の節約）。notif_prefs.all_seen_id から後の発言を、未読として数える。
+//   返信・メンションの通知がすでにある発言は、そちらで数えるので、二重にはしない。
 // 削除・非表示になったメッセージの通知は出さない。
 
 const NOTIF_VISIBLE = `FROM chat_notifications n
    JOIN chat_messages m ON m.id = n.message_id AND m.deleted = 0 AND m.hidden = 0
   WHERE n.to_username = ?`;
 
-async function unreadCount(env, user) {
-  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0`)
-    .bind(user.u.toLowerCase()).first();
-  return r ? r.c : 0;
+// 「すべてのメッセージ」の対象: 自分以外の発言で、返信・メンションの通知が別にないもの
+const NOTIF_MSG_WHERE = `FROM chat_messages m
+  WHERE m.deleted = 0 AND m.hidden = 0 AND lower(m.username) != ?
+    AND NOT EXISTS (SELECT 1 FROM chat_notifications n WHERE n.message_id = m.id AND n.to_username = ?)`;
+const NOTIF_MODES = ['all', 'mentions'];
+const NOTIF_UNREAD_CAP = 100;   // 数えるのは100件まで（画面は 99+）
+
+async function notifPrefs(env, user) {
+  const me = user.u.toLowerCase();
+  const sel = 'SELECT mode, all_seen_id FROM notif_prefs WHERE username = ?';
+  let p = await env.DB.prepare(sel).bind(me).first();
+  if (!p) {
+    // はじめての人は「all」で始める。いまの最新までを既読にして、過去の発言がまとめて未読にならないようにする
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO notif_prefs (username, mode, all_seen_id, updated_at)
+       VALUES (?, 'all', (SELECT COALESCE(MAX(id), 0) FROM chat_messages), ?)`
+    ).bind(me, Date.now()).run();
+    p = await env.DB.prepare(sel).bind(me).first();
+  }
+  return { mode: p && p.mode === 'mentions' ? 'mentions' : 'all', seen: p ? p.all_seen_id : 0 };
+}
+
+async function unreadCount(env, user, prefs) {
+  const me = user.u.toLowerCase();
+  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0`).bind(me).first();
+  let n = r ? r.c : 0;
+  prefs = prefs || await notifPrefs(env, user);
+  if (prefs.mode === 'all') {
+    const q = await env.DB.prepare(
+      `SELECT COUNT(*) AS c FROM (SELECT 1 ${NOTIF_MSG_WHERE} AND m.id > ? LIMIT ${NOTIF_UNREAD_CAP})`
+    ).bind(me, me, prefs.seen).first();
+    n += q ? q.c : 0;
+  }
+  return n;
 }
 
 async function notifList(request, env) {
   const user = await requireUser(request, env);
+  const me = user.u.toLowerCase();
+  const prefs = await notifPrefs(env, user);
   const rows = await env.DB.prepare(
     `SELECT n.id, n.kind, n.message_id, n.room, n.from_username, n.snippet, n.created_at, n.is_read
        ${NOTIF_VISIBLE} ORDER BY n.id DESC LIMIT ?`
-  ).bind(user.u.toLowerCase(), NOTIF_PAGE).all();
-  return json({
-    items: rows.results.map(r => ({ id: r.id, kind: r.kind, message_id: r.message_id, room: r.room,
-      from_username: r.from_username, snippet: r.snippet, created_at: r.created_at, read: !!r.is_read })),
-    unread: await unreadCount(env, user),
-  });
+  ).bind(me, NOTIF_PAGE).all();
+  let items = rows.results.map(r => ({ id: r.id, kind: r.kind, message_id: r.message_id, room: r.room,
+    from_username: r.from_username, snippet: r.snippet, created_at: r.created_at, read: !!r.is_read }));
+
+  if (prefs.mode === 'all') {
+    const msgs = await env.DB.prepare(
+      `SELECT m.id, m.room, m.username, m.content, m.created_at ${NOTIF_MSG_WHERE} AND m.created_at > ?
+        ORDER BY m.id DESC LIMIT ?`
+    ).bind(me, me, Date.now() - NOTIF_KEEP, NOTIF_PAGE).all();
+    for (const r of msgs.results) {
+      items.push({ id: 0, kind: 'message', message_id: r.id, room: r.room, from_username: r.username,
+        snippet: String(r.content || '').replace(/\s+/g, ' ').slice(0, 80) || '[添付]',
+        created_at: r.created_at, read: r.id <= prefs.seen });
+    }
+    items.sort((a, b) => (b.created_at - a.created_at) || (b.message_id - a.message_id));
+    items = items.slice(0, NOTIF_PAGE);
+  }
+  return json({ items, unread: await unreadCount(env, user, prefs), mode: prefs.mode });
 }
 
 async function notifCount(request, env) {
@@ -990,14 +1043,47 @@ async function notifRead(request, env) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
   const me = user.u.toLowerCase();
+  await notifPrefs(env, user);   // 行がなければ作る（既読位置を持つ行）
+  const LATEST = '(SELECT COALESCE(MAX(id), 0) FROM chat_messages)';
   if (body.all === true) {
-    await env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE to_username = ? AND is_read = 0').bind(me).run();
+    await env.DB.batch([
+      env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE to_username = ? AND is_read = 0').bind(me),
+      env.DB.prepare(`UPDATE notif_prefs SET all_seen_id = ${LATEST} WHERE username = ?`).bind(me),
+    ]);
+  } else if (Number.isInteger(body.upto) && body.upto > 0) {
+    // 「すべてのメッセージ」の発言を開いたとき。そのメッセージまでを既読にする（戻ることはない）
+    await env.DB.prepare(
+      `UPDATE notif_prefs SET all_seen_id = MAX(all_seen_id, MIN(?, ${LATEST})) WHERE username = ?`
+    ).bind(body.upto, me).run();
   } else if (Number.isInteger(body.id)) {
     await env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE id = ? AND to_username = ?').bind(body.id, me).run();
   } else {
     throw new HttpError(400, 'bad_request');
   }
   return json({ unread: await unreadCount(env, user) });
+}
+
+async function notifSettingsGet(request, env) {
+  const user = await requireUser(request, env);
+  const prefs = await notifPrefs(env, user);
+  return json({ mode: prefs.mode });
+}
+
+async function notifSettingsPut(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  if (!body || !NOTIF_MODES.includes(body.mode)) throw new HttpError(400, 'bad_mode');
+  // 「mentions」から「all」に変えた瞬間は、いまの最新までを既読にする（昔の発言がまとめて未読にならないように）。
+  // 同じ設定のまま送られたときは、既読位置を動かさない。
+  await env.DB.prepare(
+    `INSERT INTO notif_prefs (username, mode, all_seen_id, updated_at)
+     VALUES (?, ?, (SELECT COALESCE(MAX(id), 0) FROM chat_messages), ?)
+     ON CONFLICT(username) DO UPDATE SET
+       all_seen_id = CASE WHEN notif_prefs.mode != excluded.mode THEN excluded.all_seen_id ELSE notif_prefs.all_seen_id END,
+       mode = excluded.mode,
+       updated_at = excluded.updated_at`
+  ).bind(user.u.toLowerCase(), body.mode, Date.now()).run();
+  return json({ mode: body.mode, unread: await unreadCount(env, user) });
 }
 
 
@@ -1423,23 +1509,51 @@ async function pushUnsubscribe(request, env) {
   return json({ ok: true });
 }
 
-// targets: Map(小文字のユーザー名 -> 'reply' | 'mention')
+const ROOM_LABELS = { general: '一般', '3d': '3D', math: '数学', physics: '物理', triangle: '三角形', feedback: '意見・要望' };
+
+// targets: Map(小文字のユーザー名 -> 'reply' | 'mention')（自分宛ては除いてある）
+// 送り先は、(1) 返信・メンションされた人（設定に関係なく届く）、(2) 通知の範囲が「すべてのメッセージ」の人（設定がない人も含む）。
+// 1回の投稿で送る数は MAX_PUSH_SEND まで。(1) を先に入れ、残りの枠を (2) にあてる。
 async function notifyPush(env, targets, from, snippet, room) {
-  if (!env.VAPID_PRIVATE_JWK || !targets || !targets.size) return;
-  const names = [...targets.keys()];
-  const rows = await env.DB.prepare(
-    `SELECT endpoint, username, p256dh, auth FROM push_subs WHERE username IN (${names.map(() => '?').join(',')}) LIMIT ${MAX_PUSH_SEND}`
-  ).bind(...names).all();
-  await Promise.allSettled(rows.results.map(async (s) => {
-    const label = targets.get(s.username) === 'reply' ? ' さんが返信しました' : ' さんがあなたをメンションしました';
-    const status = await sendPush(env, s, {
+  if (!env.VAPID_PRIVATE_JWK) return;
+  const me = String(from).toLowerCase();
+  const names = targets ? [...targets.keys()] : [];
+  const jobs = [];   // { sub, kind: 'reply' | 'mention' | 'message' }
+
+  if (names.length) {
+    const rows = await env.DB.prepare(
+      `SELECT endpoint, username, p256dh, auth FROM push_subs WHERE username IN (${names.map(() => '?').join(',')}) LIMIT ${MAX_PUSH_SEND}`
+    ).bind(...names).all();
+    for (const s of rows.results) jobs.push({ sub: s, kind: targets.get(s.username) });
+  }
+
+  const left = MAX_PUSH_SEND - jobs.length;
+  if (left > 0) {
+    const skip = [me, ...names];
+    // RANDOM(): 登録が多くて上限を超えるときに、いつも同じ人が外れないようにする
+    const rows = await env.DB.prepare(
+      `SELECT s.endpoint, s.username, s.p256dh, s.auth FROM push_subs s
+         LEFT JOIN notif_prefs p ON p.username = s.username
+        WHERE s.username NOT IN (${skip.map(() => '?').join(',')}) AND COALESCE(p.mode, 'all') = 'all'
+        ORDER BY RANDOM() LIMIT ${left}`
+    ).bind(...skip).all();
+    for (const s of rows.results) jobs.push({ sub: s, kind: 'message' });
+  }
+  if (!jobs.length) return;
+
+  await Promise.allSettled(jobs.map(async ({ sub, kind }) => {
+    const label = kind === 'reply' ? ' さんが返信しました'
+      : kind === 'mention' ? ' さんがあなたをメンションしました'
+      : ' さんが発言しました（' + (ROOM_LABELS[room] || room) + '）';
+    const status = await sendPush(env, sub, {
       title: 'scratch-TWC',
       body: from + label + '\n' + snippet,
       url: '/?m=c&room=' + encodeURIComponent(room),
-      tag: 'chat-' + room,
+      // 通常の発言は別のタグにして、あとから来た発言が、返信・メンションの通知を置き換えないようにする
+      tag: (kind === 'message' ? 'chat-all-' : 'chat-') + room,
     });
     if (status === 404 || status === 410) {   // その端末の登録が無効になった
-      await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(s.endpoint).run();
+      await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(sub.endpoint).run();
     }
   }));
 }

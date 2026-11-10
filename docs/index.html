@@ -412,6 +412,10 @@
         .notif-push button.off { background: #eef1f6; color: #555; font-weight: normal; }
         .notif-push .np-hint { line-height: 1.5; }
         .notif-push .np-state { margin-left: 8px; color: #2e9e5b; }
+        .notif-mode { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #666; }
+        .notif-mode .nm-head { font-weight: bold; margin-bottom: 4px; }
+        .notif-mode label { display: block; padding: 3px 0; font-size: 13px; color: #333; cursor: pointer; }
+        .notif-mode input { margin-right: 6px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -427,6 +431,7 @@
             </button>
             <div class="header-menu notif-menu" id="notif-menu" onclick="event.stopPropagation()">
                 <div class="notif-head"><span id="notif-title">通知</span><button id="notif-readall" onclick="notifReadAll()">すべて既読</button></div>
+                <div class="notif-mode" id="notif-mode" style="display:none"></div>
                 <div class="notif-push" id="notif-push"></div>
                 <div class="notif-list" id="notif-list"></div>
             </div>
@@ -2598,19 +2603,45 @@ async function loadNotifs() {
     try {
         var d = await apiCall('GET', '/api/notifications');
         setNotifBadge(d.unread);
+        renderNotifMode(d.mode);
         box.innerHTML = d.items.length ? d.items.map(function(n) {
-            return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-id="' + Number(n.id) + '" data-room="' + esc(n.room) +
+            var label = n.kind === 'reply' ? 'notifReply' : (n.kind === 'message' ? 'notifMessage' : 'notifMention');
+            // 「すべてのメッセージ」の発言は、どの部屋かも添える
+            var where = n.kind === 'message' ? ' · ' + ct('room_' + n.room) : '';
+            return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-id="' + Number(n.id) + '" data-kind="' + esc(n.kind) + '" data-room="' + esc(n.room) +
                 '" data-m="' + Number(n.message_id) + '" onclick="openNotif(this)">' +
-                '<b>' + esc(n.from_username) + '</b>' + esc(ct(n.kind === 'reply' ? 'notifReply' : 'notifMention')) +
-                '<div class="n-snip">' + esc(n.snippet) + '</div><div class="n-time">' + esc(notifTime(n.created_at)) + '</div></div>';
+                '<b>' + esc(n.from_username) + '</b>' + esc(ct(label)) +
+                '<div class="n-snip">' + esc(n.snippet) + '</div><div class="n-time">' + esc(notifTime(n.created_at) + where) + '</div></div>';
         }).join('') : '<div class="notif-empty">' + esc(ct('notifEmpty')) + '</div>';
     } catch (e) { box.innerHTML = '<div class="notif-empty">' + esc(ct('e_other')) + '</div>'; }
+}
+
+// 通知の範囲（すべてのメッセージ / 返信・メンションだけ）。初期設定は「すべて」
+function renderNotifMode(mode) {
+    var el = document.getElementById('notif-mode');
+    if (!el) return;
+    if (!loginUser || !apiEnabled()) { el.style.display = 'none'; return; }
+    if (mode !== 'mentions') mode = 'all';
+    el.style.display = '';
+    el.innerHTML = '<div class="nm-head">' + esc(ct('notifModeHead')) + '</div>' +
+        '<label><input type="radio" name="notif-mode" value="all"' + (mode === 'all' ? ' checked' : '') + ' onchange="setNotifMode(this.value)">' + esc(ct('notifModeAll')) + '</label>' +
+        '<label><input type="radio" name="notif-mode" value="mentions"' + (mode === 'mentions' ? ' checked' : '') + ' onchange="setNotifMode(this.value)">' + esc(ct('notifModeMentions')) + '</label>';
+}
+
+async function setNotifMode(mode) {
+    try {
+        var d = await apiCall('PUT', '/api/notifications/settings', { mode: mode });
+        setNotifBadge(d.unread);
+    } catch (e) { showToast(ct('e_other')); }
+    loadNotifs();   // 設定に合わせて一覧と選択を取り直す（失敗したときは元の設定に戻る）
 }
 
 async function openNotif(el) {
     var room = el.dataset.room, mid = Number(el.dataset.m), id = Number(el.dataset.id);
     closeHeaderMenus();
-    apiCall('POST', '/api/notifications/read', { id: id }).then(function(d) { setNotifBadge(d.unread); }).catch(function() {});
+    // 「すべてのメッセージ」の発言は、そのメッセージまでを既読にする。返信・メンションは、その通知だけ既読にする
+    var readBody = el.dataset.kind === 'message' ? { upto: mid } : { id: id };
+    apiCall('POST', '/api/notifications/read', readBody).then(function(d) { setNotifBadge(d.unread); }).catch(function() {});
     if (CHAT_ROOMS.indexOf(room) >= 0) {
         chatRoom = room;
         try { localStorage.setItem('twc_chat_room', room); } catch (e) {}
@@ -2640,6 +2671,7 @@ var CHAT_T = {
           videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
           replyTo: ' への返信', cancel: '取り消し', quoteGone: '元のメッセージは削除されました', notifTitle: '通知', notifEmpty: '通知はありません',
           notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
+          notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
@@ -2654,6 +2686,7 @@ var CHAT_T = {
           videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
           replyTo: '', cancel: 'Cancel', quoteGone: 'The original message was deleted', notifTitle: 'Notifications', notifEmpty: 'No notifications',
           notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
+          notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',

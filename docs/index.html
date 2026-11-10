@@ -978,6 +978,7 @@ async function initDB() {
         db = new SQL.Database(buf);
 
         await applyDefaultView();
+        historyReady = true;
 
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('main-ui').style.display = 'block';
@@ -995,12 +996,12 @@ function openProjectPage(id) {
     id = Number(id);
     if (!Number.isInteger(id)) return;
     ppId = id; ppDist = null; ppPlaying = false; ppFailed = false;
-    setMode('project');
+    setMode('project', true);
     renderProjectPage();
     window.scrollTo(0, 0);
     ppLoadDetail();
 }
-function closeProjectPage() { ppStopEmbed(); setMode(prevMode && prevMode !== 'user' && prevMode !== 'project' ? prevMode : 'browse'); }
+function closeProjectPage() { ppStopEmbed(); if (history.state && history.state.twc) { history.back(); return; } setMode(prevMode && prevMode !== 'user' && prevMode !== 'project' ? prevMode : 'browse'); }
 function ppStopEmbed() { ppPlaying = false; var f = document.getElementById('pp-embed'); if (f) f.innerHTML = ''; }
 function ppPlay() {
     ppPlaying = !ppPlaying;
@@ -1310,7 +1311,8 @@ var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 
 var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
-function setMode(mode) {
+function setMode(mode, forcePush) {
+    var changedMode = mode !== currentMode;
     if ((mode === 'user' || mode === 'project') && currentMode !== 'user' && currentMode !== 'project') prevMode = currentMode;
     currentMode = mode;
     Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
@@ -1327,7 +1329,7 @@ function setMode(mode) {
     if (mode === 'admin') enterAdmin();
     if (mode !== 'project') ppStopEmbed();
     updateNavDots();
-    updateUrl();
+    updateUrl(changedMode || !!forcePush);
 }
 
 // ===== 検索モード =====
@@ -2213,9 +2215,31 @@ function shareUrl() {
     return p ? base + '?' + p.toString() : base;
 }
 
-function updateUrl() {
-    try { history.replaceState(null, '', shareUrl()); } catch(e) {}
+var historyReady = false, popping = false;
+// push=true のときは「戻る」で戻れる履歴として積む。条件の変更などは上書きだけ
+function updateUrl(push) {
+    try {
+        var u = shareUrl();
+        var cur = location.pathname + location.search;
+        var next = u.replace(/^[a-z]+:\/\/[^\/]+/i, '');
+        if (push && historyReady && !popping && next !== cur) history.pushState({ twc: 1 }, '', u);
+        else history.replaceState(history.state, '', u);
+    } catch(e) {}
 }
+// ブラウザの「戻る」「進む」：URLの画面に切り替える
+window.addEventListener('popstate', function() {
+    if (!historyReady) return;
+    var st = readUrlState();
+    popping = true;
+    try {
+        if (st && st.m === 'p') openProjectPage(st.id);
+        else if (st && st.m === 'u') openProfile(st.u);
+        else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
+        else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
+        else if (st && st.m === 's') setMode('search');
+        else setMode('browse');
+    } finally { popping = false; }
+});
 
 function copyShareLink() {
     updateUrl();
@@ -3214,12 +3238,12 @@ var profileUser = '', profileSort = 'loves', profileRows = [], profileShown = 0,
 function openProfile(name) {
     profileUser = name;
     if (currentMode !== 'user') prevMode = currentMode === 'user' ? prevMode : currentMode;
-    setMode('user');
+    setMode('user', true);
     renderProfile();
     window.scrollTo(0, 0);
 }
 function onLoginBtn() { if (loginUser) openProfile(loginUser.username); else openLogin(); }
-function closeProfile() { setMode(prevMode && prevMode !== 'user' ? prevMode : 'browse'); }
+function closeProfile() { if (history.state && history.state.twc) { history.back(); return; } setMode(prevMode && prevMode !== 'user' ? prevMode : 'browse'); }
 function setProfileSort(v) { profileSort = v; profileLoad(); }
 async function renderProfile() {
     var u = profileUser;

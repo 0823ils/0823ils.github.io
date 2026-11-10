@@ -282,7 +282,12 @@
         .sh-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: rgba(255,255,255,0.97); overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; box-sizing: border-box; z-index: 3; display: none; font-size: 13px; }
         .sh-sheet.open { display: block; }
         .sh-sheet .pp-h { margin: 0 0 4px; } .sh-sheet .pp-text { margin-bottom: 12px; font-size: 13px; }
-        .sh-hint { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.5); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 10px; pointer-events: none; }
+        .sh-mode { position: absolute; top: 8px; right: 10px; z-index: 5; display: flex; background: rgba(255,255,255,.92); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.2); overflow: hidden; }
+        .sh-mode button { border: none; background: transparent; padding: 5px 11px; font-size: 12px; color: #666; cursor: pointer; }
+        .sh-mode button.on { background: #4D97FF; color: #fff; font-weight: bold; }
+        .sh-hint { display: none; }
+        body[data-shmode="tap"] .sh-slide.cur .sh-hint { display: block; }
+        .sh-hint-old { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.5); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 10px; pointer-events: none; }
         .pp-card { background: transparent; border: none; border-bottom: 1px solid #eef1f6; padding: 4px 0 18px; margin-bottom: 18px; }
         .pp-card:last-child { border-bottom: none; }
         .pp-text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.6; color: #333; }
@@ -621,7 +626,9 @@
         </div>
 
         <!-- ショート -->
-        <div id="short-section" style="display:none"><div class="sh-feed" id="short-feed"></div></div>
+        <div id="short-section" style="display:none">
+            <div class="sh-mode"><button data-m="tap" onclick="shortSetMode('tap')"></button><button data-m="auto" onclick="shortSetMode('auto')"></button></div>
+            <div class="sh-feed" id="short-feed"></div></div>
 
         <!-- 作品ページ -->
         <div id="project-section" style="display:none">
@@ -1171,7 +1178,7 @@ function shortAddRows(rows) {
         var i = shortIds.length; shortIds.push(p.id);
         var d = document.createElement('section');
         d.className = 'sh-slide'; d.setAttribute('data-i', i); d.setAttribute('data-id', p.id);
-        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div><div class="sh-sheet" id="sh-sheet-' + Number(p.id) + '"></div></div>' +
+        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div><div class="sh-hint">' + esc(nt('shTap')) + '</div><div class="sh-sheet" id="sh-sheet-' + Number(p.id) + '"></div></div>' +
             '<div class="sh-info"><div class="sh-title" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(p.title) + '</div>' +
             '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ・ ♥ ' + Number(p.loves || 0) + '</div>' +
             '<div class="sh-stars" id="sh-stars-' + Number(p.id) + '"></div>' +
@@ -1222,19 +1229,37 @@ async function shortLoadRatings() {
     await loadRatings(box);
     box.querySelectorAll('[data-rate-id]').forEach(function(d) { shortStars(d.getAttribute('data-rate-id')); });
 }
+function shortMode() { try { return localStorage.getItem('twc_short_mode') === 'auto' ? 'auto' : 'tap'; } catch (e) { return 'tap'; } }
+function shortSetMode(m) {
+    try { localStorage.setItem('twc_short_mode', m); } catch (e) {}
+    shortModeUI(); shortSync();
+}
+function shortModeUI() {
+    var m = shortMode();
+    document.body.setAttribute('data-shmode', m);
+    document.querySelectorAll('.sh-mode button').forEach(function(b) { b.classList.toggle('on', b.getAttribute('data-m') === m); });
+}
+// 前後 SHORT_RANGE 本は「読み込み済みの停止状態」で持つ。
+//  tap  : 作り直さない。見ている作品は、画面の緑の旗をタップすると、待ち時間なしで始まる
+//  auto : 見ている作品だけ、自動実行つきで作り直す（読み込み中は停止状態の画面を残す）
 function shortSync() {
     var feed = document.getElementById('short-feed'); if (!feed) return;
+    var auto = shortMode() === 'auto';
     feed.querySelectorAll('.sh-slide').forEach(function(sl) {
         var i = Number(sl.getAttribute('data-i')), box = sl.querySelector('.sh-embed');
-        var near = Math.abs(i - shortCur) <= SHORT_RANGE, run = i === shortCur;
-        var f = box.firstChild;
-        if (!near) { if (f) box.innerHTML = ''; return; }
-        if (f && f.getAttribute('data-run') === (run ? '1' : '0')) return;
+        var near = Math.abs(i - shortCur) <= SHORT_RANGE, run = auto && i === shortCur;
+        sl.classList.toggle('cur', i === shortCur);
+        var cur = box.querySelector('iframe:last-child');
+        if (!near) { if (cur) box.innerHTML = ''; return; }
+        if (cur && cur.getAttribute('data-run') === (run ? '1' : '0')) return;
         // src を書き換えると「戻る」の履歴が増えるので、作り直す
-        box.innerHTML = '';
+        var old = box.querySelector('iframe');
         var fr = document.createElement('iframe');
         fr.setAttribute('data-run', run ? '1' : '0');
         fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
+        if (old) fr.style.visibility = 'hidden';
+        var done = function() { fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
+        fr.addEventListener('load', done); setTimeout(done, 5000);
         fr.src = shortSrc(sl.getAttribute('data-id'), run);
         box.appendChild(fr);
     });
@@ -1273,6 +1298,7 @@ function shortFromCard(btn, ev) {
     setMode('short', true);
 }
 function enterShort() {
+    var mb = document.querySelectorAll('.sh-mode button'); if (mb.length) { mb[0].innerText = nt('shModeTap'); mb[1].innerText = nt('shModeAuto'); shortModeUI(); }
     var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
@@ -3292,14 +3318,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

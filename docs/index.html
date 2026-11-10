@@ -1229,7 +1229,7 @@ async function shortLoadRatings() {
     await loadRatings(box);
     box.querySelectorAll('[data-rate-id]').forEach(function(d) { shortStars(d.getAttribute('data-rate-id')); });
 }
-function shortMode() { try { return localStorage.getItem('twc_short_mode') === 'auto' ? 'auto' : 'tap'; } catch (e) { return 'tap'; } }
+function shortMode() { try { return localStorage.getItem('twc_short_mode') === 'tap' ? 'tap' : 'auto'; } catch (e) { return 'auto'; } }
 function shortSetMode(m) {
     try { localStorage.setItem('twc_short_mode', m); } catch (e) {}
     shortModeUI(); shortSync();

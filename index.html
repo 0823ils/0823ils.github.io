@@ -270,9 +270,12 @@
         #short-section { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #f0f2f5; }
         .sh-feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; }
         .sh-slide { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 8px; box-sizing: border-box; }
-        .sh-stage { position: relative; aspect-ratio: 4 / 3; width: min(96vw, calc((var(--sh-h, 600px) - 160px) * 1.3333)); background: #000; border-radius: 10px; overflow: hidden; }
-        .sh-thumb, .sh-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
-        .sh-info { width: min(96vw, calc((var(--sh-h, 600px) - 160px) * 1.3333)); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        /* TurboWarp埋め込みは、上に操作バー(約48px)が付く。その分を足した高さにして、横にも縦にもずれないようにする */
+        .sh-slide { --shw: min(96vw, calc((var(--sh-h, 600px) - 208px) * 1.3333)); }
+        .sh-stage { position: relative; width: var(--shw); height: calc(var(--shw) * 0.75 + 48px); background: transparent; border-radius: 10px; overflow: hidden; }
+        .sh-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .sh-thumb { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+                .sh-info { width: var(--shw); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .sh-title { font-weight: bold; font-size: 15px; flex: 1 1 100%; cursor: pointer; }
         .sh-sub { color: #666; font-size: 13px; flex: 1; }
         .sh-stars { display: flex; align-items: center; gap: 2px; }
@@ -282,12 +285,6 @@
         .sh-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: rgba(255,255,255,0.97); overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; box-sizing: border-box; z-index: 3; display: none; font-size: 13px; }
         .sh-sheet.open { display: block; }
         .sh-sheet .pp-h { margin: 0 0 4px; } .sh-sheet .pp-text { margin-bottom: 12px; font-size: 13px; }
-        .sh-mode { position: absolute; top: 8px; right: 10px; z-index: 5; display: flex; background: rgba(255,255,255,.92); border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.2); overflow: hidden; }
-        .sh-mode button { border: none; background: transparent; padding: 5px 11px; font-size: 12px; color: #666; cursor: pointer; }
-        .sh-mode button.on { background: #4D97FF; color: #fff; font-weight: bold; }
-        .sh-hint { display: none; }
-        body[data-shmode="tap"] .sh-slide.cur .sh-hint { display: block; }
-        .sh-hint-old { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.5); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 10px; pointer-events: none; }
         .pp-card { background: transparent; border: none; border-bottom: 1px solid #eef1f6; padding: 4px 0 18px; margin-bottom: 18px; }
         .pp-card:last-child { border-bottom: none; }
         .pp-text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.6; color: #333; }
@@ -297,10 +294,17 @@
         .pp-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-bottom: 18px; }
         .pp-stage { width: 100%; }
         .pp-side .pp-h { color: #575e75; font-size: 15px; margin: 0 0 8px; }
-        .pp-side .pp-h + .pp-text { background: #eef1fb; border-radius: 10px; padding: 14px 16px; height: 180px; overflow-y: auto; box-sizing: border-box; margin-bottom: 18px; }
+        .pp-side .pp-h + .pp-text { background: #eef1fb; border-radius: 10px; padding: 14px 16px 30px; height: 180px; overflow-y: auto; box-sizing: border-box; margin-bottom: 18px; -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent); }
         .pp-side .pp-text a { color: #855cd6; font-weight: bold; }
         body.mode-project .container { max-width: 1040px; }
         @media (max-width: 760px) { .pp-grid { grid-template-columns: 1fr; } .pp-side .pp-h + .pp-text { height: 140px; } }
+        .pp-frame { position: relative; width: 100%; padding-top: calc(75% + 48px); }
+        .pp-frame .pp-embed { position: absolute; inset: 0; }
+        .pp-frame .pp-embed iframe { width: 100%; height: 100%; aspect-ratio: auto; }
+        .pp-frame .pp-thumb { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 100%; aspect-ratio: auto; }
+        .pp-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .stat { display: inline-flex; align-items: center; gap: 5px; }
+        .stat svg { flex-shrink: 0; }
         .pp-embed iframe { width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 8px; background: transparent; display: block; }
         .pp-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; cursor: pointer; display: block; }
         .pp-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
@@ -627,7 +631,6 @@
 
         <!-- ショート -->
         <div id="short-section" style="display:none">
-            <div class="sh-mode"><button data-m="tap" onclick="shortSetMode('tap')"></button><button data-m="auto" onclick="shortSetMode('auto')"></button></div>
             <div class="sh-feed" id="short-feed"></div></div>
 
         <!-- 作品ページ -->
@@ -1143,10 +1146,10 @@ function renderProjectPage() {
     if (!p) { box.innerHTML = '<div class="status-text">' + esc(db ? nt('ppNotFound') : t('loading')) + '</div>'; if (!db) setTimeout(function() { if (currentMode === 'project') renderProjectPage(); }, 600); return; }
     box.innerHTML =
         '<div class="pp-head"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
-        '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a> ・ ♥ ' + Number(p.loves || 0) + ' ・ 👁 ' + Number(p.views || 0) + '</div>' +
+        '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a>' + statHTML(p.loves, p.views) + '</div>' +
         '</div>' +
-        '<div class="pp-grid"><div class="pp-left"><div class="pp-stage"><div id="pp-embed" class="pp-embed"></div>' +
-        '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div>' +
+        '<div class="pp-grid"><div class="pp-left"><div class="pp-stage"><div class="pp-frame"><div id="pp-embed" class="pp-embed"></div>' +
+        '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div></div>' +
         '<div class="pp-btns"><button class="tw-warn-btn tw-warn-btn-scratch" id="pp-play-btn" onclick="ppPlay()">' + esc(nt('ppPlay')) + '</button>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + Number(p.id) + '">' + esc(nt('ppScratch')) + '</a>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a>' +
@@ -1178,9 +1181,9 @@ function shortAddRows(rows) {
         var i = shortIds.length; shortIds.push(p.id);
         var d = document.createElement('section');
         d.className = 'sh-slide'; d.setAttribute('data-i', i); d.setAttribute('data-id', p.id);
-        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div><div class="sh-hint">' + esc(nt('shTap')) + '</div><div class="sh-sheet" id="sh-sheet-' + Number(p.id) + '"></div></div>' +
+        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div><div class="sh-sheet" id="sh-sheet-' + Number(p.id) + '"></div></div>' +
             '<div class="sh-info"><div class="sh-title" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(p.title) + '</div>' +
-            '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ・ ♥ ' + Number(p.loves || 0) + '</div>' +
+            '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ' + statHTML(p.loves) + '</div>' +
             '<div class="sh-stars" id="sh-stars-' + Number(p.id) + '"></div>' +
             '<button class="tw-warn-btn tw-warn-btn-cancel" style="width:auto;padding:6px 12px;margin:0" onclick="shortToggleInfo(' + Number(p.id) + ')">' + esc(nt('shInfo')) + '</button>' +
             '<button class="tw-warn-btn tw-warn-btn-scratch" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button></div>';
@@ -1229,19 +1232,9 @@ async function shortLoadRatings() {
     await loadRatings(box);
     box.querySelectorAll('[data-rate-id]').forEach(function(d) { shortStars(d.getAttribute('data-rate-id')); });
 }
-function shortMode() { try { return localStorage.getItem('twc_short_mode') === 'tap' ? 'tap' : 'auto'; } catch (e) { return 'auto'; } }
-function shortSetMode(m) {
-    try { localStorage.setItem('twc_short_mode', m); } catch (e) {}
-    shortModeUI(); shortSync();
-}
-function shortModeUI() {
-    var m = shortMode();
-    document.body.setAttribute('data-shmode', m);
-    document.querySelectorAll('.sh-mode button').forEach(function(b) { b.classList.toggle('on', b.getAttribute('data-m') === m); });
-}
+function shortMode() { return 'auto'; }   // ショートは自動実行のみ
 // 前後 SHORT_RANGE 本は「読み込み済みの停止状態」で持つ。
-//  tap  : 作り直さない。見ている作品は、画面の緑の旗をタップすると、待ち時間なしで始まる
-//  auto : 見ている作品だけ、自動実行つきで作り直す（読み込み中は停止状態の画面を残す）
+//  見ている作品だけ、自動実行つきで作り直す（読み込み中は停止状態の画面を残す）
 function shortSync() {
     var feed = document.getElementById('short-feed'); if (!feed) return;
     var auto = shortMode() === 'auto';
@@ -1298,7 +1291,6 @@ function shortFromCard(btn, ev) {
     setMode('short', true);
 }
 function enterShort() {
-    var mb = document.querySelectorAll('.sh-mode button'); if (mb.length) { mb[0].innerText = nt('shModeTap'); mb[1].innerText = nt('shModeAuto'); shortModeUI(); }
     var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
@@ -1313,14 +1305,16 @@ function leaveShort() {
     var feed = document.getElementById('short-feed');
     if (feed) feed.querySelectorAll('.sh-embed').forEach(function(b) { b.innerHTML = ''; });   // 全部止める
 }
-document.addEventListener('keydown', function(e) {
-    if (currentMode !== 'short') return;
-    var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'IFRAME') return;
-    var feed = document.getElementById('short-feed'), d = (e.key === 'ArrowDown' || e.key === 'j' || e.key === 'PageDown') ? 1 : (e.key === 'ArrowUp' || e.key === 'k' || e.key === 'PageUp') ? -1 : 0;
-    if (!d) return;
-    e.preventDefault(); feed.scrollBy({ top: d * feed.clientHeight, behavior: 'smooth' });
-});
 window.addEventListener('resize', function() { if (currentMode === 'short') enterShort(); });
+
+// ===== いいね・閲覧数のアイコン =====
+var HEART_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 21s-7.6-4.7-9.7-9.3C.8 8.3 2.5 4.4 6.2 4.4c2 0 3.5 1 4.3 2.3.4.6 1.2.6 1.6 0 .8-1.3 2.3-2.3 4.3-2.3 3.7 0 5.4 3.9 3.9 7.3C19.6 16.3 12 21 12 21z" fill="#ef5b8c"/></svg>';
+var EYE_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="#8a93a6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+function statHTML(loves, views) {
+    var h = '<span class="stat" title="♥">' + HEART_SVG + Number(loves || 0).toLocaleString() + '</span>';
+    if (views !== undefined) h += '<span class="stat">' + EYE_SVG + Number(views || 0).toLocaleString() + '</span>';
+    return h;
+}
 
 // ===== アイコン =====
 var uidCache = {};

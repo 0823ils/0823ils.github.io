@@ -218,6 +218,8 @@
 
         /* ===== 保存 ===== */
         .project-card { position: relative; }
+        .card-short-btn { position: absolute; top: 6px; left: 6px; z-index: 2; height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: rgba(0,0,0,0.55); color: #fff; font-size: 12px; cursor: pointer; }
+        .card-short-btn:hover { background: rgba(0,0,0,0.75); }
         .save-btn { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(0,0,0,0.25); font-size: 17px; line-height: 1; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, color 0.15s; z-index: 2; }
         .save-btn:hover { transform: scale(1.12); color: #4D97FF; }
         .save-btn.saved { color: #4D97FF; }
@@ -268,11 +270,18 @@
         #short-section { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #f0f2f5; }
         .sh-feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; }
         .sh-slide { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 8px; box-sizing: border-box; }
-        .sh-stage { position: relative; aspect-ratio: 4 / 3; width: min(96vw, calc((var(--sh-h, 600px) - 110px) * 1.3333)); background: #000; border-radius: 10px; overflow: hidden; }
+        .sh-stage { position: relative; aspect-ratio: 4 / 3; width: min(96vw, calc((var(--sh-h, 600px) - 160px) * 1.3333)); background: #000; border-radius: 10px; overflow: hidden; }
         .sh-thumb, .sh-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
-        .sh-info { width: min(96vw, calc((var(--sh-h, 600px) - 110px) * 1.3333)); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .sh-info { width: min(96vw, calc((var(--sh-h, 600px) - 160px) * 1.3333)); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .sh-title { font-weight: bold; font-size: 15px; flex: 1 1 100%; cursor: pointer; }
         .sh-sub { color: #666; font-size: 13px; flex: 1; }
+        .sh-stars { display: flex; align-items: center; gap: 2px; }
+        .sh-star { border: none; background: transparent; font-size: 26px; line-height: 1; color: #d5d5d5; cursor: pointer; padding: 0 2px; }
+        .sh-star.on { color: #f5b301; }
+        .sh-sum { font-size: 12px; color: #666; margin-left: 6px; }
+        .sh-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: rgba(255,255,255,0.97); overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; box-sizing: border-box; z-index: 3; display: none; font-size: 13px; }
+        .sh-sheet.open { display: block; }
+        .sh-sheet .pp-h { margin: 0 0 4px; } .sh-sheet .pp-text { margin-bottom: 12px; font-size: 13px; }
         .sh-hint { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.5); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 10px; pointer-events: none; }
         .pp-card { background: transparent; border: none; border-bottom: 1px solid #eef1f6; padding: 4px 0 18px; margin-bottom: 18px; }
         .pp-card:last-child { border-bottom: none; }
@@ -1152,18 +1161,66 @@ function shortAppend(n) {
     var feed = document.getElementById('short-feed');
     if (!db || !feed) return;
     var have = {}; shortIds.forEach(function(i) { have[i] = 1; });
-    var rows = queryAll('SELECT id, title, author_id, author_username, loves FROM projects ORDER BY RANDOM() LIMIT ' + Number(n)).filter(function(r) { return !have[r.id]; });
+    shortAddRows(queryAll('SELECT id, title, author_id, author_username, loves FROM projects ORDER BY RANDOM() LIMIT ' + Number(n)).filter(function(r) { return !have[r.id]; }));
+}
+function shortAddRows(rows) {
+    var feed = document.getElementById('short-feed');
+    var have = {}; shortIds.forEach(function(i) { have[i] = 1; });
     rows.forEach(function(p) {
+        if (have[p.id]) return; have[p.id] = 1;
         var i = shortIds.length; shortIds.push(p.id);
         var d = document.createElement('section');
         d.className = 'sh-slide'; d.setAttribute('data-i', i); d.setAttribute('data-id', p.id);
-        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div></div>' +
+        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div><div class="sh-sheet" id="sh-sheet-' + Number(p.id) + '"></div></div>' +
             '<div class="sh-info"><div class="sh-title" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(p.title) + '</div>' +
             '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ・ ♥ ' + Number(p.loves || 0) + '</div>' +
-            '<button class="tw-warn-btn tw-warn-btn-cancel" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button></div>';
+            '<div class="sh-stars" id="sh-stars-' + Number(p.id) + '"></div>' +
+            '<button class="tw-warn-btn tw-warn-btn-cancel" style="width:auto;padding:6px 12px;margin:0" onclick="shortToggleInfo(' + Number(p.id) + ')">' + esc(nt('shInfo')) + '</button>' +
+            '<button class="tw-warn-btn tw-warn-btn-scratch" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button></div>';
         feed.appendChild(d);
+        shortStars(p.id);
         if (shortObs) shortObs.observe(d);
     });
+}
+function shortStars(id) {
+    var el = document.getElementById('sh-stars-' + id); if (!el) return;
+    var r = ratingCache[id] || { avg: 0, count: 0, mine: null }, h = '';
+    for (var i = 1; i <= 5; i++) h += '<button class="sh-star' + (r.mine && i <= r.mine ? ' on' : '') + '" onclick="shortRate(' + id + ',' + i + ',event)">★</button>';
+    el.innerHTML = h + '<span class="sh-sum">' + (r.count ? '★' + r.avg.toFixed(1) + ' (' + r.count + ')' : esc(nt('ppNoRate'))) + '</span>';
+}
+async function shortRate(id, n, ev) {
+    ev.stopPropagation();
+    if (!loginUser) { openLogin(); return; }
+    try {
+        var d = await apiCall('PUT', '/api/ratings/' + id, { score: n });
+        ratingCache[id] = d; if (myRatings) myRatings[id] = d.mine;
+        document.querySelectorAll('[data-rate-id="' + id + '"]').forEach(renderRatingEl);
+        shortStars(id); showToast(nt('ppSaved'));
+    } catch (e) { if (e.status !== 401) showToast(t(rateErrKey(e))); }
+}
+async function shortToggleInfo(id) {
+    var sh = document.getElementById('sh-sheet-' + id); if (!sh) return;
+    if (sh.classList.toggle('open') && !sh.getAttribute('data-done')) {
+        sh.innerHTML = '<div class="status-text">' + esc(t('loading')) + '</div>';
+        if (!ppInfoCache[id]) ppInfoCache[id] = await ppFetchInfo(id);
+        var d = ppInfoCache[id];
+        sh.innerHTML = d
+            ? '<div class="pp-h">' + esc(nt('ppHow')) + '</div><div class="pp-text">' + ppLinkify(d.instructions || '-') + '</div><div class="pp-h">' + esc(nt('ppNotes')) + '</div><div class="pp-text">' + ppLinkify(d.description || '-') + '</div>'
+            : '<div class="status-text">' + esc(nt('ppInfoFail')) + '</div>';
+        if (d) sh.setAttribute('data-done', '1');
+    }
+}
+// 前後の作品の評価を読む（静的ファイルがあれば通信は増えない）
+async function shortLoadRatings() {
+    var feed = document.getElementById('short-feed'); if (!feed || !apiEnabled()) return;
+    var box = document.createElement('div');
+    feed.querySelectorAll('.sh-slide').forEach(function(sl) {
+        if (Math.abs(Number(sl.getAttribute('data-i')) - shortCur) <= SHORT_RANGE) {
+            var d = document.createElement('span'); d.setAttribute('data-rate-id', sl.getAttribute('data-id')); box.appendChild(d);
+        }
+    });
+    await loadRatings(box);
+    box.querySelectorAll('[data-rate-id]').forEach(function(d) { shortStars(d.getAttribute('data-rate-id')); });
 }
 function shortSync() {
     var feed = document.getElementById('short-feed'); if (!feed) return;
@@ -1188,9 +1245,32 @@ function shortSetCur(i) {
     clearTimeout(shortTimer);
     shortTimer = setTimeout(function() {
         if (currentMode !== 'short') return;
-        shortSync();
+        shortSync(); shortLoadRatings();
         if (shortCur >= shortIds.length - 5) shortAppend(30);
     }, 150);   // 勢いよくスクロールしたときは、止まってから読み込む
+}
+function shortMakeObs() {
+    var feed = document.getElementById('short-feed');
+    if (shortObs) shortObs.disconnect();
+    shortObs = new IntersectionObserver(function(es) {
+        es.forEach(function(e) { if (e.isIntersecting && e.intersectionRatio >= 0.6) shortSetCur(Number(e.target.getAttribute('data-i'))); });
+    }, { root: feed, threshold: [0.6] });
+}
+// 検索結果・全作品などの並びのまま、ショートで開く
+function shortFromCard(btn, ev) {
+    ev.stopPropagation();
+    var card = btn.closest('.project-card'), sec = card.closest('[id$="-section"]') || document;
+    var ids = [], seen = {};
+    sec.querySelectorAll('.project-card[data-id]').forEach(function(c) { var i = Number(c.getAttribute('data-id')); if (!seen[i]) { seen[i] = 1; ids.push(i); } });
+    var start = Number(card.getAttribute('data-id'));
+    if (!db || !ids.length) return;
+    var rows = queryAll('SELECT id, title, author_id, author_username, loves FROM projects WHERE id IN (' + ids.join(',') + ')');
+    var byId = {}; rows.forEach(function(r) { byId[r.id] = r; });
+    var feed = document.getElementById('short-feed');
+    feed.innerHTML = ''; shortIds = []; shortMakeObs();
+    shortAddRows(ids.map(function(i) { return byId[i]; }).filter(Boolean));
+    shortCur = Math.max(0, shortIds.indexOf(start));
+    setMode('short', true);
 }
 function enterShort() {
     var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
@@ -1198,12 +1278,7 @@ function enterShort() {
     var hd = document.querySelector('.site-header');
     sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
     sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
-    if (!shortObs) {
-        shortObs = new IntersectionObserver(function(es) {
-            es.forEach(function(e) { if (e.isIntersecting && e.intersectionRatio >= 0.6) shortSetCur(Number(e.target.getAttribute('data-i'))); });
-        }, { root: feed, threshold: [0.6] });
-        shortAppend(40);
-    }
+    if (!shortObs) { shortMakeObs(); shortAppend(40); }
     feed.scrollTop = shortCur * feed.clientHeight;
     shortReady = false; shortSetCur(shortCur);
 }
@@ -1302,7 +1377,8 @@ function hlHTML(text) {
 }
 
 function cardHTML(p) {
-    return '<div class="project-card" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
+    return '<div class="project-card" data-id="' + Number(p.id) + '" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
+        '<button class="card-short-btn" title="' + esc(nt('shOpen')) + '" onclick="shortFromCard(this,event)">▶</button>' +
         saveBtnHTML(p.id) +
         '<img class="project-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + p.id + '_480x360.png"' +
         ' alt="' + esc(p.title) + '" loading="lazy"' +
@@ -3216,14 +3292,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

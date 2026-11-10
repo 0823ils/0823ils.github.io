@@ -116,7 +116,29 @@ npx wrangler deploy
 - **タグ:** スタジオ [51603915](https://scratch.mit.edu/studios/51603915/) のキュレター・マネージャーに `TWC`、[32030084](https://scratch.mit.edu/studios/32030084/) のキュレター・マネージャーに `GAS` が付きます（両方なら2つ）。Scratchから1時間ごとに取り直します（取得に失敗したら前の結果を使い、5分後に再試行）。スタジオIDとタグ名は `src/index.js` の `STUDIO_TAGS` で変えられます。
 - **返信:** `POST /api/chat/messages` に `reply_to`（同じ部屋のメッセージID）を付けます。
 - **メンション:** 本文の `@ユーザー名` を通知します（1メッセージ5人まで）。返信と重複する人には、通知は1件だけです。自分宛ては作りません。
-- **通知:** `GET /api/notifications`（一覧と未読数）、`GET /api/notifications/count`（未読数）、`POST /api/notifications/read`（`{id}` か `{all:true}`）。30日で消えます。削除・非表示になったメッセージの通知は出ません。
+- **通知:** `GET /api/notifications`（一覧・未読数・`mode`）、`GET /api/notifications/count`（未読数）、`POST /api/notifications/read`（`{id}` か `{upto: メッセージID}` か `{all:true}`）。30日で消えます。削除・非表示になったメッセージの通知は出ません。
+
+### 通知の範囲（すべてのメッセージ / 返信・メンションだけ）
+
+通知メニュー（ベル）の「通知する範囲」で、人ごとに選べます。**初期設定は「すべてのメッセージ」**です（設定をしていない人も同じ）。
+
+| mode | 通知されるもの |
+| --- | --- |
+| `all`（初期設定） | 返信・メンションに加えて、**自分以外の全部屋の発言** |
+| `mentions` | 返信・メンションだけ |
+
+- `GET /api/notifications/settings` → `{mode}`、`PUT /api/notifications/settings` `{mode: "all" | "mentions"}` → `{mode, unread}`（要ログイン）。設定は `notif_prefs` テーブルに保存します。
+- **ベルの未読:** 「すべて」の発言は、人数分の通知の行を書きません（D1の書き込みの節約）。`notif_prefs.all_seen_id` より後の発言を未読として数え、100件で打ち切ります（画面は `99+`）。返信・メンションの通知がすでにある発言は、そちらで1回だけ数えます。発言を開くと、その発言までが既読になります。「すべて既読」で全部が既読になります。
+- **設定を「返信・メンションだけ」→「すべて」に変えた瞬間**は、いまの最新までを既読にします（昔の発言がまとめて未読にならないように）。はじめて使う人も、いまの最新から始まります。
+- **端末への通知（Web Push）:** 返信・メンションされた人には、設定に関係なく届きます。そのあと、残りの枠（1回の投稿につき最大 `MAX_PUSH_SEND` = 40台）を、「すべて」の人の端末にあてます。登録が40台を超えるときは、毎回ランダムに選びます。通常の発言の通知は、返信・メンションの通知を置き換えないよう、別のタグで送ります。
+
+新しいテーブル `notif_prefs` があるので、更新時は次を実行します（既存のデータは消えません）。**先にこちらを実行してから、Workerをデプロイしてください。**
+
+```bash
+cd worker
+npx wrangler d1 execute twc-ratings --remote --file=schema.sql
+npx wrangler deploy
+```
 
 ## チャットの動画（Backblaze B2）
 

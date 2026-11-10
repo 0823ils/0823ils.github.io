@@ -157,3 +157,13 @@ CREATE TABLE IF NOT EXISTS push_subs (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_push_user ON push_subs(username);
+
+-- 通知の範囲の設定。行がない人は「all」（すべてのメッセージ）として扱う
+--   mode: 'all' = すべてのメッセージ / 'mentions' = 返信・メンションだけ
+--   all_seen_id: 「all」のとき、このメッセージIDまでは既読（発言ごとに通知の行は作らず、この位置から未読を数える）
+CREATE TABLE IF NOT EXISTS notif_prefs (
+  username TEXT PRIMARY KEY,         -- 小文字
+  mode TEXT NOT NULL DEFAULT 'all' CHECK (mode IN ('all', 'mentions')),
+  all_seen_id INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);

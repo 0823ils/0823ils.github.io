@@ -416,6 +416,17 @@
         .notif-mode .nm-head { font-weight: bold; margin-bottom: 4px; }
         .notif-mode label { display: block; padding: 3px 0; font-size: 13px; color: #333; cursor: pointer; }
         .notif-mode input { margin-right: 6px; vertical-align: middle; }
+        /* 設定メニュー（言語などの並び）の中の「通知」の欄 */
+        .set-notif { display: none; border-top: 1px solid #f0f0f0; max-width: 270px; padding: 4px 0; }
+        .set-notif .notif-mode, .set-notif .notif-push { padding: 8px 0; border-bottom: none; }
+        .set-notif .notif-mode + .notif-push { border-top: 1px solid #f6f6f6; }
+        .set-notif .notif-mode:empty, .set-notif .notif-push:empty { display: none; }
+        /* サイトを開いてすぐ出す「通知をオンにしますか？」 */
+        .push-banner { position: fixed; top: 114px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+        .push-banner .pb-text { flex: 1 1 220px; min-width: 0; }
+        .push-banner button { border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .push-banner .pb-yes { background: #4D97FF; color: #fff; }
+        .push-banner .pb-later { background: #eef1f6; color: #555; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -431,8 +442,6 @@
             </button>
             <div class="header-menu notif-menu" id="notif-menu" onclick="event.stopPropagation()">
                 <div class="notif-head"><span id="notif-title">通知</span><button id="notif-readall" onclick="notifReadAll()">すべて既読</button></div>
-                <div class="notif-mode" id="notif-mode" style="display:none"></div>
-                <div class="notif-push" id="notif-push"></div>
                 <div class="notif-list" id="notif-list"></div>
             </div>
         </div>
@@ -457,6 +466,11 @@
                         <button class="header-lang-btn" id="lang-en" onclick="setLang('en')">English</button>
                     </div>
                 </div>
+                <!-- 通知の設定（ログイン中だけ表示）: 範囲（すべて / 返信・メンションだけ）と、この端末への通知 -->
+                <div class="set-notif" id="set-notif">
+                    <div class="notif-mode" id="notif-mode"></div>
+                    <div class="notif-push" id="notif-push"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -472,6 +486,13 @@
         </div>
     </nav>
 </header>
+
+<!-- サイトを開いてすぐ出す「通知をオンにしますか？」（ログイン中で、まだ設定していない端末だけ） -->
+<div class="push-banner" id="push-banner" role="dialog" aria-live="polite">
+    <span class="pb-text" id="push-banner-text"></span>
+    <button class="pb-yes" id="push-banner-yes" onclick="pushBannerYes()"></button>
+    <button class="pb-later" id="push-banner-later" onclick="pushBannerLater()"></button>
+</div>
 
 <div class="container">
 
@@ -2554,6 +2575,7 @@ function toggleHeaderMenu(e) {
     closeHeaderMenus();
     m.classList.toggle('open', on);
     document.getElementById('menu-btn').classList.toggle('open', on);
+    if (on) renderNotifSettings(true);   // 通知の設定を開くたびに、最新の設定を取る
 }
 function closeHeaderMenus() {
     document.getElementById('header-menu').classList.remove('open');
@@ -2603,7 +2625,7 @@ async function loadNotifs() {
     try {
         var d = await apiCall('GET', '/api/notifications');
         setNotifBadge(d.unread);
-        renderNotifMode(d.mode);
+        if (d.mode) { notifMode = d.mode; notifModeKnown = true; }   // 設定メニューの表示に使う
         box.innerHTML = d.items.length ? d.items.map(function(n) {
             var label = n.kind === 'reply' ? 'notifReply' : (n.kind === 'message' ? 'notifMessage' : 'notifMention');
             // 「すべてのメッセージ」の発言は、どの部屋かも添える
@@ -2617,12 +2639,15 @@ async function loadNotifs() {
 }
 
 // 通知の範囲（すべてのメッセージ / 返信・メンションだけ）。初期設定は「すべて」
+// 表示場所は、ヘッダーの設定メニュー（言語などと同じところ）
+var notifMode = 'all';
+var notifModeKnown = false;   // サーバーの設定を取れたか（取れる前に「すべて」を選んだように見せない）
+var notifModeUser = 0;
 function renderNotifMode(mode) {
     var el = document.getElementById('notif-mode');
     if (!el) return;
-    if (!loginUser || !apiEnabled()) { el.style.display = 'none'; return; }
+    if (!loginUser || !apiEnabled() || !notifModeKnown) { el.innerHTML = ''; return; }
     if (mode !== 'mentions') mode = 'all';
-    el.style.display = '';
     el.innerHTML = '<div class="nm-head">' + esc(ct('notifModeHead')) + '</div>' +
         '<label><input type="radio" name="notif-mode" value="all"' + (mode === 'all' ? ' checked' : '') + ' onchange="setNotifMode(this.value)">' + esc(ct('notifModeAll')) + '</label>' +
         '<label><input type="radio" name="notif-mode" value="mentions"' + (mode === 'mentions' ? ' checked' : '') + ' onchange="setNotifMode(this.value)">' + esc(ct('notifModeMentions')) + '</label>';
@@ -2631,9 +2656,29 @@ function renderNotifMode(mode) {
 async function setNotifMode(mode) {
     try {
         var d = await apiCall('PUT', '/api/notifications/settings', { mode: mode });
+        notifMode = d.mode === 'mentions' ? 'mentions' : 'all';
         setNotifBadge(d.unread);
     } catch (e) { showToast(ct('e_other')); }
-    loadNotifs();   // 設定に合わせて一覧と選択を取り直す（失敗したときは元の設定に戻る）
+    renderNotifMode(notifMode);   // 失敗したときは、元の選択に戻る
+}
+
+// 設定メニューの「通知」の欄（ログイン中だけ）。refresh=true のときは、サーバーの設定を取り直す
+function renderNotifSettings(refresh) {
+    var box = document.getElementById('set-notif');
+    if (!box) return;
+    var on = !!(loginUser && apiEnabled());
+    box.style.display = on ? 'block' : 'none';
+    if (!on) { notifModeUser = 0; notifModeKnown = false; return; }
+    if (notifModeUser !== loginUser.id) { notifModeUser = loginUser.id; notifModeKnown = false; notifMode = 'all'; }   // アカウントが変わったら取り直す
+    renderNotifMode(notifMode);
+    renderPushRow();
+    if (refresh || !notifModeKnown) {
+        apiCall('GET', '/api/notifications/settings').then(function(d) {
+            notifMode = d && d.mode === 'mentions' ? 'mentions' : 'all';
+            notifModeKnown = true;
+            renderNotifMode(notifMode);
+        }).catch(function() {});
+    }
 }
 
 async function openNotif(el) {
@@ -3675,9 +3720,11 @@ loadSaves().catch(function() {});
 // ===== 端末への通知（Web Push） =====
 var PUSH_T = {
     ja: { on: 'この端末に通知を届ける', off: '通知を止める', state: '通知: オン', ios: 'iPhoneでは、Safariの「共有」から「ホーム画面に追加」して、そのアイコンから開くと、通知を受け取れます。',
-          blocked: '通知がブロックされています。ブラウザのサイト設定で、通知を「許可」にしてください。', done: 'この端末に通知を届けます', fail: '通知を設定できませんでした', head: '端末への通知' },
+          blocked: '通知がブロックされています。ブラウザのサイト設定で、通知を「許可」にしてください。', done: 'この端末に通知を届けます', fail: '通知を設定できませんでした', head: '端末への通知',
+          bannerText: '通知をオンにしますか？ チャットの新しい発言を、この端末にお知らせします（受け取る範囲は、右上の設定で変えられます）。', bannerYes: 'オンにする', bannerLater: 'あとで' },
     en: { on: 'Send notifications to this device', off: 'Turn off', state: 'Notifications: on', ios: 'On iPhone, tap Share in Safari, choose "Add to Home Screen", then open the site from that icon to receive notifications.',
-          blocked: 'Notifications are blocked. Allow them in your browser\'s site settings.', done: 'Notifications are on for this device', fail: 'Could not set up notifications', head: 'Device notifications' }
+          blocked: 'Notifications are blocked. Allow them in your browser\'s site settings.', done: 'Notifications are on for this device', fail: 'Could not set up notifications', head: 'Device notifications',
+          bannerText: 'Turn on notifications? We\'ll alert this device about new chat messages (you can change what you receive in the settings at the top right).', bannerYes: 'Turn on', bannerLater: 'Later' }
 };
 function pt(k) { return (PUSH_T[currentLang] || PUSH_T.ja)[k]; }
 var pushKeyInfo = null;
@@ -3718,6 +3765,7 @@ async function renderPushRow() {
     if (Notification.permission === 'denied') { el.innerHTML = '<div class="np-hint">' + esc(pt('blocked')) + '</div>'; return; }
     var sub = await pushCurrentSub();
     if (sub) {
+        showPushBanner(false);   // すでにオンなので、「オンにしますか？」は閉じる
         el.innerHTML = '<button class="off" onclick="pushDisable()">' + esc(pt('off')) + '</button><span class="np-state">' + esc(pt('state')) + '</span>';
         pushSync(sub);
     } else {
@@ -3756,10 +3804,68 @@ async function pushDisable() {
     pushSynced = '';
     renderPushRow();
 }
+
+// ===== 「通知をオンにしますか？」（サイトを開いてすぐ。ログイン中で、この端末がまだ未設定のときだけ） =====
+//   ブラウザの許可の画面は、ボタンを押したときにだけ出せる決まりなので、いきなり許可は求めず、ヘッダーの下に案内を出す。
+//   「あとで」を押したら、7日は出さない。すでにオン / ブロック中 / この端末が非対応のときは出さない。
+var PUSH_LATER_KEY = 'twc_push_later';
+var PUSH_LATER_MS = 7 * 24 * 3600 * 1000;
+var pushBannerFor = '';   // 判定を済ませたアカウント（ページを開いてから1回だけ判定する）
+
+function pushLaterActive() {
+    try { var v = Number(localStorage.getItem(PUSH_LATER_KEY)); return v > 0 && Date.now() - v < PUSH_LATER_MS; } catch (e) { return false; }
+}
+function renderPushBanner() {
+    var t = document.getElementById('push-banner-text');
+    if (!t) return;
+    t.innerText = pt('bannerText');
+    document.getElementById('push-banner-yes').innerText = pt('bannerYes');
+    document.getElementById('push-banner-later').innerText = pt('bannerLater');
+}
+function showPushBanner(on) {
+    var b = document.getElementById('push-banner');
+    if (!b) return;
+    if (on) renderPushBanner();
+    b.style.display = on ? 'flex' : 'none';
+}
+async function maybeShowPushBanner() {
+    if (!loginUser || !apiEnabled()) { pushBannerFor = ''; showPushBanner(false); return; }
+    if (pushBannerFor === loginUser.username) return;
+    pushBannerFor = loginUser.username;
+    try {
+        if (!pushSupported() || Notification.permission === 'denied') return;
+        var info = await pushServerKey();
+        if (!info.enabled) return;                       // サーバー側の設定がまだ
+        var sub = await pushCurrentSub();
+        if (sub) { pushSync(sub); return; }              // すでにオン。いまのアカウントに届くようにだけしておく
+        if (pushLaterActive()) return;
+        showPushBanner(true);
+    } catch (e) {}
+}
+async function pushBannerYes() {
+    showPushBanner(false);
+    await pushEnable();                                  // ここで、ブラウザの許可の画面が出る
+    var sub = await pushCurrentSub();
+    if (!sub) pushBannerLater();                         // 許可されなかった / 失敗したときは、しばらく出さない
+}
+function pushBannerLater() {
+    try { localStorage.setItem(PUSH_LATER_KEY, String(Date.now())); } catch (e) {}
+    showPushBanner(false);
+}
 (function() {
-    var b = document.getElementById('notif-btn');
-    if (b) b.addEventListener('click', function() { setTimeout(renderPushRow, 0); });
+    // ログイン・ログアウトのたびに判定し直す。言語を切り替えたら、文言も入れ替える
+    var u = updateLoginUI;
+    updateLoginUI = function() { u.apply(this, arguments); maybeShowPushBanner(); };
+    var l = applyLang;
+    applyLang = function() {
+        l.apply(this, arguments);
+        renderPushBanner();
+        // 設定メニューが開いているときだけ、通知の欄の文言を入れ替える（閉じているときは、開いたときに描き直す）
+        var hm = document.getElementById('header-menu');
+        if (hm && hm.classList.contains('open')) renderNotifSettings(false);
+    };
 })();
+maybeShowPushBanner();   // ページを開いた直後
 
 </script>
 

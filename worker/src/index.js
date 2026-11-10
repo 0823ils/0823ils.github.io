@@ -86,7 +86,7 @@ async function route(request, env) {
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
   if (path === '/api/ratings/mine' && method === 'GET') return myRatings(request, env);
   if (path === '/api/ratings/detail' && method === 'GET') return ratingDetail(request, env, url);
-  if (path === '/api/scratch/project' && method === 'GET') return scratchProject(url);
+  if (path === '/api/scratch/project' && method === 'GET') return scratchProjectInfo(url);
   if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
@@ -344,7 +344,7 @@ async function ratingDetail(request, env, url) {
 }
 
 // 作品の「使い方」「メモとクレジット」を Scratch から取って返す（ブラウザから直接取れないとき用）
-async function scratchProject(url) {
+async function scratchProjectInfo(url) {
   const id = String(url.searchParams.get('id') || '');
   if (!/^\d{1,12}$/.test(id)) throw new HttpError(400, 'bad_id');
   let r;

@@ -280,6 +280,7 @@
         .pp-embed iframe { width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 8px; background: transparent; display: block; }
         .pp-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; cursor: pointer; display: block; }
         .pp-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+        .pp-auto { font-size: 13px; color: #666; cursor: pointer; margin-left: 4px; }
         .pp-btns a { text-decoration: none; display: inline-block; }
         .pp-btns .tw-warn-btn { width: auto; flex: 0 1 auto; padding: 9px 14px; margin: 0; text-align: center; }
         .pp-h { font-weight: bold; margin-bottom: 6px; } .pp-stars { display: flex; gap: 2px; }
@@ -1002,12 +1003,14 @@ function openProjectPage(id) {
     ppLoadDetail();
 }
 function closeProjectPage() { ppStopEmbed(); if (history.state && history.state.twc) { history.back(); return; } setMode(prevMode && prevMode !== 'user' && prevMode !== 'project' ? prevMode : 'browse'); }
+function ppAutoPref() { try { return localStorage.getItem('twc_autoplay') !== '0'; } catch (e) { return true; } }
+function ppSetAuto(on) { try { localStorage.setItem('twc_autoplay', on ? '1' : '0'); } catch (e) {} }
 function ppStopEmbed() { ppPlaying = false; var f = document.getElementById('pp-embed'); if (f) f.innerHTML = ''; }
 function ppPlay() {
     ppPlaying = !ppPlaying;
     var box = document.getElementById('pp-embed'), b = document.getElementById('pp-play-btn'), th = document.querySelector('#pp-body .pp-thumb');
     if (ppPlaying) {
-        box.innerHTML = '<iframe src="https://turbowarp.org/' + Number(ppId) + '/embed" allowfullscreen allow="autoplay; fullscreen" loading="lazy"></iframe>';
+        box.innerHTML = '<iframe src="https://turbowarp.org/' + Number(ppId) + '/embed?autoplay" allowfullscreen allow="autoplay; fullscreen" loading="lazy"></iframe>';
         if (b) b.innerText = nt('ppStop');
         if (th) th.style.display = 'none';
     } else {
@@ -1114,12 +1117,14 @@ function renderProjectPage() {
         '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div>' +
         '<div class="pp-btns"><button class="tw-warn-btn tw-warn-btn-scratch" id="pp-play-btn" onclick="ppPlay()">' + esc(nt('ppPlay')) + '</button>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + Number(p.id) + '">' + esc(nt('ppScratch')) + '</a>' +
-        '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a></div></div>' +
+        '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a>' +
+        '<label class="pp-auto"><input type="checkbox" id="pp-auto-cb"' + (ppAutoPref() ? ' checked' : '') + ' onchange="ppSetAuto(this.checked)"> ' + esc(nt('ppAuto')) + '</label></div></div>' +
         '<div class="pp-side" id="pp-info"></div></div>' +
         '<div class="pp-card" id="pp-rate"></div>';
     renderPpRate();
     renderPpInfo();
     ppLoadInfo();
+    if (ppAutoPref()) { ppPlaying = false; ppPlay(); }
 }
 
 // ===== アイコン =====
@@ -3110,14 +3115,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

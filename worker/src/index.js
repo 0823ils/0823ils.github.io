@@ -35,12 +35,16 @@ class HttpError extends Error {
 
 let cachedOwner = null; // 認証用プロジェクトの作者名（Worker内でキャッシュ）
 
+import { vapidPublicKey, sendPush, isAllowedEndpoint } from './push.js';
+const CTX = new WeakMap();   // リクエストごとの waitUntil（通知を返事の後に送るため）
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const cors = corsHeaders(request, env);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     let res;
     try {
+      CTX.set(request, ctx);
       res = await route(request, env);
     } catch (e) {
       if (e instanceof HttpError) res = json({ error: e.code }, e.status);
@@ -143,6 +147,9 @@ async function route(request, env) {
   if (path === '/api/notifications' && method === 'GET') return notifList(request, env);
   if (path === '/api/notifications/count' && method === 'GET') return notifCount(request, env);
   if (path === '/api/notifications/read' && method === 'POST') return notifRead(request, env);
+  if (path === '/api/push/key' && method === 'GET') return pushKey(env);
+  if (path === '/api/push/subscribe' && method === 'POST') return pushSubscribe(request, env);
+  if (path === '/api/push/unsubscribe' && method === 'POST') return pushUnsubscribe(request, env);
 
   throw new HttpError(404, 'not_found');
 }
@@ -878,6 +885,11 @@ async function chatPost(request, env) {
   stmts.push(env.DB.prepare('DELETE FROM chat_notifications WHERE created_at < ?').bind(now - NOTIF_KEEP));
   await env.DB.batch(stmts);
 
+  // 端末への通知（Web Push）。返事を待たせないよう、あとで送る
+  const pushJob = notifyPush(env, targets, user.u, snippet, room).catch(e => console.error('push', e));
+  const pctx = CTX.get(request);
+  if (pctx) pctx.waitUntil(pushJob); else await pushJob;
+
   return json({ message: { id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false, tags: [] } }, 201);
 }
 
@@ -1368,4 +1380,66 @@ async function adminBans(request, env) {
   await requireAdmin(request, env);
   const rows = await env.DB.prepare('SELECT user_id, username, created_at FROM chat_bans ORDER BY created_at DESC LIMIT 200').all();
   return json({ items: rows.results });
+}
+
+
+// ---------- 端末への通知（Web Push） ----------
+//   GET  /api/push/key                      -> { enabled, key }   （公開。ブラウザが購読するときの公開鍵）
+//   POST /api/push/subscribe   { endpoint, keys:{p256dh,auth} } -> { ok }   (要ログイン)
+//   POST /api/push/unsubscribe { endpoint }                      -> { ok }   (要ログイン)
+// 設定: シークレット VAPID_PRIVATE_JWK（worker/gen_vapid.mjs で作る）。未設定なら通知は無効。
+const MAX_PUSH_SUBS = 5;       // 1人が登録できる端末の数
+const MAX_PUSH_SEND = 40;      // 1回の投稿で送る最大件数（無料枠の通信回数の範囲に収める）
+
+async function pushKey(env) {
+  const key = await vapidPublicKey(env);
+  return json(key ? { enabled: true, key } : { enabled: false });
+}
+
+async function pushSubscribe(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const ep = body && body.endpoint, k = body && body.keys;
+  if (typeof ep !== 'string' || ep.length > 700 || !isAllowedEndpoint(ep) ||
+      !k || typeof k.p256dh !== 'string' || typeof k.auth !== 'string' || k.p256dh.length > 200 || k.auth.length > 60) {
+    throw new HttpError(400, 'bad_subscription');
+  }
+  const me = user.u.toLowerCase();
+  await env.DB.prepare(
+    `INSERT INTO push_subs (endpoint, username, p256dh, auth, created_at) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(endpoint) DO UPDATE SET username = excluded.username, p256dh = excluded.p256dh, auth = excluded.auth, created_at = excluded.created_at`
+  ).bind(ep, me, k.p256dh, k.auth, Date.now()).run();
+  await env.DB.prepare(
+    'DELETE FROM push_subs WHERE username = ? AND endpoint NOT IN (SELECT endpoint FROM push_subs WHERE username = ? ORDER BY created_at DESC LIMIT ?)'
+  ).bind(me, me, MAX_PUSH_SUBS).run();
+  return json({ ok: true });
+}
+
+async function pushUnsubscribe(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  if (!body || typeof body.endpoint !== 'string') throw new HttpError(400, 'bad_request');
+  await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ? AND username = ?').bind(body.endpoint, user.u.toLowerCase()).run();
+  return json({ ok: true });
+}
+
+// targets: Map(小文字のユーザー名 -> 'reply' | 'mention')
+async function notifyPush(env, targets, from, snippet, room) {
+  if (!env.VAPID_PRIVATE_JWK || !targets || !targets.size) return;
+  const names = [...targets.keys()];
+  const rows = await env.DB.prepare(
+    `SELECT endpoint, username, p256dh, auth FROM push_subs WHERE username IN (${names.map(() => '?').join(',')}) LIMIT ${MAX_PUSH_SEND}`
+  ).bind(...names).all();
+  await Promise.allSettled(rows.results.map(async (s) => {
+    const label = targets.get(s.username) === 'reply' ? ' さんが返信しました' : ' さんがあなたをメンションしました';
+    const status = await sendPush(env, s, {
+      title: 'scratch-TWC',
+      body: from + label + '\n' + snippet,
+      url: '/?m=c&room=' + encodeURIComponent(room),
+      tag: 'chat-' + room,
+    });
+    if (status === 404 || status === 410) {   // その端末の登録が無効になった
+      await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(s.endpoint).run();
+    }
+  }));
 }

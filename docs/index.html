@@ -8,6 +8,7 @@
     <meta name="robots" content="index,follow,max-image-preview:large">
     <meta name="author" content="0823ils">
     <link rel="canonical" href="https://0823ils.github.io/">
+    <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/favicon.ico">
     <link rel="icon" type="image/png" href="/favicon-48.png" sizes="48x48">
     <link rel="icon" type="image/png" href="/favicon-96.png" sizes="96x96">
@@ -406,6 +407,11 @@
         .chat-tab:hover { background: #eef4ff; color: #4D97FF; }
         .chat-tab.active { background: #4D97FF; color: #fff; }
         /* 言語切替はヘッダーに移動 */
+            .notif-push { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #666; }
+        .notif-push button { border: none; background: #4D97FF; color: #fff; border-radius: 14px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .notif-push button.off { background: #eef1f6; color: #555; font-weight: normal; }
+        .notif-push .np-hint { line-height: 1.5; }
+        .notif-push .np-state { margin-left: 8px; color: #2e9e5b; }
     </style>
 </head>
 <body>
@@ -421,6 +427,7 @@
             </button>
             <div class="header-menu notif-menu" id="notif-menu" onclick="event.stopPropagation()">
                 <div class="notif-head"><span id="notif-title">通知</span><button id="notif-readall" onclick="notifReadAll()">すべて既読</button></div>
+                <div class="notif-push" id="notif-push"></div>
                 <div class="notif-list" id="notif-list"></div>
             </div>
         </div>
@@ -3631,6 +3638,96 @@ updateSortOptions();
 loadLangPref();
 initDB();
 loadSaves().catch(function() {});
+
+// ===== 端末への通知（Web Push） =====
+var PUSH_T = {
+    ja: { on: 'この端末に通知を届ける', off: '通知を止める', state: '通知: オン', ios: 'iPhoneでは、Safariの「共有」から「ホーム画面に追加」して、そのアイコンから開くと、通知を受け取れます。',
+          blocked: '通知がブロックされています。ブラウザのサイト設定で、通知を「許可」にしてください。', done: 'この端末に通知を届けます', fail: '通知を設定できませんでした', head: '端末への通知' },
+    en: { on: 'Send notifications to this device', off: 'Turn off', state: 'Notifications: on', ios: 'On iPhone, tap Share in Safari, choose "Add to Home Screen", then open the site from that icon to receive notifications.',
+          blocked: 'Notifications are blocked. Allow them in your browser\'s site settings.', done: 'Notifications are on for this device', fail: 'Could not set up notifications', head: 'Device notifications' }
+};
+function pt(k) { return (PUSH_T[currentLang] || PUSH_T.ja)[k]; }
+var pushKeyInfo = null;
+
+function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function pushIsIOS() { return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function pushStandalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function pushBytes(b64u) {
+    var s = b64u.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+    var bin = atob(s), a = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    return a;
+}
+async function pushServerKey() {
+    if (pushKeyInfo) return pushKeyInfo;
+    try { pushKeyInfo = await apiCall('GET', '/api/push/key'); } catch (e) { return { enabled: false }; }
+    return pushKeyInfo;
+}
+async function pushCurrentSub() {
+    try {
+        var reg = await navigator.serviceWorker.getRegistration('/');
+        return reg ? await reg.pushManager.getSubscription() : null;
+    } catch (e) { return null; }
+}
+
+async function renderPushRow() {
+    var el = document.getElementById('notif-push');
+    if (!el) return;
+    if (!loginUser || !apiEnabled()) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    if (!pushSupported()) {
+        if (pushIsIOS() && !pushStandalone()) el.innerHTML = '<div class="np-hint">' + esc(pt('ios')) + '</div>';
+        else el.style.display = 'none';
+        return;
+    }
+    var info = await pushServerKey();
+    if (!info.enabled) { el.style.display = 'none'; return; }   // サーバー側の設定がまだ
+    if (Notification.permission === 'denied') { el.innerHTML = '<div class="np-hint">' + esc(pt('blocked')) + '</div>'; return; }
+    var sub = await pushCurrentSub();
+    if (sub) {
+        el.innerHTML = '<button class="off" onclick="pushDisable()">' + esc(pt('off')) + '</button><span class="np-state">' + esc(pt('state')) + '</span>';
+        pushSync(sub);
+    } else {
+        el.innerHTML = '<button onclick="pushEnable()">' + esc(pt('on')) + '</button>';
+    }
+}
+// 同じ端末で別のアカウントに切り替えたときも、いまのアカウントに届くようにする
+var pushSynced = '';
+function pushSync(sub) {
+    if (!loginUser || pushSynced === loginUser.username) return;
+    pushSynced = loginUser.username;
+    apiCall('POST', '/api/push/subscribe', sub.toJSON()).catch(function() { pushSynced = ''; });
+}
+async function pushEnable() {
+    try {
+        var info = await pushServerKey();
+        if (!info.enabled) return;
+        var perm = await Notification.requestPermission();
+        if (perm !== 'granted') { renderPushRow(); return; }
+        var reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        await navigator.serviceWorker.ready;
+        var sub = await reg.pushManager.getSubscription();
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pushBytes(info.key) });
+        await apiCall('POST', '/api/push/subscribe', sub.toJSON());
+        pushSynced = loginUser.username;
+        showToast(pt('done'));
+    } catch (e) { showToast(pt('fail')); }
+    renderPushRow();
+}
+async function pushDisable() {
+    var sub = await pushCurrentSub();
+    if (sub) {
+        try { await apiCall('POST', '/api/push/unsubscribe', { endpoint: sub.endpoint }); } catch (e) {}
+        try { await sub.unsubscribe(); } catch (e) {}
+    }
+    pushSynced = '';
+    renderPushRow();
+}
+(function() {
+    var b = document.getElementById('notif-btn');
+    if (b) b.addEventListener('click', function() { setTimeout(renderPushRow, 0); });
+})();
+
 </script>
 
 <div class="tw-warn-overlay" id="tw-warn-overlay" style="display:none" onclick="if(event.target===this)closeTWWarn()">

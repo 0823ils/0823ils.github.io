@@ -147,3 +147,13 @@ CREATE INDEX IF NOT EXISTS idx_genres_genre ON project_genres(genre, project_id)
 CREATE INDEX IF NOT EXISTS idx_genres_user ON project_genres(user_id);
 CREATE INDEX IF NOT EXISTS idx_ratings_time ON ratings(updated_at);
 CREATE INDEX IF NOT EXISTS idx_saves_time ON saves(created_at);
+
+-- 端末への通知（Web Push）の登録。username は小文字。1人あたり最大5台
+CREATE TABLE IF NOT EXISTS push_subs (
+  endpoint TEXT PRIMARY KEY,
+  username TEXT NOT NULL,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_push_user ON push_subs(username);

@@ -269,11 +269,19 @@
         .pp-text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.6; color: #333; }
         .pp-text a { color: #4D97FF; }
         .pp-title { margin: 0 0 4px; font-size: 20px; } .pp-meta { color: #666; font-size: 13px; margin-bottom: 10px; }
-        .pp-stage { width: 100%; max-width: 640px; margin: 0 auto; }
+        .pp-head { margin-bottom: 12px; }
+        .pp-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-bottom: 18px; }
+        .pp-stage { width: 100%; }
+        .pp-side .pp-h { color: #575e75; font-size: 15px; margin: 0 0 8px; }
+        .pp-side .pp-h + .pp-text { background: #eef1fb; border-radius: 10px; padding: 14px 16px; height: 180px; overflow-y: auto; box-sizing: border-box; margin-bottom: 18px; }
+        .pp-side .pp-text a { color: #855cd6; font-weight: bold; }
+        body.mode-project .container { max-width: 1040px; }
+        @media (max-width: 760px) { .pp-grid { grid-template-columns: 1fr; } .pp-side .pp-h + .pp-text { height: 140px; } }
         .pp-embed iframe { width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 8px; background: transparent; display: block; }
         .pp-thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; cursor: pointer; display: block; }
         .pp-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
         .pp-btns a { text-decoration: none; display: inline-block; }
+        .pp-btns .tw-warn-btn { width: auto; flex: 0 1 auto; padding: 9px 14px; margin: 0; text-align: center; }
         .pp-h { font-weight: bold; margin-bottom: 6px; } .pp-stars { display: flex; gap: 2px; }
         .pp-dist-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
         .pp-dist-star { width: 28px; color: #f5b301; } .pp-dist-n { width: 44px; text-align: right; color: #666; }
@@ -1052,12 +1060,9 @@ function ppLinkify(txt) {
 }
 function renderPpInfo() {
     var el = document.getElementById('pp-info'); if (!el) return;
-    var d = ppInfoCache[ppId];
-    if (!d) { el.style.display = 'none'; return; }
-    var h = '';
-    if (d.instructions) h += '<div class="pp-h">' + esc(nt('ppHow')) + '</div><div class="pp-text">' + ppLinkify(d.instructions) + '</div>';
-    if (d.description) h += '<div class="pp-h"' + (h ? ' style="margin-top:14px"' : '') + '>' + esc(nt('ppNotes')) + '</div><div class="pp-text">' + ppLinkify(d.description) + '</div>';
-    el.innerHTML = h; el.style.display = h ? '' : 'none';
+    var d = ppInfoCache[ppId] || { instructions: '', description: '' };
+    el.innerHTML = '<div class="pp-h">' + esc(nt('ppHow')) + '</div><div class="pp-text">' + ppLinkify(d.instructions) + '</div>' +
+        '<div class="pp-h">' + esc(nt('ppNotes')) + '</div><div class="pp-text">' + ppLinkify(d.description) + '</div>';
 }
 async function ppLoadInfo() {
     var id = ppId;
@@ -1097,16 +1102,18 @@ function renderProjectPage() {
     var p = db ? queryOne('SELECT * FROM projects WHERE id = ' + Number(ppId)) : null;
     if (!p) { box.innerHTML = '<div class="status-text">' + esc(db ? nt('ppNotFound') : t('loading')) + '</div>'; if (!db) setTimeout(function() { if (currentMode === 'project') renderProjectPage(); }, 600); return; }
     box.innerHTML =
-        '<div class="pp-card"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
+        '<div class="pp-head"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
         '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a> ・ ♥ ' + Number(p.loves || 0) + ' ・ 👁 ' + Number(p.views || 0) + '</div>' +
- '<div class="pp-stage"><div id="pp-embed" class="pp-embed"></div>' +
+        '</div>' +
+        '<div class="pp-grid"><div class="pp-left"><div class="pp-stage"><div id="pp-embed" class="pp-embed"></div>' +
         '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div>' +
         '<div class="pp-btns"><button class="tw-warn-btn tw-warn-btn-scratch" id="pp-play-btn" onclick="ppPlay()">' + esc(nt('ppPlay')) + '</button>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + Number(p.id) + '">' + esc(nt('ppScratch')) + '</a>' +
         '<a class="tw-warn-btn tw-warn-btn-cancel" target="_blank" rel="noopener" href="https://turbowarp.org/' + Number(p.id) + '">' + esc(nt('ppTW')) + '</a></div></div>' +
-        '<div class="pp-card" id="pp-info"></div>' +
+        '<div class="pp-side" id="pp-info"></div></div>' +
         '<div class="pp-card" id="pp-rate"></div>';
     renderPpRate();
+    renderPpInfo();
     ppLoadInfo();
 }
 
@@ -1305,6 +1312,7 @@ function setMode(mode) {
     Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
     Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
     document.body.classList.toggle('mode-chat', mode === 'chat');
+    document.body.classList.toggle('mode-project', mode === 'project');
     if (mode === 'chat') enterChat(); else leaveChat();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;

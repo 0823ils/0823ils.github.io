@@ -264,6 +264,16 @@
         .stat-box { background: #f4f7fd; border-radius: 10px; padding: 10px 12px; }
         .stat-box b { display: block; font-size: 20px; color: #333; }
         .stat-box span { font-size: 11px; color: #888; }
+        body.mode-short { overflow: hidden; }
+        #short-section { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #f0f2f5; }
+        .sh-feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; }
+        .sh-slide { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 8px; box-sizing: border-box; }
+        .sh-stage { position: relative; aspect-ratio: 4 / 3; width: min(96vw, calc((var(--sh-h, 600px) - 110px) * 1.3333)); background: #000; border-radius: 10px; overflow: hidden; }
+        .sh-thumb, .sh-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
+        .sh-info { width: min(96vw, calc((var(--sh-h, 600px) - 110px) * 1.3333)); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .sh-title { font-weight: bold; font-size: 15px; flex: 1 1 100%; cursor: pointer; }
+        .sh-sub { color: #666; font-size: 13px; flex: 1; }
+        .sh-hint { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(0,0,0,.5); color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 10px; pointer-events: none; }
         .pp-card { background: transparent; border: none; border-bottom: 1px solid #eef1f6; padding: 4px 0 18px; margin-bottom: 18px; }
         .pp-card:last-child { border-bottom: none; }
         .pp-text { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.6; color: #333; }
@@ -422,6 +432,7 @@
             <button class="header-mode-tab active" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
             <button class="header-mode-tab" id="mode-browse-btn" onclick="setMode('browse')" data-i18n="modeBrowse">全作品</button>
             <button class="header-mode-tab" id="mode-rank-btn" onclick="setMode('rank')" data-i18n="modeRank">ランキング</button>
+            <button class="header-mode-tab" id="mode-short-btn" onclick="setMode('short')" data-i18n="modeShort">ショート</button>
             <button class="header-mode-tab" id="mode-chat-btn" onclick="setMode('chat')" style="display:none" data-i18n="chatBtn">チャット</button>
             <button class="header-mode-tab" id="mode-saved-btn" onclick="setMode('saved')" style="display:none" data-i18n="modeSaved">保存</button>
             <button class="header-mode-tab" id="mode-admin-btn" onclick="setMode('admin')" style="display:none" data-i18n="modeAdmin">管理</button>
@@ -600,6 +611,9 @@
             </div>
         </div>
 
+        <!-- ショート -->
+        <div id="short-section" style="display:none"><div class="sh-feed" id="short-feed"></div></div>
+
         <!-- 作品ページ -->
         <div id="project-section" style="display:none">
             <button class="back-btn" id="pp-back" onclick="closeProjectPage()"></button>
@@ -719,6 +733,7 @@ const LANG = {
         rateRemoved: '評価を取り消しました',
         rateErr: '保存できませんでした。時間をおいてやり直してください。',
         modeSaved: '保存',
+        modeShort: 'ショート',
         saveTitle: '保存する',
         unsaveTitle: '保存を解除',
         savedEmpty: 'まだ保存した作品がありません。作品カード右上のしおりを押すと保存できます。',
@@ -837,6 +852,7 @@ const LANG = {
         rateRemoved: 'Rating removed',
         rateErr: "Couldn't save. Please try again later.",
         modeSaved: 'Saved',
+        modeShort: 'Shorts',
         saveTitle: 'Save',
         unsaveTitle: 'Remove from saved',
         savedEmpty: 'Nothing saved yet. Tap the bookmark on a project card to save it.',
@@ -1127,6 +1143,84 @@ function renderProjectPage() {
     if (ppAutoPref()) { ppPlaying = false; ppPlay(); }
 }
 
+
+// ===== ショート（縦スクロールで次々に作品を見る） =====
+var SHORT_RANGE = 3;                       // いま見ている作品の前後、この数だけ読み込んでおく
+var shortIds = [], shortCur = 0, shortObs = null, shortTimer = null, shortReady = false;
+function shortSrc(id, run) { return 'https://turbowarp.org/' + Number(id) + '/embed' + (run ? '?autoplay' : ''); }
+function shortAppend(n) {
+    var feed = document.getElementById('short-feed');
+    if (!db || !feed) return;
+    var have = {}; shortIds.forEach(function(i) { have[i] = 1; });
+    var rows = queryAll('SELECT id, title, author_id, author_username, loves FROM projects ORDER BY RANDOM() LIMIT ' + Number(n)).filter(function(r) { return !have[r.id]; });
+    rows.forEach(function(p) {
+        var i = shortIds.length; shortIds.push(p.id);
+        var d = document.createElement('section');
+        d.className = 'sh-slide'; d.setAttribute('data-i', i); d.setAttribute('data-id', p.id);
+        d.innerHTML = '<div class="sh-stage"><img class="sh-thumb" alt="" loading="lazy" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png"><div class="sh-embed"></div></div>' +
+            '<div class="sh-info"><div class="sh-title" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(p.title) + '</div>' +
+            '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ・ ♥ ' + Number(p.loves || 0) + '</div>' +
+            '<button class="tw-warn-btn tw-warn-btn-cancel" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button></div>';
+        feed.appendChild(d);
+        if (shortObs) shortObs.observe(d);
+    });
+}
+function shortSync() {
+    var feed = document.getElementById('short-feed'); if (!feed) return;
+    feed.querySelectorAll('.sh-slide').forEach(function(sl) {
+        var i = Number(sl.getAttribute('data-i')), box = sl.querySelector('.sh-embed');
+        var near = Math.abs(i - shortCur) <= SHORT_RANGE, run = i === shortCur;
+        var f = box.firstChild;
+        if (!near) { if (f) box.innerHTML = ''; return; }
+        if (f && f.getAttribute('data-run') === (run ? '1' : '0')) return;
+        // src を書き換えると「戻る」の履歴が増えるので、作り直す
+        box.innerHTML = '';
+        var fr = document.createElement('iframe');
+        fr.setAttribute('data-run', run ? '1' : '0');
+        fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
+        fr.src = shortSrc(sl.getAttribute('data-id'), run);
+        box.appendChild(fr);
+    });
+}
+function shortSetCur(i) {
+    if (i === shortCur && shortReady) return;
+    shortCur = i; shortReady = true;
+    clearTimeout(shortTimer);
+    shortTimer = setTimeout(function() {
+        if (currentMode !== 'short') return;
+        shortSync();
+        if (shortCur >= shortIds.length - 5) shortAppend(30);
+    }, 150);   // 勢いよくスクロールしたときは、止まってから読み込む
+}
+function enterShort() {
+    var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
+    if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
+    var hd = document.querySelector('.site-header');
+    sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
+    sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
+    if (!shortObs) {
+        shortObs = new IntersectionObserver(function(es) {
+            es.forEach(function(e) { if (e.isIntersecting && e.intersectionRatio >= 0.6) shortSetCur(Number(e.target.getAttribute('data-i'))); });
+        }, { root: feed, threshold: [0.6] });
+        shortAppend(40);
+    }
+    feed.scrollTop = shortCur * feed.clientHeight;
+    shortReady = false; shortSetCur(shortCur);
+}
+function leaveShort() {
+    clearTimeout(shortTimer);
+    var feed = document.getElementById('short-feed');
+    if (feed) feed.querySelectorAll('.sh-embed').forEach(function(b) { b.innerHTML = ''; });   // 全部止める
+}
+document.addEventListener('keydown', function(e) {
+    if (currentMode !== 'short') return;
+    var tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'IFRAME') return;
+    var feed = document.getElementById('short-feed'), d = (e.key === 'ArrowDown' || e.key === 'j' || e.key === 'PageDown') ? 1 : (e.key === 'ArrowUp' || e.key === 'k' || e.key === 'PageUp') ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); feed.scrollBy({ top: d * feed.clientHeight, behavior: 'smooth' });
+});
+window.addEventListener('resize', function() { if (currentMode === 'short') enterShort(); });
+
 // ===== アイコン =====
 var uidCache = {};
 function avatarImg(id, size, name) {
@@ -1312,8 +1406,8 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
-var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', admin: 'admin-section' };
-var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
+var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', short: 'short-section', admin: 'admin-section' };
+var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
 function setMode(mode, forcePush) {
@@ -1324,6 +1418,8 @@ function setMode(mode, forcePush) {
     Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
     document.body.classList.toggle('mode-chat', mode === 'chat');
     document.body.classList.toggle('mode-project', mode === 'project');
+    document.body.classList.toggle('mode-short', mode === 'short');
+    if (mode === 'short') enterShort(); else leaveShort();
     if (mode === 'chat') enterChat(); else leaveChat();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
@@ -2144,6 +2240,7 @@ async function applyDefaultView() {
     // URLにジャンルがあれば、先にその一覧を取っておく
     if (st && st.m !== 'u' && st.m !== 'p' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
     if (st && (st.m === 's' || st.m === 'b')) applyUrlState(st, rankingOk);
+    if (st && st.m === 'h') { setMode('short'); return; }
     if (st && st.m === 'u') { openProfile(st.u); return; }
     if (st && st.m === 'p') { prevMode = 'browse'; openProjectPage(st.id); return; }
     if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
@@ -2202,6 +2299,8 @@ function shareParams() {
         if (bGenre) p.set('g', bGenre);
     } else if (currentMode === 'user' && profileUser) {
         p.set('m', 'u'); p.set('u', profileUser);
+    } else if (currentMode === 'short') {
+        p.set('m', 'h');
     } else if (currentMode === 'project' && ppId) {
         p.set('m', 'p'); p.set('id', ppId);
     } else if (currentMode === 'rank') {
@@ -2238,6 +2337,7 @@ window.addEventListener('popstate', function() {
     popping = true;
     try {
         if (st && st.m === 'p') openProjectPage(st.id);
+        else if (st && st.m === 'h') setMode('short');
         else if (st && st.m === 'u') openProfile(st.u);
         else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
         else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
@@ -2263,6 +2363,7 @@ function readUrlState() {
     var m = p.get('m');
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
+    if (m === 'h') return { m: 'h' };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
     if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '' };
     if (m !== 's' && m !== 'b') return null;
@@ -3115,14 +3216,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

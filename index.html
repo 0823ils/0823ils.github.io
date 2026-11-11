@@ -433,6 +433,12 @@
             .chat-perma { color: inherit; text-decoration: none; }
         .chat-perma:hover { text-decoration: underline; }
         .sh-link { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d5dbe6; background: #fff; cursor: pointer; padding: 0; }
+        .card-link { position: absolute; inset: 0; z-index: 1; }
+        .project-author, .project-rating { position: relative; z-index: 2; }
+        a.project-author { text-decoration: none; }
+        a.project-author:hover { text-decoration: underline; }
+        a.ava-link { display: inline-flex; vertical-align: middle; }
+        a.notif-item { display: block; color: inherit; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -1195,7 +1201,8 @@ function renderProjectPage() {
     if (!p) { box.innerHTML = '<div class="status-text">' + esc(db ? nt('ppNotFound') : t('loading')) + '</div>'; if (!db) setTimeout(function() { if (currentMode === 'project') renderProjectPage(); }, 600); return; }
     box.innerHTML =
         '<div class="pp-head"><h2 class="pp-title">' + esc(p.title) + '</h2>' +
-        '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="#" onclick="openUser(\'' + esc(p.author_username) + '\',event);return false">' + esc(p.author_username) + '</a>' + statHTML(p.loves, p.views) + '</div>' +
+        '<div class="pp-meta">' + esc(nt('ppBy')) + ' ' + avatarImg(p.author_id, 20) + ' <a href="' + esc(userUrl(p.author_username)) + '" data-u="' + esc(p.author_username) + '" onclick="return userLink(event,this.dataset.u)">' + esc(p.author_username) + '</a>' + statHTML(p.loves, p.views) +
+        ' <button class="sh-link" style="vertical-align:middle;margin-left:6px" title="' + esc(nt('lnkCopy')) + '" onclick="copyShareLink()">' + LINK_SVG + '</button></div>' +
         '</div>' +
         '<div class="pp-grid"><div class="pp-left"><div class="pp-stage"><div class="pp-frame"><div id="pp-embed" class="pp-embed"></div>' +
         '<img class="pp-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + Number(p.id) + '_480x360.png" alt="" onclick="ppPlay()"></div></div>' +
@@ -1371,8 +1378,9 @@ function avatarImg(id, size, name) {
     id = Number(id);
     if (!id) return '';
     var px = size <= 24 ? 32 : 90;
-    return '<img class="ava" width="' + size + '" height="' + size + '" alt="" loading="lazy" src="https://uploads.scratch.mit.edu/get_image/user/' + id + '_' + px + 'x' + px + '.png"' +
-        (name ? ' onclick="openUser(this.dataset.u,event)" data-u="' + esc(name) + '"' : '') + ' onerror="this.style.visibility=\'hidden\'">';
+    var img = '<img class="ava" width="' + size + '" height="' + size + '" alt="" loading="lazy" src="https://uploads.scratch.mit.edu/get_image/user/' + id + '_' + px + 'x' + px + '.png"' +
+        ' onerror="this.style.visibility=\'hidden\'">';
+    return name ? '<a class="ava-link" href="' + esc(userUrl(name)) + '" data-u="' + esc(name) + '" onclick="return userLink(event,this.dataset.u)">' + img + '</a>' : img;
 }
 // ユーザー名から Scratch のIDを調べる（収録データにいない人用）
 async function resolveUserId(name) {
@@ -1447,6 +1455,7 @@ function hlHTML(text) {
 
 function cardHTML(p) {
     return '<div class="project-card" data-id="' + Number(p.id) + '" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
+        '<a class="card-link" href="' + esc(projectUrl(p.id)) + '" aria-label="' + esc(p.title) + '" onclick="return cardLink(event)"></a>' +
         '<button class="card-short-btn" title="' + esc(nt('shOpen')) + '" onclick="shortFromCard(this,event)">▶</button>' +
         saveBtnHTML(p.id) +
         '<img class="project-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + p.id + '_480x360.png"' +
@@ -1454,7 +1463,7 @@ function cardHTML(p) {
         ' onerror="this.outerHTML=\'<div class=\\\'thumb-placeholder\\\'>?</div>\'">' +
         '<div class="project-info">' +
             '<div class="project-title">' + hlHTML(p.title) + '</div>' +
-            '<div class="project-author" onclick="openUser(\'' + esc(p.author_username) + '\',event)">' + avatarImg(p.author_id, 16) + '<span>by ' + hlHTML(p.author_username) + '</span></div>' +
+            '<a class="project-author" href="' + esc(userUrl(p.author_username)) + '" data-u="' + esc(p.author_username) + '" onclick="return userLink(event,this.dataset.u)">' + avatarImg(p.author_id, 16) + '<span>by ' + hlHTML(p.author_username) + '</span></a>' +
             '<div class="project-meta">' + t('lovesCount', p.loves || 0) + '</div>' +
             (apiEnabled() ? '<div class="project-rating" data-rate-id="' + Number(p.id) + '" onclick="openRate(' + Number(p.id) + ',event)"></div>' : '') +
         '</div>' +
@@ -2646,10 +2655,10 @@ async function loadNotifs() {
             var label = n.kind === 'reply' ? 'notifReply' : (n.kind === 'message' ? 'notifMessage' : 'notifMention');
             // 「すべてのメッセージ」の発言は、どの部屋かも添える
             var where = n.kind === 'message' ? ' · ' + ct('room_' + n.room) : '';
-            return '<div class="notif-item' + (n.read ? '' : ' unread') + '" data-id="' + Number(n.id) + '" data-kind="' + esc(n.kind) + '" data-room="' + esc(n.room) +
-                '" data-m="' + Number(n.message_id) + '" onclick="openNotif(this)">' +
+            return '<a class="notif-item' + (n.read ? '' : ' unread') + '" href="' + esc(notifUrl(n.room, n.message_id)) + '" data-id="' + Number(n.id) + '" data-kind="' + esc(n.kind) + '" data-room="' + esc(n.room) +
+                '" data-m="' + Number(n.message_id) + '" onclick="return notifClick(event,this)">' +
                 '<b>' + esc(n.from_username) + '</b>' + esc(ct(label)) +
-                '<div class="n-snip">' + esc(n.snippet) + '</div><div class="n-time">' + esc(notifTime(n.created_at) + where) + '</div></div>';
+                '<div class="n-snip">' + esc(n.snippet) + '</div><div class="n-time">' + esc(notifTime(n.created_at) + where) + '</div></a>';
         }).join('') : '<div class="notif-empty">' + esc(ct('notifEmpty')) + '</div>';
     } catch (e) { box.innerHTML = '<div class="notif-empty">' + esc(ct('e_other')) + '</div>'; }
 }
@@ -2708,6 +2717,7 @@ async function openNotif(el) {
         try { localStorage.setItem('twc_chat_room', room); } catch (e) {}
     }
     chatJumpTo = mid;
+    chatAround = mid;   // 直近50件にない古いメッセージでも開けるよう、その前後を読む
     chatReplyTo = null;
     renderReplyBar();
     setMode('chat');
@@ -2827,6 +2837,28 @@ function leaveChat() {
 
 var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+
+// ===== リンク（作品カード・ユーザー・通知） =====
+function projectUrl(id) { return location.href.split(/[?#]/)[0] + '?m=p&id=' + Number(id) + langQ(); }
+function userUrl(name) { return location.href.split(/[?#]/)[0] + '?m=u&u=' + encodeURIComponent(name) + langQ(); }
+// Cmd/Ctrl/Shiftクリックは、ふつうのリンクとして別タブで開く。ふつうのクリックは、その場で切り替える
+function isNewTabClick(ev) { return ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey; }
+function cardLink(ev) {
+    if (isNewTabClick(ev)) { ev.stopPropagation(); return true; }
+    return false;   // 親のカードの onclick（作品ページを開く）に任せる
+}
+function userLink(ev, name) {
+    ev.stopPropagation();
+    if (isNewTabClick(ev)) return true;
+    openProfile(name);
+    return false;
+}
+function notifUrl(room, mid) { return location.href.split(/[?#]/)[0] + '?m=c&room=' + encodeURIComponent(room) + '&msg=' + Number(mid) + langQ(); }
+function notifClick(ev, el) {
+    if (isNewTabClick(ev)) return true;
+    openNotif(el);
+    return false;
+}
 
 // ===== リンク（言語・ショート・チャットの1件ごと） =====
 function langQ() { return urlLang ? '&lang=' + urlLang : ''; }
@@ -3808,14 +3840,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pAccount: 'アカウント / ログアウト', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', shLink: 'この作品のリンクをコピー', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shLink: 'この作品のリンクをコピー', lnkCopy: 'リンクをコピー', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pAccount: 'Account / Log out', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', shLink: 'Copy link to this project', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shLink: 'Copy link to this project', lnkCopy: 'Copy link', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 
@@ -3963,7 +3995,7 @@ async function renderProfile() {
     var row = db ? queryOne('SELECT * FROM users WHERE lower(username) = lower(?)', [u]) : null;
     if (row) u = profileUser = row.username;
     var cnt = db ? queryOne('SELECT COUNT(*) AS c, COALESCE(SUM(loves),0) AS l FROM projects WHERE author_username = ? COLLATE NOCASE', [u]) : { c: 0, l: 0 };
-    document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" id="profile-avatar" alt="" src="" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + '</div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
+    document.getElementById('profile-head').innerHTML = '<div class="profile-head"><img class="profile-avatar" id="profile-avatar" alt="" src="" onerror="this.style.visibility=\'hidden\'"><div><div class="profile-name">' + esc(u) + ' <button class="sh-link" style="vertical-align:middle;margin-left:6px" title="' + esc(nt('lnkCopy')) + '" onclick="copyShareLink()">' + LINK_SVG + '</button></div><div class="profile-sub" id="profile-tags"><a href="https://scratch.mit.edu/users/' + encodeURIComponent(u) + '" target="_blank" rel="noopener">' + esc(nt('pScratch')) + '</a></div></div></div>';
     renderProfileAccount();
     resolveUserId(u).then(function(id) {
         var im = document.getElementById('profile-avatar');

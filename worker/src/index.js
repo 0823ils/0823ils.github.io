@@ -92,7 +92,6 @@ async function route(request, env) {
   if (path === '/api/ratings/detail' && method === 'GET') return ratingDetail(request, env, url);
   if (path === '/api/scratch/project' && method === 'GET') return scratchProjectInfo(url);
   if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
-  if (path === '/api/ratings.csv' && method === 'GET') return exportRatingsCsv(env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
 
@@ -117,6 +116,7 @@ async function route(request, env) {
   }
   if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env, url);
   if (path === '/api/chat/messages' && method === 'POST') return chatPost(request, env);
+  if (path === '/api/chat/translate' && method === 'POST') return translateChat(request, env);
   const cm = path.match(/^\/api\/chat\/messages\/(\d{1,12})(\/report)?$/);
   if (cm) {
     const id = Number(cm[1]);
@@ -379,31 +379,6 @@ async function myRatings(request, env) {
 
 // 全評価の書き出し（GitHub Actions が、スコアを計算して docs/ratings.json にするために使う）。
 // EXPORT_TOKEN が合わなければ見せない。誰がどれをつけたかを含むので、公開はしない
-
-// 公開評価データのCSVダウンロード（Excel向けUTF-8 BOM付き）
-async function exportRatingsCsv(env) {
-  const rows = await env.DB.prepare(
-    'SELECT project_id, user_id, username, score, updated_at FROM ratings ORDER BY project_id, user_id'
-  ).all();
-  const quote = (value) => {
-    let s = String(value ?? '');
-    // CSVを開いた際の数式実行を防ぐ
-    if (/^[=+@\\-\\t\\r]/.test(s)) s = "'" + s;
-    return '"' + s.replace(/"/g, '""') + '"';
-  };
-  const lines = [
-    ['project_id', 'user_id', 'username', 'score', 'updated_at'].join(','),
-    ...(rows.results || []).map(r => [r.project_id, r.user_id, r.username, r.score, r.updated_at].map(quote).join(','))
-  ];
-  return new Response('\\uFEFF' + lines.join('\\r\\n') + '\\r\\n', {
-    headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="projects.db.csv"',
-      'Cache-Control': 'no-store'
-    }
-  });
-}
-
 async function exportRatings(request, env) {
   const token = String(env.EXPORT_TOKEN || '');
   if (token.length < 16) throw new HttpError(503, 'export_disabled');
@@ -874,6 +849,81 @@ async function chatList(request, env, url) {
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
   return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, has_more: since === null && list.length >= CHAT_PAGE, video_enabled: videoEnabled(env) });
+}
+
+// ---------- チャットの翻訳（スマホ向け） ----------
+// Google Apps Script の LanguageApp.translate（Google翻訳）を呼ぶ。GAS側の無料枠は、翻訳の呼び出し 1日5,000回まで。
+//   ・ログインしている人だけが使える（していない人・失敗したときは、画面側が端末内の翻訳に切り替える）
+//   ・訳すのは、チャットに実際にあるメッセージだけ（ID で指定。自由な文章を訳すAPIにはしない）
+//   ・訳文は D1 に保存して、同じメッセージを二度訳さない（他の人が押したときも、保存済みの訳を返す）
+//   ・env.TRANSLATE_URL（GASのウェブアプリのURL）と env.TRANSLATE_SECRET（合言葉）は、wrangler secret で設定する
+const TRANSLATE_LANGS = ['ja', 'en'];
+const TRANSLATE_USER_PER_HOUR = 60;   // 1人が、1時間に新しく訳せる件数（保存済みの訳を見るだけなら数えない）
+const TRANSLATE_DAILY_MAX = 1500;     // サイト全体で、24時間に新しく訳す件数の上限。1件は最大3回ほどGASを呼ぶので、GASの 5,000回/日 を超えない値にしてある
+const TRANSLATE_WORDS = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/;
+
+// 訳さない部分（URL と @メンション）で、本文を区切る
+function translateSplit(text) {
+  const re = /https?:\/\/[^\s<>"']+|@[A-Za-z0-9_-]{3,20}/g;
+  const parts = [];
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push({ keep: false, s: text.slice(last, m.index) });
+    parts.push({ keep: true, s: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push({ keep: false, s: text.slice(last) });
+  return parts;
+}
+
+async function translateChat(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.TRANSLATE_URL || !env.TRANSLATE_SECRET) throw new HttpError(503, 'translate_unavailable');
+  const body = await readJson(request);
+  const id = body.id, lang = body.lang;
+  if (!Number.isInteger(id) || id < 1 || !TRANSLATE_LANGS.includes(lang)) throw new HttpError(400, 'bad_request');
+
+  const msg = await env.DB.prepare('SELECT content, hidden FROM chat_messages WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!msg || !msg.content || (msg.hidden && !isAdmin(user, env))) throw new HttpError(404, 'not_found');
+
+  const hit = await env.DB.prepare('SELECT text FROM chat_translations WHERE message_id = ? AND lang = ?').bind(id, lang).first();
+  if (hit) return json({ text: hit.text, cached: true });
+
+  const parts = translateSplit(msg.content);
+  const todo = parts.filter((p) => !p.keep && TRANSLATE_WORDS.test(p.s));
+  if (!todo.length) return json({ text: msg.content });   // 訳すところが無い（URLだけ、など）
+
+  const now = Date.now();
+  const mine = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_translations WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 3600000).first();
+  if (mine && mine.c >= TRANSLATE_USER_PER_HOUR) throw new HttpError(429, 'too_many');
+  const day = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_translations WHERE created_at > ?').bind(now - 86400000).first();
+  if (day && day.c >= TRANSLATE_DAILY_MAX) throw new HttpError(503, 'translate_quota');
+
+  let data;
+  try {
+    const res = await fetch(env.TRANSLATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // GASのウェブアプリは、この形なら事前確認なしで受け取れる
+      body: JSON.stringify({ secret: env.TRANSLATE_SECRET, to: lang, texts: todo.map((p) => p.s.trim()) }),
+      redirect: 'follow',
+    });
+    data = await res.json();
+  } catch {
+    throw new HttpError(502, 'translate_failed');
+  }
+  if (!data || data.ok !== true) throw new HttpError(data && data.error === 'quota' ? 503 : 502, data && data.error === 'quota' ? 'translate_quota' : 'translate_failed');
+  if (!Array.isArray(data.texts) || data.texts.length !== todo.length || data.texts.some((t) => typeof t !== 'string')) throw new HttpError(502, 'translate_failed');
+
+  let k = 0;
+  const text = parts.map((p) => {
+    if (p.keep || !TRANSLATE_WORDS.test(p.s)) return p.s;
+    const lead = p.s.match(/^\s*/)[0], trail = p.s.match(/\s*$/)[0];
+    return lead + data.texts[k++] + trail;
+  }).join('').slice(0, CHAT_MAX_LEN * 4);
+
+  await env.DB.prepare('INSERT OR IGNORE INTO chat_translations (message_id, lang, text, user_id, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(id, lang, text, user.uid, now).run();
+  return json({ text });
 }
 
 async function chatPost(request, env) {

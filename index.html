@@ -220,8 +220,9 @@
 
         /* ===== 保存 ===== */
         .project-card { position: relative; }
-        .card-short-btn { position: absolute; top: 6px; left: 6px; z-index: 2; height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: rgba(0,0,0,0.55); color: #fff; font-size: 12px; cursor: pointer; }
-        .card-short-btn:hover { background: rgba(0,0,0,0.75); }
+        .card-short-btn { position: absolute; top: 8px; left: 8px; z-index: 2; height: 30px; padding: 0 12px 0 10px; border-radius: 15px; border: 2px solid #fff; background: #ff4d6a; color: #fff; font-size: 13px; font-weight: bold; line-height: 1; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.35); cursor: pointer; transition: transform 0.15s, background 0.15s; }
+        .card-short-btn:hover { background: #ff2f52; transform: scale(1.06); }
+        .rank-wrap .card-short-btn { left: 34px; }   /* ランキングの順位の丸と重ならないように */
         .save-btn { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(0,0,0,0.25); font-size: 17px; line-height: 1; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, color 0.15s; z-index: 2; }
         .save-btn:hover { transform: scale(1.12); color: #4D97FF; }
         .save-btn.saved { color: #4D97FF; }
@@ -1461,7 +1462,7 @@ function hlHTML(text) {
 function cardHTML(p) {
     return '<div class="project-card" data-id="' + Number(p.id) + '" onclick="openProject(' + p.id + ', ' + (p.has_tw || 0) + ')">' +
         '<a class="card-link" href="' + esc(projectUrl(p.id)) + '" aria-label="' + esc(p.title) + '" onclick="return cardLink(event)"></a>' +
-        '<button class="card-short-btn" title="' + esc(nt('shOpen')) + '" onclick="shortFromCard(this,event)">▶</button>' +
+        '<button class="card-short-btn" title="' + esc(nt('shOpen')) + '" onclick="shortFromCard(this,event)">▶ ' + esc(nt('shBtn')) + '</button>' +
         saveBtnHTML(p.id) +
         '<img class="project-thumb" src="https://cdn2.scratch.mit.edu/get_image/project/' + p.id + '_480x360.png"' +
         ' alt="' + esc(p.title) + '" loading="lazy"' +
@@ -3897,14 +3898,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pAccount: 'アカウント / ログアウト', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', shLink: 'この作品のリンクをコピー', lnkCopy: 'リンクをコピー', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shLink: 'この作品のリンクをコピー', lnkCopy: 'リンクをコピー', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', shBtn: 'ショート', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pAccount: 'Account / Log out', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', shLink: 'Copy link to this project', lnkCopy: 'Copy link', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shLink: 'Copy link to this project', lnkCopy: 'Copy link', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', shBtn: 'Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

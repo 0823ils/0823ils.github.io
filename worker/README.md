@@ -209,10 +209,10 @@ npx wrangler deploy
 
 ## チャット翻訳（Google Apps Script）
 
-スマートフォンでログイン中、ブラウザ内蔵の翻訳APIが使えない場合は、Worker の `POST /api/chat/translate` 経由で Google Apps Script（`LanguageApp.translate`）を利用します。翻訳済みの文章は D1 の `chat_translations` に保存し、同じメッセージ・言語の再翻訳を避けます。失敗時は端末内の翻訳にフォールバックします。
+ログイン中は端末やブラウザの種類にかかわらず、Worker の `POST /api/chat/translate` 経由で Google Apps Script（`LanguageApp.translate`）を利用します。翻訳済みの文章は D1 の `chat_translations` に保存し、同じメッセージ・言語の再翻訳を避けます。ログアウト中はGAS翻訳を実行せずログインを案内し、設定不足・利用上限・通信失敗は原因別に表示します。端末内の翻訳モデルへの自動フォールバックは行いません。
 
 - GAS スクリプト: `translate.gs`。Web アプリとして公開し、スクリプトプロパティ `TWC_SECRET` を設定します。
-- Worker のシークレット: `TRANSLATE_URL`（GAS の `/exec` URL）と `TRANSLATE_SECRET`（GAS の `TWC_SECRET` と同じ値）。
+- Worker のシークレット: `TRANSLATE_URL`（GAS の `/exec` URL）と `TRANSLATE_SECRET`（GAS の `TWC_SECRET` と同じ値）。未登録の場合は `npx wrangler secret put TRANSLATE_URL` と `npx wrangler secret put TRANSLATE_SECRET` で設定します。
 - D1 の初回セットアップ: `npx wrangler d1 execute twc-ratings --remote --file=migrate_translate.sql`
 - Worker の反映: `npx wrangler deploy`
 

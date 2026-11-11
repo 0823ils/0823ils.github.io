@@ -4238,6 +4238,15 @@ var pushKeyInfo = null;
 (function() {
     if (!('serviceWorker' in navigator)) return;
     var pushTimer = null;
+    // 画面に戻ったとき（別のタブ・アプリから戻ったとき）も、ベルの未読数をすぐ取り直す（15秒以内の連続は省く）
+    var lastBellRefresh = 0;
+    var bellOnReturn = function() {
+        if (document.hidden || !loginUser || Date.now() - lastBellRefresh < 15000) return;
+        lastBellRefresh = Date.now();
+        refreshNotifCount();
+    };
+    document.addEventListener('visibilitychange', bellOnReturn);
+    window.addEventListener('focus', bellOnReturn);
     navigator.serviceWorker.addEventListener('message', function(ev) {
         if (!ev.data || ev.data.type !== 'twc-push' || !loginUser) return;
         clearTimeout(pushTimer);

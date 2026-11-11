@@ -79,12 +79,32 @@ async function readJson(request) {
   try { return await request.json(); } catch { throw new HttpError(400, 'bad_json'); }
 }
 
-async function route(request, env) {
+
+// Google Apps Script translation proxy. Set GAS_TRANSLATE_URL to the deployed /exec URL.
+async function translateProxy(request, env) {
+  if (!env.GAS_TRANSLATE_URL) throw new HttpError(503, 'translate_not_configured');
+  const body = await readJson(request);
+  const text = String(body.text || '');
+  const source = String(body.source || 'auto');
+  const target = String(body.target || 'ja');
+  if (!text || text.length > 5000) throw new HttpError(400, 'invalid_text');
+  if (!/^[a-z]{2,3}(-[A-Z]{2})?$/.test(target)) throw new HttpError(400, 'invalid_target');
+  const upstream = await fetch(env.GAS_TRANSLATE_URL, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({text, source, target})
+  });
+  if (!upstream.ok) throw new HttpError(502, 'translate_upstream');
+  let data;
+  try { data = await upstream.json(); } catch { throw new HttpError(502, 'translate_bad_response'); }
+  if (!data || typeof data.translation !== 'string') throw new HttpError(502, 'translate_failed');
+  return json({translation:data.translation});
+}
+\nasync function route(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
 
-  if (path === '/api/auth/start' && method === 'POST') return authStart(request, env);
+  if (path === '/api/translate' && method === 'POST') return translateProxy(request, env);\n  if (path === '/api/auth/start' && method === 'POST') return authStart(request, env);
   if (path === '/api/auth/verify' && method === 'POST') return authVerify(request, env);
   if (path === '/api/ratings' && method === 'GET') return getRatings(request, env, url);
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);

@@ -62,6 +62,15 @@ footer{margin-top:30px;color:var(--muted);font-size:12px}
     <span class="tag">Phase 1 · SB3 parser</span>
   </div>
 </section>
+<section class="panel" id="execution">
+  <h2>3. C++ / WebAssemblyで実行</h2>
+  <div class="runrow">
+    <button id="runCpp" disabled>C++で実行</button>
+    <span id="runtimeStatus" class="small">先にSB3ファイルを読み込んでください</span>
+  </div>
+  <canvas id="stage" width="480" height="360" aria-label="Scratch実行ステージ"></canvas>
+  <pre id="executionReport">実行結果はここに表示されます。</pre>
+</section>
 <section class="panel">
   <h2>変換エンジンの開発状況</h2>
   <p><span class="tag">現在</span> SB3 ZIP / project.json の読み込みとブロック構造解析</p>
@@ -117,7 +126,8 @@ async function inspect(file){
     const zip=await JSZip.loadAsync(file);
     const projectEntry=zip.file("project.json");
     if(!projectEntry)throw new Error("project.json がありません。.sb3形式のファイルを選択してください。");
-    const project=JSON.parse(await projectEntry.async("string"));\n    loadedProject=project; loadedZip=zip;
+    const project=JSON.parse(await projectEntry.async("string"));
+    loadedProject=project; loadedZip=zip;
     if(!project.targets||!Array.isArray(project.targets))throw new Error("Scratch 3.0のtargetsが見つかりません。");
     const opcodes={};let total=0,scripts=0;
     for(const target of project.targets){
@@ -137,6 +147,8 @@ async function inspect(file){
     $("opcodeList").textContent=Object.entries(opcodes).sort((a,b)=>b[1]-a[1]).map(([op,n])=>String(n).padStart(5)+"  "+op).join("\n")||"ブロックなし";
     $("results").hidden=false;
     setStatus("解析完了。ファイルはブラウザ内で処理され、サーバーには送信されていません。","good");
+    $("runCpp").disabled=false;
+    $("runtimeStatus").textContent="実行できます。C++ / WASMは実行時に読み込まれます。";
   }catch(e){$("results").hidden=true;setStatus("解析エラー: "+e.message,"warn");}
 }
 

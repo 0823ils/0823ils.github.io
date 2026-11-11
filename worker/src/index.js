@@ -1006,15 +1006,17 @@ async function notifPrefs(env, user) {
   return { mode: p && p.mode === 'mentions' ? 'mentions' : 'all', seen: p ? p.all_seen_id : 0 };
 }
 
-async function unreadCount(env, user, prefs) {
+// room を渡したときは、その部屋（いま開いて読んでいる部屋）の分は数えない
+async function unreadCount(env, user, prefs, room) {
   const me = user.u.toLowerCase();
-  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0`).bind(me).first();
+  const ex = typeof room === 'string' && CHAT_ROOMS.includes(room) ? room : '';
+  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0 AND n.room != ?`).bind(me, ex).first();
   let n = r ? r.c : 0;
   prefs = prefs || await notifPrefs(env, user);
   if (prefs.mode === 'all') {
     const q = await env.DB.prepare(
-      `SELECT COUNT(*) AS c FROM (SELECT 1 ${NOTIF_MSG_WHERE} AND m.id > ? LIMIT ${NOTIF_UNREAD_CAP})`
-    ).bind(me, me, prefs.seen).first();
+      `SELECT COUNT(*) AS c FROM (SELECT 1 ${NOTIF_MSG_WHERE} AND m.room != ? AND m.id > ? LIMIT ${NOTIF_UNREAD_CAP})`
+    ).bind(me, me, ex, prefs.seen).first();
     n += q ? q.c : 0;
   }
   return n;
@@ -1049,7 +1051,7 @@ async function notifList(request, env) {
 
 async function notifCount(request, env) {
   const user = await requireUser(request, env);
-  return json({ unread: await unreadCount(env, user) });
+  return json({ unread: await unreadCount(env, user, undefined, new URL(request.url).searchParams.get('room')) });
 }
 
 async function notifRead(request, env) {
@@ -1058,7 +1060,18 @@ async function notifRead(request, env) {
   const me = user.u.toLowerCase();
   await notifPrefs(env, user);   // 行がなければ作る（既読位置を持つ行）
   const LATEST = '(SELECT COALESCE(MAX(id), 0) FROM chat_messages)';
-  if (body.all === true) {
+  if (typeof body.room === 'string' && CHAT_ROOMS.includes(body.room) && Number.isInteger(body.upto) && body.upto > 0) {
+    // その部屋を開いて、upto までのメッセージを読んだとき。
+    //   ・その部屋の返信・メンションの通知を、upto までは既読にする
+    //   ・「すべてのメッセージ」の既読位置は、他の部屋に未読の発言があるときは、その手前までしか進めない（他の部屋の未読を消さないため）
+    await env.DB.batch([
+      env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE to_username = ? AND room = ? AND message_id <= ? AND is_read = 0').bind(me, body.room, body.upto),
+      env.DB.prepare(
+        `UPDATE notif_prefs SET all_seen_id = MAX(all_seen_id, MIN(?, ${LATEST}, COALESCE((SELECT MIN(m.id) - 1 ${NOTIF_MSG_WHERE} AND m.room != ? AND m.id > notif_prefs.all_seen_id), ?))) WHERE username = ?`
+      ).bind(body.upto, me, me, body.room, body.upto, me),
+    ]);
+    return json({ unread: await unreadCount(env, user, undefined, body.room) });
+  } else if (body.all === true) {
     await env.DB.batch([
       env.DB.prepare('UPDATE chat_notifications SET is_read = 1 WHERE to_username = ? AND is_read = 0').bind(me),
       env.DB.prepare(`UPDATE notif_prefs SET all_seen_id = ${LATEST} WHERE username = ?`).bind(me),
@@ -1451,7 +1464,7 @@ async function chatLatest(request, env) {
   // ログインしていれば、通知の未読数も一緒に返す（通知の確認を別に行わなくて済む）
   const out = { rooms };
   const user = await getUser(request, env);
-  if (user) out.unread = await unreadCount(env, user);
+  if (user) out.unread = await unreadCount(env, user, undefined, new URL(request.url).searchParams.get('room'));
   return json(out);
 }
 

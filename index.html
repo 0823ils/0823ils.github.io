@@ -112,7 +112,7 @@
         .filter-toggle-btn.active { background: #4D97FF; border-color: #4D97FF; }
         .filter-toggle-btn svg path { stroke: #888; transition: stroke 0.2s; }
         .filter-toggle-btn.active svg path { stroke: white; }
-        .filter-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 200px; opacity: 1; transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease; }
+        .filter-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 260px; opacity: 1; transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease; }
         .filter-box.hidden { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; border-width: 0; }
         .filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .filter-label { font-size: 13px; color: #888; white-space: nowrap; min-width: 80px; }
@@ -564,6 +564,7 @@
                     <span class="filter-label" data-i18n="genreLabel">ジャンル</span>
                     <select class="sort-select" id="s-genre-filter" onchange="onGenreFilterChange('s')"></select>
                 </div>
+                <div class="filter-row"><label style="font-size:13px;color:#888;cursor:pointer;display:flex;align-items:center;gap:6px"><input type="checkbox" id="s-show-low" onchange="onShowLowChange(this)" style="width:auto;padding:0"><span data-i18n="showLow">★2以下の作品も表示</span></label></div>
                 <div class="filter-row" id="s-skill-row">
                     <span class="filter-label" data-i18n="skillLabel">技術力</span>
                     <select class="sort-select" id="s-skill-filter" onchange="onSkillFilterChange('s')">
@@ -620,6 +621,7 @@
                     <span class="filter-label" data-i18n="genreLabel">ジャンル</span>
                     <select class="sort-select" id="b-genre-filter" onchange="onGenreFilterChange('b')"></select>
                 </div>
+                <div class="filter-row"><label style="font-size:13px;color:#888;cursor:pointer;display:flex;align-items:center;gap:6px"><input type="checkbox" id="b-show-low" onchange="onShowLowChange(this)" style="width:auto;padding:0"><span data-i18n="showLow">★2以下の作品も表示</span></label></div>
                 <div class="filter-row" id="b-skill-row">
                     <span class="filter-label" data-i18n="skillLabel">技術力</span>
                     <select class="sort-select" id="b-skill-filter" onchange="onSkillFilterChange('b')">
@@ -743,7 +745,7 @@ const LANG = {
         skillLabel: '技術力',
         skillAll: 'すべて',
         skillRated: '評価あり',
-        skillHigh: '★4以上',
+        skillHigh: '★4以上', showLow: '★2以下の作品も表示',
         shareTitle: 'この条件のリンクをコピー',
         shareCopied: 'リンクをコピーしました',
         rateOwn: '自分の作品は評価できません',
@@ -862,7 +864,7 @@ const LANG = {
         skillLabel: 'Skill',
         skillAll: 'All',
         skillRated: 'Rated',
-        skillHigh: '4★ or higher',
+        skillHigh: '4★ or higher', showLow: 'Also show works rated 2★ or lower',
         shareTitle: 'Copy a link to these results',
         shareCopied: 'Link copied',
         rateOwn: "You can't rate your own project",
@@ -1511,6 +1513,15 @@ function parseQuery(q) {
 
 // col: 'title' / 'author_username' / 'all'（作品名とユーザー名の両方）
 // 戻り値の words は、結果の中で強調する語
+// 技術力の平均が★2以下の作品は、既定では出さない（評価のない作品は出す）。絞り込みの「★2以下の作品も表示」で出せる
+var showLow = false;
+try { showLow = localStorage.getItem('twc_show_low') === '1'; } catch (e) {}
+function lowSkillSql() {
+    if (showLow || typeof skillRank === 'undefined' || !skillRank) return null;
+    var ids = skillRank.ids.filter(function(id) { return skillRank.avg[id] <= 2; });
+    return ids.length ? ids.join(',') : null;   // 整数だけのリスト
+}
+
 function buildWhere(col, q, lovesMin, lovesMax, authorExact, idList, genreList) {
     const conds = [];
     const params = [];
@@ -1542,6 +1553,8 @@ function buildWhere(col, q, lovesMin, lovesMax, authorExact, idList, genreList) 
     if (authorExact) { conds.push('author_username = ?'); params.push(authorExact); }
     if (idList) conds.push('id IN (' + idList + ')');       // 技術力での絞り込み（整数だけのリスト）
     if (genreList) conds.push('id IN (' + genreList + ')'); // ジャンルでの絞り込み（整数だけのリスト）
+    var lowList = lowSkillSql();
+    if (lowList) conds.push('id NOT IN (' + lowList + ')'); // ★2以下は出さない（既定）
     return { where: conds.length ? 'WHERE ' + conds.join(' AND ') : '', params, words };
 }
 
@@ -2422,6 +2435,15 @@ function skillFilterSql(mode) {
     return ids.length ? ids.join(',') : '0';   // 該当なしのときは、何にも一致しない条件にする
 }
 
+(function() { ['s-show-low', 'b-show-low'].forEach(function(id) { var el = document.getElementById(id); if (el) el.checked = showLow; }); })();
+
+function onShowLowChange(cb) {
+    showLow = !!cb.checked;
+    try { localStorage.setItem('twc_show_low', showLow ? '1' : '0'); } catch (e) {}
+    ['s-show-low', 'b-show-low'].forEach(function(id) { var el = document.getElementById(id); if (el) el.checked = showLow; });
+    if (currentMode === 'search') { sPage = 1; triggerSearch(); } else browseReset();
+}
+
 function onSkillFilterChange(prefix) {
     var sel = document.getElementById(prefix + '-skill-filter');
     var val = sel.value;
@@ -2624,9 +2646,12 @@ function setNotifBadge(n) {
     b.style.display = n > 0 ? 'block' : 'none';
 }
 
+// いまチャットを開いて見ているときは、その部屋の分は未読に数えない（サーバーに部屋を伝える）
+function notifRoomQ() { return (currentMode === 'chat' && !document.hidden) ? '?room=' + encodeURIComponent(chatRoom) : ''; }
+
 async function refreshNotifCount() {
     if (!loginUser) return;
-    try { setNotifBadge((await apiCall('GET', '/api/notifications/count')).unread); } catch (e) {}
+    try { setNotifBadge((await apiCall('GET', '/api/notifications/count' + notifRoomQ())).unread); } catch (e) {}
 }
 // 通知の未読数は、チャットの未読確認（pollBackground）と一緒に取る。別に定期確認はしない
 
@@ -4124,9 +4149,17 @@ async function checkAdminTab() {
 // --- チャットの未読（画面を見ていない間も、部屋ごとの最新IDを時々だけ確認する） ---
 var chatSeen = {}, chatLatestMap = {};
 try { chatSeen = JSON.parse(localStorage.getItem('twc_chat_seen') || '{}') || {}; } catch (e) {}
+var chatReadSent = {};   // 部屋ごとに、サーバーへ「ここまで読んだ」と伝えたID
 function markChatSeen() {
     if (!chatMsgs || !chatMsgs.length) return;
     var top = 0; chatMsgs.forEach(function(m) { if (m.id > top) top = m.id; });
+    // チャットを開いて見ているあいだは、その部屋の通知（ベルの赤い数字）も既読にする
+    if (loginUser && currentMode === 'chat' && !document.hidden && top > (chatReadSent[chatRoom] || 0)) {
+        chatReadSent[chatRoom] = top;
+        apiCall('POST', '/api/notifications/read', { room: chatRoom, upto: top })
+            .then(function(d) { if (d && typeof d.unread === 'number') setNotifBadge(d.unread); })
+            .catch(function() { chatReadSent[chatRoom] = 0; });
+    }
     if (top > (chatSeen[chatRoom] || 0)) {
         chatSeen[chatRoom] = top;
         try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
@@ -4136,7 +4169,7 @@ function markChatSeen() {
 async function pollBackground() {
     if (document.hidden || userIdle() || !apiEnabled()) return;
     try {
-        var r = await apiCall('GET', '/api/chat/latest');
+        var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ());
         chatLatestMap = r.rooms || {};
         if (typeof r.unread === 'number') setNotifBadge(r.unread);
     } catch (e) { return; }

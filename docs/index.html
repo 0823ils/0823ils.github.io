@@ -501,6 +501,13 @@
                         <button class="header-lang-btn" id="lang-en" onclick="setLang('en')">English</button>
                     </div>
                 </div>
+                <div class="header-menu-row" id="tr-auto-row" style="display:none">
+                    <span class="header-tw-label" data-i18n="trAutoLabel">チャットを自動翻訳</span>
+                    <label class="tw-toggle">
+                        <input type="checkbox" id="tr-auto-cb" onchange="trAutoSet(this.checked)">
+                        <span class="tw-slider"></span>
+                    </label>
+                </div>
                 <!-- 通知の設定（ログイン中だけ表示）: 範囲（すべて / 返信・メンションだけ）と、この端末への通知 -->
                 <div class="set-notif" id="set-notif">
                     <div class="notif-mode" id="notif-mode"></div>
@@ -751,6 +758,7 @@ const LANG = {
         loading: 'データベースを読み込み中...',
         loadError: '読み込みエラー: ',
         twToggleLabel: 'TurboWarp で開く',
+        trAutoLabel: 'チャットを自動翻訳',
         modeSearch: '検索',
         modeBrowse: '全作品',
         searchPlaceholder: '検索したいものを入力...',
@@ -870,6 +878,7 @@ const LANG = {
         loading: 'Loading database...',
         loadError: 'Load error: ',
         twToggleLabel: 'Open in TurboWarp',
+        trAutoLabel: 'Auto-translate chat',
         modeSearch: 'Search',
         modeBrowse: 'All Projects',
         searchPlaceholder: 'Search...',
@@ -3340,6 +3349,7 @@ function renderChat(msgs, forceScroll) {
         msgs.map(function(m, i) { return chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null); }).join('') +
         pend.map(chatPendHTML).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
+    trAutoUI(); trAutoSoon();
     if (chatJumpTo) {
         var target = chatJumpTo;
         chatJumpTo = 0;
@@ -3738,6 +3748,60 @@ async function chatTranslate(id) {
         delete trBusy[id];
         chatTrRefresh(id);
     }
+}
+
+// ---- 自動翻訳 ----
+// 設定（右上のメニュー）をオンにすると、ほかの言語のメッセージを、自動で訳して表示する。訳文の下の「原文を表示」で、いつでも原文に戻せる。
+//   - 新しいほうから順に、1件ずつ訳す（直近30件・自分の投稿は訳さない）。訳す場所は手動の翻訳と同じ（この端末の中だけ。サーバーの負荷はない）
+//   - 初回の確認（モデルのダウンロード）で「キャンセル」を選んだら、自動翻訳はオフに戻す
+//   - 訳せなかったとき（ダウンロードできない等）は、そこで止める（メッセージごとにエラーを並べない）。設定を入れ直すと、また試す
+var TR_AUTO = 'twc_tr_auto';
+var trAutoTried = {}, trAutoRunning = false, trAutoPaused = false, trAutoTimer = null;
+function trAutoOn() { try { return localStorage.getItem(TR_AUTO) === '1'; } catch (e) { return false; } }
+function trAutoUI() {
+    try {
+        var row = document.getElementById('tr-auto-row'), cb = document.getElementById('tr-auto-cb');
+        if (row) row.style.display = trSupported() ? '' : 'none';
+        if (cb) cb.checked = trAutoOn();
+    } catch (e) {}
+}
+function trAutoSet(on) {
+    try { localStorage.setItem(TR_AUTO, on ? '1' : '0'); } catch (e) {}
+    trAutoPaused = false; trAutoTried = {};
+    if (on) trAutoSoon(0);
+}
+function trAutoSoon(ms) {
+    clearTimeout(trAutoTimer);
+    if (!trAutoOn() || currentMode !== 'chat') return;
+    trAutoTimer = setTimeout(trAutoRun, ms == null ? 300 : ms);
+}
+async function trAutoRun() {
+    if (trAutoRunning || trAutoPaused || !trAutoOn() || !trSupported()) return;
+    trAutoRunning = true;
+    var did = 0;
+    try {
+        var me = loginUser ? loginUser.id : 0;
+        var list = chatMsgs.slice(-30).filter(function(m) {
+            return m.user_id !== me && !m.hidden && chatTrOffer(m) && !trCache[trKey(m.id)] && !trBusy[m.id] && !trAutoTried[trKey(m.id)];
+        }).reverse();
+        for (var i = 0; i < list.length; i++) {
+            if (!trAutoOn() || currentMode !== 'chat') break;
+            var id = Number(list[i].id);
+            trAutoTried[trKey(id)] = 1; did++;
+            await chatTranslate(id);
+            if (trCache[trKey(id)] || trBusy[id]) continue;
+            var note = trNote[id];
+            delete trNote[id]; chatTrRefresh(id);   // 自動のときは、エラー表示を残さない
+            if (!note) {   // 確認でキャンセルした
+                try { localStorage.setItem(TR_AUTO, '0'); } catch (e) {}
+                trAutoUI();
+                break;
+            }
+            if (note.k !== 'trSame' && note.k !== 'trPair') { trAutoPaused = true; break; }
+        }
+    } finally { trAutoRunning = false; }
+    // 訳している間に増えたメッセージも拾う
+    if (did && !trAutoPaused) trAutoSoon(800);
 }
 
 // 送信: 文字だけの投稿は、サーバーの返事を待たずに、すぐ画面に出す（送信中はうすいグレー）。

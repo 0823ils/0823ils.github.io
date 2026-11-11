@@ -3488,7 +3488,7 @@ function trOnnxOk() {
     try { return !!(window.isSecureContext && typeof WebAssembly === 'object' && typeof fetch === 'function'); }
     catch (e) { return false; }
 }
-function trSupported() { return trChromeOk() || trOnnxOk(); }
+function trSupported() { return true; } // 翻訳はWorker経由のGASで行う
 
 // このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違うとき）
 function chatTrOffer(m) {
@@ -3717,6 +3717,16 @@ async function trOnnxGet(src, tgt, onProgress) {
     };
 }
 
+async function trGAS(text, source, target) {
+    const response = await fetch(TWC_API + '/api/translate', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({text:String(text), source:source || 'auto', target:target || 'ja'})
+    });
+    const data = await response.json().catch(function(){ return {}; });
+    if (!response.ok || !data.translation) throw new Error(data.error || 'fail');
+    return data.translation;
+}
+
 async function chatTranslate(id) {
     var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
     if (!m || !m.content || trBusy[id]) return;
@@ -3752,7 +3762,7 @@ async function chatTranslate(id) {
 
 // ---- 自動翻訳 ----
 // 設定（右上のメニュー）をオンにすると、ほかの言語のメッセージを、自動で訳して表示する。訳文の下の「原文を表示」で、いつでも原文に戻せる。
-//   - 新しいほうから順に、1件ずつ訳す（画面に読み込んである分すべて。上へ読み込み足した古いものも。自分の投稿は訳さない）。訳す場所は手動の翻訳と同じ（この端末の中だけ。サーバーの負荷はない）
+//   - 新しいほうから順に、1件ずつ訳す（画面に読み込んである分すべて。上へ読み込み足した古いものも。自分の投稿は訳さない）。訳す場所は手動の翻訳と同じ（Google翻訳をサーバー経由で利用）
 //   - 初期設定はオン。初回の確認（モデルのダウンロード）で「キャンセル」を選んだら、オフにする
 //   - 訳せなかったとき（ダウンロードできない等）は、そこで止める（メッセージごとにエラーを並べない）。設定を入れ直すと、また試す
 var TR_AUTO = 'twc_tr_auto';

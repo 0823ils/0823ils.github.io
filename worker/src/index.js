@@ -470,6 +470,15 @@ function displayRatingValue(value) {
   return Math.sqrt(Math.max(value, 0) / 5) * 5;
 }
 
+// 評価者ごとの平均・標準偏差に、「★3をつけた、標準偏差1.0の評価作品1件ぶん」を、あらかじめ混ぜておく。
+//   ・評価の少ない人は、平均や標準偏差が当てにならない（1件だと標準偏差が0になる）ので、これで安定させる
+//   ・評価が多い人は、混ぜた1件の影響がほとんどなくなる
+// 値は、評価（(★/5)^2*5 に直したあとの値）と同じ尺度で扱う。
+const PRIOR_STARS = 3;
+const PRIOR_MEAN = (PRIOR_STARS / 5) ** 2 * 5;
+const PRIOR_SD = 1.0;
+const PRIOR_COUNT = 1;   // 評価作品数として数える件数
+
 // message.txt の calculate_scores と同じアルゴリズム。
 // raw rating -> (rating / 5)^2 * 5 -> 評価者補正・相関重み -> helper2。
 function calculateRatingRanking(rows) {
@@ -498,9 +507,14 @@ function calculateRatingRanking(rows) {
   const userStats = new Map();
   for (const [userId, ratings] of users) {
     const values = [...ratings.values()];
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, x) => sum + (x - mean) ** 2, 0) / values.length;
-    userStats.set(userId, { mean, sd: Math.sqrt(variance) });
+    // 仮の評価（★3・標準偏差1.0）を PRIOR_COUNT 件ぶん足して、平均と分散を出す
+    const total = values.length + PRIOR_COUNT;
+    const mean = (values.reduce((a, b) => a + b, 0) + PRIOR_MEAN * PRIOR_COUNT) / total;
+    const variance = (
+      values.reduce((sum, x) => sum + (x - mean) ** 2, 0)
+      + PRIOR_COUNT * ((PRIOR_MEAN - mean) ** 2 + PRIOR_SD ** 2)
+    ) / total;
+    userStats.set(userId, { mean, sd: Math.sqrt(variance), count: values.length });
   }
 
   const correlations = new Map();
@@ -545,7 +559,8 @@ function calculateRatingRanking(rows) {
         + Math.atan((hensachi - 50) / 6) * (5 / Math.PI)
         + 2.5
       ) / 1.5;
-      const importance = Math.max(correlations.get(userId) + 0.3, 0.1);
+      // 重み: 相関による重みに、評価数が多い人ほど大きくなる係数（3 + √評価数）をかける
+      const importance = Math.max(correlations.get(userId) + 0.3, 0.1) * (3 + Math.sqrt(stats.count));
       weightedSum += adjusted * importance;
       importanceSum += importance;
     }

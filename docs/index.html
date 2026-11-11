@@ -1356,8 +1356,12 @@ function enterShort() {
     var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
-    sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
-    sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
+    var shortTop = hd ? Math.round(hd.getBoundingClientRect().bottom) : 106;
+    sec.style.top = shortTop + 'px';
+    sec.style.bottom = 'auto';
+    sec.style.height = 'calc(100vh - ' + shortTop + 'px';
+    // 固定配置の高さを明示し、直リンク/初回表示でも feed と --sh-h が 0 にならないようにする
+    sec.style.setProperty('--sh-h', Math.max(1, Math.round(sec.getBoundingClientRect().height)) + 'px');
     if (!shortObs) { shortMakeObs(); shortAppend(40); }
     feed.scrollTop = shortCur * feed.clientHeight;
     shortReady = false; shortSetCur(shortCur);

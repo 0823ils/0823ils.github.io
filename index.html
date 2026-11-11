@@ -414,8 +414,9 @@
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
         .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
         /* 連続した投稿: 名前・アイコンを省いて、前の投稿の下に続ける */
-        .chat-msg.cont { padding-top: 0; margin-left: 27px; }
-        .chat-msg.cont .chat-time { visibility: hidden; }
+        .chat-msg.cont { position: relative; padding-top: 0; margin-left: 0; }
+        /* 続きの投稿では時刻をレイアウト幅に含めず、本文を通常投稿と同じ左端に揃える */
+        .chat-msg.cont .chat-time { position: absolute; top: 2px; right: 4px; visibility: hidden; }
         .chat-msg.cont:hover .chat-time { visibility: visible; }
         .chat-msg:has(+ .chat-msg.cont) { border-bottom-color: transparent; }
         /* 送信中・送れなかった投稿 */

@@ -78,12 +78,15 @@ def calculate_scores(project_points):
             for project_ratings in projects.values()
             if user in project_ratings
         ]
-        mean = sum(ratings) / len(ratings)
-        variance = sum((x - mean) ** 2 for x in ratings) / len(ratings)
-        user_stats[user] = {
-            "mean": mean,
-            "sd": math.sqrt(variance),
-        }
+        # 評価が1作品だけのユーザーは「基準★3・標準偏差1.0」と仮定する。
+        # 二乗スケールでは ★3 = (3/5)^2*5 = 1.8
+        if len(ratings) == 1:
+            mean, sd = 1.8, 1.0
+        else:
+            mean = sum(ratings) / len(ratings)
+            variance = sum((x - mean) ** 2 for x in ratings) / len(ratings)
+            sd = math.sqrt(variance)
+        user_stats[user] = {"mean": mean, "sd": sd, "rating_count": len(ratings)}
 
     # 各ユーザーと「自分自身を除いたプロジェクト平均」の相関係数
     correlations = {}
@@ -136,7 +139,9 @@ def calculate_scores(project_points):
             ) / 1.5
 
             # 評価者の重要度
-            importance = max(correlations[user] + 0.3, 0.1)
+            # 評価作品数による重み: Weight × (3 + sqrt(評価作品数))
+            rating_count = user_stats[user]["rating_count"]
+            importance = max(correlations[user] + 0.3, 0.1) * (3 + math.sqrt(rating_count))
             weighted_sum += adjusted * importance
             importance_sum += importance
 

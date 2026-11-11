@@ -26,7 +26,7 @@ int main(){
   sb3cpp_add_command(s,10,0,0,"");
   sb3cpp_run();
   assert(std::abs(sb3cpp_get_x(s)-10.0)<1e-9);
-  assert(std::abs(sb3cpp_get_y(s)-10.0)<1e-9);
+  assert(std::abs(sb3cpp_get_y(s)+10.0)<1e-9);
   assert(std::abs(sb3cpp_get_direction(s)-180.0)<1e-9);
   assert(std::abs(sb3cpp_get_size(s)-150.0)<1e-9);
   assert(sb3cpp_get_visible(s)==0);

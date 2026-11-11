@@ -220,8 +220,8 @@
 
         /* ===== 保存 ===== */
         .project-card { position: relative; }
-        .card-short-btn { position: absolute; top: 10px; left: 10px; z-index: 2; height: 22px; padding: 0 8px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.22); background: rgba(35, 48, 68, 0.78); color: #fff; font-size: 10px; font-weight: 600; line-height: 1; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.16); cursor: pointer; transition: transform 0.15s, background 0.15s; }
-        .card-short-btn:hover { background: rgba(35, 48, 68, 0.94); transform: scale(1.03); }
+        .card-short-btn { position: absolute; top: 8px; left: 8px; z-index: 2; height: 30px; padding: 0 12px 0 10px; border-radius: 15px; border: 2px solid #fff; background: #ff4d6a; color: #fff; font-size: 13px; font-weight: bold; line-height: 1; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.35); cursor: pointer; transition: transform 0.15s, background 0.15s; }
+        .card-short-btn:hover { background: #ff2f52; transform: scale(1.06); }
         .rank-wrap .card-short-btn { left: 34px; }   /* ランキングの順位の丸と重ならないように */
         .save-btn { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(0,0,0,0.25); font-size: 17px; line-height: 1; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: transform 0.15s, color 0.15s; z-index: 2; }
         .save-btn:hover { transform: scale(1.12); color: #4D97FF; }
@@ -277,7 +277,7 @@
         .sh-feed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; }
         .sh-slide { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 8px; box-sizing: border-box; }
         /* TurboWarp埋め込みは、上に操作バー(約48px)が付く。その分を足した高さにして、横にも縦にもずれないようにする */
-        .sh-slide { --shw: min(96vw, calc((100vh - 390px) * 1.3333)); }
+        .sh-slide { --shw: min(96vw, calc((var(--sh-h, 600px) - 208px) * 1.3333)); }
         .sh-stage { position: relative; width: var(--shw); height: calc(var(--shw) * 0.75 + 48px); background: transparent; border-radius: 10px; overflow: hidden; }
         .sh-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .sh-thumb { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
@@ -663,8 +663,7 @@
             <div class="rank-toggle">
                 <button id="rank-week-btn" class="active" onclick="setRankPeriod('week')"></button>
                 <button id="rank-all-btn" onclick="setRankPeriod('all')"></button>
-                <a href="https://twc-api.twc-scratch.workers.dev/api/ratings.csv" download style="margin-left:auto;align-self:center;padding:8px 12px;border:1px solid #d8dce3;border-radius:10px;color:#4D97FF;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap" title="評価データをCSVでダウンロード">CSV ↓</a>
-                <button onclick="copyShareLink()" style="margin-left:8px" data-i18n-title="shareTitle" title="この条件のリンクをコピー"><svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button onclick="copyShareLink()" style="margin-left:auto" data-i18n-title="shareTitle" title="この条件のリンクをコピー"><svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
             <div id="rank-list"></div>
         </div>
@@ -1314,7 +1313,7 @@ function shortSync() {
         fr.setAttribute('data-run', run ? '1' : '0');
         fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
         if (old) fr.style.visibility = 'hidden';
-        var done = function() { if (!fr.isConnected || box.querySelector('iframe:last-child') !== fr) return; fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
+        var done = function() { fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
         fr.addEventListener('load', done); setTimeout(done, 5000);
         fr.src = shortSrc(sl.getAttribute('data-id'), run);
         box.appendChild(fr);
@@ -1357,13 +1356,8 @@ function enterShort() {
     var feed = document.getElementById('short-feed'), sec = document.getElementById('short-section');
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
-    var shortTop = hd ? Math.round(hd.getBoundingClientRect().bottom) : 106;
-    sec.style.top = shortTop + 'px';
-    sec.style.bottom = 'auto';
-    sec.style.height = 'calc(100vh - ' + shortTop + 'px';
-    // 固定配置の高さを明示し、直リンク/初回表示でも feed と --sh-h が 0 にならないようにする
-    sec.style.setProperty('--sh-h', Math.max(1, Math.round(window.innerHeight - shortTop)) + 'px');
-    sec.style.setProperty('--shw', Math.min(window.innerWidth * 0.96, Math.max(280, (window.innerHeight - shortTop - 208) * 1.3333)) + 'px');
+    sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
+    sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
     if (!shortObs) { shortMakeObs(); shortAppend(40); }
     feed.scrollTop = shortCur * feed.clientHeight;
     shortReady = false; shortSetCur(shortCur);

@@ -206,3 +206,14 @@ npx wrangler deploy
 - 閲覧URLに `response-cache-control`（既定7日）を付けて、ブラウザに長く覚えさせます。
   B2が受け付けず見られなくなった場合は、`wrangler.toml` の `VIEW_CACHE_SECONDS = "0"` にして再デプロイすると外れます。
 - 動画は再生を押すまで読み込みません。写真は画面に入るまで読み込みません。
+
+## チャット翻訳（Google Apps Script）
+
+スマートフォンでログイン中、ブラウザ内蔵の翻訳APIが使えない場合は、Worker の `POST /api/chat/translate` 経由で Google Apps Script（`LanguageApp.translate`）を利用します。翻訳済みの文章は D1 の `chat_translations` に保存し、同じメッセージ・言語の再翻訳を避けます。失敗時は端末内の翻訳にフォールバックします。
+
+- GAS スクリプト: `translate.gs`。Web アプリとして公開し、スクリプトプロパティ `TWC_SECRET` を設定します。
+- Worker のシークレット: `TRANSLATE_URL`（GAS の `/exec` URL）と `TRANSLATE_SECRET`（GAS の `TWC_SECRET` と同じ値）。
+- D1 の初回セットアップ: `npx wrangler d1 execute twc-ratings --remote --file=migrate_translate.sql`
+- Worker の反映: `npx wrangler deploy`
+
+GAS 側は日本語・英語の翻訳に対応し、1回の要求で最大20件、各1,000文字まで処理します。Worker 側ではログイン必須・ユーザーごとの利用回数制限・サイト全体の日次上限を適用します。

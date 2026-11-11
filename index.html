@@ -3741,13 +3741,10 @@ async function chatTranslate(id) {
     delete trNote[id];
     chatTrRefresh(id);
     try {
-        var src = await trDetect(m.content);
+        var src = trGuessLang(m.content) || 'auto';
         if (!src) throw new Error('fail');
         if (src === currentLang) throw new Error('same');
-        var out = await trRun(m.content, src, currentLang, function(p) {
-            trNote[id] = { k: 'trDl', p: Math.round(p * 100) };
-            chatTrRefresh(id);
-        });
+        var out = await trGAS(m.content, src, currentLang);
         trCache[key] = { t: out, a: Date.now() };
         trSave();
         trView[id] = true;

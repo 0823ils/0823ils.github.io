@@ -3782,12 +3782,17 @@ async function trAutoRun() {
     try {
         var me = loginUser ? loginUser.id : 0;
         var list = chatMsgs.slice(-30).filter(function(m) {
-            return m.user_id !== me && !m.hidden && chatTrOffer(m) && !trCache[trKey(m.id)] && !trBusy[m.id] && !trAutoTried[trKey(m.id)];
+            return m.user_id !== me && !m.hidden && chatTrOffer(m) && !trBusy[m.id] && !trAutoTried[trKey(m.id)];
         }).reverse();
         for (var i = 0; i < list.length; i++) {
             if (!trAutoOn() || currentMode !== 'chat') break;
             var id = Number(list[i].id);
-            trAutoTried[trKey(id)] = 1; did++;
+            trAutoTried[trKey(id)] = 1;
+            if (trCache[trKey(id)]) {   // 前に訳してあるものは、訳さずに、訳文の表示に切り替えるだけ（1回だけ。原文に戻したあとは触らない）
+                trView[id] = true; delete trNote[id]; chatTrRefresh(id);
+                continue;
+            }
+            did++;
             await chatTranslate(id);
             if (trCache[trKey(id)] || trBusy[id]) continue;
             var note = trNote[id];

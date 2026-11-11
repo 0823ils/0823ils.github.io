@@ -1313,7 +1313,7 @@ function shortSync() {
         fr.setAttribute('data-run', run ? '1' : '0');
         fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
         if (old) fr.style.visibility = 'hidden';
-        var done = function() { fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
+        var done = function() { if (!fr.isConnected || box.querySelector('iframe:last-child') !== fr) return; fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
         fr.addEventListener('load', done); setTimeout(done, 5000);
         fr.src = shortSrc(sl.getAttribute('data-id'), run);
         box.appendChild(fr);

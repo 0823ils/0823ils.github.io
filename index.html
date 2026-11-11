@@ -1921,6 +1921,8 @@ function updateLoginUI() {
         btn.innerText = t('loginBtn');
     }
     renderProfileAccount();
+    if (typeof trAutoUI === 'function') trAutoUI();
+    if (loginUser && typeof trAutoSoon === 'function' && typeof trAutoOn === 'function' && trAutoOn()) trAutoSoon(0);
 }
 
 function showLoginView(name) {
@@ -2811,7 +2813,7 @@ var CHAT_T = {
           notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
           notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
           trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trLabelG: '翻訳済み（Google翻訳）', trDl: '翻訳データをダウンロード中',
-          trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
+          trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: 'GAS翻訳に失敗しました。ネットワークやGASの公開設定を確認してください', trLogin: 'GAS翻訳を使うにはログインしてください', trUnavailable: 'GAS翻訳サーバーの設定が不足しています。WorkerのTRANSLATE_URLとTRANSLATE_SECRETを確認してください', trQuota: 'GAS翻訳の1日の利用上限に達しました。時間をおいてください', trRateLimit: '短時間の翻訳回数制限に達しました。時間をおいてください',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
@@ -2828,7 +2830,7 @@ var CHAT_T = {
           notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
           notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
           trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trLabelG: 'Translated (Google Translate)', trDl: 'Downloading translation data',
-          trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
+          trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Google translation failed. Check the network or GAS deployment and try again.", trLogin: "Sign in to use Google translation.", trUnavailable: "Google translation is not configured on the server.", trQuota: "The daily Google translation limit has been reached.", trRateLimit: "Too many translations in a short time. Please try again later.",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           older: 'Load older messages', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
@@ -3488,7 +3490,7 @@ function trOnnxOk() {
     try { return !!(window.isSecureContext && typeof WebAssembly === 'object' && typeof fetch === 'function'); }
     catch (e) { return false; }
 }
-function trSupported() { return trChromeOk() || trOnnxOk(); }
+function trSupported() { return apiEnabled(); }
 
 // このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違うとき）
 function chatTrOffer(m) {
@@ -3500,12 +3502,14 @@ function chatTrOffer(m) {
 function chatTrBtnHTML(m) {
     if (!chatTrOffer(m)) return '';
     var id = Number(m.id);
-    var label = trBusy[id] ? ct('trBusy') : (trCache[trKey(id)] ? ct(trView[id] ? 'trOrig' : 'trShow') : ct('trBtn'));
+    var c = trCache[trKey(id)];
+    var hasGoogleCache = !!(c && c.s === 'g');
+    var label = trBusy[id] ? ct('trBusy') : (hasGoogleCache ? ct(trView[id] ? 'trOrig' : 'trShow') : ct('trBtn'));
     return '<button class="chat-act' + (trBusy[id] ? ' busy' : '') + '" onclick="chatTranslate(' + id + ')">' + esc(label) + '</button>';
 }
 
 function chatTextBlockHTML(m) {
-    var id = Number(m.id), c = trCache[trKey(id)], showTr = !!(trView[id] && c);
+    var id = Number(m.id), c = trCache[trKey(id)], showTr = !!(trView[id] && c && c.s === 'g');
     var n = trNote[id];
     return '<div class="chat-text">' + chatTextHTML(showTr ? c.t : m.content) + '</div>' +
         (showTr ? '<div class="chat-tr-note">' + esc(ct(c.s === 'g' ? 'trLabelG' : 'trLabel')) + '</div>' : '') +
@@ -3717,15 +3721,8 @@ async function trOnnxGet(src, tgt, onProgress) {
     };
 }
 
-// Worker経由のGoogle翻訳を使う条件（ログイン中の全端末）
-function trIsMobile() {
-    try {
-        var ua = navigator.userAgent || '';
-        return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    } catch (e) { return false; }
-}
-var trServerOff = false;   // 上限・未設定のとき、この画面を開いているあいだは、サーバー翻訳をやめて端末内に切り替える
-function trServerOk() { return !trServerOff && !!loginUser; }
+// GAS翻訳を使えるか。ログイン状態は端末ごとに保存されるため、端末ごとに確認する
+function trServerOk() { return !!loginUser; }
 async function trServer(id, tgt) {
     var d = await apiCall('POST', '/api/chat/translate', { id: id, lang: tgt });
     if (!d || typeof d.text !== 'string') throw new Error('fail');
@@ -3736,43 +3733,50 @@ async function chatTranslate(id) {
     var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
     if (!m || !m.content || trBusy[id]) return;
     var key = trKey(id);
-    if (trCache[key] && !(trServerOk() && trCache[key].s !== 'g')) {   // Google翻訳済み、または端末内翻訳を使う条件でなければキャッシュを表示
+
+    // GASで翻訳したキャッシュだけを再利用する
+    if (trCache[key] && trCache[key].s === 'g') {
         trView[id] = !trView[id];
         delete trNote[id];
         chatTrRefresh(id);
         return;
     }
-    // 以前の端末内翻訳キャッシュがある場合、スマホではGAS翻訳を再試行して置き換える
-    if (trCache[key] && trServerOk() && trCache[key].s !== 'g') {
+
+    // 旧バージョンの端末内翻訳キャッシュは破棄し、GAS翻訳に置き換える
+    if (trCache[key]) {
         delete trCache[key];
         delete trView[id];
         trSave();
     }
+
     trBusy[id] = true;
     delete trNote[id];
     chatTrRefresh(id);
     try {
+        if (!trServerOk()) throw new Error('login_required');
+
         var src = await trDetect(m.content);
         if (!src) throw new Error('fail');
         if (src === currentLang) throw new Error('same');
-        var out = null, via = '';
-        if (trServerOk()) {   // ログイン中は端末を問わずGoogle翻訳（Worker経由）を優先
-            try { out = await trServer(id, currentLang); via = 'g'; }
-            catch (e) {
-                out = null;
-                if (e && (e.message === 'translate_unavailable' || e.message === 'translate_quota')) trServerOff = true;
-            }
-        }
-        if (out === null) out = await trRun(m.content, src, currentLang, function(p) {
-            trNote[id] = { k: 'trDl', p: Math.round(p * 100) };
-            chatTrRefresh(id);
-        });
-        trCache[key] = { t: out, a: Date.now(), s: via };
+
+        var out = await trServer(id, currentLang);
+        trCache[key] = { t: out, a: Date.now(), s: 'g' };
         trSave();
         trView[id] = true;
         delete trNote[id];
     } catch (e) {
-        if (e && e.message === 'cancel') { /* 確認でやめた */ } else trNote[id] = { k: e && e.message === 'pair' ? 'trPair' : (e && e.message === 'same' ? 'trSame' : 'trFail') };
+        if (e && e.message === 'cancel') {
+            /* GAS翻訳では確認ダイアログを使わない */
+        } else {
+            var note = 'trFail';
+            if (e && (e.message === 'login_required' || e.message === 'unauthorized' || e.status === 401)) note = 'trLogin';
+            else if (e && e.message === 'translate_unavailable') note = 'trUnavailable';
+            else if (e && e.message === 'translate_quota') note = 'trQuota';
+            else if (e && (e.message === 'too_many' || e.status === 429)) note = 'trRateLimit';
+            else if (e && e.message === 'pair') note = 'trPair';
+            else if (e && e.message === 'same') note = 'trSame';
+            trNote[id] = { k: note };
+        }
     } finally {
         delete trBusy[id];
         chatTrRefresh(id);
@@ -3784,15 +3788,15 @@ async function chatTranslate(id) {
 // ---- 自動翻訳 ----
 // 設定（右上のメニュー）をオンにすると、ほかの言語のメッセージを、自動で訳して表示する。訳文の下の「原文を表示」で、いつでも原文に戻せる。
 //   - 新しいほうから順に、1件ずつ訳す（画面に読み込んである分すべて。上へ読み込み足した古いものも。自分の投稿は訳さない）。訳す場所は手動の翻訳と同じ（Google翻訳をサーバー経由で利用）
-//   - 初期設定はオン。初回の確認（モデルのダウンロード）で「キャンセル」を選んだら、オフにする
-//   - 訳せなかったとき（ダウンロードできない等）は、そこで止める（メッセージごとにエラーを並べない）。設定を入れ直すと、また試す
+//   - 初期設定はオン。ログイン中だけGAS翻訳を自動実行し、失敗したら理由を表示して停止する
+//   - 端末内モデルへのフォールバックやダウンロードは行わない
 var TR_AUTO = 'twc_tr_auto';
 var trAutoTried = {}, trAutoRunning = false, trAutoPaused = false, trAutoTimer = null;
 function trAutoOn() { try { return localStorage.getItem(TR_AUTO) !== '0'; } catch (e) { return true; } }   // 初期設定はオン（設定でオフにした人だけ '0'）
 function trAutoUI() {
     try {
         var row = document.getElementById('tr-auto-row'), cb = document.getElementById('tr-auto-cb');
-        if (row) row.style.display = trSupported() ? '' : 'none';
+        if (row) row.style.display = (trSupported() && !!loginUser) ? '' : 'none';
         if (cb) cb.checked = trAutoOn();
     } catch (e) {}
 }
@@ -3807,7 +3811,7 @@ function trAutoSoon(ms) {
     trAutoTimer = setTimeout(trAutoRun, ms == null ? 300 : ms);
 }
 async function trAutoRun() {
-    if (trAutoRunning || trAutoPaused || !trAutoOn() || !trSupported()) return;
+    if (trAutoRunning || trAutoPaused || !trAutoOn() || !trSupported() || !loginUser) return;
     trAutoRunning = true;
     var did = 0;
     try {
@@ -3819,7 +3823,7 @@ async function trAutoRun() {
             if (!trAutoOn() || currentMode !== 'chat') break;
             var id = Number(list[i].id);
             trAutoTried[trKey(id)] = 1;
-            if (trCache[trKey(id)] && !(trServerOk() && trCache[trKey(id)].s !== 'g')) {   // Google翻訳済みなら再利用。スマホに残った端末内翻訳キャッシュはGASで更新
+            if (trCache[trKey(id)] && trCache[trKey(id)].s === 'g') {   // GAS翻訳済みキャッシュだけ再利用
                 trView[id] = true; delete trNote[id]; chatTrRefresh(id);
                 continue;
             }

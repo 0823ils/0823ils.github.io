@@ -2719,7 +2719,7 @@ var CHAT_T = {
           replyTo: ' への返信', cancel: '取り消し', quoteGone: '元のメッセージは削除されました', notifTitle: '通知', notifEmpty: '通知はありません',
           notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
           notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
-          trBtn: '翻訳', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
+          trBtn: '翻訳', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
@@ -2736,7 +2736,7 @@ var CHAT_T = {
           replyTo: '', cancel: 'Cancel', quoteGone: 'The original message was deleted', notifTitle: 'Notifications', notifEmpty: 'No notifications',
           notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
           notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
-          trBtn: 'Translate', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
+          trBtn: 'Translate', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
@@ -3216,7 +3216,7 @@ function chatMsgHTML(m, me) {
 //   - 訳す先は、サイトの表示言語（日本語 / 英語）。本文が最初からその言語なら、ボタンは出さない
 //   - URL と @メンション は訳さず、そのまま残す
 //   - 訳文は、この端末のlocalStorageに残す（同じメッセージを二度訳さない）。メッセージを編集するAPIはないので、IDで覚えてよい
-//   - 翻訳エンジンは、いまはブラウザ内蔵の Translator API だけ（PCのChrome・Edge）。非対応の端末には、翻訳ボタンを出さない。
+//   - 翻訳エンジンは2つ: PCのChrome・Edgeはブラウザ内蔵の Translator API、それ以外（スマホなど）はブラウザの中で動くONNXモデル（trOnnxGet）。
 //     ほかのエンジン（ブラウザの中で動くモデルなど）を足すときは、trSupported / trDetect / trRun を差し替える
 var TR_STORE = 'twc_tr_cache_v1';
 var TR_MAX = 200;                // 端末に残す訳文の数
@@ -3286,10 +3286,16 @@ function trGuessLang(text) {
     return '';
 }
 
-function trSupported() {
+function trChromeOk() {
     try { return !!(window.isSecureContext && typeof self.Translator === 'function' && typeof self.Translator.create === 'function'); }
     catch (e) { return false; }
 }
+// ブラウザの中で動くモデル（ONNX）が使えるか。WebAssembly があれば動く（スマホのSafari・Chromeも含む）
+function trOnnxOk() {
+    try { return !!(window.isSecureContext && typeof WebAssembly === 'object' && typeof fetch === 'function'); }
+    catch (e) { return false; }
+}
+function trSupported() { return trChromeOk() || trOnnxOk(); }
 
 // このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違うとき）
 function chatTrOffer(m) {
@@ -3355,7 +3361,12 @@ async function trDetect(text) {
 
 // URL と @メンション はそのまま残し、そのほかの部分だけを訳す
 async function trRun(text, src, tgt, onProgress) {
-    var tr = await trChromeGet(src, tgt, onProgress);
+    var tr = null;
+    if (trChromeOk()) {   // PCのChrome・Edge: ブラウザ内蔵の翻訳を先に使う
+        try { tr = await trChromeGet(src, tgt, onProgress); }
+        catch (e) { if (!trOnnxOk()) throw e; tr = null; }
+    }
+    if (!tr) tr = await trOnnxGet(src, tgt, onProgress);   // それ以外（スマホなど）は ONNX
     var parts = trSplit(text), out = '';
     for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
@@ -3364,6 +3375,102 @@ async function trRun(text, src, tgt, onProgress) {
         out += lead + (await tr.translate(p.s.trim())) + trail;
     }
     return out;
+}
+
+// ---- 翻訳エンジン: ブラウザの中で動くモデル（ONNX / Transformers.js + opus-mt） ----
+//   Chromeの翻訳APIが無い端末（スマホなど）向け。モデルは Hugging Face から端末に直接ダウンロードされ、
+//   ブラウザのキャッシュに残る（サーバーには何も送らない）。日本語⇄英語、韓国語・ロシア語→英語/日本語（英語を経由）
+var TR_ONNX_LIB = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6/+esm';
+var TR_ONNX_MODELS = {
+    'ja>en': 'Xenova/opus-mt-ja-en', 'en>ja': 'Xenova/opus-mt-en-jap',
+    'ko>en': 'Xenova/opus-mt-ko-en', 'ru>en': 'Xenova/opus-mt-ru-en'
+};
+var TR_ONNX_READY = 'twc_tr_onnx_ready';   // ダウンロード済みのモデル名の一覧（二度目からは確認を出さない）
+var trOnnxLib = null, trOnnxPipes = {}, trOnnxQueue = Promise.resolve();
+
+// どのモデルを順に通すか。例: ko→ja は ['ko>en', 'en>ja']。訳せない組み合わせは null
+function trOnnxRoute(src, tgt) {
+    if (src === tgt) return [];
+    var d = src + '>' + tgt;
+    if (TR_ONNX_MODELS[d]) return [d];
+    if (tgt === 'ja' && TR_ONNX_MODELS[src + '>en']) return [src + '>en', 'en>ja'];
+    return null;
+}
+
+function trOnnxReadyList() {
+    try { var a = JSON.parse(localStorage.getItem(TR_ONNX_READY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function trOnnxMarkReady(model) {
+    try { var a = trOnnxReadyList(); if (a.indexOf(model) < 0) { a.push(model); localStorage.setItem(TR_ONNX_READY, JSON.stringify(a)); } } catch (e) {}
+}
+
+async function trOnnxPipe(model, onProgress) {
+    if (trOnnxPipes[model]) return trOnnxPipes[model];
+    if (trOnnxReadyList().indexOf(model) < 0 && !confirm(ct('trAsk'))) throw new Error('cancel');
+    var p = (async function() {
+        if (!trOnnxLib) trOnnxLib = import(TR_ONNX_LIB);
+        var lib;
+        try { lib = await trOnnxLib; } catch (e) { trOnnxLib = null; throw e; }
+        lib.env.allowLocalModels = false;
+        var files = {};
+        return lib.pipeline('translation', model, {
+            dtype: 'q8', device: 'wasm',
+            progress_callback: function(e) {
+                if (!e || e.status !== 'progress' || !e.total || !onProgress) return;
+                files[e.file] = { l: e.loaded, t: e.total };
+                var l = 0, t = 0;
+                Object.keys(files).forEach(function(k) { l += files[k].l; t += files[k].t; });
+                onProgress(t ? l / t : 0);
+            }
+        });
+    })();
+    trOnnxPipes[model] = p;
+    try { var r = await p; trOnnxMarkReady(model); return r; }
+    catch (e) { delete trOnnxPipes[model]; throw e; }
+}
+
+// 長い文は、文の切れ目で分けて訳す（モデルが一度に読める長さに限りがあるため）
+function trChunks(s, max) {
+    var sents = s.match(/[^。！？!?.\n]+[。！？!?.\n]*|[。！？!?.\n]+/g) || [s];
+    var out = [], cur = '';
+    sents.forEach(function(x) {
+        if (cur && (cur + x).length > max) { out.push(cur); cur = ''; }
+        cur += x;
+    });
+    if (cur) out.push(cur);
+    return out;
+}
+
+// 端末のメモリを使いすぎないよう、訳す処理は1件ずつ順番に行う
+function trOnnxSerial(fn) {
+    var p = trOnnxQueue.then(fn);
+    trOnnxQueue = p.catch(function() {});
+    return p;
+}
+
+async function trOnnxGet(src, tgt, onProgress) {
+    var route = trOnnxRoute(src, tgt);
+    if (!route) throw new Error('pair');
+    var pipes = [];
+    for (var i = 0; i < route.length; i++) pipes.push(await trOnnxPipe(TR_ONNX_MODELS[route[i]], onProgress));
+    return {
+        translate: function(text) {
+            return trOnnxSerial(async function() {
+                var out = '';
+                var chunks = trChunks(text, 200);
+                for (var c = 0; c < chunks.length; c++) {
+                    var lead = chunks[c].match(/^\s*/)[0], trail = chunks[c].match(/\s*$/)[0], cur = chunks[c].trim();
+                    if (!cur || !trHasWords(cur)) { out += chunks[c]; continue; }
+                    for (var k = 0; k < pipes.length; k++) {
+                        var r = await pipes[k](cur, { max_new_tokens: 256 });
+                        cur = (r && r[0] && r[0].translation_text) || cur;
+                    }
+                    out += lead + cur + trail;
+                }
+                return out;
+            });
+        }
+    };
 }
 
 async function chatTranslate(id) {
@@ -3392,7 +3499,7 @@ async function chatTranslate(id) {
         trView[id] = true;
         delete trNote[id];
     } catch (e) {
-        trNote[id] = { k: e && e.message === 'pair' ? 'trPair' : (e && e.message === 'same' ? 'trSame' : 'trFail') };
+        if (e && e.message === 'cancel') { /* 確認でやめた */ } else trNote[id] = { k: e && e.message === 'pair' ? 'trPair' : (e && e.message === 'same' ? 'trSame' : 'trFail') };
     } finally {
         delete trBusy[id];
         chatTrRefresh(id);

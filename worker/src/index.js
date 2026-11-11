@@ -880,9 +880,9 @@ async function chatList(request, env, url) {
   return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, has_more: since === null && list.length >= CHAT_PAGE, video_enabled: videoEnabled(env) });
 }
 
-// ---------- チャットの翻訳（スマホ向け） ----------
+// ---------- チャットの翻訳（全端末共通・GAS） ----------
 // Google Apps Script の LanguageApp.translate（Google翻訳）を呼ぶ。GAS側の無料枠は、翻訳の呼び出し 1日5,000回まで。
-//   ・ログインしている人だけが使える（していない人・失敗したときは、画面側が端末内の翻訳に切り替える）
+//   ・ログインしている人だけが使える。失敗時は画面側に理由を返し、端末内翻訳へ自動で切り替えない
 //   ・訳すのは、チャットに実際にあるメッセージだけ（ID で指定。自由な文章を訳すAPIにはしない）
 //   ・訳文は D1 に保存して、同じメッセージを二度訳さない（他の人が押したときも、保存済みの訳を返す）
 //   ・env.TRANSLATE_URL（GASのウェブアプリのURL）と env.TRANSLATE_SECRET（合言葉）は、wrangler secret で設定する

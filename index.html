@@ -405,6 +405,24 @@
         .chat-act.busy { opacity: 0.6; cursor: default; }
         .chat-tr-note { font-size: 11px; color: #8a94a6; margin-top: 2px; }
         .chat-act:hover { color: #e55; }
+        /* 色分け: 返信=緑、通報=赤、ふつうのメッセージはそのまま */
+        .chat-act.act-reply { color: #2a9d4a; font-weight: bold; }
+        .chat-act.act-reply:hover { color: #1f7a38; }
+        .chat-act.act-report { color: #d9534f; }
+        .chat-act.act-report:hover { color: #b52b27; }
+        .chat-quote { border-left-color: #8fd3a3; }
+        .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
+        .chat-msg.to-me { background: #f0faf3; border-left: 3px solid #2a9d4a; padding-left: 6px; }
+        /* 連続した投稿: 名前・アイコンを省いて、前の投稿の下に続ける */
+        .chat-msg.cont { padding-top: 0; margin-left: 27px; }
+        .chat-msg.cont .chat-time { visibility: hidden; }
+        .chat-msg.cont:hover .chat-time { visibility: visible; }
+        .chat-msg:has(+ .chat-msg.cont) { border-bottom-color: transparent; }
+        /* 送信中・送れなかった投稿 */
+        .chat-msg.pending { opacity: 0.55; }
+        .chat-msg.pending.failed { opacity: 1; background: #fff5f5; }
+        .chat-pend-state { font-size: 11px; color: #8a94a6; margin-left: 4px; }
+        .chat-msg.failed .chat-pend-state { color: #d9534f; font-weight: bold; }
         .chat-older-btn { display: block; margin: 6px auto 10px; padding: 6px 14px; border-radius: 14px; border: 1px solid #ddd; background: #fff; color: #4D97FF; font-size: 12px; font-weight: bold; cursor: pointer; }
         .chat-older-btn:hover { border-color: #4D97FF; }
         .chat-older-btn:disabled { opacity: 0.5; cursor: default; }
@@ -2786,7 +2804,7 @@ var CHAT_T = {
           trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
-          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -2803,7 +2821,7 @@ var CHAT_T = {
           trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
-          older: 'Load older messages', empty: 'No messages yet', report: 'Report', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          older: 'Load older messages', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -3312,13 +3330,15 @@ async function chatLoadOlder() {
 function renderChat(msgs, forceScroll) {
     var box = document.getElementById('chat-list');
     var atBottom = forceScroll || (box.scrollHeight - box.scrollTop - box.clientHeight < 40);
-    if (!msgs.length) {
+    var pend = chatPending.filter(function(p) { return p.room === chatRoom; });
+    if (!msgs.length && !pend.length) {
         box.innerHTML = '<div class="chat-time">' + esc(ct('empty')) + '</div>';
         return;
     }
     var me = loginUser ? loginUser.id : 0;
     box.innerHTML = (chatHasMore ? '<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>' : '') +
-        msgs.map(function(m) { return chatMsgHTML(m, me); }).join('');
+        msgs.map(function(m, i) { return chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null); }).join('') +
+        pend.map(chatPendHTML).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
     if (chatJumpTo) {
         var target = chatJumpTo;
@@ -3328,16 +3348,25 @@ function renderChat(msgs, forceScroll) {
 }
 
 // 1件分のメッセージのHTML（翻訳を切り替えたときは、この1件だけを差し替える）
-function chatMsgHTML(m, me) {
+// 同じ人が5分以内に続けた投稿（返信でないもの）は、名前を省いて前の投稿につなげる
+var CHAT_GROUP_MS = 5 * 60 * 1000;
+function chatIsCont(m, prev) {
+    if (!prev || m.reply || m.hidden || prev.hidden || prev.pid) return false;
+    if (prev.user_id !== m.user_id) return false;
+    var a = new Date(prev.created_at), b = new Date(m.created_at);
+    return b - a >= 0 && b - a < CHAT_GROUP_MS && a.toDateString() === b.toDateString();
+}
+function chatMsgHTML(m, me, prev) {
+        var cont = chatIsCont(m, prev);
         var d = new Date(m.created_at);
         var time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
         var acts = '';
         if (loginUser) {
-            acts += '<button class="chat-act" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
+            acts += '<button class="chat-act act-reply" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
                 '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + esc(ct('reply')) + '</button>';
         }
         if (loginUser && m.user_id !== me) {
-            acts += '<button class="chat-act" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
+            acts += '<button class="chat-act act-report" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
         }
         if (loginUser && (m.user_id === me || chatIsAdmin)) {
             acts += '<button class="chat-act" onclick="chatDelete(' + m.id + ')">' + esc(ct('del')) + '</button>';
@@ -3357,8 +3386,9 @@ function chatMsgHTML(m, me) {
                 ? '<div class="chat-quote gone">↪ ' + esc(ct('quoteGone')) + '</div>'
                 : '<div class="chat-quote" onclick="chatJump(' + Number(m.reply.id) + ')">↪ @' + esc(m.reply.username) + ': ' + esc(m.reply.content) + '</div>';
         }
-        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
-            avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
+        var toMe = !!(loginUser && m.reply && !m.reply.gone && m.user_id !== me && String(m.reply.username).toLowerCase() === String(loginUser.username).toLowerCase());
+        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + (cont ? ' cont' : '') + (toMe ? ' to-me' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
+            (cont ? '' : avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags) +
             '<span class="chat-time"><a class="chat-perma" href="' + esc(chatMsgUrl(m.id)) + '" onclick="return chatPerma(event,' + Number(m.id) + ')">' + time + '</a>' + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? chatTextBlockHTML(m) : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
@@ -3477,7 +3507,8 @@ function chatTrRefresh(id) {
     var el = document.getElementById('chat-msg-' + id);
     var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
     if (!el || !m) return;
-    el.outerHTML = chatMsgHTML(m, loginUser ? loginUser.id : 0);
+    var i = chatMsgs.indexOf(m);
+    el.outerHTML = chatMsgHTML(m, loginUser ? loginUser.id : 0, i > 0 ? chatMsgs[i - 1] : null);
 }
 
 // ---- 翻訳エンジン: ブラウザ内蔵の Translator API ----
@@ -3709,12 +3740,69 @@ async function chatTranslate(id) {
     }
 }
 
+// 送信: 文字だけの投稿は、サーバーの返事を待たずに、すぐ画面に出す（送信中はうすいグレー）。
+// 送れなかったときは赤い表示にして、「再送」「削除」を出す（文章は消さない）。動画などの添付つきは、従来どおり送れてから出す
+var chatPending = [], chatPendSeq = 0;
+function chatPendHTML(p) {
+    var d = new Date(p.t), time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    var quote = p.reply ? '<div class="chat-quote gone">↪ @' + esc(p.reply.username) + ': ' + esc(p.reply.content) + '</div>' : '';
+    var state = p.status === 'failed'
+        ? '<span class="chat-pend-state">' + esc(p.err || ct('sendFail')) + '</span>' +
+          '<button class="chat-act act-reply" onclick="chatPendRetry(' + p.pid + ')">' + esc(ct('retry')) + '</button>' +
+          '<button class="chat-act act-report" onclick="chatPendDrop(' + p.pid + ')">' + esc(ct('del')) + '</button>'
+        : '<span class="chat-pend-state">' + esc(ct('sending')) + '</span>';
+    return '<div class="chat-msg pending' + (p.status === 'failed' ? ' failed' : '') + '" id="chat-pend-' + p.pid + '">' +
+        avatarImg(loginUser ? loginUser.id : 0, 22, loginUser ? loginUser.username : '') + ' <span class="chat-name">' + esc(loginUser ? loginUser.username : '') + '</span>' +
+        '<span class="chat-time">' + time + '</span>' + state + quote +
+        '<div class="chat-text">' + chatTextHTML(p.content) + '</div></div>';
+}
+async function chatPendSend(p) {
+    p.status = 'sending'; p.err = '';
+    renderChat(chatMsgs, true);
+    try {
+        var payload = { content: p.content, room: p.room };
+        if (p.reply_to) payload.reply_to = p.reply_to;
+        var d = await apiCall('POST', '/api/chat/messages', payload);
+        chatPending = chatPending.filter(function(x) { return x !== p; });
+        var m = d && d.message;
+        if (m && p.room === chatRoom && !chatMsgs.some(function(x) { return x.id === m.id; })) {
+            if (p.reply) m.reply = { id: p.reply.id, username: p.reply.username, content: p.reply.content };
+            chatMsgs.push(m);
+        }
+        chatSig = '';
+        renderChat(chatMsgs, true);
+        chatKick();
+    } catch (e) {
+        p.status = 'failed'; p.err = chatErr(e);
+        renderChat(chatMsgs, true);
+    }
+}
+function chatPendFind(pid) { return chatPending.filter(function(x) { return x.pid === pid; })[0]; }
+function chatPendRetry(pid) { var p = chatPendFind(pid); if (p && p.status === 'failed') chatPendSend(p); }
+function chatPendDrop(pid) {
+    var p = chatPendFind(pid); if (!p) return;
+    chatPending = chatPending.filter(function(x) { return x !== p; });
+    var ta = document.getElementById('chat-text');
+    if (ta && !ta.value) ta.value = p.content;   // 消した文章は、入力欄に戻す
+    renderChat(chatMsgs, false);
+}
+
 async function sendChat() {
     var ta = document.getElementById('chat-text');
     if (!ta) return;
     if (chatAttach && chatAttach.status === 'uploading') return;
     if (!ta.value.trim() && !chatAttach) return;
     setChatMsg('');
+    if (!chatAttach && loginUser) {   // 文字だけ: すぐ表示する
+        var p = { pid: ++chatPendSeq, room: chatRoom, content: ta.value, reply_to: chatReplyTo ? chatReplyTo.id : null,
+            reply: chatReplyTo ? { id: chatReplyTo.id, username: chatReplyTo.username, content: chatReplyTo.content } : null, t: Date.now(), status: 'sending', err: '' };
+        chatPending.push(p);
+        ta.value = '';
+        chatReplyTo = null;
+        renderReplyBar();
+        chatPendSend(p);
+        return;
+    }
     try {
         var payload = { content: ta.value, room: chatRoom };
         if (chatAttach) payload.video_id = chatAttach.id;

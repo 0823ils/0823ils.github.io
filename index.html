@@ -68,6 +68,7 @@
         .header-tw-label { white-space: nowrap; }
         .header-lang-switch { display: flex; gap: 2px; background: #eef4ff; border-radius: 16px; padding: 3px; }
         body.mode-chat .about-section { display: none; }
+        html[lang="en"] .about-ja { display: none; }
         .header-lang-btn { white-space: nowrap; padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #7aa7e8; transition: all 0.2s; }
         .header-lang-btn.active { background: #4D97FF; color: white; }
         .header-lang-btn:not(.active):hover { color: #4D97FF; }
@@ -710,6 +711,7 @@
 
     <!-- 検索エンジン向け・初めての方向けの説明（常時表示） -->
     <section class="about-section" id="about">
+        <div class="about-ja">
         <h2>scratch-TWC（スクラッチTWC・scratch TWC）とは</h2>
         <p>scratch-TWC（スクラッチTWC・scratch TWC）は、Scratchの<strong>技術作品</strong>を集めた「スクラッチ技術作品集」（Technical Works Collection）の検索・閲覧サイトです。3D表現、物理演算、高速描画、ゲームエンジン、独自のアルゴリズムなど、Scratchで作られた技術作品（scratch技術作品）を、プロジェクト名やユーザー名で検索できます。</p>
         <h3>主な機能</h3>
@@ -719,6 +721,7 @@
            ・気になった作品の保存、技術力の評価</p>
         <h3>ユーザー別・作品別ページ</h3>
         <p><a href="authors.html">収録ユーザー一覧</a>から、ユーザーごとのscratch技術作品ページを見られます。</p>
+        </div>
         <h3>About</h3>
         <p>scratch-TWC (also written scratch TWC; Scratch Technical Works Collection) is a searchable collection of technically impressive Scratch projects. Browse and search Scratch technical works by project name or creator, and open them in Scratch or TurboWarp.</p>
     </section>
@@ -1048,7 +1051,7 @@ async function initDB() {
         });
 
         const resp = await fetch('projects.db');
-        if (!resp.ok) throw new Error('projects.db が見つかりません');
+        if (!resp.ok) throw new Error('projects.db not found');
 
         const total = parseInt(resp.headers.get('content-length') || '0');
         const reader = resp.body.getReader();
@@ -1227,7 +1230,7 @@ function renderProjectPage() {
 
 // ===== ショート（縦スクロールで次々に作品を見る） =====
 var SHORT_RANGE = 3;                       // いま見ている作品の前後、この数だけ読み込んでおく
-var shortIds = [], shortCur = 0, shortObs = null, shortTimer = null, shortReady = false;
+var shortIds = [], shortCur = 0, shortObs = null, shortTimer = null, shortReady = false, shortWait = null;
 function shortSrc(id, run) { return 'https://turbowarp.org/' + Number(id) + '/embed' + (run ? '?autoplay' : ''); }
 function shortAppend(n) {
     var feed = document.getElementById('short-feed');
@@ -1313,7 +1316,13 @@ function shortSync() {
         fr.setAttribute('data-run', run ? '1' : '0');
         fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
         if (old) fr.style.visibility = 'hidden';
-        var done = function() { fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
+        // 読み込めたら、自分より前（古い）のものだけ外す。後から作った新しいものを消さない
+        var done = function() {
+            if (!fr.parentNode) return;
+            fr.style.visibility = '';
+            var fs = Array.prototype.slice.call(box.querySelectorAll('iframe'));
+            fs.slice(0, fs.indexOf(fr)).forEach(function(f) { f.remove(); });
+        };
         fr.addEventListener('load', done); setTimeout(done, 5000);
         fr.src = shortSrc(sl.getAttribute('data-id'), run);
         box.appendChild(fr);
@@ -1357,13 +1366,15 @@ function enterShort() {
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
     sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
+    // URLから直接開いたときは、画面がまだ表示される前（高さ0）に呼ばれる。表示されるまで待ってからやり直す
+    if (!sec.clientHeight) { clearTimeout(shortWait); shortWait = setTimeout(function() { if (currentMode === 'short') enterShort(); }, 120); return; }
     sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
     if (!shortObs) { shortMakeObs(); shortAppend(40); }
     feed.scrollTop = shortCur * feed.clientHeight;
     shortReady = false; shortSetCur(shortCur);
 }
 function leaveShort() {
-    clearTimeout(shortTimer);
+    clearTimeout(shortTimer); clearTimeout(shortWait);
     var feed = document.getElementById('short-feed');
     if (feed) feed.querySelectorAll('.sh-embed').forEach(function(b) { b.innerHTML = ''; });   // 全部止める
 }
@@ -4219,6 +4230,8 @@ if (apiEnabled()) initUnread();
 loadLogin();
 updateSortOptions();
 loadLangPref();
+// この下にあるログイン・申請などのダイアログは、ここを実行した時点ではまだ無いので、読み込み完了後にもう一度、言語を当てる
+document.addEventListener('DOMContentLoaded', function() { if (currentLang !== 'ja') applyLang(); });
 initDB();
 loadSaves().catch(function() {});
 

@@ -1,0 +1,33 @@
+name: Build SB3 C++ WASM runtime
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "docs/sb3cpp/runtime.cpp"
+      - ".github/workflows/sb3cpp-wasm.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+      - name: Compile runtime
+        run: |
+          mkdir -p build/sb3cpp
+          em++ docs/sb3cpp/runtime.cpp -O3 -std=c++17 \
+            -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME=createSB3Runtime \
+            -s ENVIRONMENT=web -s ALLOW_MEMORY_GROWTH=1 \
+            -s EXPORTED_FUNCTIONS='["_sb3cpp_runtime_abi","_sb3cpp_runtime_name"]' \
+            -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+            -o build/sb3cpp/runtime.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sb3cpp-wasm-runtime
+          path: build/sb3cpp/

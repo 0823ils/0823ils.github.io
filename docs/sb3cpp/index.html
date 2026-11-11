@@ -19,7 +19,7 @@ button:disabled{opacity:.4;cursor:not-allowed}input[type=file]{display:none}
 .stat{background:#141720;border:1px solid var(--line);border-radius:11px;padding:14px}.stat b{display:block;font-size:26px}.stat span{color:var(--muted);font-size:13px}
 .status{margin-top:14px;color:var(--muted);white-space:pre-wrap}.status.good{color:var(--good)}.status.warn{color:var(--warn)}
 h2{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;overflow:auto;background:#0c0e13;border:1px solid var(--line);padding:16px;border-radius:10px;color:#d9d7fe;max-height:340px}
-.small{font-size:12px;color:var(--muted)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:12px;border:1px solid var(--line);padding:3px 8px;border-radius:99px;color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}\n#stage{display:block;width:100%;max-width:640px;aspect-ratio:4/3;background:#fff;border-radius:10px;image-rendering:auto}.runrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:12px;border:1px solid var(--line);padding:3px 8px;border-radius:99px;color:var(--muted)}
 footer{margin-top:30px;color:var(--muted);font-size:12px}
 </style>
 </head>
@@ -73,7 +73,7 @@ footer{margin-top:30px;color:var(--muted);font-size:12px}
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-let report=null;
+let report=null, loadedProject=null, loadedZip=null, spriteVisuals=[], wasmModule=null;
 function setStatus(message,kind=""){ $("status").textContent=message;$("status").className="status "+kind; }
 function extractProjectId(value){
   const s=String(value||"").trim();
@@ -117,7 +117,7 @@ async function inspect(file){
     const zip=await JSZip.loadAsync(file);
     const projectEntry=zip.file("project.json");
     if(!projectEntry)throw new Error("project.json がありません。.sb3形式のファイルを選択してください。");
-    const project=JSON.parse(await projectEntry.async("string"));
+    const project=JSON.parse(await projectEntry.async("string"));\n    loadedProject=project; loadedZip=zip;
     if(!project.targets||!Array.isArray(project.targets))throw new Error("Scratch 3.0のtargetsが見つかりません。");
     const opcodes={};let total=0,scripts=0;
     for(const target of project.targets){
@@ -139,7 +139,154 @@ async function inspect(file){
     setStatus("解析完了。ファイルはブラウザ内で処理され、サーバーには送信されていません。","good");
   }catch(e){$("results").hidden=true;setStatus("解析エラー: "+e.message,"warn");}
 }
-$("file").addEventListener("change",e=>inspect(e.target.files[0]));
+
+async function prepareSpriteVisuals(project,zip){
+  spriteVisuals=[];
+  for(const target of project.targets){
+    if(target.isStage)continue;
+    const costume=target.costumes?.[target.currentCostume||0];
+    let bitmap=null;
+    if(costume){
+      const entry=zip.file(costume.md5ext||((costume.md5||"")+"."+((costume.dataFormat)||"png")));
+      if(entry){
+        try{const blob=await entry.async("blob");bitmap=await createImageBitmap(blob);}catch(e){console.warn("Costume decode failed",target.name,e);}
+      }
+    }
+    spriteVisuals.push({name:target.name,bitmap});
+  }
+}
+function inputValue(block,name,fallback=0){
+  const v=block.inputs?.[name];
+  if(v==null)return fallback;
+  const candidates=Array.isArray(v)?v.slice(1):[v];
+  for(const c of candidates){
+    if(Array.isArray(c)){
+      for(let i=c.length-1;i>=0;i--){const n=Number(c[i]);if(Number.isFinite(n))return n;}
+      if(typeof c[1]==="string")return c[1];
+    }else if(typeof c==="number")return c;
+    else if(typeof c==="string"&&c.trim()!==""){const n=Number(c);return Number.isFinite(n)?n:c;}
+  }
+  return fallback;
+}
+function inputText(block,name,fallback=""){
+  const v=block.inputs?.[name];
+  if(v==null)return fallback;
+  const candidates=Array.isArray(v)?v.slice(1):[v];
+  for(const c of candidates)if(Array.isArray(c)){
+    for(let i=c.length-1;i>=0;i--)if(typeof c[i]==="string")return c[i];
+  }
+  return fallback;
+}
+function fieldValue(block,name,fallback=0){
+  const v=block.fields?.[name];
+  if(!v)return fallback;
+  const raw=Array.isArray(v)?v[0]:v;
+  const n=Number(raw);return Number.isFinite(n)?n:raw;
+}
+function compileProjectToCpp(mod){
+  mod._sb3cpp_reset();
+  let unsupported=0,compiled=0;
+  const encoder=new TextEncoder();
+  function withCString(value,fn){
+    const bytes=encoder.encode(String(value)+"\\0"),ptr=mod._malloc(bytes.length);
+    mod.HEAPU8.set(bytes,ptr);
+    try{return fn(ptr);}finally{mod._free(ptr);}
+  }
+  const targetToSprite=new Map();
+  for(const target of loadedProject.targets){
+    if(target.isStage){targetToSprite.set(target,-1);continue;}
+    const idx=withCString(target.name,p=>mod._sb3cpp_add_sprite(p,target.x||0,target.y||0,target.direction??90,target.size??100,target.visible===false?0:1));
+    targetToSprite.set(target,idx);
+  }
+  const opcodeMap={
+    motion_movesteps:[1,"STEPS"],motion_turnright:[2,"DEGREES"],motion_turnleft:[2,"DEGREES",-1],
+    motion_setx:[3,"X"],motion_sety:[4,"Y"],motion_changexby:[5,"DX"],motion_changeyby:[6,"DY"],
+    motion_pointindirection:[7,"DIRECTION"],motion_gotoxy:[13,"X","Y"],
+    looks_say:[8,"MESSAGE"],looks_sayforsecs:[8,"MESSAGE"],looks_show:[9],looks_hide:[10],
+    looks_setsizeto:[11,"SIZE"],looks_changesizeby:[12,"CHANGE"]
+  };
+  for(const target of loadedProject.targets){
+    const blocks=target.blocks||{},sprite=targetToSprite.get(target);
+    for(const [id,hat] of Object.entries(blocks)){
+      if(!hat||hat.opcode!=="event_whenflagclicked"||!hat.topLevel)continue;
+      let next=hat.next,guard=0;
+      while(next&&blocks[next]&&guard++<10000){
+        const b=blocks[next],spec=opcodeMap[b.opcode];
+        if(spec&&sprite>=0){
+          const [op,arg1,arg2,mult]=spec;
+          const a=typeof arg1==="string"?(arg1==="MESSAGE"?inputText(b,arg1):inputValue(b,arg1,fieldValue(b,arg1,0))):0;
+          const av=Number(a);
+          const aa=Number.isFinite(av)?av:0;
+          const bb=arg2?inputValue(b,arg2,0):0;
+          const textValue=op===8?inputText(b,"MESSAGE",fieldValue(b,"MESSAGE","")):"";
+          withCString(textValue,p=>mod._sb3cpp_add_command(sprite,op,aa*(mult||1),bb,p));
+          compiled++;
+        }else if(!["event_whenflagclicked"].includes(b.opcode)){
+          unsupported++;mod._sb3cpp_add_unsupported();
+        }
+        next=b.next;
+      }
+      if(guard>=10000){unsupported++;mod._sb3cpp_add_unsupported();}
+    }
+  }
+  return {compiled,unsupported};
+}
+function drawCppStage(mod){
+  const canvas=$("stage"),ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,480,360);
+  ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+  for(let x=0;x<=480;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,360);ctx.stroke();}
+  for(let y=0;y<=360;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(480,y);ctx.stroke();}
+  const count=mod._sb3cpp_get_sprite_count();
+  for(let i=0;i<count;i++){
+    if(!mod._sb3cpp_get_visible(i))continue;
+    const x=240+mod._sb3cpp_get_x(i),y=180-mod._sb3cpp_get_y(i);
+    const size=mod._sb3cpp_get_size(i)/100;
+    const visual=spriteVisuals[i],bitmap=visual?.bitmap;
+    ctx.save();ctx.translate(x,y);ctx.rotate((mod._sb3cpp_get_direction(i)-90)*Math.PI/180);
+    if(bitmap){
+      const w=bitmap.width*size,h=bitmap.height*size;
+      ctx.drawImage(bitmap,-w/2,-h/2,w,h);
+    }else{
+      ctx.fillStyle="#8b5cf6";ctx.beginPath();ctx.arc(0,0,18*Math.max(.2,size),0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#fff";ctx.font="12px sans-serif";ctx.textAlign="center";ctx.fillText(visual?.name||"Sprite",0,4);
+    }
+    ctx.restore();
+    const say=mod.UTF8ToString(mod._sb3cpp_get_say(i));
+    if(say){ctx.fillStyle="#fff";ctx.strokeStyle="#222";ctx.lineWidth=2;ctx.font="14px sans-serif";const sx=Math.max(5,Math.min(360,x+18)),sy=Math.max(20,Math.min(335,y-25));ctx.strokeText(say,sx,sy);ctx.fillText(say,sx,sy);}
+  }
+}
+async function ensureWasm(){
+  if(wasmModule)return wasmModule;
+  $("runtimeStatus").textContent="C++ / WASMランタイムを読み込み中…";
+  await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src="build/runtime.js";
+    script.onload=resolve;script.onerror=()=>reject(new Error("build/runtime.js がありません。GitHub ActionsのWASM Buildを実行してください。"));
+    document.head.appendChild(script);
+  });
+  if(typeof window.createSB3Runtime!=="function")throw new Error("WASMファクトリーが見つかりません。");
+  wasmModule=await window.createSB3Runtime({locateFile:path=>"build/"+path});
+  if(wasmModule._sb3cpp_runtime_abi()!==2)throw new Error("ランタイムのABIバージョンが一致しません。");
+  $("runtimeStatus").textContent="C++ / WASM準備完了";
+  return wasmModule;
+}
+async function runCpp(){
+  const button=$("runCpp");button.disabled=true;
+  try{
+    if(!loadedProject)throw new Error("先にScratch作品を読み込んでください。");
+    const mod=await ensureWasm();
+    const stats=compileProjectToCpp(mod);
+    mod._sb3cpp_run();
+    drawCppStage(mod);
+    const unknown=mod._sb3cpp_get_unsupported();
+    $("executionReport").textContent="実行完了：C++で "+stats.compiled+" 個のブロックを実行しました。未対応ブロック数: "+unknown+"。緑の旗イベント内の基本的な直列処理のみ対応しています。";
+  }catch(e){
+    $("executionReport").textContent="実行できませんでした: "+e.message;
+    $("runtimeStatus").textContent="ランタイム未準備";
+  }finally{button.disabled=false;}
+}
+$("runCpp").addEventListener("click",runCpp);
+\n$("file").addEventListener("change",e=>inspect(e.target.files[0]));
 const drop=$("drop");
 drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
 drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));

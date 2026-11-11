@@ -3423,7 +3423,7 @@ var trSaveTimer = null;
     try {
         var o = JSON.parse(localStorage.getItem(TR_STORE) || '{}');
         if (o && typeof o === 'object') Object.keys(o).forEach(function(k) {
-            if (o[k] && typeof o[k].t === 'string') trCache[k] = { t: o[k].t, a: Number(o[k].a) || 0 };
+            if (o[k] && typeof o[k].t === 'string') trCache[k] = { t: o[k].t, a: Number(o[k].a) || 0, s: o[k].s === 'g' ? 'g' : '' };
         });
     } catch (e) {}
 })();
@@ -3725,7 +3725,7 @@ function trIsMobile() {
     } catch (e) { return false; }
 }
 var trServerOff = false;   // 上限・未設定のとき、この画面を開いているあいだは、サーバー翻訳をやめて端末内に切り替える
-function trServerOk() { return !trServerOff && !trChromeOk() && trIsMobile() && !!loginUser; }
+function trServerOk() { return !trServerOff && trIsMobile() && !!loginUser; }
 async function trServer(id, tgt) {
     var d = await apiCall('POST', '/api/chat/translate', { id: id, lang: tgt });
     if (!d || typeof d.text !== 'string') throw new Error('fail');
@@ -3736,11 +3736,17 @@ async function chatTranslate(id) {
     var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
     if (!m || !m.content || trBusy[id]) return;
     var key = trKey(id);
-    if (trCache[key]) {   // 訳したことがあるなら、表示を切り替えるだけ
+    if (trCache[key] && !(trServerOk() && trCache[key].s !== 'g')) {   // Google翻訳済み、または端末内翻訳を使う条件でなければキャッシュを表示
         trView[id] = !trView[id];
         delete trNote[id];
         chatTrRefresh(id);
         return;
+    }
+    // 以前の端末内翻訳キャッシュがある場合、スマホではGAS翻訳を再試行して置き換える
+    if (trCache[key] && trServerOk() && trCache[key].s !== 'g') {
+        delete trCache[key];
+        delete trView[id];
+        trSave();
     }
     trBusy[id] = true;
     delete trNote[id];
@@ -3813,7 +3819,7 @@ async function trAutoRun() {
             if (!trAutoOn() || currentMode !== 'chat') break;
             var id = Number(list[i].id);
             trAutoTried[trKey(id)] = 1;
-            if (trCache[trKey(id)]) {   // 前に訳してあるものは、訳さずに、訳文の表示に切り替えるだけ（1回だけ。原文に戻したあとは触らない）
+            if (trCache[trKey(id)] && !(trServerOk() && trCache[trKey(id)].s !== 'g')) {   // Google翻訳済みなら再利用。スマホに残った端末内翻訳キャッシュはGASで更新
                 trView[id] = true; delete trNote[id]; chatTrRefresh(id);
                 continue;
             }

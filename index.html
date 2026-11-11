@@ -2719,7 +2719,7 @@ var CHAT_T = {
           replyTo: ' への返信', cancel: '取り消し', quoteGone: '元のメッセージは削除されました', notifTitle: '通知', notifEmpty: '通知はありません',
           notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
           notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
-          trBtn: '翻訳', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
+          trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
@@ -2736,7 +2736,7 @@ var CHAT_T = {
           replyTo: '', cancel: 'Cancel', quoteGone: 'The original message was deleted', notifTitle: 'Notifications', notifEmpty: 'No notifications',
           notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
           notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
-          trBtn: 'Translate', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
+          trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
@@ -3404,9 +3404,9 @@ function trOnnxMarkReady(model) {
     try { var a = trOnnxReadyList(); if (a.indexOf(model) < 0) { a.push(model); localStorage.setItem(TR_ONNX_READY, JSON.stringify(a)); } } catch (e) {}
 }
 
-async function trOnnxPipe(model, onProgress) {
+async function trOnnxPipe(model, onProgress, ask) {
     if (trOnnxPipes[model]) return trOnnxPipes[model];
-    if (trOnnxReadyList().indexOf(model) < 0 && !confirm(ct('trAsk'))) throw new Error('cancel');
+    if (trOnnxReadyList().indexOf(model) < 0 && !confirm(ct(ask || 'trAsk'))) throw new Error('cancel');
     var p = (async function() {
         if (!trOnnxLib) trOnnxLib = import(TR_ONNX_LIB);
         var lib;
@@ -3448,26 +3448,76 @@ function trOnnxSerial(fn) {
     return p;
 }
 
+// 日本語の訳文を整える（モデルは文字の間に空白を入れ、句読点を , . で出すことがある）
+function trJaTidy(s) {
+    var J = '[぀-ヿ㐀-鿿＀-･ー]';
+    s = s.replace(new RegExp('(' + J + ') +(?=' + J + ')', 'g'), '$1');
+    s = s.replace(new RegExp('(' + J + '),', 'g'), '$1、').replace(new RegExp('(' + J + ')\\.', 'g'), '$1。');
+    return s.replace(/ *([、。！？]) */g, '$1');
+}
+
+var TR_BIG = 'Xenova/nllb-200-distilled-600M';
+var TR_BIG_FAIL = 'twc_tr_onnx_bigfail';   // 高品質モデルが動かなかった端末では、次から軽い版だけを使う（消せば、また試す）
+var TR_NLLB = { ja: 'jpn_Jpan', en: 'eng_Latn', ko: 'kor_Hang', ru: 'rus_Cyrl' };
+
+// 高品質モデルを試してよい端末か。iPhone・iPad（メモリ制限で落ちやすい）と、メモリが4GB未満の端末は、軽い版を使う
+function trBigOk(src, tgt) {
+    if (!TR_NLLB[src] || !TR_NLLB[tgt]) return false;
+    try {
+        if (localStorage.getItem(TR_BIG_FAIL)) return false;
+        var ua = navigator.userAgent || '';
+        if (/iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return false;
+        if (navigator.deviceMemory && navigator.deviceMemory < 4) return false;
+    } catch (e) { return false; }
+    return true;
+}
+
+// 本文を文の切れ目で分け、1つずつ fn(文) で訳してつなぐ（前後の空白は残す）
+async function trMapChunks(text, fn) {
+    var out = '';
+    var chunks = trChunks(text, 200);
+    for (var c = 0; c < chunks.length; c++) {
+        var lead = chunks[c].match(/^\s*/)[0], trail = chunks[c].match(/\s*$/)[0], cur = chunks[c].trim();
+        if (!cur || !trHasWords(cur)) { out += chunks[c]; continue; }
+        out += lead + (await fn(cur)) + trail;
+    }
+    return out;
+}
+
 async function trOnnxGet(src, tgt, onProgress) {
+    var tidy = function(s) { return tgt === 'ja' ? trJaTidy(s) : s; };
+    if (trBigOk(src, tgt)) {
+        try {
+            var big = await trOnnxPipe(TR_BIG, onProgress, 'trAskBig');
+            return {
+                translate: function(text) {
+                    return trOnnxSerial(function() {
+                        return trMapChunks(text, async function(cur) {
+                            var r = await big(cur, { src_lang: TR_NLLB[src], tgt_lang: TR_NLLB[tgt], max_new_tokens: 256 });
+                            return tidy((r && r[0] && r[0].translation_text) || cur);
+                        });
+                    });
+                }
+            };
+        } catch (e) {
+            // 確認でキャンセルしたなら、軽い版へ。読み込めなかったなら、この端末では高品質を使わない
+            if (!(e && e.message === 'cancel')) { try { localStorage.setItem(TR_BIG_FAIL, '1'); } catch (_) {} }
+        }
+    }
     var route = trOnnxRoute(src, tgt);
     if (!route) throw new Error('pair');
     var pipes = [];
     for (var i = 0; i < route.length; i++) pipes.push(await trOnnxPipe(TR_ONNX_MODELS[route[i]], onProgress));
     return {
         translate: function(text) {
-            return trOnnxSerial(async function() {
-                var out = '';
-                var chunks = trChunks(text, 200);
-                for (var c = 0; c < chunks.length; c++) {
-                    var lead = chunks[c].match(/^\s*/)[0], trail = chunks[c].match(/\s*$/)[0], cur = chunks[c].trim();
-                    if (!cur || !trHasWords(cur)) { out += chunks[c]; continue; }
+            return trOnnxSerial(function() {
+                return trMapChunks(text, async function(cur) {
                     for (var k = 0; k < pipes.length; k++) {
                         var r = await pipes[k](cur, { max_new_tokens: 256 });
                         cur = (r && r[0] && r[0].translation_text) || cur;
                     }
-                    out += lead + cur + trail;
-                }
-                return out;
+                    return tidy(cur);
+                });
             });
         }
     };

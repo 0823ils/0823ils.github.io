@@ -801,7 +801,10 @@ async function chatList(request, env, url) {
   // since=<最後に見たID> のときは、それより新しいメッセージだけを返す（読み取りが軽い）
   const sinceRaw = url.searchParams.get('since');
   const since = sinceRaw !== null && /^\d{1,12}$/.test(sinceRaw) ? Number(sinceRaw) : null;
-  if (since === null) await syncStudioRoles(env);
+  // before=<表示中の先頭のID> のときは、それより古いメッセージを返す（「以前のメッセージを読み込む」用）
+  const beforeRaw = url.searchParams.get('before');
+  const before = since === null && beforeRaw !== null && /^\d{1,12}$/.test(beforeRaw) ? Number(beforeRaw) : null;
+  if (since === null && before === null) await syncStudioRoles(env);
   // around=<メッセージID> のときは、そのメッセージの前後25件ずつを返す（リンクから古いメッセージを開くため）
   const aroundRaw = url.searchParams.get('around');
   const around = since === null && aroundRaw !== null && /^\d{1,12}$/.test(aroundRaw) ? Number(aroundRaw) : null;
@@ -823,13 +826,13 @@ async function chatList(request, env, url) {
        LEFT JOIN chat_messages p ON p.id = rp.reply_to
        LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
        LEFT JOIN chat_video_names n ON n.video_id = v.id
-      WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} ${lo !== null ? 'AND m.id BETWEEN ? AND ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
+      WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} ${before !== null ? 'AND m.id < ?' : ''} ${lo !== null ? 'AND m.id BETWEEN ? AND ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
       ORDER BY m.id ${since !== null ? 'ASC' : 'DESC'} LIMIT ?`
-  ).bind(room, ...(since !== null ? [since] : []), ...(lo !== null ? [lo, hi] : []), CHAT_PAGE).all();
+  ).bind(room, ...(since !== null ? [since] : []), ...(before !== null ? [before] : []), ...(lo !== null ? [lo, hi] : []), CHAT_PAGE).all();
   const list = since !== null ? rows.results : rows.results.reverse();
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
-  return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, video_enabled: videoEnabled(env) });
+  return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, has_more: since === null && list.length >= CHAT_PAGE, video_enabled: videoEnabled(env) });
 }
 
 async function chatPost(request, env) {

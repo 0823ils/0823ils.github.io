@@ -403,6 +403,9 @@
         .chat-act.busy { opacity: 0.6; cursor: default; }
         .chat-tr-note { font-size: 11px; color: #8a94a6; margin-top: 2px; }
         .chat-act:hover { color: #e55; }
+        .chat-older-btn { display: block; margin: 6px auto 10px; padding: 6px 14px; border-radius: 14px; border: 1px solid #ddd; background: #fff; color: #4D97FF; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .chat-older-btn:hover { border-color: #4D97FF; }
+        .chat-older-btn:disabled { opacity: 0.5; cursor: default; }
         .chat-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
         .chat-row textarea { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; margin-bottom: 0; resize: none; }
         .chat-row .tw-warn-btn { width: auto; flex: 0 0 auto; padding: 0 20px; }
@@ -2746,7 +2749,7 @@ var CHAT_T = {
           trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
-          empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -2763,7 +2766,7 @@ var CHAT_T = {
           trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
-          empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          older: 'Load older messages', empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -2776,6 +2779,9 @@ var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback'];
 var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ
+var chatHasMore = false;  // これより古いメッセージが、まだあるか
+var chatOlderBusy = false;
+var CHAT_KEEP = 300;      // 画面に持っておく上限（超えた古い分は、ボタンでまた読める）
 var chatPolls = 0;        // 自動更新の回数（8回に1回は全件を取り直す）
 var chatVideoEnabled = false;
 var chatAttach = null;    // { name, size, status: 'uploading'|'ready', progress, id }
@@ -3227,18 +3233,43 @@ async function loadChat(forceScroll, partialOk) {
         if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; renderChatInput(); }
         if (d.partial) {
             if (!d.messages.length) return;
-            chatMsgs = chatMsgs.concat(d.messages).slice(-50);
+            chatMsgs = chatMsgs.concat(d.messages);
+            if (chatMsgs.length > CHAT_KEEP) { chatMsgs = chatMsgs.slice(-CHAT_KEEP); chatHasMore = true; }
             chatSig = '';
             renderChat(chatMsgs, forceScroll);
             return;
         }
-        chatMsgs = d.messages;
-        var sig = d.messages.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
+        // 取り直しのときも、読み込み済みの古いメッセージは残す
+        var firstId = d.messages.length ? d.messages[0].id : 0;
+        var keepOld = chatMsgs.filter(function(m) { return m.id < firstId; });
+        if (!keepOld.length) chatHasMore = !!d.has_more;
+        chatMsgs = keepOld.concat(d.messages);
+        var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;
         chatSig = sig;
-        renderChat(d.messages, forceScroll);
+        renderChat(chatMsgs, forceScroll);
     } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+async function chatLoadOlder() {
+    if (chatOlderBusy || !chatMsgs.length) return;
+    chatOlderBusy = true;
+    var room = chatRoom;
+    var btn = document.getElementById('chat-older');
+    if (btn) btn.disabled = true;
+    try {
+        var d = await apiCall('GET', '/api/chat/messages?room=' + encodeURIComponent(room) + '&before=' + chatMsgs[0].id);
+        if (room !== chatRoom) return;
+        var box = document.getElementById('chat-list');
+        var prevH = box.scrollHeight, prevT = box.scrollTop;
+        chatMsgs = d.messages.concat(chatMsgs);
+        chatHasMore = !!d.has_more;
+        chatSig = '';
+        renderChat(chatMsgs, false);
+        box.scrollTop = prevT + (box.scrollHeight - prevH);   // 読んでいた位置を動かさない
+    } catch (e) { setChatMsg(chatErr(e)); }
+    finally { chatOlderBusy = false; }
 }
 
 function renderChat(msgs, forceScroll) {
@@ -3249,7 +3280,8 @@ function renderChat(msgs, forceScroll) {
         return;
     }
     var me = loginUser ? loginUser.id : 0;
-    box.innerHTML = msgs.map(function(m) { return chatMsgHTML(m, me); }).join('');
+    box.innerHTML = (chatHasMore ? '<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>' : '') +
+        msgs.map(function(m) { return chatMsgHTML(m, me); }).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
     if (chatJumpTo) {
         var target = chatJumpTo;

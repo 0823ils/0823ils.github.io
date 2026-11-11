@@ -3717,7 +3717,7 @@ async function trOnnxGet(src, tgt, onProgress) {
     };
 }
 
-// スマホか（Worker経由のGoogle翻訳を使うのは、スマホだけ）
+// Worker経由のGoogle翻訳を使う条件（ログイン中の全端末）
 function trIsMobile() {
     try {
         var ua = navigator.userAgent || '';
@@ -3725,7 +3725,7 @@ function trIsMobile() {
     } catch (e) { return false; }
 }
 var trServerOff = false;   // 上限・未設定のとき、この画面を開いているあいだは、サーバー翻訳をやめて端末内に切り替える
-function trServerOk() { return !trServerOff && trIsMobile() && !!loginUser; }
+function trServerOk() { return !trServerOff && !!loginUser; }
 async function trServer(id, tgt) {
     var d = await apiCall('POST', '/api/chat/translate', { id: id, lang: tgt });
     if (!d || typeof d.text !== 'string') throw new Error('fail');
@@ -3756,7 +3756,7 @@ async function chatTranslate(id) {
         if (!src) throw new Error('fail');
         if (src === currentLang) throw new Error('same');
         var out = null, via = '';
-        if (trServerOk()) {   // スマホ: Google翻訳（Worker経由）。だめなら、下の端末内の翻訳へ
+        if (trServerOk()) {   // ログイン中は端末を問わずGoogle翻訳（Worker経由）を優先
             try { out = await trServer(id, currentLang); via = 'g'; }
             catch (e) {
                 out = null;

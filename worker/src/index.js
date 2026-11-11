@@ -802,6 +802,16 @@ async function chatList(request, env, url) {
   const sinceRaw = url.searchParams.get('since');
   const since = sinceRaw !== null && /^\d{1,12}$/.test(sinceRaw) ? Number(sinceRaw) : null;
   if (since === null) await syncStudioRoles(env);
+  // around=<メッセージID> のときは、そのメッセージの前後25件ずつを返す（リンクから古いメッセージを開くため）
+  const aroundRaw = url.searchParams.get('around');
+  const around = since === null && aroundRaw !== null && /^\d{1,12}$/.test(aroundRaw) ? Number(aroundRaw) : null;
+  let lo = null, hi = null;
+  if (around !== null) {
+    const vis = `room = ? AND deleted = 0 ${admin ? '' : 'AND hidden = 0'}`;
+    const a = await env.DB.prepare(`SELECT MIN(id) AS x FROM (SELECT id FROM chat_messages WHERE ${vis} AND id <= ? ORDER BY id DESC LIMIT 25)`).bind(room, around).first();
+    const b = await env.DB.prepare(`SELECT MAX(id) AS x FROM (SELECT id FROM chat_messages WHERE ${vis} AND id >= ? ORDER BY id ASC LIMIT 25)`).bind(room, around).first();
+    if (a && a.x && b && b.x) { lo = a.x; hi = b.x; }
+  }
   const rows = await env.DB.prepare(
     `SELECT m.id, m.user_id, m.username, m.content, m.created_at, m.hidden,
             rp.reply_to, p.username AS reply_username, p.content AS reply_content,
@@ -813,9 +823,9 @@ async function chatList(request, env, url) {
        LEFT JOIN chat_messages p ON p.id = rp.reply_to
        LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
        LEFT JOIN chat_video_names n ON n.video_id = v.id
-      WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
+      WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} ${lo !== null ? 'AND m.id BETWEEN ? AND ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
       ORDER BY m.id ${since !== null ? 'ASC' : 'DESC'} LIMIT ?`
-  ).bind(...(since !== null ? [room, since, CHAT_PAGE] : [room, CHAT_PAGE])).all();
+  ).bind(room, ...(since !== null ? [since] : []), ...(lo !== null ? [lo, hi] : []), CHAT_PAGE).all();
   const list = since !== null ? rows.results : rows.results.reverse();
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }

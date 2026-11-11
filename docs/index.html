@@ -15,6 +15,7 @@
     <link rel="icon" type="image/png" href="/favicon-192.png" sizes="192x192">
     <link rel="apple-touch-icon" href="/favicon-192.png">
     <link rel="alternate" hreflang="ja" href="https://0823ils.github.io/">
+    <link rel="alternate" hreflang="en" href="https://0823ils.github.io/?lang=en">
     <link rel="alternate" hreflang="x-default" href="https://0823ils.github.io/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="scratch-TWC">
@@ -429,7 +430,10 @@
         .push-banner button { border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .push-banner .pb-yes { background: #4D97FF; color: #fff; }
         .push-banner .pb-later { background: #eef1f6; color: #555; font-weight: normal; }
-    </style>
+            .chat-perma { color: inherit; text-decoration: none; }
+        .chat-perma:hover { text-decoration: underline; }
+        .sh-link { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #d5dbe6; background: #fff; cursor: pointer; padding: 0; }
+</style>
 </head>
 <body>
 <!-- ===== サイトヘッダー ===== -->
@@ -951,6 +955,7 @@ const LANG = {
 };
 
 let currentLang = 'ja';
+var urlLang = '';   // URLの ?lang=。リンクに言語を含めるときだけ使う
 
 function t(key, a, b) {
     var val = LANG[currentLang][key];
@@ -964,7 +969,9 @@ function setLang(lang) {
     document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
     document.getElementById('lang-en').classList.toggle('active', lang === 'en');
     try { localStorage.setItem('lang_pref', lang); } catch(e) {}
+    urlLang = lang;
     applyLang();
+    try { updateUrl(); } catch (e) {}
 }
 
 function applyLang() {
@@ -1008,6 +1015,10 @@ function loadLangPref() {
         var saved = localStorage.getItem('lang_pref');
         if (saved === 'en') { currentLang = 'en'; }
     } catch(e) {}
+    try {   // リンクに ?lang= があれば、それを使う（保存はしない）
+        var ul = new URLSearchParams(location.search).get('lang');
+        if (ul === 'ja' || ul === 'en') { currentLang = ul; urlLang = ul; }
+    } catch (e) {}
     document.getElementById('lang-ja').classList.toggle('active', currentLang === 'ja');
     document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
     document.documentElement.lang = currentLang;
@@ -1224,7 +1235,7 @@ function shortAddRows(rows) {
             '<div class="sh-sub">' + avatarImg(p.author_id, 18, p.author_username) + ' ' + esc(p.author_username) + ' ' + statHTML(p.loves) + '</div>' +
             '<div class="sh-stars" id="sh-stars-' + Number(p.id) + '"></div>' +
             '<button class="tw-warn-btn tw-warn-btn-cancel" style="width:auto;padding:6px 12px;margin:0" onclick="shortToggleInfo(' + Number(p.id) + ')">' + esc(nt('shInfo')) + '</button>' +
-            '<button class="tw-warn-btn tw-warn-btn-scratch" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button></div>';
+            '<button class="tw-warn-btn tw-warn-btn-scratch" style="width:auto;padding:6px 12px;margin:0" onclick="openProjectPage(' + Number(p.id) + ')">' + esc(nt('shPage')) + '</button>' + '<button class="sh-link" title="' + esc(nt('shLink')) + '" onclick="shortCopy(' + Number(p.id) + ')">' + LINK_SVG + '</button></div>';
         feed.appendChild(d);
         shortStars(p.id);
         if (shortObs) shortObs.observe(d);
@@ -1301,7 +1312,7 @@ function shortSetCur(i) {
     clearTimeout(shortTimer);
     shortTimer = setTimeout(function() {
         if (currentMode !== 'short') return;
-        shortSync(); shortLoadRatings();
+        shortSync(); shortLoadRatings(); updateUrl();
         if (shortCur >= shortIds.length - 5) shortAppend(30);
     }, 150);   // 勢いよくスクロールしたときは、止まってから読み込む
 }
@@ -2375,12 +2386,13 @@ async function applyDefaultView() {
     // URLにジャンルがあれば、先にその一覧を取っておく
     if (st && st.m !== 'u' && st.m !== 'p' && st.g) { try { await loadGenreIds(st.g); } catch (e) { st.g = ''; } }
     if (st && (st.m === 's' || st.m === 'b')) applyUrlState(st, rankingOk);
-    if (st && st.m === 'h') { setMode('short'); return; }
+    if (st && st.m === 'h') { if (st.id) shortStartAt(st.id); else setMode('short'); return; }
     if (st && st.m === 'u') { openProfile(st.u); return; }
     if (st && st.m === 'p') { prevMode = 'browse'; openProjectPage(st.id); return; }
     if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
     if (st && st.m === 'c' && apiEnabled()) {
         if (st.room) { chatRoom = st.room; try { localStorage.setItem('twc_chat_room', st.room); } catch (e) {} }
+        if (st.msg) { chatJumpTo = st.msg; chatAround = st.msg; }
         setMode('chat');
         return;
     }
@@ -2436,6 +2448,7 @@ function shareParams() {
         p.set('m', 'u'); p.set('u', profileUser);
     } else if (currentMode === 'short') {
         p.set('m', 'h');
+        if (shortIds[shortCur]) p.set('id', shortIds[shortCur]);
     } else if (currentMode === 'project' && ppId) {
         p.set('m', 'p'); p.set('id', ppId);
     } else if (currentMode === 'rank') {
@@ -2451,6 +2464,7 @@ function shareParams() {
 function shareUrl() {
     var base = location.href.split(/[?#]/)[0];
     var p = shareParams();
+    if (p && urlLang) p.set('lang', urlLang);
     return p ? base + '?' + p.toString() : base;
 }
 
@@ -2472,7 +2486,7 @@ window.addEventListener('popstate', function() {
     popping = true;
     try {
         if (st && st.m === 'p') openProjectPage(st.id);
-        else if (st && st.m === 'h') setMode('short');
+        else if (st && st.m === 'h') { if (st.id && shortIds[shortCur] !== st.id) shortStartAt(st.id); else setMode('short'); }
         else if (st && st.m === 'u') openProfile(st.u);
         else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
         else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
@@ -2498,9 +2512,9 @@ function readUrlState() {
     var m = p.get('m');
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
-    if (m === 'h') return { m: 'h' };
+    if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
-    if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '' };
+    if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
     if (m !== 's' && m !== 'b') return null;
     var sort = p.get('sort');
     if (['random', 'loves', 'newest', 'oldest', 'skill', 'fewest', 'relevance'].indexOf(sort) === -1) sort = null;
@@ -2755,6 +2769,7 @@ var chatMsgs = [];        // 表示中のメッセージ
 var chatPolls = 0;        // 自動更新の回数（8回に1回は全件を取り直す）
 var chatVideoEnabled = false;
 var chatAttach = null;    // { name, size, status: 'uploading'|'ready', progress, id }
+var chatAround = 0;       // URLのリンクで開いたとき、このメッセージの前後を読む
 var chatJumpTo = 0;       // 通知から開いたときに表示したいメッセージID
 try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
 
@@ -2811,6 +2826,41 @@ function leaveChat() {
 }
 
 var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+
+// ===== リンク（言語・ショート・チャットの1件ごと） =====
+function langQ() { return urlLang ? '&lang=' + urlLang : ''; }
+function copyLinkText(url) {
+    var done = function() { showToast(t('shareCopied')); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function() { showToast(url); });
+    else showToast(url);
+}
+function shortCopy(id) {
+    copyLinkText(location.href.split(/[?#]/)[0] + '?m=h&id=' + Number(id) + langQ());
+}
+function chatMsgUrl(id) {
+    return location.href.split(/[?#]/)[0] + '?m=c&room=' + chatRoom + '&msg=' + Number(id) + langQ();
+}
+// 時刻を押すと、そのメッセージのリンクをコピーする（Cmd/Ctrl/Shiftクリックは、別タブで開く）
+function chatPerma(ev, id) {
+    if (ev.metaKey || ev.ctrlKey || ev.shiftKey) return true;
+    var url = chatMsgUrl(id);
+    try { history.replaceState(history.state, '', url); } catch (e) {}
+    copyLinkText(url);
+    return false;
+}
+// 指定の作品を先頭にして、ショートを始める（リンクから開いたとき）。収録にない作品は、ふつうのショートにする
+function shortStartAt(id) {
+    if (!db) { setTimeout(function() { shortStartAt(id); }, 600); return; }
+    var rows = queryAll('SELECT id, title, author_id, author_username, loves FROM projects WHERE id = ' + Number(id));
+    var feed = document.getElementById('short-feed');
+    if (rows.length && feed) {
+        feed.innerHTML = ''; shortIds = []; shortMakeObs();
+        shortAddRows(rows); shortAppend(40);
+        shortCur = 0;
+    }
+    setMode('short');
+}
 
 function chatLinkUrl(r) { return location.href.split(/[?#]/)[0] + '?m=c&room=' + r; }
 
@@ -3136,7 +3186,9 @@ async function loadChat(forceScroll, partialOk) {
         var room = chatRoom;
         var partial = !!partialOk && chatMsgs.length > 0;
         var path = '/api/chat/messages?room=' + encodeURIComponent(room) +
-            (partial ? '&since=' + chatMsgs[chatMsgs.length - 1].id : '');
+            (partial ? '&since=' + chatMsgs[chatMsgs.length - 1].id : '') +
+            (!partial && chatAround ? '&around=' + chatAround : '');
+        chatAround = 0;
         var d = await apiCall('GET', path);
         if (room !== chatRoom) return;  // 取得中に部屋を切り替えた場合は捨てる
         chatIsAdmin = !!d.is_admin;
@@ -3206,7 +3258,7 @@ function chatMsgHTML(m, me) {
         }
         return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
             avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
-            '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
+            '<span class="chat-time"><a class="chat-perma" href="' + esc(chatMsgUrl(m.id)) + '" onclick="return chatPerma(event,' + Number(m.id) + ')">' + time + '</a>' + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? chatTextBlockHTML(m) : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
 }
@@ -3756,14 +3808,14 @@ var NT = {
     pProjects: '作品', pLoves: '合計 ♥', pAvg: '受けた評価', pPosts: 'チャット投稿', pGiven: 'つけた評価', pScratch: 'Scratchで見る', pAccount: 'アカウント / ログアウト', pNone: '収録されている作品はありません', pNoUser: 'このユーザーは収録されていません', pMore: 'もっと見る',
     aApps: '申請', aReports: '通報', aBans: '投稿禁止', aEmpty: 'ありません', aHide: '隠す', aRestore: '戻す', aDelete: '削除', aBan: '投稿禁止', aUnban: '解除', aBanName: 'ユーザー名', aBanAdd: '禁止する', aDone: '反映しました', aFail: '失敗しました', aReports2: '通報数', aHidden: '（非表示中）',
     sortLoves: 'ハート順', sortNewest: '新しい順', sortOldest: '古い順',
-    ppBy: '作者', ppHow: '使い方', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
+    ppBy: '作者', ppHow: '使い方', shLink: 'この作品のリンクをコピー', shPage: '作品ページ', shTap: '▶ 旗をタップで開始', shModeTap: 'タップで開始（速い）', shModeAuto: '自動実行', shInfo: '使い方・メモ', shOpen: 'ショートで見る', ppAuto: '開いたらすぐ実行', ppInfoFail: '読み込めませんでした', ppNotes: 'メモとクレジット', ppPlay: '▶ ここで実行（TurboWarp）', ppStop: '■ 停止', ppScratch: 'Scratchで開く', ppTW: 'TurboWarpで開く', ppRate: 'この作品を評価', ppDist: '評価の内訳', ppPeople: function(n) { return n + '人'; }, ppNoRate: 'まだ評価がありません', ppLoginRate: '評価するにはログインしてください', ppRemove: '評価を取り消す', ppNotFound: 'この作品は収録されていません', ppSaved: '評価しました', ppFail: '評価できませんでした', ppAvg: function(a, c) { return '★' + a + '（' + c + '件）'; }, ppLogout: 'ログアウト' },
   en: { back: '← Back', rankWeek: 'This week', rankAll: 'All time', rankEmpty: 'No ratings this week yet', rankStat: function(a, c, s) { return '★' + a + ' (' + c + ')' + (s ? ' · saved ' + s : ''); },
     genreAll: 'All genres', genreTitle: 'Genres (pick any that fit; confirmed with 2 votes or one from staff)', genreErr: 'Could not save genre', genreMax: 'Vote limit reached',
     g_3d: '3D', g_physics: 'Physics', g_engine: 'Game engine', g_render: 'Rendering', g_algorithm: 'Algorithm', g_math: 'Math', g_tool: 'Tool', g_media: 'Image / video', g_audio: 'Audio', g_ai: 'AI / ML', g_other: 'Other',
     pProjects: 'Projects', pLoves: 'Total ♥', pAvg: 'Ratings received', pPosts: 'Chat posts', pGiven: 'Ratings given', pScratch: 'View on Scratch', pAccount: 'Account / Log out', pNone: 'No projects included', pNoUser: 'This user is not included', pMore: 'Load more',
     aApps: 'Applications', aReports: 'Reports', aBans: 'Banned', aEmpty: 'Nothing here', aHide: 'Hide', aRestore: 'Restore', aDelete: 'Delete', aBan: 'Ban', aUnban: 'Unban', aBanName: 'Username', aBanAdd: 'Ban', aDone: 'Done', aFail: 'Failed', aReports2: 'Reports', aHidden: ' (hidden)',
     sortLoves: 'Most loved', sortNewest: 'Newest', sortOldest: 'Oldest',
-    ppBy: 'By', ppHow: 'Instructions', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
+    ppBy: 'By', ppHow: 'Instructions', shLink: 'Copy link to this project', shPage: 'Project page', shTap: '▶ Tap the flag to start', shModeTap: 'Tap to start (fast)', shModeAuto: 'Auto-run', shInfo: 'How to / Notes', shOpen: 'Watch as Shorts', ppAuto: 'Run on open', ppInfoFail: 'Could not load', ppNotes: 'Notes and Credits', ppPlay: '▶ Play here (TurboWarp)', ppStop: '■ Stop', ppScratch: 'Open on Scratch', ppTW: 'Open on TurboWarp', ppRate: 'Rate this project', ppDist: 'Rating breakdown', ppPeople: function(n) { return String(n); }, ppNoRate: 'No ratings yet', ppLoginRate: 'Log in to rate', ppRemove: 'Remove my rating', ppNotFound: 'This project is not included', ppSaved: 'Rated', ppFail: 'Could not rate', ppAvg: function(a, c) { return '★' + a + ' (' + c + ')'; }, ppLogout: 'Log out' }
 };
 function nt(k, a, b, c) { var v = (NT[currentLang] || NT.ja)[k]; if (v === undefined) return k; return typeof v === 'function' ? v(a, b, c) : v; }
 

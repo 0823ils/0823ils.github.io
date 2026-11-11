@@ -282,6 +282,7 @@ async function runCpp(){
   try{
     if(!loadedProject)throw new Error("先にScratch作品を読み込んでください。");
     const mod=await ensureWasm();
+    await prepareSpriteVisuals(loadedProject,loadedZip);
     const stats=compileProjectToCpp(mod);
     mod._sb3cpp_run();
     drawCppStage(mod);

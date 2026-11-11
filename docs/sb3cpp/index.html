@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111318">
+<title>SB3 → C++ / WASM</title>
+<style>
+:root{color-scheme:dark;--bg:#111318;--panel:#1a1d25;--line:#2b303b;--text:#f2f4f8;--muted:#9ba4b5;--accent:#a78bfa;--good:#54d6a0;--warn:#f5c46a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:1040px;margin:auto;padding:48px 22px 80px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.12em;font-size:12px}
+h1{font-size:clamp(30px,5vw,48px);line-height:1.12;margin:12px 0}p{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:20px}
+.drop{border:1px dashed #596174;border-radius:12px;padding:34px 18px;text-align:center;background:#151821}
+.drop.drag{border-color:var(--accent);background:#211d30}.drop strong{display:block;font-size:18px;margin-bottom:6px}
+button,.filelabel{border:0;border-radius:10px;padding:11px 17px;background:var(--accent);color:#171322;font-weight:750;cursor:pointer;display:inline-block}
+button:disabled{opacity:.4;cursor:not-allowed}input[type=file]{display:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+.stat{background:#141720;border:1px solid var(--line);border-radius:11px;padding:14px}.stat b{display:block;font-size:26px}.stat span{color:var(--muted);font-size:13px}
+.status{margin-top:14px;color:var(--muted);white-space:pre-wrap}.status.good{color:var(--good)}.status.warn{color:var(--warn)}
+h2{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;overflow:auto;background:#0c0e13;border:1px solid var(--line);padding:16px;border-radius:10px;color:#d9d7fe;max-height:340px}
+.small{font-size:12px;color:var(--muted)}\n#stage{display:block;width:100%;max-width:640px;aspect-ratio:4/3;background:#fff;border-radius:10px;image-rendering:auto}.runrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:12px;border:1px solid var(--line);padding:3px 8px;border-radius:99px;color:var(--muted)}
+footer{margin-top:30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">EXPERIMENTAL TOOLCHAIN</div>
+<h1>Scratch → C++<br><span style="color:var(--accent)">WebAssembly</span></h1>
+<p>Scratch 3.0 の .sb3 を読み込み、プロジェクト構造とブロックを解析する開発中の変換ツールです。macOS / Windows のブラウザで同じように利用できます。</p>
+<section class="panel">
+  <h2>Scratchの作品リンクから読み込む</h2>
+  <p class="small">共有されているScratch作品のURL、またはプロジェクトIDを入力できます。</p>
+  <div class="row">
+    <input id="projectUrl" type="url" placeholder="https://scratch.mit.edu/projects/1405128229/" style="flex:1;min-width:240px;background:#0c0e13;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit">
+    <button id="loadUrl">リンクから読み込む</button>
+  </div>
+  <div class="small">公開・共有済みの作品が対象です。非共有作品はScratch側の制限により取得できません。</div>
+</section>
+<section class="panel">
+  <h2>1. Scratchプロジェクトファイルを読み込む</h2>
+  <div class="drop" id="drop">
+    <strong>.sb3 ファイルをここにドロップ</strong>
+    <span class="small">またはファイルを選択（Scratch 3.0）</span><br><br>
+    <label class="filelabel" for="file">ファイルを選択</label>
+    <input id="file" type="file" accept=".sb3,application/zip">
+  </div>
+  <div id="status" class="status" aria-live="polite">ファイル待機中</div>
+</section>
+<section class="panel" id="results" hidden>
+  <h2>2. 解析結果</h2>
+  <div class="grid">
+    <div class="stat"><b id="targets">0</b><span>スプライト / ステージ</span></div>
+    <div class="stat"><b id="blocks">0</b><span>ブロック総数</span></div>
+    <div class="stat"><b id="scripts">0</b><span>トップレベルスクリプト</span></div>
+    <div class="stat"><b id="assets">0</b><span>素材ファイル</span></div>
+  </div>
+  <h2 style="margin-top:22px">ブロック使用状況</h2>
+  <pre id="opcodeList">-</pre>
+  <div class="row">
+    <button id="downloadReport">解析レポートを保存</button>
+    <span class="tag">Phase 1 · SB3 parser</span>
+  </div>
+</section>
+<section class="panel">
+  <h2>変換エンジンの開発状況</h2>
+  <p><span class="tag">現在</span> SB3 ZIP / project.json の読み込みとブロック構造解析</p>
+  <p><span class="tag">次段階</span> Scratch VM互換の実行モデル、C++ランタイム、WASM描画・音声層</p>
+  <p class="small">現時点では全ブロックのC++変換・実行はまだ実装されていません。この画面は変換器の最初の土台であり、未対応機能を対応済みとは表示しません。</p>
+</section>
+<footer>SB3 C++ Toolchain · experimental · Runs locally in your browser; the selected project is not uploaded.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let report=null, loadedProject=null, loadedZip=null, spriteVisuals=[], wasmModule=null;
+function setStatus(message,kind=""){ $("status").textContent=message;$("status").className="status "+kind; }
+function extractProjectId(value){
+  const s=String(value||"").trim();
+  if(/^\d{1,20}$/.test(s))return s;
+  try{
+    const u=new URL(s);
+    if(!/(^|\.)scratch\.mit\.edu$/i.test(u.hostname))return null;
+    const m=u.pathname.match(/^\/projects\/(\d+)(?:\/|$)/);
+    return m?m[1]:null;
+  }catch{return null;}
+}
+async function loadFromScratchLink(){
+  const id=extractProjectId($("projectUrl").value);
+  if(!id){setStatus("Scratchの作品URL、または作品IDを入力してください。","warn");return;}
+  const button=$("loadUrl");button.disabled=true;
+  try{
+    setStatus("Scratchから作品情報を取得しています…");
+    const metaResponse=await fetch("https://trampoline.turbowarp.org/api/projects/"+encodeURIComponent(id));
+    if(metaResponse.status===404)throw new Error("作品が見つからないか、共有されていません。");
+    if(!metaResponse.ok)throw new Error("作品情報の取得に失敗しました (HTTP "+metaResponse.status+")");
+    const metadata=await metaResponse.json();
+    if(!metadata.project_token)throw new Error("Scratchの作品トークンを取得できませんでした。");
+    setStatus("作品データをダウンロードしています…");
+    const dataUrl="https://projects.scratch.mit.edu/"+encodeURIComponent(id)+"/?token="+encodeURIComponent(metadata.project_token);
+    const dataResponse=await fetch(dataUrl);
+    if(!dataResponse.ok)throw new Error("作品データの取得に失敗しました (HTTP "+dataResponse.status+"). 公開状態を確認してください。");
+    const bytes=await dataResponse.arrayBuffer();
+    await inspect(new File([bytes],"scratch-project-"+id+".sb3",{type:"application/zip"}));
+  }catch(e){
+    $("results").hidden=true;
+    setStatus("リンク読み込みエラー: "+e.message+"\n時間をおいて再試行するか、.sb3を直接選択してください。","warn");
+  }finally{button.disabled=false;}
+}
+$("loadUrl").addEventListener("click",loadFromScratchLink);
+$("projectUrl").addEventListener("keydown",e=>{if(e.key==="Enter")loadFromScratchLink();});
+async function inspect(file){
+  if(!file)return;
+  setStatus("ZIPを展開しています…");
+  try{
+    if(!window.JSZip)throw new Error("ZIPライブラリを読み込めません。ネットワーク接続を確認してください。");
+    const zip=await JSZip.loadAsync(file);
+    const projectEntry=zip.file("project.json");
+    if(!projectEntry)throw new Error("project.json がありません。.sb3形式のファイルを選択してください。");
+    const project=JSON.parse(await projectEntry.async("string"));\n    loadedProject=project; loadedZip=zip;
+    if(!project.targets||!Array.isArray(project.targets))throw new Error("Scratch 3.0のtargetsが見つかりません。");
+    const opcodes={};let total=0,scripts=0;
+    for(const target of project.targets){
+      const blocks=target.blocks||{};
+      for(const block of Object.values(blocks)){
+        if(!block||typeof block!=="object"||!block.opcode)continue;
+        total++;opcodes[block.opcode]=(opcodes[block.opcode]||0)+1;
+        if(block.topLevel)scripts++;
+      }
+    }
+    const assetFiles=Object.keys(zip.files).filter(n=>!zip.files[n].dir&&n!=="project.json");
+    report={file:file.name,projectVersion:project.meta?.semver||"unknown",targets:project.targets.map(t=>({name:t.name,isStage:!!t.isStage,variables:Object.keys(t.variables||{}).length,lists:Object.keys(t.lists||{}).length})),blockCount:total,topLevelScripts:scripts,assets:assetFiles,opcodes};
+    $("targets").textContent=project.targets.length;
+    $("blocks").textContent=total.toLocaleString();
+    $("scripts").textContent=scripts.toLocaleString();
+    $("assets").textContent=assetFiles.length.toLocaleString();
+    $("opcodeList").textContent=Object.entries(opcodes).sort((a,b)=>b[1]-a[1]).map(([op,n])=>String(n).padStart(5)+"  "+op).join("\n")||"ブロックなし";
+    $("results").hidden=false;
+    setStatus("解析完了。ファイルはブラウザ内で処理され、サーバーには送信されていません。","good");
+  }catch(e){$("results").hidden=true;setStatus("解析エラー: "+e.message,"warn");}
+}
+
+async function prepareSpriteVisuals(project,zip){
+  spriteVisuals=[];
+  for(const target of project.targets){
+    if(target.isStage)continue;
+    const costume=target.costumes?.[target.currentCostume||0];
+    let bitmap=null;
+    if(costume){
+      const entry=zip.file(costume.md5ext||((costume.md5||"")+"."+((costume.dataFormat)||"png")));
+      if(entry){
+        try{const blob=await entry.async("blob");bitmap=await createImageBitmap(blob);}catch(e){console.warn("Costume decode failed",target.name,e);}
+      }
+    }
+    spriteVisuals.push({name:target.name,bitmap});
+  }
+}
+function inputValue(block,name,fallback=0){
+  const v=block.inputs?.[name];
+  if(v==null)return fallback;
+  const candidates=Array.isArray(v)?v.slice(1):[v];
+  for(const c of candidates){
+    if(Array.isArray(c)){
+      for(let i=c.length-1;i>=0;i--){const n=Number(c[i]);if(Number.isFinite(n))return n;}
+      if(typeof c[1]==="string")return c[1];
+    }else if(typeof c==="number")return c;
+    else if(typeof c==="string"&&c.trim()!==""){const n=Number(c);return Number.isFinite(n)?n:c;}
+  }
+  return fallback;
+}
+function inputText(block,name,fallback=""){
+  const v=block.inputs?.[name];
+  if(v==null)return fallback;
+  const candidates=Array.isArray(v)?v.slice(1):[v];
+  for(const c of candidates)if(Array.isArray(c)){
+    for(let i=c.length-1;i>=0;i--)if(typeof c[i]==="string")return c[i];
+  }
+  return fallback;
+}
+function fieldValue(block,name,fallback=0){
+  const v=block.fields?.[name];
+  if(!v)return fallback;
+  const raw=Array.isArray(v)?v[0]:v;
+  const n=Number(raw);return Number.isFinite(n)?n:raw;
+}
+function compileProjectToCpp(mod){
+  mod._sb3cpp_reset();
+  let unsupported=0,compiled=0;
+  const encoder=new TextEncoder();
+  function withCString(value,fn){
+    const bytes=encoder.encode(String(value)+"\\0"),ptr=mod._malloc(bytes.length);
+    mod.HEAPU8.set(bytes,ptr);
+    try{return fn(ptr);}finally{mod._free(ptr);}
+  }
+  const targetToSprite=new Map();
+  for(const target of loadedProject.targets){
+    if(target.isStage){targetToSprite.set(target,-1);continue;}
+    const idx=withCString(target.name,p=>mod._sb3cpp_add_sprite(p,target.x||0,target.y||0,target.direction??90,target.size??100,target.visible===false?0:1));
+    targetToSprite.set(target,idx);
+  }
+  const opcodeMap={
+    motion_movesteps:[1,"STEPS"],motion_turnright:[2,"DEGREES"],motion_turnleft:[2,"DEGREES",-1],
+    motion_setx:[3,"X"],motion_sety:[4,"Y"],motion_changexby:[5,"DX"],motion_changeyby:[6,"DY"],
+    motion_pointindirection:[7,"DIRECTION"],motion_gotoxy:[13,"X","Y"],
+    looks_say:[8,"MESSAGE"],looks_sayforsecs:[8,"MESSAGE"],looks_show:[9],looks_hide:[10],
+    looks_setsizeto:[11,"SIZE"],looks_changesizeby:[12,"CHANGE"]
+  };
+  for(const target of loadedProject.targets){
+    const blocks=target.blocks||{},sprite=targetToSprite.get(target);
+    for(const [id,hat] of Object.entries(blocks)){
+      if(!hat||hat.opcode!=="event_whenflagclicked"||!hat.topLevel)continue;
+      let next=hat.next,guard=0;
+      while(next&&blocks[next]&&guard++<10000){
+        const b=blocks[next],spec=opcodeMap[b.opcode];
+        if(spec&&sprite>=0){
+          const [op,arg1,arg2,mult]=spec;
+          const a=typeof arg1==="string"?(arg1==="MESSAGE"?inputText(b,arg1):inputValue(b,arg1,fieldValue(b,arg1,0))):0;
+          const av=Number(a);
+          const aa=Number.isFinite(av)?av:0;
+          const bb=arg2?inputValue(b,arg2,0):0;
+          const textValue=op===8?inputText(b,"MESSAGE",fieldValue(b,"MESSAGE","")):"";
+          withCString(textValue,p=>mod._sb3cpp_add_command(sprite,op,aa*(mult||1),bb,p));
+          compiled++;
+        }else if(!["event_whenflagclicked"].includes(b.opcode)){
+          unsupported++;mod._sb3cpp_add_unsupported();
+        }
+        next=b.next;
+      }
+      if(guard>=10000){unsupported++;mod._sb3cpp_add_unsupported();}
+    }
+  }
+  return {compiled,unsupported};
+}
+function drawCppStage(mod){
+  const canvas=$("stage"),ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,480,360);
+  ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1;
+  for(let x=0;x<=480;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,360);ctx.stroke();}
+  for(let y=0;y<=360;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(480,y);ctx.stroke();}
+  const count=mod._sb3cpp_get_sprite_count();
+  for(let i=0;i<count;i++){
+    if(!mod._sb3cpp_get_visible(i))continue;
+    const x=240+mod._sb3cpp_get_x(i),y=180-mod._sb3cpp_get_y(i);
+    const size=mod._sb3cpp_get_size(i)/100;
+    const visual=spriteVisuals[i],bitmap=visual?.bitmap;
+    ctx.save();ctx.translate(x,y);ctx.rotate((mod._sb3cpp_get_direction(i)-90)*Math.PI/180);
+    if(bitmap){
+      const w=bitmap.width*size,h=bitmap.height*size;
+      ctx.drawImage(bitmap,-w/2,-h/2,w,h);
+    }else{
+      ctx.fillStyle="#8b5cf6";ctx.beginPath();ctx.arc(0,0,18*Math.max(.2,size),0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#fff";ctx.font="12px sans-serif";ctx.textAlign="center";ctx.fillText(visual?.name||"Sprite",0,4);
+    }
+    ctx.restore();
+    const say=mod.UTF8ToString(mod._sb3cpp_get_say(i));
+    if(say){ctx.fillStyle="#fff";ctx.strokeStyle="#222";ctx.lineWidth=2;ctx.font="14px sans-serif";const sx=Math.max(5,Math.min(360,x+18)),sy=Math.max(20,Math.min(335,y-25));ctx.strokeText(say,sx,sy);ctx.fillText(say,sx,sy);}
+  }
+}
+async function ensureWasm(){
+  if(wasmModule)return wasmModule;
+  $("runtimeStatus").textContent="C++ / WASMランタイムを読み込み中…";
+  await new Promise((resolve,reject)=>{
+    const script=document.createElement("script");script.src="build/runtime.js";
+    script.onload=resolve;script.onerror=()=>reject(new Error("build/runtime.js がありません。GitHub ActionsのWASM Buildを実行してください。"));
+    document.head.appendChild(script);
+  });
+  if(typeof window.createSB3Runtime!=="function")throw new Error("WASMファクトリーが見つかりません。");
+  wasmModule=await window.createSB3Runtime({locateFile:path=>"build/"+path});
+  if(wasmModule._sb3cpp_runtime_abi()!==2)throw new Error("ランタイムのABIバージョンが一致しません。");
+  $("runtimeStatus").textContent="C++ / WASM準備完了";
+  return wasmModule;
+}
+async function runCpp(){
+  const button=$("runCpp");button.disabled=true;
+  try{
+    if(!loadedProject)throw new Error("先にScratch作品を読み込んでください。");
+    const mod=await ensureWasm();
+    const stats=compileProjectToCpp(mod);
+    mod._sb3cpp_run();
+    drawCppStage(mod);
+    const unknown=mod._sb3cpp_get_unsupported();
+    $("executionReport").textContent="実行完了：C++で "+stats.compiled+" 個のブロックを実行しました。未対応ブロック数: "+unknown+"。緑の旗イベント内の基本的な直列処理のみ対応しています。";
+  }catch(e){
+    $("executionReport").textContent="実行できませんでした: "+e.message;
+    $("runtimeStatus").textContent="ランタイム未準備";
+  }finally{button.disabled=false;}
+}
+$("runCpp").addEventListener("click",runCpp);
+\n$("file").addEventListener("change",e=>inspect(e.target.files[0]));
+const drop=$("drop");
+drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
+drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));
+drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("drag");inspect(e.dataTransfer.files[0])});
+$("downloadReport").addEventListener("click",()=>{
+ if(!report)return;
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sb3-analysis.json";a.click();URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>

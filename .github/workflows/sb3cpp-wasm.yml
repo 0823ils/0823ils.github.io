@@ -1,0 +1,46 @@
+name: Build SB3 C++ WASM runtime
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "docs/sb3cpp/runtime.cpp"
+      - "docs/sb3cpp/index.html"
+      - "docs/sb3cpp/tests/**"
+      - ".github/workflows/sb3cpp-wasm.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - name: Native runtime tests
+        run: |
+          g++ -std=c++17 -O2 docs/sb3cpp/runtime.cpp docs/sb3cpp/tests/runtime_test.cpp -o /tmp/sb3cpp-runtime-test
+          /tmp/sb3cpp-runtime-test
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+      - name: Compile runtime to WebAssembly
+        run: |
+          mkdir -p docs/sb3cpp/build
+          em++ docs/sb3cpp/runtime.cpp -O3 -std=c++17 \
+            -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME=createSB3Runtime \
+            -s ENVIRONMENT=web -s ALLOW_MEMORY_GROWTH=1 \
+            -s EXPORTED_FUNCTIONS='["_sb3cpp_runtime_abi","_sb3cpp_runtime_name","_sb3cpp_reset","_sb3cpp_add_sprite","_sb3cpp_add_command","_sb3cpp_add_unsupported","_sb3cpp_get_unsupported","_sb3cpp_run","_sb3cpp_get_sprite_count","_sb3cpp_get_x","_sb3cpp_get_y","_sb3cpp_get_direction","_sb3cpp_get_size","_sb3cpp_get_visible","_sb3cpp_get_name","_sb3cpp_get_say","_malloc","_free"]' \
+            -s EXPORTED_RUNTIME_METHODS='["UTF8ToString"]' \
+            -o docs/sb3cpp/build/runtime.js
+      - name: Commit browser runtime
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/sb3cpp/build/runtime.js docs/sb3cpp/build/runtime.wasm
+          if ! git diff --cached --quiet; then
+            git commit -m "Build SB3 C++ WebAssembly runtime"
+            git push
+          fi

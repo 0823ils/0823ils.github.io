@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111318">
+<title>SB3 → C++ / WASM</title>
+<style>
+:root{color-scheme:dark;--bg:#111318;--panel:#1a1d25;--line:#2b303b;--text:#f2f4f8;--muted:#9ba4b5;--accent:#a78bfa;--good:#54d6a0;--warn:#f5c46a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:1040px;margin:auto;padding:48px 22px 80px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.12em;font-size:12px}
+h1{font-size:clamp(30px,5vw,48px);line-height:1.12;margin:12px 0}p{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-top:20px}
+.drop{border:1px dashed #596174;border-radius:12px;padding:34px 18px;text-align:center;background:#151821}
+.drop.drag{border-color:var(--accent);background:#211d30}.drop strong{display:block;font-size:18px;margin-bottom:6px}
+button,.filelabel{border:0;border-radius:10px;padding:11px 17px;background:var(--accent);color:#171322;font-weight:750;cursor:pointer;display:inline-block}
+button:disabled{opacity:.4;cursor:not-allowed}input[type=file]{display:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+.stat{background:#141720;border:1px solid var(--line);border-radius:11px;padding:14px}.stat b{display:block;font-size:26px}.stat span{color:var(--muted);font-size:13px}
+.status{margin-top:14px;color:var(--muted);white-space:pre-wrap}.status.good{color:var(--good)}.status.warn{color:var(--warn)}
+h2{font-size:18px;margin:0 0 12px}pre{white-space:pre-wrap;overflow:auto;background:#0c0e13;border:1px solid var(--line);padding:16px;border-radius:10px;color:#d9d7fe;max-height:340px}
+.small{font-size:12px;color:var(--muted)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tag{font-size:12px;border:1px solid var(--line);padding:3px 8px;border-radius:99px;color:var(--muted)}
+footer{margin-top:30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">EXPERIMENTAL TOOLCHAIN</div>
+<h1>Scratch → C++<br><span style="color:var(--accent)">WebAssembly</span></h1>
+<p>Scratch 3.0 の .sb3 を読み込み、プロジェクト構造とブロックを解析する開発中の変換ツールです。macOS / Windows のブラウザで同じように利用できます。</p>
+<section class="panel">
+  <h2>1. Scratchプロジェクトを読み込む</h2>
+  <div class="drop" id="drop">
+    <strong>.sb3 ファイルをここにドロップ</strong>
+    <span class="small">またはファイルを選択（Scratch 3.0）</span><br><br>
+    <label class="filelabel" for="file">ファイルを選択</label>
+    <input id="file" type="file" accept=".sb3,application/zip">
+  </div>
+  <div id="status" class="status" aria-live="polite">ファイル待機中</div>
+</section>
+<section class="panel" id="results" hidden>
+  <h2>2. 解析結果</h2>
+  <div class="grid">
+    <div class="stat"><b id="targets">0</b><span>スプライト / ステージ</span></div>
+    <div class="stat"><b id="blocks">0</b><span>ブロック総数</span></div>
+    <div class="stat"><b id="scripts">0</b><span>トップレベルスクリプト</span></div>
+    <div class="stat"><b id="assets">0</b><span>素材ファイル</span></div>
+  </div>
+  <h2 style="margin-top:22px">ブロック使用状況</h2>
+  <pre id="opcodeList">-</pre>
+  <div class="row">
+    <button id="downloadReport">解析レポートを保存</button>
+    <span class="tag">Phase 1 · SB3 parser</span>
+  </div>
+</section>
+<section class="panel">
+  <h2>変換エンジンの開発状況</h2>
+  <p><span class="tag">現在</span> SB3 ZIP / project.json の読み込みとブロック構造解析</p>
+  <p><span class="tag">次段階</span> Scratch VM互換の実行モデル、C++ランタイム、WASM描画・音声層</p>
+  <p class="small">現時点では全ブロックのC++変換・実行はまだ実装されていません。この画面は変換器の最初の土台であり、未対応機能を対応済みとは表示しません。</p>
+</section>
+<footer>SB3 C++ Toolchain · experimental · Runs locally in your browser; the selected project is not uploaded.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let report=null;
+function setStatus(message,kind=""){ $("status").textContent=message;$("status").className="status "+kind; }
+async function inspect(file){
+  if(!file)return;
+  setStatus("ZIPを展開しています…");
+  try{
+    if(!window.JSZip)throw new Error("ZIPライブラリを読み込めません。ネットワーク接続を確認してください。");
+    const zip=await JSZip.loadAsync(file);
+    const projectEntry=zip.file("project.json");
+    if(!projectEntry)throw new Error("project.json がありません。.sb3形式のファイルを選択してください。");
+    const project=JSON.parse(await projectEntry.async("string"));
+    if(!project.targets||!Array.isArray(project.targets))throw new Error("Scratch 3.0のtargetsが見つかりません。");
+    const opcodes={};let total=0,scripts=0;
+    for(const target of project.targets){
+      const blocks=target.blocks||{};
+      for(const block of Object.values(blocks)){
+        if(!block||typeof block!=="object"||!block.opcode)continue;
+        total++;opcodes[block.opcode]=(opcodes[block.opcode]||0)+1;
+        if(block.topLevel)scripts++;
+      }
+    }
+    const assetFiles=Object.keys(zip.files).filter(n=>!zip.files[n].dir&&n!=="project.json");
+    report={file:file.name,projectVersion:project.meta?.semver||"unknown",targets:project.targets.map(t=>({name:t.name,isStage:!!t.isStage,variables:Object.keys(t.variables||{}).length,lists:Object.keys(t.lists||{}).length})),blockCount:total,topLevelScripts:scripts,assets:assetFiles,opcodes};
+    $("targets").textContent=project.targets.length;
+    $("blocks").textContent=total.toLocaleString();
+    $("scripts").textContent=scripts.toLocaleString();
+    $("assets").textContent=assetFiles.length.toLocaleString();
+    $("opcodeList").textContent=Object.entries(opcodes).sort((a,b)=>b[1]-a[1]).map(([op,n])=>String(n).padStart(5)+"  "+op).join("\n")||"ブロックなし";
+    $("results").hidden=false;
+    setStatus("解析完了。ファイルはブラウザ内で処理され、サーバーには送信されていません。","good");
+  }catch(e){$("results").hidden=true;setStatus("解析エラー: "+e.message,"warn");}
+}
+$("file").addEventListener("change",e=>inspect(e.target.files[0]));
+const drop=$("drop");
+drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("drag")});
+drop.addEventListener("dragleave",()=>drop.classList.remove("drag"));
+drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("drag");inspect(e.dataTransfer.files[0])});
+$("downloadReport").addEventListener("click",()=>{
+ if(!report)return;
+ const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sb3-analysis.json";a.click();URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>

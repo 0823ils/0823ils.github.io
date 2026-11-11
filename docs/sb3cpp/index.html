@@ -29,7 +29,16 @@ footer{margin-top:30px;color:var(--muted);font-size:12px}
 <h1>Scratch → C++<br><span style="color:var(--accent)">WebAssembly</span></h1>
 <p>Scratch 3.0 の .sb3 を読み込み、プロジェクト構造とブロックを解析する開発中の変換ツールです。macOS / Windows のブラウザで同じように利用できます。</p>
 <section class="panel">
-  <h2>1. Scratchプロジェクトを読み込む</h2>
+  <h2>Scratchの作品リンクから読み込む</h2>
+  <p class="small">共有されているScratch作品のURL、またはプロジェクトIDを入力できます。</p>
+  <div class="row">
+    <input id="projectUrl" type="url" placeholder="https://scratch.mit.edu/projects/1405128229/" style="flex:1;min-width:240px;background:#0c0e13;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit">
+    <button id="loadUrl">リンクから読み込む</button>
+  </div>
+  <div class="small">公開・共有済みの作品が対象です。非共有作品はScratch側の制限により取得できません。</div>
+</section>
+<section class="panel">
+  <h2>1. Scratchプロジェクトファイルを読み込む</h2>
   <div class="drop" id="drop">
     <strong>.sb3 ファイルをここにドロップ</strong>
     <span class="small">またはファイルを選択（Scratch 3.0）</span><br><br>
@@ -66,6 +75,40 @@ footer{margin-top:30px;color:var(--muted);font-size:12px}
 const $=id=>document.getElementById(id);
 let report=null;
 function setStatus(message,kind=""){ $("status").textContent=message;$("status").className="status "+kind; }
+function extractProjectId(value){
+  const s=String(value||"").trim();
+  if(/^\d{1,20}$/.test(s))return s;
+  try{
+    const u=new URL(s);
+    if(!/(^|\.)scratch\.mit\.edu$/i.test(u.hostname))return null;
+    const m=u.pathname.match(/^\/projects\/(\d+)(?:\/|$)/);
+    return m?m[1]:null;
+  }catch{return null;}
+}
+async function loadFromScratchLink(){
+  const id=extractProjectId($("projectUrl").value);
+  if(!id){setStatus("Scratchの作品URL、または作品IDを入力してください。","warn");return;}
+  const button=$("loadUrl");button.disabled=true;
+  try{
+    setStatus("Scratchから作品情報を取得しています…");
+    const metaResponse=await fetch("https://trampoline.turbowarp.org/api/projects/"+encodeURIComponent(id));
+    if(metaResponse.status===404)throw new Error("作品が見つからないか、共有されていません。");
+    if(!metaResponse.ok)throw new Error("作品情報の取得に失敗しました (HTTP "+metaResponse.status+")");
+    const metadata=await metaResponse.json();
+    if(!metadata.project_token)throw new Error("Scratchの作品トークンを取得できませんでした。");
+    setStatus("作品データをダウンロードしています…");
+    const dataUrl="https://projects.scratch.mit.edu/"+encodeURIComponent(id)+"/?token="+encodeURIComponent(metadata.project_token);
+    const dataResponse=await fetch(dataUrl);
+    if(!dataResponse.ok)throw new Error("作品データの取得に失敗しました (HTTP "+dataResponse.status+"). 公開状態を確認してください。");
+    const bytes=await dataResponse.arrayBuffer();
+    await inspect(new File([bytes],"scratch-project-"+id+".sb3",{type:"application/zip"}));
+  }catch(e){
+    $("results").hidden=true;
+    setStatus("リンク読み込みエラー: "+e.message+"\n時間をおいて再試行するか、.sb3を直接選択してください。","warn");
+  }finally{button.disabled=false;}
+}
+$("loadUrl").addEventListener("click",loadFromScratchLink);
+$("projectUrl").addEventListener("keydown",e=>{if(e.key==="Enter")loadFromScratchLink();});
 async function inspect(file){
   if(!file)return;
   setStatus("ZIPを展開しています…");

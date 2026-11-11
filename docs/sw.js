@@ -6,12 +6,19 @@ self.addEventListener('push', function(event) {
     var d = {};
     try { d = event.data ? event.data.json() : {}; }
     catch (e) { d = { body: event.data ? event.data.text() : '' }; }
-    event.waitUntil(self.registration.showNotification(d.title || 'scratch-TWC', {
-        body: d.body || '',
-        icon: '/favicon-192.png',
-        tag: d.tag || undefined,
-        data: { url: d.url || '/' }
-    }));
+    event.waitUntil((async function() {
+        await self.registration.showNotification(d.title || 'scratch-TWC', {
+            body: d.body || '',
+            icon: '/favicon-192.png',
+            tag: d.tag || undefined,
+            data: { url: d.url || '/' }
+        });
+        // 開いているタブに知らせる（画面のベルの未読数を、すぐ取り直してもらうため）
+        try {
+            var list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            list.forEach(function(c) { try { c.postMessage({ type: 'twc-push' }); } catch (e) {} });
+        } catch (e) {}
+    })());
 });
 
 // 通知をタップしたら、その部屋を開く（すでに開いているタブがあれば、それを使う）

@@ -4233,6 +4233,21 @@ var PUSH_T = {
 function pt(k) { return (PUSH_T[currentLang] || PUSH_T.ja)[k]; }
 var pushKeyInfo = null;
 
+// 端末への通知が届いたら、Service Workerから合図が来る。そのときだけ、ベルの未読数（と、開いている部屋）をすぐ取り直す。
+// 定期確認を増やさないので、サーバーの負荷は増えない
+(function() {
+    if (!('serviceWorker' in navigator)) return;
+    var pushTimer = null;
+    navigator.serviceWorker.addEventListener('message', function(ev) {
+        if (!ev.data || ev.data.type !== 'twc-push' || !loginUser) return;
+        clearTimeout(pushTimer);
+        pushTimer = setTimeout(function() {    // 続けて届いたときは、1回にまとめる
+            refreshNotifCount();
+            if (currentMode === 'chat' && !document.hidden) { try { chatKick(); } catch (e) {} }
+        }, 600);
+    });
+})();
+
 function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
 function pushIsIOS() { return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
 function pushStandalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }

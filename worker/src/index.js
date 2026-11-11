@@ -80,31 +80,14 @@ async function readJson(request) {
 }
 
 
-// Google Apps Script translation proxy. Set GAS_TRANSLATE_URL to the deployed /exec URL.
-async function translateProxy(request, env) {
-  if (!env.GAS_TRANSLATE_URL) throw new HttpError(503, 'translate_not_configured');
-  const body = await readJson(request);
-  const text = String(body.text || '');
-  const source = String(body.source || 'auto');
-  const target = String(body.target || 'ja');
-  if (!text || text.length > 5000) throw new HttpError(400, 'invalid_text');
-  if (!/^[a-z]{2,3}(-[A-Z]{2})?$/.test(target)) throw new HttpError(400, 'invalid_target');
-  const upstream = await fetch(env.GAS_TRANSLATE_URL, {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({text, source, target})
-  });
-  if (!upstream.ok) throw new HttpError(502, 'translate_upstream');
-  let data;
-  try { data = await upstream.json(); } catch { throw new HttpError(502, 'translate_bad_response'); }
-  if (!data || typeof data.translation !== 'string') throw new HttpError(502, 'translate_failed');
-  return json({translation:data.translation});
-}
-\nasync function route(request, env) {
+
+
+async function route(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
 
-  if (path === '/api/translate' && method === 'POST') return translateProxy(request, env);\n  if (path === '/api/auth/start' && method === 'POST') return authStart(request, env);
+  if (path === '/api/auth/start' && method === 'POST') return authStart(request, env);
   if (path === '/api/auth/verify' && method === 'POST') return authVerify(request, env);
   if (path === '/api/ratings' && method === 'GET') return getRatings(request, env, url);
   if (path === '/api/ratings/ranking' && method === 'GET') return getRanking(env);
@@ -137,6 +120,7 @@ async function translateProxy(request, env) {
   }
   if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env, url);
   if (path === '/api/chat/messages' && method === 'POST') return chatPost(request, env);
+  if (path === '/api/chat/translate' && method === 'POST') return translateChat(request, env);
   const cm = path.match(/^\/api\/chat\/messages\/(\d{1,12})(\/report)?$/);
   if (cm) {
     const id = Number(cm[1]);
@@ -894,6 +878,81 @@ async function chatList(request, env, url) {
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
   return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, has_more: since === null && list.length >= CHAT_PAGE, video_enabled: videoEnabled(env) });
+}
+
+// ---------- チャットの翻訳（スマホ向け） ----------
+// Google Apps Script の LanguageApp.translate（Google翻訳）を呼ぶ。GAS側の無料枠は、翻訳の呼び出し 1日5,000回まで。
+//   ・ログインしている人だけが使える（していない人・失敗したときは、画面側が端末内の翻訳に切り替える）
+//   ・訳すのは、チャットに実際にあるメッセージだけ（ID で指定。自由な文章を訳すAPIにはしない）
+//   ・訳文は D1 に保存して、同じメッセージを二度訳さない（他の人が押したときも、保存済みの訳を返す）
+//   ・env.TRANSLATE_URL（GASのウェブアプリのURL）と env.TRANSLATE_SECRET（合言葉）は、wrangler secret で設定する
+const TRANSLATE_LANGS = ['ja', 'en'];
+const TRANSLATE_USER_PER_HOUR = 60;   // 1人が、1時間に新しく訳せる件数（保存済みの訳を見るだけなら数えない）
+const TRANSLATE_DAILY_MAX = 1500;     // サイト全体で、24時間に新しく訳す件数の上限。1件は最大3回ほどGASを呼ぶので、GASの 5,000回/日 を超えない値にしてある
+const TRANSLATE_WORDS = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/;
+
+// 訳さない部分（URL と @メンション）で、本文を区切る
+function translateSplit(text) {
+  const re = /https?:\/\/[^\s<>"']+|@[A-Za-z0-9_-]{3,20}/g;
+  const parts = [];
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push({ keep: false, s: text.slice(last, m.index) });
+    parts.push({ keep: true, s: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push({ keep: false, s: text.slice(last) });
+  return parts;
+}
+
+async function translateChat(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.TRANSLATE_URL || !env.TRANSLATE_SECRET) throw new HttpError(503, 'translate_unavailable');
+  const body = await readJson(request);
+  const id = body.id, lang = body.lang;
+  if (!Number.isInteger(id) || id < 1 || !TRANSLATE_LANGS.includes(lang)) throw new HttpError(400, 'bad_request');
+
+  const msg = await env.DB.prepare('SELECT content, hidden FROM chat_messages WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!msg || !msg.content || (msg.hidden && !isAdmin(user, env))) throw new HttpError(404, 'not_found');
+
+  const hit = await env.DB.prepare('SELECT text FROM chat_translations WHERE message_id = ? AND lang = ?').bind(id, lang).first();
+  if (hit) return json({ text: hit.text, cached: true });
+
+  const parts = translateSplit(msg.content);
+  const todo = parts.filter((p) => !p.keep && TRANSLATE_WORDS.test(p.s));
+  if (!todo.length) return json({ text: msg.content });   // 訳すところが無い（URLだけ、など）
+
+  const now = Date.now();
+  const mine = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_translations WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 3600000).first();
+  if (mine && mine.c >= TRANSLATE_USER_PER_HOUR) throw new HttpError(429, 'too_many');
+  const day = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_translations WHERE created_at > ?').bind(now - 86400000).first();
+  if (day && day.c >= TRANSLATE_DAILY_MAX) throw new HttpError(503, 'translate_quota');
+
+  let data;
+  try {
+    const res = await fetch(env.TRANSLATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // GASのウェブアプリは、この形なら事前確認なしで受け取れる
+      body: JSON.stringify({ secret: env.TRANSLATE_SECRET, to: lang, texts: todo.map((p) => p.s.trim()) }),
+      redirect: 'follow',
+    });
+    data = await res.json();
+  } catch {
+    throw new HttpError(502, 'translate_failed');
+  }
+  if (!data || data.ok !== true) throw new HttpError(data && data.error === 'quota' ? 503 : 502, data && data.error === 'quota' ? 'translate_quota' : 'translate_failed');
+  if (!Array.isArray(data.texts) || data.texts.length !== todo.length || data.texts.some((t) => typeof t !== 'string')) throw new HttpError(502, 'translate_failed');
+
+  let k = 0;
+  const text = parts.map((p) => {
+    if (p.keep || !TRANSLATE_WORDS.test(p.s)) return p.s;
+    const lead = p.s.match(/^\s*/)[0], trail = p.s.match(/\s*$/)[0];
+    return lead + data.texts[k++] + trail;
+  }).join('').slice(0, CHAT_MAX_LEN * 4);
+
+  await env.DB.prepare('INSERT OR IGNORE INTO chat_translations (message_id, lang, text, user_id, created_at) VALUES (?, ?, ?, ?, ?)')
+    .bind(id, lang, text, user.uid, now).run();
+  return json({ text });
 }
 
 async function chatPost(request, env) {

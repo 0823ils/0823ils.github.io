@@ -67,6 +67,7 @@
         .header-tw-label { white-space: nowrap; }
         .header-lang-switch { display: flex; gap: 2px; background: #eef4ff; border-radius: 16px; padding: 3px; }
         body.mode-chat .about-section { display: none; }
+        html[lang="en"] .about-ja { display: none; }
         .header-lang-btn { white-space: nowrap; padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #7aa7e8; transition: all 0.2s; }
         .header-lang-btn.active { background: #4D97FF; color: white; }
         .header-lang-btn:not(.active):hover { color: #4D97FF; }
@@ -694,6 +695,7 @@
 
     <!-- 検索エンジン向け・初めての方向けの説明（常時表示） -->
     <section class="about-section" id="about">
+        <div class="about-ja">
         <h2>scratch-TWC（スクラッチTWC・scratch TWC）とは</h2>
         <p>scratch-TWC（スクラッチTWC・scratch TWC）は、Scratchの<strong>技術作品</strong>を集めた「スクラッチ技術作品集」（Technical Works Collection）の検索・閲覧サイトです。3D表現、物理演算、高速描画、ゲームエンジン、独自のアルゴリズムなど、Scratchで作られた技術作品（scratch技術作品）を、プロジェクト名やユーザー名で検索できます。</p>
         <h3>主な機能</h3>
@@ -703,6 +705,7 @@
            ・気になった作品の保存、技術力の評価</p>
         <h3>ユーザー別・作品別ページ</h3>
         <p><a href="authors.html">収録ユーザー一覧</a>から、ユーザーごとのscratch技術作品ページを見られます。</p>
+        </div>
         <h3>About</h3>
         <p>scratch-TWC (also written scratch TWC; Scratch Technical Works Collection) is a searchable collection of technically impressive Scratch projects. Browse and search Scratch technical works by project name or creator, and open them in Scratch or TurboWarp.</p>
     </section>
@@ -1025,7 +1028,7 @@ async function initDB() {
         });
 
         const resp = await fetch('projects.db');
-        if (!resp.ok) throw new Error('projects.db が見つかりません');
+        if (!resp.ok) throw new Error('projects.db not found');
 
         const total = parseInt(resp.headers.get('content-length') || '0');
         const reader = resp.body.getReader();
@@ -1203,7 +1206,7 @@ function renderProjectPage() {
 
 // ===== ショート（縦スクロールで次々に作品を見る） =====
 var SHORT_RANGE = 3;                       // いま見ている作品の前後、この数だけ読み込んでおく
-var shortIds = [], shortCur = 0, shortObs = null, shortTimer = null, shortReady = false;
+var shortIds = [], shortCur = 0, shortObs = null, shortTimer = null, shortReady = false, shortWait = null;
 function shortSrc(id, run) { return 'https://turbowarp.org/' + Number(id) + '/embed' + (run ? '?autoplay' : ''); }
 function shortAppend(n) {
     var feed = document.getElementById('short-feed');
@@ -1289,7 +1292,13 @@ function shortSync() {
         fr.setAttribute('data-run', run ? '1' : '0');
         fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
         if (old) fr.style.visibility = 'hidden';
-        var done = function() { fr.style.visibility = ''; box.querySelectorAll('iframe').forEach(function(f) { if (f !== fr) f.remove(); }); };
+        // 読み込めたら、自分より前（古い）のものだけ外す。後から作った新しいものを消さない
+        var done = function() {
+            if (!fr.parentNode) return;
+            fr.style.visibility = '';
+            var fs = Array.prototype.slice.call(box.querySelectorAll('iframe'));
+            fs.slice(0, fs.indexOf(fr)).forEach(function(f) { f.remove(); });
+        };
         fr.addEventListener('load', done); setTimeout(done, 5000);
         fr.src = shortSrc(sl.getAttribute('data-id'), run);
         box.appendChild(fr);
@@ -1333,13 +1342,15 @@ function enterShort() {
     if (!db) { setTimeout(function() { if (currentMode === 'short') enterShort(); }, 600); return; }
     var hd = document.querySelector('.site-header');
     sec.style.top = (hd ? Math.round(hd.getBoundingClientRect().bottom) : 106) + 'px';
+    // URLから直接開いたときは、画面がまだ表示される前（高さ0）に呼ばれる。表示されるまで待ってからやり直す
+    if (!sec.clientHeight) { clearTimeout(shortWait); shortWait = setTimeout(function() { if (currentMode === 'short') enterShort(); }, 120); return; }
     sec.style.setProperty('--sh-h', sec.clientHeight + 'px');
     if (!shortObs) { shortMakeObs(); shortAppend(40); }
     feed.scrollTop = shortCur * feed.clientHeight;
     shortReady = false; shortSetCur(shortCur);
 }
 function leaveShort() {
-    clearTimeout(shortTimer);
+    clearTimeout(shortTimer); clearTimeout(shortWait);
     var feed = document.getElementById('short-feed');
     if (feed) feed.querySelectorAll('.sh-embed').forEach(function(b) { b.innerHTML = ''; });   // 全部止める
 }
@@ -2721,6 +2732,7 @@ var CHAT_T = {
           notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
           trBtn: '翻訳', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
+          trNet: '翻訳データを取得できませんでした。通信を確認して、もう一度お試しください', trConfirm: '日本語と英語を、この端末の中で翻訳できるようにします。そのために、翻訳データ（約100MB）をダウンロードします。一度ダウンロードすると、次からは不要です。\nWi-Fiでの接続をおすすめします。ダウンロードしますか？',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
@@ -2738,6 +2750,7 @@ var CHAT_T = {
           notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
           trBtn: 'Translate', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
+          trNet: "Couldn't download the translation data. Check your connection and try again", trConfirm: 'To translate Japanese and English on this device, we need to download translation data (about 100 MB). You only download it once.\nWi-Fi is recommended. Download now?',
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
@@ -3216,8 +3229,11 @@ function chatMsgHTML(m, me) {
 //   - 訳す先は、サイトの表示言語（日本語 / 英語）。本文が最初からその言語なら、ボタンは出さない
 //   - URL と @メンション は訳さず、そのまま残す
 //   - 訳文は、この端末のlocalStorageに残す（同じメッセージを二度訳さない）。メッセージを編集するAPIはないので、IDで覚えてよい
-//   - 翻訳エンジンは、いまはブラウザ内蔵の Translator API だけ（PCのChrome・Edge）。非対応の端末には、翻訳ボタンを出さない。
-//     ほかのエンジン（ブラウザの中で動くモデルなど）を足すときは、trSupported / trDetect / trRun を差し替える
+//   - 翻訳エンジンは2つ。使えるほうを、自動で選ぶ（trEngine）
+//       1. ブラウザ内蔵の Translator API（PCのChrome・Edge）… ダウンロード不要。多くの言語に対応
+//       2. ブラウザの中で動く翻訳モデル（ONNX。docs/tr-worker.js）… スマホなど、1.がない端末の代わり。日本語⇔英語だけ。
+//          初回に約100MBをダウンロードする（先に確認する）。ダウンロードしたものは、ブラウザに残る
+//     どちらも使えない端末や、どちらも訳せない言語のメッセージには、翻訳ボタンを出さない
 var TR_STORE = 'twc_tr_cache_v1';
 var TR_MAX = 200;                // 端末に残す訳文の数
 var trCache = {};                // '表示言語:メッセージID' -> { t: 訳文, a: 時刻 }
@@ -3291,11 +3307,27 @@ function trSupported() {
     catch (e) { return false; }
 }
 
-// このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違うとき）
+// ブラウザの中で動く翻訳モデル（ONNX。tr-worker.js）が使えるか。ブラウザ内蔵の翻訳がない端末（スマホなど）の代わり
+function trOnnxSupported() {
+    try {
+        if (!(window.isSecureContext && typeof Worker === 'function' && typeof WebAssembly === 'object')) return false;
+        if (navigator.deviceMemory && navigator.deviceMemory < 2) return false;   // メモリが少なすぎる端末は避ける
+        return true;
+    } catch (e) { return false; }
+}
+
+// 使う翻訳エンジンを決める。'chrome'（ブラウザ内蔵。ダウンロード不要）→ 'onnx'（日本語⇔英語だけ）→ ''（使えない）
+function trEngine(src, tgt) {
+    if (trSupported()) return 'chrome';
+    if (trOnnxSupported() && ((src === 'en' && tgt === 'ja') || (src === 'ja' && tgt === 'en'))) return 'onnx';
+    return '';
+}
+
+// このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違い、翻訳できるとき）
 function chatTrOffer(m) {
-    if (!m || !m.content || !trSupported()) return false;
+    if (!m || !m.content) return false;
     var g = trGuessLang(m.content);
-    return !!g && g !== currentLang;
+    return !!g && g !== currentLang && trEngine(g, currentLang) !== '';
 }
 
 function chatTrBtnHTML(m) {
@@ -3353,15 +3385,80 @@ async function trDetect(text) {
     return g;
 }
 
+// ---- 翻訳エンジン: ブラウザの中で動く翻訳モデル（ONNX）。計算は tr-worker.js（Webワーカー）の中で行う ----
+var trWorker = null;
+var trWorkerSeq = 0;
+var trWorkerPending = {};   // 呼び出し番号 -> { resolve, reject, dir, onProgress }
+
+function trWorkerFailAll(message) {
+    var p = trWorkerPending;
+    trWorkerPending = {};
+    Object.keys(p).forEach(function(k) { p[k].reject(new Error(message)); });
+}
+
+function trWorkerGet() {
+    if (trWorker) return trWorker;
+    var w = new Worker('/tr-worker.js', { type: 'module' });
+    w.onmessage = function(e) {
+        var m = e.data || {};
+        if (m.type === 'progress') {
+            Object.keys(trWorkerPending).forEach(function(k) {
+                var c = trWorkerPending[k];
+                if (c.dir === m.dir && c.onProgress) c.onProgress(m.p);
+            });
+            return;
+        }
+        var c = trWorkerPending[m.id];
+        if (!c) return;
+        delete trWorkerPending[m.id];
+        if (m.type === 'result') c.resolve(m.text);
+        else c.reject(new Error(m.message || 'fail'));
+    };
+    w.onerror = function(ev) {   // ワーカーが読めない・落ちた。次の呼び出しで作り直す
+        try { if (ev && ev.preventDefault) ev.preventDefault(); } catch (x) {}
+        trWorkerFailAll('load');
+        try { w.terminate(); } catch (x) {}
+        if (trWorker === w) trWorker = null;
+    };
+    trWorker = w;
+    return w;
+}
+
+function trWorkerCall(dir, text, onProgress) {
+    return new Promise(function(resolve, reject) {
+        var id = ++trWorkerSeq;
+        trWorkerPending[id] = { resolve: resolve, reject: reject, dir: dir, onProgress: onProgress };
+        try { trWorkerGet().postMessage({ type: 'translate', id: id, dir: dir, text: text }); }
+        catch (e) { delete trWorkerPending[id]; reject(new Error('load')); }
+    });
+}
+
+// 初回だけ、ダウンロードしてよいか聞く（方向ごと。約100MB）。「はい」と答えたら、その端末では二度と聞かない
+function trOnnxConsent(dir) {
+    var key = 'twc_tr_onnx_ok_' + dir;
+    try { if (localStorage.getItem(key) === '1') return true; } catch (e) {}
+    var ok = false;
+    try { ok = window.confirm(ct('trConfirm')); } catch (e) { ok = false; }
+    if (ok) {
+        try { localStorage.setItem(key, '1'); } catch (e) {}
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}   // ブラウザに、データを消さないようお願いする
+    }
+    return ok;
+}
+
 // URL と @メンション はそのまま残し、そのほかの部分だけを訳す
 async function trRun(text, src, tgt, onProgress) {
-    var tr = await trChromeGet(src, tgt, onProgress);
+    var engine = trEngine(src, tgt);
+    if (!engine) throw new Error('pair');
+    var dir = src + '-' + tgt;
+    var tr = engine === 'chrome' ? await trChromeGet(src, tgt, onProgress) : null;
     var parts = trSplit(text), out = '';
     for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
         if (p.keep || !trHasWords(p.s)) { out += p.s; continue; }
         var lead = p.s.match(/^\s*/)[0], trail = p.s.match(/\s*$/)[0];
-        out += lead + (await tr.translate(p.s.trim())) + trail;
+        var body = p.s.trim();
+        out += lead + (tr ? await tr.translate(body) : await trWorkerCall(dir, body, onProgress)) + trail;
     }
     return out;
 }
@@ -3378,13 +3475,21 @@ async function chatTranslate(id) {
     }
     trBusy[id] = true;
     delete trNote[id];
-    chatTrRefresh(id);
     try {
         var src = await trDetect(m.content);
         if (!src) throw new Error('fail');
         if (src === currentLang) throw new Error('same');
+        var engine = trEngine(src, currentLang);
+        if (!engine) throw new Error('pair');
+        // ブラウザの中で動くモデルは、初回に約100MBをダウンロードする。先に聞く（「いいえ」なら、何もしない）
+        if (engine === 'onnx' && !trOnnxConsent(src + '-' + currentLang)) { return; }
+        chatTrRefresh(id);
+        var lastPct = -1;
         var out = await trRun(m.content, src, currentLang, function(p) {
-            trNote[id] = { k: 'trDl', p: Math.round(p * 100) };
+            var pct = Math.round(p * 100);
+            if (pct === lastPct || pct >= 100) return;   // 同じ数字では描き直さない
+            lastPct = pct;
+            trNote[id] = { k: 'trDl', p: pct };
             chatTrRefresh(id);
         });
         trCache[key] = { t: out, a: Date.now() };
@@ -3392,7 +3497,8 @@ async function chatTranslate(id) {
         trView[id] = true;
         delete trNote[id];
     } catch (e) {
-        trNote[id] = { k: e && e.message === 'pair' ? 'trPair' : (e && e.message === 'same' ? 'trSame' : 'trFail') };
+        var why = e && e.message;
+        trNote[id] = { k: why === 'pair' ? 'trPair' : (why === 'same' ? 'trSame' : ((why === 'load' || why === 'download') ? 'trNet' : 'trFail')) };
     } finally {
         delete trBusy[id];
         chatTrRefresh(id);
@@ -3912,6 +4018,8 @@ if (apiEnabled()) initUnread();
 loadLogin();
 updateSortOptions();
 loadLangPref();
+// この下にあるログイン・申請などのダイアログは、ここを実行した時点ではまだ無いので、読み込み完了後にもう一度、言語を当てる
+document.addEventListener('DOMContentLoaded', function() { if (currentLang !== 'ja') applyLang(); });
 initDB();
 loadSaves().catch(function() {});
 

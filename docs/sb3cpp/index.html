@@ -210,13 +210,12 @@ function compileProjectToCpp(mod){
         const b=blocks[next],spec=opcodeMap[b.opcode];
         if(spec&&sprite>=0){
           const [op,arg1,arg2,mult]=spec;
-          const a=typeof arg1==="string"?(arg1==="MESSAGE"?inputText(b,arg1):inputValue(b,arg1,fieldValue(b,arg1,0))):0;
-          const av=Number(a);
-          const aa=Number.isFinite(av)?av:0;
-          const bb=arg2?inputValue(b,arg2,0):0;
-          const textValue=op===8?inputText(b,"MESSAGE",fieldValue(b,"MESSAGE","")):"";
-          withCString(textValue,p=>mod._sb3cpp_add_command(sprite,op,aa*(mult||1),bb,p));
-          compiled++;
+          let aa=0,bb=0,textValue="",valid=true;
+          if(op===8){textValue=inputText(b,"MESSAGE",fieldValue(b,"MESSAGE",""));valid=textValue!==null;}
+          else if(arg1){const value=inputValue(b,arg1,fieldValue(b,arg1,0));valid=value!==null&&Number.isFinite(Number(value));aa=Number(value||0)*(mult||1);}
+          if(arg2){const value=inputValue(b,arg2,0);valid=valid&&value!==null&&Number.isFinite(Number(value));bb=Number(value||0);}
+          if(valid){withCString(textValue,p=>mod._sb3cpp_add_command(sprite,op,aa,bb,p));compiled++;}
+          else{unsupported++;mod._sb3cpp_add_unsupported();}
         }else if(!["event_whenflagclicked"].includes(b.opcode)){
           unsupported++;mod._sb3cpp_add_unsupported();
         }

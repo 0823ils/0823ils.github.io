@@ -406,13 +406,13 @@
         .chat-tr-note { font-size: 11px; color: #8a94a6; margin-top: 2px; }
         .chat-act:hover { color: #e55; }
         /* 色分け: 返信=緑、通報=赤、ふつうのメッセージはそのまま */
-        .chat-act.act-reply { color: #2a9d4a; font-weight: bold; }
-        .chat-act.act-reply:hover { color: #1f7a38; }
-        .chat-act.act-report { color: #d9534f; }
-        .chat-act.act-report:hover { color: #b52b27; }
-        .chat-quote { border-left-color: #8fd3a3; }
+        .chat-act.act-reply { color: #6fb98a; }
+        .chat-act.act-reply:hover { color: #2a9d4a; }
+        .chat-act.act-report { color: #e49a98; }
+        .chat-act.act-report:hover { color: #d9534f; }
+        .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
-        .chat-msg.to-me { background: #f0faf3; border-left: 3px solid #2a9d4a; padding-left: 6px; }
+        .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
         /* 連続した投稿: 名前・アイコンを省いて、前の投稿の下に続ける */
         .chat-msg.cont { padding-top: 0; margin-left: 27px; }
         .chat-msg.cont .chat-time { visibility: hidden; }
@@ -420,9 +420,9 @@
         .chat-msg:has(+ .chat-msg.cont) { border-bottom-color: transparent; }
         /* 送信中・送れなかった投稿 */
         .chat-msg.pending { opacity: 0.55; }
-        .chat-msg.pending.failed { opacity: 1; background: #fff5f5; }
+        .chat-msg.pending.failed { opacity: 1; background: #fffafa; }
         .chat-pend-state { font-size: 11px; color: #8a94a6; margin-left: 4px; }
-        .chat-msg.failed .chat-pend-state { color: #d9534f; font-weight: bold; }
+        .chat-msg.failed .chat-pend-state { color: #d9706d; }
         .chat-older-btn { display: block; margin: 6px auto 10px; padding: 6px 14px; border-radius: 14px; border: 1px solid #ddd; background: #fff; color: #4D97FF; font-size: 12px; font-weight: bold; cursor: pointer; }
         .chat-older-btn:hover { border-color: #4D97FF; }
         .chat-older-btn:disabled { opacity: 0.5; cursor: default; }

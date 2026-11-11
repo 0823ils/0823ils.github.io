@@ -399,6 +399,8 @@
         .chat-time { color: #aaa; font-size: 11px; margin-right: 4px; }
         .chat-text { white-space: pre-wrap; margin-top: 2px; color: #333; }
         .chat-act { background: none; border: none; color: #aaa; cursor: pointer; font-size: 11px; padding: 0 4px; }
+        .chat-act.busy { opacity: 0.6; cursor: default; }
+        .chat-tr-note { font-size: 11px; color: #8a94a6; margin-top: 2px; }
         .chat-act:hover { color: #e55; }
         .chat-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px; }
         .chat-row textarea { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; margin-bottom: 0; resize: none; }
@@ -2717,6 +2719,8 @@ var CHAT_T = {
           replyTo: ' への返信', cancel: '取り消し', quoteGone: '元のメッセージは削除されました', notifTitle: '通知', notifEmpty: '通知はありません',
           notifReply: ' さんが返信しました', notifMention: ' さんがあなたをメンションしました', markAll: 'すべて既読',
           notifMessage: ' さんが発言しました', notifModeHead: '通知する範囲', notifModeAll: 'すべてのメッセージ', notifModeMentions: '返信・メンションだけ',
+          trBtn: '翻訳', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trDl: '翻訳データをダウンロード中',
+          trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: '翻訳できませんでした',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           empty: 'まだメッセージがありません', report: '通報', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
@@ -2732,6 +2736,8 @@ var CHAT_T = {
           replyTo: '', cancel: 'Cancel', quoteGone: 'The original message was deleted', notifTitle: 'Notifications', notifEmpty: 'No notifications',
           notifReply: ' replied to you', notifMention: ' mentioned you', markAll: 'Mark all as read',
           notifMessage: ' posted a message', notifModeHead: 'Notify me about', notifModeAll: 'All messages', notifModeMentions: 'Replies and mentions only',
+          trBtn: 'Translate', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trDl: 'Downloading translation data',
+          trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Couldn't translate",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           empty: 'No messages yet', report: 'Report', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
@@ -3159,7 +3165,17 @@ function renderChat(msgs, forceScroll) {
         return;
     }
     var me = loginUser ? loginUser.id : 0;
-    box.innerHTML = msgs.map(function(m) {
+    box.innerHTML = msgs.map(function(m) { return chatMsgHTML(m, me); }).join('');
+    if (atBottom) box.scrollTop = box.scrollHeight;
+    if (chatJumpTo) {
+        var target = chatJumpTo;
+        chatJumpTo = 0;
+        setTimeout(function() { chatJump(target); }, 50);
+    }
+}
+
+// 1件分のメッセージのHTML（翻訳を切り替えたときは、この1件だけを差し替える）
+function chatMsgHTML(m, me) {
         var d = new Date(m.created_at);
         var time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
         var acts = '';
@@ -3180,6 +3196,7 @@ function renderChat(msgs, forceScroll) {
                 acts += '<button class="chat-act" data-u="' + esc(m.username) + '" onclick="chatBan(this.dataset.u)">' + esc(ct('ban')) + '</button>';
             }
         }
+        acts += chatTrBtnHTML(m);   // 翻訳 / 原文を表示（ログインしていなくても出す）
         var tags = (m.tags || []).map(function(g) { return '<span class="chat-tag tag-' + esc(g) + '">' + esc(g) + '</span>'; }).join('');
         var quote = '';
         if (m.reply) {
@@ -3190,14 +3207,195 @@ function renderChat(msgs, forceScroll) {
         return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
             avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags +
             '<span class="chat-time">' + time + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
-            (m.content ? '<div class="chat-text">' + chatTextHTML(m.content) + '</div>' : '') +
+            (m.content ? chatTextBlockHTML(m) : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
-    }).join('');
-    if (atBottom) box.scrollTop = box.scrollHeight;
-    if (chatJumpTo) {
-        var target = chatJumpTo;
-        chatJumpTo = 0;
-        setTimeout(function() { chatJump(target); }, 50);
+}
+
+// ===== チャットの翻訳（翻訳はこの端末の中だけで行う。サーバーには何も送らず、サーバーの負荷もない） =====
+//   - 各メッセージに「翻訳」ボタンを出す。押したときだけ訳す。もう一度押すと原文に戻る（原文はいつでも見られる）
+//   - 訳す先は、サイトの表示言語（日本語 / 英語）。本文が最初からその言語なら、ボタンは出さない
+//   - URL と @メンション は訳さず、そのまま残す
+//   - 訳文は、この端末のlocalStorageに残す（同じメッセージを二度訳さない）。メッセージを編集するAPIはないので、IDで覚えてよい
+//   - 翻訳エンジンは、いまはブラウザ内蔵の Translator API だけ（PCのChrome・Edge）。非対応の端末には、翻訳ボタンを出さない。
+//     ほかのエンジン（ブラウザの中で動くモデルなど）を足すときは、trSupported / trDetect / trRun を差し替える
+var TR_STORE = 'twc_tr_cache_v1';
+var TR_MAX = 200;                // 端末に残す訳文の数
+var trCache = {};                // '表示言語:メッセージID' -> { t: 訳文, a: 時刻 }
+var trView = {};                 // メッセージID -> true なら、訳文を表示中
+var trBusy = {};                 // メッセージID -> 訳している最中
+var trNote = {};                 // メッセージID -> { k: 文言のキー, p: 進み具合(0〜100) }
+var trSaveTimer = null;
+
+(function() {
+    try {
+        var o = JSON.parse(localStorage.getItem(TR_STORE) || '{}');
+        if (o && typeof o === 'object') Object.keys(o).forEach(function(k) {
+            if (o[k] && typeof o[k].t === 'string') trCache[k] = { t: o[k].t, a: Number(o[k].a) || 0 };
+        });
+    } catch (e) {}
+})();
+
+function trKey(id) { return currentLang + ':' + id; }
+
+function trSave() {
+    clearTimeout(trSaveTimer);
+    trSaveTimer = setTimeout(function() {
+        try {
+            var keys = Object.keys(trCache);
+            if (keys.length > TR_MAX) {   // 古いものから消す
+                keys.sort(function(a, b) { return trCache[a].a - trCache[b].a; })
+                    .slice(0, keys.length - TR_MAX).forEach(function(k) { delete trCache[k]; });
+            }
+            localStorage.setItem(TR_STORE, JSON.stringify(trCache));
+        } catch (e) {}
+    }, 500);
+}
+
+// 訳さない部分（URL と @メンション）で、本文を区切る: [{ keep: true|false, s: '...' }]
+function trSplit(text) {
+    var marks = chatUrlsOf(text).map(function(u) { return [u.index, u.index + u.url.length]; });
+    var re = /@[A-Za-z0-9_-]{3,20}/g, m;
+    while ((m = re.exec(text))) marks.push([m.index, m.index + m[0].length]);
+    marks.sort(function(a, b) { return a[0] - b[0]; });
+    var parts = [], last = 0;
+    marks.forEach(function(r) {
+        if (r[0] < last) return;   // URLの中のメンションなど、重なったもの
+        if (r[0] > last) parts.push({ keep: false, s: text.slice(last, r[0]) });
+        parts.push({ keep: true, s: text.slice(r[0], r[1]) });
+        last = r[1];
+    });
+    if (last < text.length) parts.push({ keep: false, s: text.slice(last) });
+    return parts;
+}
+
+function trHasWords(s) { return /[A-Za-zÀ-ɏͰ-ϿЀ-ӿ぀-ヿ㐀-鿿가-힯]/.test(s); }
+
+function trPlain(text) {
+    return trSplit(text).filter(function(p) { return !p.keep; }).map(function(p) { return p.s; }).join(' ');
+}
+
+// 文字の種類から、言語を大まかに当てる（その場で決まる軽い判定）。判定できないときは ''
+//   ひらがな・カタカナ → ja / ハングル → ko / キリル文字 → ru / 漢字だけ → ja（このサイトの利用者を想定）/ 英字 → en
+function trGuessLang(text) {
+    var s = trPlain(text);
+    if (/[぀-ヿㇰ-ㇿ]/.test(s)) return 'ja';
+    if (/[가-힯]/.test(s)) return 'ko';
+    if (/[Ѐ-ӿ]/.test(s)) return 'ru';
+    if (/[㐀-鿿]/.test(s)) return 'ja';
+    if (/[A-Za-z]/.test(s)) return 'en';
+    return '';
+}
+
+function trSupported() {
+    try { return !!(window.isSecureContext && typeof self.Translator === 'function' && typeof self.Translator.create === 'function'); }
+    catch (e) { return false; }
+}
+
+// このメッセージに翻訳ボタンを出すか（本文があり、本文の言語が表示言語と違うとき）
+function chatTrOffer(m) {
+    if (!m || !m.content || !trSupported()) return false;
+    var g = trGuessLang(m.content);
+    return !!g && g !== currentLang;
+}
+
+function chatTrBtnHTML(m) {
+    if (!chatTrOffer(m)) return '';
+    var id = Number(m.id);
+    var label = trBusy[id] ? ct('trBusy') : (trCache[trKey(id)] ? ct(trView[id] ? 'trOrig' : 'trShow') : ct('trBtn'));
+    return '<button class="chat-act' + (trBusy[id] ? ' busy' : '') + '" onclick="chatTranslate(' + id + ')">' + esc(label) + '</button>';
+}
+
+function chatTextBlockHTML(m) {
+    var id = Number(m.id), c = trCache[trKey(id)], showTr = !!(trView[id] && c);
+    var n = trNote[id];
+    return '<div class="chat-text">' + chatTextHTML(showTr ? c.t : m.content) + '</div>' +
+        (showTr ? '<div class="chat-tr-note">' + esc(ct('trLabel')) + '</div>' : '') +
+        (n ? '<div class="chat-tr-note">' + esc(ct(n.k) + (n.p != null ? ' ' + n.p + '%' : '')) + '</div>' : '');
+}
+
+// その1件だけを描き直す（一覧全体を描き直さないので、スクロールの位置が動かない）
+function chatTrRefresh(id) {
+    var el = document.getElementById('chat-msg-' + id);
+    var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
+    if (!el || !m) return;
+    el.outerHTML = chatMsgHTML(m, loginUser ? loginUser.id : 0);
+}
+
+// ---- 翻訳エンジン: ブラウザ内蔵の Translator API ----
+var trChromePairs = {};   // '日本語>英語' のような組み合わせごとに、作った翻訳器を覚えておく
+var trDetector = null;
+
+async function trChromeGet(src, tgt, onProgress) {
+    var key = src + '>' + tgt;
+    if (trChromePairs[key]) return trChromePairs[key];
+    var a = await self.Translator.availability({ sourceLanguage: src, targetLanguage: tgt });
+    if (a === 'unavailable') throw new Error('pair');
+    // 翻訳データが端末になければ、ここでダウンロードされる（ボタンを押した直後なので、ブラウザの条件を満たす）
+    var p = self.Translator.create({
+        sourceLanguage: src, targetLanguage: tgt,
+        monitor: function(mon) { mon.addEventListener('downloadprogress', function(e) { if (onProgress) onProgress(e.loaded); }); }
+    });
+    trChromePairs[key] = p;
+    try { return await p; } catch (e) { delete trChromePairs[key]; throw e; }
+}
+
+// 本文の言語を決める。言語を判定するAPIがあれば使い、なければ文字の種類で決める
+async function trDetect(text) {
+    var g = trGuessLang(text);
+    try {
+        if (typeof self.LanguageDetector === 'function' && (await self.LanguageDetector.availability()) !== 'unavailable') {
+            if (!trDetector) trDetector = self.LanguageDetector.create();
+            var det = await trDetector;
+            var r = await det.detect(trPlain(text));
+            if (r && r[0] && r[0].confidence >= 0.6 && /^[a-z]{2,3}(-|$)/i.test(r[0].detectedLanguage)) return r[0].detectedLanguage.split('-')[0].toLowerCase();
+        }
+    } catch (e) { trDetector = null; }
+    return g;
+}
+
+// URL と @メンション はそのまま残し、そのほかの部分だけを訳す
+async function trRun(text, src, tgt, onProgress) {
+    var tr = await trChromeGet(src, tgt, onProgress);
+    var parts = trSplit(text), out = '';
+    for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        if (p.keep || !trHasWords(p.s)) { out += p.s; continue; }
+        var lead = p.s.match(/^\s*/)[0], trail = p.s.match(/\s*$/)[0];
+        out += lead + (await tr.translate(p.s.trim())) + trail;
+    }
+    return out;
+}
+
+async function chatTranslate(id) {
+    var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
+    if (!m || !m.content || trBusy[id]) return;
+    var key = trKey(id);
+    if (trCache[key]) {   // 訳したことがあるなら、表示を切り替えるだけ
+        trView[id] = !trView[id];
+        delete trNote[id];
+        chatTrRefresh(id);
+        return;
+    }
+    trBusy[id] = true;
+    delete trNote[id];
+    chatTrRefresh(id);
+    try {
+        var src = await trDetect(m.content);
+        if (!src) throw new Error('fail');
+        if (src === currentLang) throw new Error('same');
+        var out = await trRun(m.content, src, currentLang, function(p) {
+            trNote[id] = { k: 'trDl', p: Math.round(p * 100) };
+            chatTrRefresh(id);
+        });
+        trCache[key] = { t: out, a: Date.now() };
+        trSave();
+        trView[id] = true;
+        delete trNote[id];
+    } catch (e) {
+        trNote[id] = { k: e && e.message === 'pair' ? 'trPair' : (e && e.message === 'same' ? 'trSame' : 'trFail') };
+    } finally {
+        delete trBusy[id];
+        chatTrRefresh(id);
     }
 }
 

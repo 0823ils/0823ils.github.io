@@ -92,6 +92,7 @@ async function route(request, env) {
   if (path === '/api/ratings/detail' && method === 'GET') return ratingDetail(request, env, url);
   if (path === '/api/scratch/project' && method === 'GET') return scratchProjectInfo(url);
   if (path === '/api/ratings/export' && method === 'GET') return exportRatings(request, env);
+  if (path === '/api/ratings.csv' && method === 'GET') return exportRatingsCsv(env);
 
   if (path === '/api/saves' && method === 'GET') return listSaves(request, env);
 
@@ -378,6 +379,31 @@ async function myRatings(request, env) {
 
 // 全評価の書き出し（GitHub Actions が、スコアを計算して docs/ratings.json にするために使う）。
 // EXPORT_TOKEN が合わなければ見せない。誰がどれをつけたかを含むので、公開はしない
+
+// 公開評価データのCSVダウンロード（Excel向けUTF-8 BOM付き）
+async function exportRatingsCsv(env) {
+  const rows = await env.DB.prepare(
+    'SELECT project_id, user_id, username, score, updated_at FROM ratings ORDER BY project_id, user_id'
+  ).all();
+  const quote = (value) => {
+    let s = String(value ?? '');
+    // CSVを開いた際の数式実行を防ぐ
+    if (/^[=+@\\-\\t\\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const lines = [
+    ['project_id', 'user_id', 'username', 'score', 'updated_at'].join(','),
+    ...(rows.results || []).map(r => [r.project_id, r.user_id, r.username, r.score, r.updated_at].map(quote).join(','))
+  ];
+  return new Response('\\uFEFF' + lines.join('\\r\\n') + '\\r\\n', {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="projects.db.csv"',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
+
 async function exportRatings(request, env) {
   const token = String(env.EXPORT_TOKEN || '');
   if (token.length < 16) throw new HttpError(503, 'export_disabled');

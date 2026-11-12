@@ -4486,6 +4486,27 @@ async function pushCurrentSub() {
     } catch (e) { return null; }
 }
 
+// サーバーの通知の鍵が変わった（鍵を作り直した）ときは、前の登録のままだと届かない。
+// 許可はすでにあるので、確認の画面は出さずに、黙って新しい鍵で登録し直す。失敗したら、前の登録のままにする
+async function pushKeyFresh(sub, info) {
+    try {
+        var cur = sub && sub.options && sub.options.applicationServerKey;
+        if (!cur || !info || !info.key || Notification.permission !== 'granted') return sub;
+        var want = pushBytes(info.key), a = new Uint8Array(cur), same = a.length === want.length;
+        for (var i = 0; same && i < a.length; i++) if (a[i] !== want[i]) same = false;
+        if (same) return sub;
+        var reg = await navigator.serviceWorker.getRegistration('/');
+        if (!reg) return sub;
+        var old = sub;
+        var fresh;
+        try { await old.unsubscribe(); } catch (e) { return sub; }
+        try { fresh = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: want }); } catch (e) { return null; }
+        try { await apiCall('POST', '/api/push/unsubscribe', { endpoint: old.endpoint }); } catch (e) {}
+        pushSynced = '';
+        return fresh;
+    } catch (e) { return sub; }
+}
+
 async function renderPushRow() {
     var el = document.getElementById('notif-push');
     if (!el) return;
@@ -4500,6 +4521,7 @@ async function renderPushRow() {
     if (!info.enabled) { el.style.display = 'none'; return; }   // サーバー側の設定がまだ
     if (Notification.permission === 'denied') { el.innerHTML = '<div class="np-hint">' + esc(pt('blocked')) + '</div>'; return; }
     var sub = await pushCurrentSub();
+    if (sub) sub = await pushKeyFresh(sub, info);
     if (sub) {
         showPushBanner(false);   // すでにオンなので、「オンにしますか？」は閉じる
         el.innerHTML = '<button class="off" onclick="pushDisable()">' + esc(pt('off')) + '</button><span class="np-state">' + esc(pt('state')) + '</span>';
@@ -4524,6 +4546,7 @@ async function pushEnable() {
         var reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
         await navigator.serviceWorker.ready;
         var sub = await reg.pushManager.getSubscription();
+        if (sub) sub = await pushKeyFresh(sub, info);
         if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pushBytes(info.key) });
         await apiCall('POST', '/api/push/subscribe', sub.toJSON());
         pushSynced = loginUser.username;
@@ -4573,6 +4596,7 @@ async function maybeShowPushBanner() {
         var info = await pushServerKey();
         if (!info.enabled) return;                       // サーバー側の設定がまだ
         var sub = await pushCurrentSub();
+        if (sub) sub = await pushKeyFresh(sub, info);    // 鍵が変わっていたら、黙って登録し直す
         if (sub) { pushSync(sub); return; }              // すでにオン。いまのアカウントに届くようにだけしておく
         if (pushLaterActive()) return;
         showPushBanner(true);

@@ -127,6 +127,9 @@ async function route(request, env) {
     if (cm[2] && method === 'POST') return chatReport(request, env, id);
     if (!cm[2] && method === 'DELETE') return chatDelete(request, env, id);
   }
+  const rm = path.match(/^\/api\/chat\/messages\/(\d{1,12})\/react$/);
+  if (rm && method === 'POST') return chatReact(request, env, Number(rm[1]));
+  if (path === '/api/chat/reactions' && method === 'GET') return chatReactions(request, env, url);
   const cam = path.match(/^\/api\/admin\/chat\/messages\/(\d{1,12})$/);
   if (cam && method === 'POST') return chatAdminAction(request, env, Number(cam[1]));
   if (path === '/api/admin/chat/bans' && method === 'POST') return chatAdminBan(request, env);
@@ -157,6 +160,7 @@ async function route(request, env) {
   if (path === '/api/push/key' && method === 'GET') return pushKey(env);
   if (path === '/api/push/subscribe' && method === 'POST') return pushSubscribe(request, env);
   if (path === '/api/push/unsubscribe' && method === 'POST') return pushUnsubscribe(request, env);
+  if (path === '/api/push/test' && method === 'POST') return pushTest(request, env);
 
   throw new HttpError(404, 'not_found');
 }
@@ -772,6 +776,7 @@ const MAX_MENTIONS = 5;
 function chatRow(r, env) {
   const o = { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
               created_at: r.created_at, hidden: !!r.hidden, tags: r.tags || [] };
+  if (r.reactions && r.reactions.length) o.reactions = r.reactions;
   if (r.video_id) {
     if (isImageType(r.video_type)) o.image = videoInfo(r, env);
     else if (isSb3Type(r.video_type)) o.file = Object.assign(videoInfo(r, env), { name: r.video_name || 'project.sb3', size: r.video_size || 0 });
@@ -877,6 +882,8 @@ async function chatList(request, env, url) {
   const list = since !== null ? rows.results : rows.results.reverse();
   const tags = await tagsFor(env, [...new Set(list.map(r => r.username.toLowerCase()))]);
   for (const r of list) { r.tags = tags[r.username.toLowerCase()] || []; }
+  const reacts = await reactionsFor(env, list.map(r => r.id), user ? user.uid : 0);
+  for (const r of list) { r.reactions = reacts[r.id] || []; }
   return json({ messages: await attachMediaUrls(env, list.map(r => chatRow(r, env))), is_admin: admin, partial: since !== null, has_more: since === null && list.length >= CHAT_PAGE, video_enabled: videoEnabled(env) });
 }
 
@@ -1026,6 +1033,54 @@ async function chatPost(request, env) {
   if (pctx) pctx.waitUntil(pushJob); else await pushJob;
 
   return json({ message: { id, user_id: user.uid, username: user.u, content, created_at: now, hidden: false, tags: [] } }, 201);
+}
+
+// ---------- 絵文字リアクション ----------
+//   POST /api/chat/messages/:id/react { emoji }   -> { reactions: [{e, n, me}] }  (要ログイン。同じ絵文字をもう一度送ると取り消し)
+//   GET  /api/chat/reactions?ids=1,2,3             -> { reactions: { "1": [{e, n, me}], ... } }  (公開。最大100件)
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '🎉', '😮', '🙏', '🔥', '👀'];   // 決まった絵文字だけ（自由な文字は受け付けない）
+const REACT_PER_MINUTE = 40;
+
+// ids のメッセージごとのリアクション一覧。me は、いまのユーザーが付けたか
+async function reactionsFor(env, ids, uid) {
+  const out = {};
+  const list = [...new Set(ids.map(Number).filter(n => Number.isInteger(n) && n > 0))].slice(0, 100);
+  if (!list.length) return out;
+  const rows = await env.DB.prepare(
+    `SELECT message_id, emoji, COUNT(*) AS n, SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) AS me, MIN(created_at) AS first
+       FROM chat_reactions WHERE message_id IN (${list.map(() => '?').join(',')})
+      GROUP BY message_id, emoji ORDER BY message_id, first, emoji`
+  ).bind(uid || 0, ...list).all();
+  for (const r of rows.results) (out[r.message_id] = out[r.message_id] || []).push({ e: r.emoji, n: Number(r.n), me: Number(r.me) > 0 });
+  return out;
+}
+
+async function chatReact(request, env, id) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const emoji = body && body.emoji;
+  if (typeof emoji !== 'string' || !REACTION_EMOJIS.includes(emoji)) throw new HttpError(400, 'bad_emoji');
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+  const msg = await env.DB.prepare('SELECT id FROM chat_messages WHERE id = ? AND deleted = 0 AND hidden = 0').bind(id).first();
+  if (!msg) throw new HttpError(404, 'not_found');
+  const now = Date.now();
+  const recent = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_reactions WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 60000).first();
+  const mine = await env.DB.prepare('SELECT 1 AS x FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?').bind(id, user.uid, emoji).first();
+  if (mine) {
+    await env.DB.prepare('DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?').bind(id, user.uid, emoji).run();
+  } else {
+    if (recent && recent.c >= REACT_PER_MINUTE) throw new HttpError(429, 'too_fast');
+    await env.DB.prepare('INSERT OR IGNORE INTO chat_reactions (message_id, user_id, emoji, created_at) VALUES (?, ?, ?, ?)').bind(id, user.uid, emoji, now).run();
+  }
+  const r = await reactionsFor(env, [id], user.uid);
+  return json({ reactions: r[id] || [] });
+}
+
+async function chatReactions(request, env, url) {
+  const user = await getUser(request, env);
+  const ids = String(url.searchParams.get('ids') || '').split(',').filter(s => /^\d{1,12}$/.test(s)).map(Number).slice(0, 100);
+  return json({ reactions: await reactionsFor(env, ids, user ? user.uid : 0) });
 }
 
 async function chatDelete(request, env, id) {
@@ -1687,7 +1742,7 @@ async function notifyPush(env, targets, from, snippet, room) {
   }
   if (!jobs.length) return;
 
-  await Promise.allSettled(jobs.map(async ({ sub, kind }) => {
+  const results = await Promise.allSettled(jobs.map(async ({ sub, kind }) => {
     const label = kind === 'reply' ? ' さんが返信しました'
       : kind === 'mention' ? ' さんがあなたをメンションしました'
       : ' さんが発言しました（' + (ROOM_LABELS[room] || room) + '）';
@@ -1700,6 +1755,26 @@ async function notifyPush(env, targets, from, snippet, room) {
     });
     if (status === 404 || status === 410) {   // その端末の登録が無効になった
       await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(sub.endpoint).run();
+    } else if (status >= 300) {
+      console.error('push rejected', status, new URL(sub.endpoint).hostname);   // 401/403: 鍵の不一致など
     }
   }));
+  for (const r of results) if (r.status === 'rejected') console.error('push error', r.reason);
+}
+
+// 自分の端末に、テストの通知を送る。届かないときの原因（鍵・登録・配信サービスの応答）を調べるためのもの
+//   POST /api/push/test -> { enabled, devices, results: [{ host, status }] }   (要ログイン)
+async function pushTest(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.VAPID_PRIVATE_JWK) return json({ enabled: false, devices: 0, results: [] });
+  const rows = await env.DB.prepare('SELECT endpoint, p256dh, auth FROM push_subs WHERE username = ? LIMIT ?').bind(user.u.toLowerCase(), MAX_PUSH_SUBS).all();
+  const results = await Promise.all(rows.results.map(async sub => {
+    const host = new URL(sub.endpoint).hostname;
+    try {
+      const status = await sendPush(env, sub, { title: 'scratch-TWC', body: 'テスト通知です。これが見えれば、通知は届いています', url: '/', tag: 'push-test' });
+      if (status === 404 || status === 410) await env.DB.prepare('DELETE FROM push_subs WHERE endpoint = ?').bind(sub.endpoint).run();
+      return { host, status };
+    } catch (e) { console.error('push test', e); return { host, status: 0 }; }
+  }));
+  return json({ enabled: true, devices: rows.results.length, results });
 }

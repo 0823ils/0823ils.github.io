@@ -410,6 +410,18 @@
         .chat-act.act-reply:hover { color: #2a9d4a; }
         .chat-act.act-report { color: #e49a98; }
         .chat-act.act-report:hover { color: #d9534f; }
+        /* 絵文字リアクション */
+        .chat-act.act-react { color: #e0b24a; }
+        .chat-act.act-react:hover { color: #d99a00; }
+        .chat-reacts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .chat-react { border: 1px solid #e3e7ee; background: #f7f9fc; color: #555; border-radius: 12px; padding: 1px 8px; font-size: 12px; line-height: 1.7; cursor: pointer; font-family: inherit; }
+        .chat-react:hover { background: #eef3fb; }
+        .chat-react.me { border-color: #4D97FF; background: #e8f1ff; color: #1f5fc4; }
+        .chat-react.add { color: #999; padding: 1px 7px; }
+        .chat-react[disabled] { cursor: default; opacity: 0.7; }
+        .react-picker { position: fixed; z-index: 120; display: flex; gap: 2px; background: #fff; border: 1px solid #dfe5ee; border-radius: 22px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); padding: 4px 6px; max-width: calc(100vw - 16px); }
+        .react-picker button { border: none; background: none; font-size: 22px; line-height: 1; padding: 6px; border-radius: 50%; cursor: pointer; }
+        .react-picker button:hover { background: #eef3fb; }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
         .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
@@ -2822,7 +2834,7 @@ var CHAT_T = {
           trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trLabelG: '翻訳済み（Google翻訳）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: 'GAS翻訳に失敗しました。ネットワークやGASの公開設定を確認してください', trLogin: 'GAS翻訳を使うにはログインしてください', trUnavailable: 'GAS翻訳サーバーの設定が不足しています。WorkerのTRANSLATE_URLとTRANSLATE_SECRETを確認してください', trQuota: 'GAS翻訳の1日の利用上限に達しました。時間をおいてください', trRateLimit: '短時間の翻訳回数制限に達しました。時間をおいてください',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
-          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', react: 'リアクション', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -2839,7 +2851,7 @@ var CHAT_T = {
           trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trLabelG: 'Translated (Google Translate)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Google translation failed. Check the network or GAS deployment and try again.", trLogin: "Sign in to use Google translation.", trUnavailable: "Google translation is not configured on the server.", trQuota: "The daily Google translation limit has been reached.", trRateLimit: "Too many translations in a short time. Please try again later.",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
-          older: 'Load older messages', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          older: 'Load older messages', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', react: 'React', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -2887,6 +2899,7 @@ async function chatTick() {
     chatPolls++;
     var before = chatTopId();
     try { await loadChat(false, chatPolls % 12 !== 0); } catch (e) {}
+    chatReactSync();
     chatDelay = chatTopId() !== before ? CHAT_POLL_MIN : Math.min(Math.round(chatDelay * 1.5), CHAT_POLL_MAX);
     if (chatESok) chatDelay = CHAT_POLL_MAX;   // 新着はSSEで届くので、定期確認は念のため
     if (currentMode === 'chat') chatSchedule();
@@ -3334,7 +3347,7 @@ async function loadChat(forceScroll, partialOk) {
         var keepOld = chatMsgs.filter(function(m) { return m.id < firstId; });
         if (!keepOld.length) chatHasMore = !!d.has_more;
         chatMsgs = keepOld.concat(d.messages);
-        var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : ''); }).join(',') +
+        var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : '') + (m.reactions ? JSON.stringify(m.reactions) : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;
         chatSig = sig;
@@ -3401,6 +3414,9 @@ function chatMsgHTML(m, me, prev) {
             acts += '<button class="chat-act act-reply" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
                 '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + esc(ct('reply')) + '</button>';
         }
+        if (loginUser) {
+            acts += '<button class="chat-act act-react" title="' + esc(ct('react')) + '" onclick="chatReactPicker(event,' + Number(m.id) + ')">😀</button>';
+        }
         if (loginUser && m.user_id !== me) {
             acts += '<button class="chat-act act-report" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
         }
@@ -3427,7 +3443,7 @@ function chatMsgHTML(m, me, prev) {
             (cont ? '' : avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags) +
             '<span class="chat-time"><a class="chat-perma" href="' + esc(chatMsgUrl(m.id)) + '" onclick="return chatPerma(event,' + Number(m.id) + ')">' + time + '</a>' + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
             (m.content ? chatTextBlockHTML(m) : '') +
-            chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + '</div>';
+            chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + chatReactsHTML(m) + '</div>';
 }
 
 // ===== チャットの翻訳（翻訳はこの端末の中だけで行う。サーバーには何も送らず、サーバーの負荷もない） =====
@@ -3538,6 +3554,87 @@ function chatTextBlockHTML(m) {
     return '<div class="chat-text">' + chatTextHTML(showTr ? c.t : m.content) + '</div>' +
         (showTr ? '<div class="chat-tr-note">' + esc(ct(c.s === 'g' ? 'trLabelG' : 'trLabel')) + '</div>' : '') +
         (n ? '<div class="chat-tr-note">' + esc(ct(n.k) + (n.p != null ? ' ' + n.p + '%' : '')) + '</div>' : '');
+}
+
+// ===== 絵文字リアクション =====
+var REACT_EMOJIS = ['👍', '❤️', '😂', '🎉', '😮', '🙏', '🔥', '👀'];   // サーバー（worker）の REACTION_EMOJIS と同じにする
+var reactBusy = {};
+
+function chatReactsHTML(m) {
+    var list = m.reactions || [];
+    if (!list.length) return '';
+    var id = Number(m.id);
+    var pills = list.map(function(r) {
+        var label = esc(r.e) + ' ' + Number(r.n);
+        return loginUser
+            ? '<button class="chat-react' + (r.me ? ' me' : '') + '" data-e="' + esc(r.e) + '" onclick="chatReact(' + id + ',this.dataset.e)">' + label + '</button>'
+            : '<button class="chat-react" disabled>' + label + '</button>';
+    }).join('');
+    if (loginUser) pills += '<button class="chat-react add" title="' + esc(ct('react')) + '" onclick="chatReactPicker(event,' + id + ')">＋</button>';
+    return '<div class="chat-reacts">' + pills + '</div>';
+}
+
+function chatReactPickerClose() {
+    var p = document.getElementById('react-picker');
+    if (p) p.remove();
+    document.removeEventListener('click', chatReactPickerClose, true);
+}
+function chatReactPicker(ev, id) {
+    ev.stopPropagation();
+    var had = document.getElementById('react-picker');
+    chatReactPickerClose();
+    if (had && had.dataset.id === String(id)) return;   // 同じボタンをもう一度押したら閉じる
+    var p = document.createElement('div');
+    p.id = 'react-picker'; p.className = 'react-picker'; p.dataset.id = String(id);
+    p.innerHTML = REACT_EMOJIS.map(function(e) { return '<button data-e="' + esc(e) + '">' + esc(e) + '</button>'; }).join('');
+    document.body.appendChild(p);
+    var b = ev.currentTarget.getBoundingClientRect();
+    var w = p.offsetWidth, h = p.offsetHeight;
+    var left = Math.max(8, Math.min(window.innerWidth - w - 8, b.left + b.width / 2 - w / 2));
+    var top = b.top - h - 6; if (top < 8) top = b.bottom + 6;
+    p.style.left = left + 'px'; p.style.top = top + 'px';
+    p.addEventListener('click', function(e) {
+        var t = e.target.closest('button[data-e]');
+        if (!t) return;
+        e.stopPropagation();
+        chatReactPickerClose();
+        chatReact(id, t.dataset.e);
+    });
+    setTimeout(function() { document.addEventListener('click', chatReactPickerClose, true); }, 0);
+}
+
+async function chatReact(id, emoji) {
+    if (!loginUser || reactBusy[id + emoji]) return;
+    reactBusy[id + emoji] = 1;
+    try {
+        var d = await apiCall('POST', '/api/chat/messages/' + id + '/react', { emoji: emoji });
+        var m = chatMsgs.filter(function(x) { return Number(x.id) === id; })[0];
+        if (m) { m.reactions = d.reactions || []; chatTrRefresh(id); }
+    } catch (e) { setChatMsg(chatErr(e)); }
+    finally { delete reactBusy[id + emoji]; }
+}
+
+// 他の人が付けたリアクションを取り込む（新着だけを取る通常の更新では、古いメッセージの変化が届かないため）
+var reactSyncBusy = false;
+async function chatReactSync() {
+    if (reactSyncBusy || !chatMsgs.length || document.getElementById('react-picker')) return;
+    reactSyncBusy = true;
+    try {
+        var room = chatRoom;
+        var ids = chatMsgs.slice(-100).map(function(m) { return m.id; });
+        var d = await apiCall('GET', '/api/chat/reactions?ids=' + ids.join(','));
+        if (room !== chatRoom) return;
+        var map = d.reactions || {};
+        ids.forEach(function(id) {
+            var m = chatMsgs.filter(function(x) { return x.id === id; })[0];
+            if (!m) return;
+            var next = map[id] || [];
+            if (JSON.stringify(m.reactions || []) === JSON.stringify(next)) return;
+            m.reactions = next;
+            chatTrRefresh(id);
+        });
+    } catch (e) {}
+    finally { reactSyncBusy = false; }
 }
 
 // その1件だけを描き直す（一覧全体を描き直さないので、スクロールの位置が動かない）
@@ -4455,10 +4552,10 @@ loadSaves().catch(function() {});
 // ===== 端末への通知（Web Push） =====
 var PUSH_T = {
     ja: { on: 'この端末に通知を届ける', off: '通知を止める', state: '通知: オン', ios: 'iPhoneでは、Safariの「共有」から「ホーム画面に追加」して、そのアイコンから開くと、通知を受け取れます。',
-          blocked: '通知がブロックされています。ブラウザのサイト設定で、通知を「許可」にしてください。', done: 'この端末に通知を届けます', fail: '通知を設定できませんでした', head: '端末への通知',
+          blocked: '通知がブロックされています。ブラウザのサイト設定で、通知を「許可」にしてください。', done: 'この端末に通知を届けます', fail: '通知を設定できませんでした', head: '端末への通知', test: 'テスト通知を送る', testNone: 'この端末の登録がサーバーにありません。いったん「通知を止める」→「この端末に通知を届ける」をやり直してください', testOk: 'テスト通知を送りました。数秒待っても出ないときは、端末の通知設定を確認してください', testFail: 'テスト通知の送信に失敗しました（サーバーの応答: ',
           bannerText: '通知をオンにしますか？ チャットの新しい発言を、この端末にお知らせします（受け取る範囲は、右上の設定で変えられます）。', bannerYes: 'オンにする', bannerLater: 'あとで' },
     en: { on: 'Send notifications to this device', off: 'Turn off', state: 'Notifications: on', ios: 'On iPhone, tap Share in Safari, choose "Add to Home Screen", then open the site from that icon to receive notifications.',
-          blocked: 'Notifications are blocked. Allow them in your browser\'s site settings.', done: 'Notifications are on for this device', fail: 'Could not set up notifications', head: 'Device notifications',
+          blocked: 'Notifications are blocked. Allow them in your browser\'s site settings.', done: 'Notifications are on for this device', fail: 'Could not set up notifications', head: 'Device notifications', test: 'Send a test notification', testNone: 'This device is not registered on the server. Turn notifications off and on again', testOk: 'Test notification sent. If nothing shows within a few seconds, check your device notification settings', testFail: 'Test notification failed (server response: ',
           bannerText: 'Turn on notifications? We\'ll alert this device about new chat messages (you can change what you receive in the settings at the top right).', bannerYes: 'Turn on', bannerLater: 'Later' }
 };
 function pt(k) { return (PUSH_T[currentLang] || PUSH_T.ja)[k]; }
@@ -4547,7 +4644,7 @@ async function renderPushRow() {
     if (sub) sub = await pushKeyFresh(sub, info);
     if (sub) {
         showPushBanner(false);   // すでにオンなので、「オンにしますか？」は閉じる
-        el.innerHTML = '<button class="off" onclick="pushDisable()">' + esc(pt('off')) + '</button><span class="np-state">' + esc(pt('state')) + '</span>';
+        el.innerHTML = '<button class="off" onclick="pushDisable()">' + esc(pt('off')) + '</button><span class="np-state">' + esc(pt('state')) + '</span> <button class="off" onclick="pushTest()">' + esc(pt('test')) + '</button>';
         pushSync(sub);
     } else {
         el.innerHTML = '<button onclick="pushEnable()">' + esc(pt('on')) + '</button>';
@@ -4576,6 +4673,17 @@ async function pushEnable() {
         showToast(pt('done'));
     } catch (e) { showToast(pt('fail')); }
     renderPushRow();
+}
+async function pushTest() {
+    try {
+        var sub = await pushCurrentSub();
+        if (sub) await apiCall('POST', '/api/push/subscribe', sub.toJSON());   // 登録がサーバーから消えていても、ここで入れ直す
+        var r = await apiCall('POST', '/api/push/test');
+        if (!r.enabled) { showToast(pt('fail')); return; }
+        if (!r.devices) { showToast(pt('testNone')); return; }
+        var bad = r.results.filter(function(x) { return x.status < 200 || x.status >= 300; })[0];
+        showToast(bad ? pt('testFail') + bad.status + ')' : pt('testOk'));
+    } catch (e) { showToast(pt('fail')); }
 }
 async function pushDisable() {
     var sub = await pushCurrentSub();

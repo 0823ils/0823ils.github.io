@@ -1849,6 +1849,12 @@ function browseLoadMore() {
 // 例: 'https://twc-api.<あなたのサブドメイン>.workers.dev'
 // 空のままだと、ログインと技術力評価の表示は隠れる。
 var TWC_API = 'https://twc-api.twc-scratch.workers.dev';
+// チャットを自前サーバーで動かすときのURL（末尾の / なし）。空なら、今までどおり TWC_API を使う。
+// 切り替える前に、D1 のチャットのデータを自前サーバーに取り込んでおくこと（tools/import-d1.mjs）。
+var TWC_CHAT_API = 'https://elite2.tailde34d5.ts.net';
+function apiBase(path) {
+    return (TWC_CHAT_API && /^\/api\/(chat|admin\/chat|notifications|push)(\/|$)/.test(path)) ? TWC_CHAT_API : TWC_API;
+}
 
 function apiEnabled() { return !!TWC_API; }
 
@@ -1856,7 +1862,7 @@ async function apiCall(method, path, body) {
     var headers = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (loginUser && loginUser.token) headers['Authorization'] = 'Bearer ' + loginUser.token;
-    var r = await fetch(TWC_API + path, {
+    var r = await fetch(apiBase(path) + path, {
         method: method,
         headers: headers,
         body: body === undefined ? undefined : JSON.stringify(body)
@@ -2882,6 +2888,7 @@ async function chatTick() {
     var before = chatTopId();
     try { await loadChat(false, chatPolls % 12 !== 0); } catch (e) {}
     chatDelay = chatTopId() !== before ? CHAT_POLL_MIN : Math.min(Math.round(chatDelay * 1.5), CHAT_POLL_MAX);
+    if (chatESok) chatDelay = CHAT_POLL_MAX;   // 新着はSSEで届くので、定期確認は念のため
     if (currentMode === 'chat') chatSchedule();
 }
 function chatKick() { chatDelay = CHAT_POLL_MIN; if (currentMode === 'chat') chatSchedule(); }
@@ -2901,12 +2908,28 @@ function enterChat() {
     loadChat(true);
     chatDelay = CHAT_POLL_MIN;
     chatSchedule();
+    chatStreamOpen();
 }
 
 function leaveChat() {
     clearTimeout(chatTimer);
     chatTimer = null;
+    chatStreamClose();
 }
+
+// 自前サーバーの新着通知（SSE）。つながっている間は、新着が来たときだけ取りにいく。
+// 切れたら、ブラウザが自動でつなぎ直す。その間は、これまでどおりの定期確認で補う。
+var chatES = null, chatESok = false;
+function chatStreamOpen() {
+    if (!TWC_CHAT_API || chatES || !window.EventSource) return;
+    try {
+        chatES = new EventSource(TWC_CHAT_API + '/api/chat/stream');
+        chatES.onopen = function() { chatESok = true; };
+        chatES.onerror = function() { chatESok = false; };
+        chatES.addEventListener('changed', function() { if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
+    } catch (e) { chatES = null; chatESok = false; }
+}
+function chatStreamClose() { if (chatES) { try { chatES.close(); } catch (e) {} } chatES = null; chatESok = false; }
 
 var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M7.5 10.5l3-3M6.2 8.3L5 9.5a2.8 2.8 0 004 4l1.2-1.2M11.8 9.7L13 8.5a2.8 2.8 0 00-4-4L7.8 5.7" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 

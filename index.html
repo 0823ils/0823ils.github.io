@@ -457,6 +457,10 @@
         .react-picker { border-radius: 24px; padding: 5px 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
         .react-picker button { transition: transform 0.1s; }
         .react-picker button:hover { transform: scale(1.2); }
+        /* 入力中の表示（一覧の下。高さを取っておいて、出入りで画面が動かないようにする） */
+        .chat-typing { min-height: 20px; font-size: 12px; color: #8a94a6; padding: 3px 6px 0; }
+        .chat-typing.on::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4D97FF; margin-right: 6px; vertical-align: 1px; animation: typingpulse 1.2s ease-in-out infinite; }
+        @keyframes typingpulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
         .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
@@ -724,6 +728,7 @@
                 <div class="chat-main">
                     <div class="chat-head" id="chat-title"></div>
                     <div id="chat-list"></div>
+                    <div id="chat-typing" class="chat-typing"></div>
                     <div class="login-msg" id="chat-msg"></div>
                     <div id="chat-reply-bar"></div>
                     <div id="chat-attach-bar"></div>
@@ -2967,6 +2972,46 @@ function leaveChat() {
 
 // 自前サーバーの新着通知（SSE）。つながっている間は、新着が来たときだけ取りにいく。
 // 切れたら、ブラウザが自動でつなぎ直す。その間は、これまでどおりの定期確認で補う。
+// ===== 入力中の表示 =====
+// 文字を打っているあいだ、3秒おきに「入力中」と知らせる。つながっている全員に、○○ さんが入力中…と出る。
+// 自前チャットサーバー（SSE）につながっているときだけ動く。投稿すると消える。5秒続報がなければ消える
+var TYPING_T = {
+    ja: { one: ' さんが入力中…', many: ' が入力中…', several: '数人が入力中…' },
+    en: { one: ' is typing…', many: ' are typing…', several: 'Several people are typing…' }
+};
+var chatTyping = {};          // '部屋|名前' -> 表示をやめる時刻
+var chatTypingAt = 0, chatTypingTimer = null, chatTypingOff = false;
+function chatTypingPing() {
+    if (!loginUser || !chatESok || chatTypingOff || Date.now() - chatTypingAt < 3000) return;
+    chatTypingAt = Date.now();
+    apiCall('POST', '/api/chat/typing', { room: chatRoom }).catch(function(e) {
+        if (e && e.status === 404) chatTypingOff = true;   // サーバーが入力中に対応していないときは、送るのをやめる
+    });
+}
+function chatTypingEvent(d) {
+    if (!d || !d.username) return;
+    if (loginUser && String(d.username).toLowerCase() === String(loginUser.username).toLowerCase()) return;
+    var k = d.room + '|' + d.username;
+    if (d.stop) delete chatTyping[k]; else chatTyping[k] = Date.now() + 5000;
+    chatTypingRender();
+}
+function chatTypingRender() {
+    clearTimeout(chatTypingTimer);
+    var now = Date.now(), names = [];
+    Object.keys(chatTyping).forEach(function(k) {
+        if (chatTyping[k] <= now) { delete chatTyping[k]; return; }
+        var i = k.indexOf('|');
+        if (k.slice(0, i) === chatRoom) names.push(k.slice(i + 1));
+    });
+    var el = document.getElementById('chat-typing');
+    if (el) {
+        var T = TYPING_T[currentLang] || TYPING_T.ja;
+        el.textContent = !names.length ? '' : names.length > 2 ? T.several : names.join(', ') + (names.length === 1 ? T.one : T.many);
+        el.classList.toggle('on', names.length > 0);
+    }
+    if (Object.keys(chatTyping).length) chatTypingTimer = setTimeout(chatTypingRender, 1000);
+}
+
 var chatES = null, chatESok = false;
 function chatStreamOpen() {
     if (!TWC_CHAT_API || chatES || !window.EventSource) return;
@@ -2975,6 +3020,7 @@ function chatStreamOpen() {
         chatES.onopen = function() { chatESok = true; };
         chatES.onerror = function() { chatESok = false; };
         chatES.addEventListener('changed', function() { if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
+        chatES.addEventListener('typing', function(ev) { try { chatTypingEvent(JSON.parse(ev.data)); } catch (e) {} });
     } catch (e) { chatES = null; chatESok = false; }
 }
 function chatStreamClose() { if (chatES) { try { chatES.close(); } catch (e) {} } chatES = null; chatESok = false; }
@@ -3256,6 +3302,7 @@ function renderChatInput() {
         esc(ct('ph')) + '"></textarea><button class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
     var ta = document.getElementById('chat-text');
     ta.value = keep;
+    ta.addEventListener('input', function() { if (ta.value.trim()) chatTypingPing(); });
     ta.addEventListener('keydown', function(e) {
         // 日本語入力の変換確定のEnterでは送信しない
         if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendChat(); }

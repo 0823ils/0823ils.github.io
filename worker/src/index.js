@@ -1055,6 +1055,18 @@ async function reactionsFor(env, ids, uid) {
   return out;
 }
 
+// chat_reactions に username 列がある作り（別の版のスキーマ）でも、ない作りでも動くようにする
+let reactHasUsername = null;
+async function reactionsHaveUsername(env) {
+  if (reactHasUsername === null) {
+    try {
+      const r = await env.DB.prepare('PRAGMA table_info(chat_reactions)').all();
+      reactHasUsername = (r.results || []).some((c) => c.name === 'username');
+    } catch { reactHasUsername = false; }
+  }
+  return reactHasUsername;
+}
+
 async function chatReact(request, env, id) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
@@ -1071,7 +1083,11 @@ async function chatReact(request, env, id) {
     await env.DB.prepare('DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?').bind(id, user.uid, emoji).run();
   } else {
     if (recent && recent.c >= REACT_PER_MINUTE) throw new HttpError(429, 'too_fast');
-    await env.DB.prepare('INSERT OR IGNORE INTO chat_reactions (message_id, user_id, emoji, created_at) VALUES (?, ?, ?, ?)').bind(id, user.uid, emoji, now).run();
+    if (await reactionsHaveUsername(env)) {
+      await env.DB.prepare('INSERT OR IGNORE INTO chat_reactions (message_id, user_id, username, emoji, created_at) VALUES (?, ?, ?, ?, ?)').bind(id, user.uid, user.u, emoji, now).run();
+    } else {
+      await env.DB.prepare('INSERT OR IGNORE INTO chat_reactions (message_id, user_id, emoji, created_at) VALUES (?, ?, ?, ?)').bind(id, user.uid, emoji, now).run();
+    }
   }
   const r = await reactionsFor(env, [id], user.uid);
   return json({ reactions: r[id] || [] });

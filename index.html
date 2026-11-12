@@ -422,6 +422,41 @@
         .react-picker { position: fixed; z-index: 120; display: flex; gap: 2px; background: #fff; border: 1px solid #dfe5ee; border-radius: 22px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); padding: 4px 6px; max-width: calc(100vw - 16px); }
         .react-picker button { border: none; background: none; font-size: 22px; line-height: 1; padding: 6px; border-radius: 50%; cursor: pointer; }
         .react-picker button:hover { background: #eef3fb; }
+        /* ===== チャットの操作ボタン・リアクションの作り直し ===== */
+        /* 返信・リアクション・通報などは、1行目に並べず、マウスを乗せたとき（スマホはタップしたとき）に、右上へ出す */
+        #chat-list { padding-top: 18px; }
+        .chat-msg { position: relative; }
+        .chat-msg:hover { background: #fafbfd; }
+        .chat-msg.to-me:hover { background: #f1faf5; }
+        .chat-tools { position: absolute; top: -14px; right: 6px; z-index: 5; display: none; align-items: center; gap: 1px; background: #fff; border: 1px solid #e3e7ee; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.12); padding: 2px; }
+        .chat-msg:hover > .chat-tools, .chat-msg:focus-within > .chat-tools, .chat-msg.tools-open > .chat-tools, .chat-msg:has(.chat-more.open) > .chat-tools { display: flex; }
+        .tool-btn { border: none; background: none; cursor: pointer; width: 30px; height: 28px; border-radius: 8px; padding: 0; color: #667085; display: inline-flex; align-items: center; justify-content: center; font-family: inherit; }
+        .tool-btn:hover { background: #eef3fb; color: #1f5fc4; }
+        .tool-btn svg { display: block; }
+        .chat-tools .chat-act { font-size: 12px; height: 28px; padding: 0 9px; border-radius: 8px; color: #667085; white-space: nowrap; }
+        .chat-tools .chat-act:hover { background: #eef3fb; color: #1f5fc4; }
+        .tool-time { font-size: 11px; color: #98a2b3; padding: 0 7px 0 6px; white-space: nowrap; }
+        .tool-time a { color: inherit; text-decoration: none; }
+        .chat-more { position: relative; display: inline-flex; }
+        .chat-more-menu { display: none; position: absolute; right: 0; top: 32px; min-width: 116px; background: #fff; border: 1px solid #e3e7ee; border-radius: 10px; box-shadow: 0 6px 22px rgba(0,0,0,0.16); padding: 4px; z-index: 6; }
+        .chat-more.open .chat-more-menu { display: block; }
+        .chat-more-menu button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: #444; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .chat-more-menu button:hover { background: #f2f5fa; }
+        .chat-more-menu button.danger { color: #d9534f; }
+        .chat-more-menu button.danger:hover { background: #fdecec; }
+        .chat-msg.cont .chat-time { display: none; }   /* 続きの投稿の時刻は、右上のバーに出す */
+        /* リアクション（本文の下に並べる） */
+        .chat-reacts { gap: 6px; margin-top: 6px; align-items: center; }
+        .chat-react { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e3e7ee; background: #f4f6fa; color: #475467; border-radius: 12px; padding: 2px 10px 2px 7px; font-size: 12px; font-weight: 600; line-height: 1.5; transition: background 0.12s, border-color 0.12s; }
+        .chat-react .rx-e { font-size: 15px; line-height: 1; }
+        .chat-react:hover { background: #eaf1fe; border-color: #b9d3ff; }
+        .chat-react.me { background: #e6f0ff; border-color: #4D97FF; color: #1f5fc4; }
+        .chat-react.add { padding: 2px 8px; color: #98a2b3; background: transparent; border-style: dashed; font-weight: 400; opacity: 0; }
+        .chat-msg:hover .chat-react.add, .chat-reacts:focus-within .chat-react.add { opacity: 1; }
+        @media (hover: none) { .chat-react.add { display: none; } }
+        .react-picker { border-radius: 24px; padding: 5px 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.22); }
+        .react-picker button { transition: transform 0.1s; }
+        .react-picker button:hover { transform: scale(1.2); }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
         .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
@@ -2834,7 +2869,7 @@ var CHAT_T = {
           trBtn: '翻訳', trAskBig: '高品質な翻訳モデル（約1GB）を、この端末にダウンロードします。通信量が多いので、Wi-Fiでの実行をおすすめします。OKで高品質、キャンセルで軽い版（約100MB）にします。', trAsk: '初回だけ、この端末に翻訳データ（約100MB）をダウンロードします。モバイル通信なら、Wi-Fiでの実行がおすすめです。続けますか？', trShow: '翻訳を表示', trOrig: '原文を表示', trBusy: '翻訳中…', trLabel: '翻訳済み（この端末の中で翻訳しています）', trLabelG: '翻訳済み（Google翻訳）', trDl: '翻訳データをダウンロード中',
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: 'GAS翻訳に失敗しました。ネットワークやGASの公開設定を確認してください', trLogin: 'GAS翻訳を使うにはログインしてください', trUnavailable: 'GAS翻訳サーバーの設定が不足しています。WorkerのTRANSLATE_URLとTRANSLATE_SECRETを確認してください', trQuota: 'GAS翻訳の1日の利用上限に達しました。時間をおいてください', trRateLimit: '短時間の翻訳回数制限に達しました。時間をおいてください',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
-          older: '以前のメッセージを読み込む', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', react: 'リアクション', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          older: '以前のメッセージを読み込む', more: 'そのほか', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', react: 'リアクション', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -2851,7 +2886,7 @@ var CHAT_T = {
           trBtn: 'Translate', trAskBig: 'A high-quality translation model (about 1 GB) will be downloaded to this device. Wi-Fi is strongly recommended. OK = high quality, Cancel = lighter version (about 100 MB).', trAsk: 'The first time, translation data (about 100 MB) is downloaded to this device. On mobile data, Wi-Fi is recommended. Continue?', trShow: 'Show translation', trOrig: 'Show original', trBusy: 'Translating…', trLabel: 'Translated (on this device)', trLabelG: 'Translated (Google Translate)', trDl: 'Downloading translation data',
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Google translation failed. Check the network or GAS deployment and try again.", trLogin: "Sign in to use Google translation.", trUnavailable: "Google translation is not configured on the server.", trQuota: "The daily Google translation limit has been reached.", trRateLimit: "Too many translations in a short time. Please try again later.",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
-          older: 'Load older messages', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', react: 'React', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          older: 'Load older messages', more: 'More', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', react: 'React', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -3409,28 +3444,26 @@ function chatMsgHTML(m, me, prev) {
         var cont = chatIsCont(m, prev);
         var d = new Date(m.created_at);
         var time = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
-        var acts = '';
-        if (loginUser) {
-            acts += '<button class="chat-act act-reply" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
-                '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + esc(ct('reply')) + '</button>';
-        }
-        if (loginUser) {
-            acts += '<button class="chat-act act-react" title="' + esc(ct('react')) + '" onclick="chatReactPicker(event,' + Number(m.id) + ')">😀</button>';
-        }
-        if (loginUser && m.user_id !== me) {
-            acts += '<button class="chat-act act-report" onclick="chatReport(' + m.id + ')">' + esc(ct('report')) + '</button>';
-        }
-        if (loginUser && (m.user_id === me || chatIsAdmin)) {
-            acts += '<button class="chat-act" onclick="chatDelete(' + m.id + ')">' + esc(ct('del')) + '</button>';
-        }
+        var id = Number(m.id);
+        var timeA = '<a class="chat-perma" href="' + esc(chatMsgUrl(m.id)) + '" onclick="return chatPerma(event,' + id + ')">' + time + '</a>';
+        // 右上に出す操作バー: [翻訳] [リアクション] [返信] [⋯（通報・削除・非表示・投稿禁止）]
+        var menu = '';
+        if (loginUser && m.user_id !== me) menu += '<button onclick="chatReport(' + id + ')">' + esc(ct('report')) + '</button>';
+        if (loginUser && (m.user_id === me || chatIsAdmin)) menu += '<button class="danger" onclick="chatDelete(' + id + ')">' + esc(ct('del')) + '</button>';
         if (chatIsAdmin) {
             var act = m.hidden ? 'restore' : 'hide';
-            acts += '<button class="chat-act" data-a="' + act + '" onclick="chatAdmin(' + m.id + ',this.dataset.a)">' + esc(ct(act)) + '</button>';
-            if (m.user_id !== me) {
-                acts += '<button class="chat-act" data-u="' + esc(m.username) + '" onclick="chatBan(this.dataset.u)">' + esc(ct('ban')) + '</button>';
-            }
+            menu += '<button data-a="' + act + '" onclick="chatAdmin(' + id + ',this.dataset.a)">' + esc(ct(act)) + '</button>';
+            if (m.user_id !== me) menu += '<button class="danger" data-u="' + esc(m.username) + '" onclick="chatBan(this.dataset.u)">' + esc(ct('ban')) + '</button>';
         }
-        acts += chatTrBtnHTML(m);   // 翻訳 / 原文を表示（ログインしていなくても出す）
+        var tools = cont ? '<span class="tool-time">' + timeA + '</span>' : '';
+        tools += chatTrBtnHTML(m);   // 翻訳 / 原文を表示（ログインしていなくても出す）
+        if (loginUser) {
+            tools += '<button class="tool-btn" title="' + esc(ct('react')) + '" onclick="chatReactPicker(event,' + id + ')">' + RX_ICON_SMILE + '</button>';
+            tools += '<button class="tool-btn" title="' + esc(ct('reply')) + '" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
+                '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + RX_ICON_REPLY + '</button>';
+        }
+        if (menu) tools += '<span class="chat-more"><button class="tool-btn" title="' + esc(ct('more')) + '" onclick="chatMoreToggle(event,this)">' + RX_ICON_MORE + '</button><div class="chat-more-menu">' + menu + '</div></span>';
+        tools = tools ? '<div class="chat-tools">' + tools + '</div>' : '';
         var tags = (m.tags || []).map(function(g) { return '<span class="chat-tag tag-' + esc(g) + '">' + esc(g) + '</span>'; }).join('');
         var quote = '';
         if (m.reply) {
@@ -3441,7 +3474,7 @@ function chatMsgHTML(m, me, prev) {
         var toMe = !!(loginUser && m.reply && !m.reply.gone && m.user_id !== me && String(m.reply.username).toLowerCase() === String(loginUser.username).toLowerCase());
         return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + (cont ? ' cont' : '') + (toMe ? ' to-me' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
             (cont ? '' : avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags) +
-            '<span class="chat-time"><a class="chat-perma" href="' + esc(chatMsgUrl(m.id)) + '" onclick="return chatPerma(event,' + Number(m.id) + ')">' + time + '</a>' + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + acts + quote +
+            '<span class="chat-time">' + timeA + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + tools + quote +
             (m.content ? chatTextBlockHTML(m) : '') +
             chatEmbedsHTML(m.content || '') + chatImageHTML(m.image) + chatVideoHTML(m.video) + chatFileHTML(m.file) + chatReactsHTML(m) + '</div>';
 }
@@ -3557,6 +3590,31 @@ function chatTextBlockHTML(m) {
 }
 
 // ===== 絵文字リアクション =====
+var RX_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+var RX_ICON_SMILE = RX_SVG + '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.2c.9 1.2 2 1.8 3.5 1.8s2.6-.6 3.5-1.8"/><path d="M9 9.6h.01M15 9.6h.01"/></svg>';
+var RX_ICON_REPLY = RX_SVG + '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
+var RX_ICON_MORE = RX_SVG + '<circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>';
+
+// 「⋯」のメニュー（通報・削除など）。外側か、メニューの中のボタンを押したら閉じる
+function chatMoreClose() { var o = document.querySelectorAll('.chat-more.open'); for (var i = 0; i < o.length; i++) o[i].classList.remove('open'); }
+function chatMoreToggle(ev, btn) {
+    ev.stopPropagation();
+    var w = btn.parentNode, was = w.classList.contains('open');
+    chatMoreClose();
+    if (!was) w.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (!(t.closest && t.closest('.chat-more')) || (t.closest && t.closest('.chat-more-menu button'))) chatMoreClose();
+    // スマホ（マウスが無い端末）: メッセージをタップすると、操作バーを出す。もう一度タップ、または別のところをタップで閉じる
+    if (!window.matchMedia || !window.matchMedia('(hover: none)').matches) return;
+    var msg = t.closest ? t.closest('#chat-list .chat-msg') : null;
+    var open = document.querySelectorAll('#chat-list .chat-msg.tools-open');
+    for (var i = 0; i < open.length; i++) if (open[i] !== msg) open[i].classList.remove('tools-open');
+    if (!msg || t.closest('a, button, img, video, audio, iframe, input, textarea, .chat-tools')) return;
+    msg.classList.toggle('tools-open');
+});
+
 var REACT_EMOJIS = ['👍', '❤️', '😂', '🎉', '😮', '🙏', '🔥', '👀'];   // サーバー（worker）の REACTION_EMOJIS と同じにする
 var reactBusy = {};
 
@@ -3565,7 +3623,7 @@ function chatReactsHTML(m) {
     if (!list.length) return '';
     var id = Number(m.id);
     var pills = list.map(function(r) {
-        var label = esc(r.e) + ' ' + Number(r.n);
+        var label = '<span class="rx-e">' + esc(r.e) + '</span>' + Number(r.n);
         return loginUser
             ? '<button class="chat-react' + (r.me ? ' me' : '') + '" data-e="' + esc(r.e) + '" onclick="chatReact(' + id + ',this.dataset.e)">' + label + '</button>'
             : '<button class="chat-react" disabled>' + label + '</button>';
@@ -3616,6 +3674,7 @@ async function chatReact(id, emoji) {
 
 // 他の人が付けたリアクションを取り込む（新着だけを取る通常の更新では、古いメッセージの変化が届かないため）
 var reactSyncBusy = false;
+setInterval(function() { if (currentMode === 'chat' && !document.hidden && !userIdle() && !chatESok) chatReactSync(); }, 8000);   // SSEが切れているときの補い（つながっている間は、変更のたびにSSEで届く）
 async function chatReactSync() {
     if (reactSyncBusy || !chatMsgs.length || document.getElementById('react-picker')) return;
     reactSyncBusy = true;

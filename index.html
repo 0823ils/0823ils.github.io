@@ -495,6 +495,16 @@
         .chat-typing.on::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4D97FF; margin-right: 6px; vertical-align: 1px; animation: typingpulse 1.2s ease-in-out infinite; }
         @keyframes typingpulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 
+        /* メッセージの編集 */
+        .chat-edit { margin-top: 4px; }
+        .chat-edit textarea { width: 100%; box-sizing: border-box; font: inherit; color: #222; padding: 6px 9px; border: 1px solid #b9c7e0; border-radius: 8px; resize: vertical; min-height: 44px; max-height: 240px; background: #fff; }
+        .chat-edit textarea:focus { outline: none; border-color: #4a90ff; box-shadow: 0 0 0 2px rgba(74,144,255,.18); }
+        .chat-edit-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 12px; color: #8a94a6; }
+        .chat-edit-row button { font: inherit; font-weight: 600; padding: 3px 12px; border-radius: 6px; border: 1px solid #d5dbe6; background: #fff; color: #475467; cursor: pointer; }
+        .chat-edit-row button.save { background: #4a90ff; border-color: #4a90ff; color: #fff; }
+        .chat-edit-row button:disabled { opacity: .5; cursor: default; }
+        .chat-edited { font-size: 11px; color: #8a94a6; margin-left: 4px; white-space: nowrap; }
+        .chat-msg.editing { background: #f4f8ff; border-radius: 8px; }
         /* ===== チャットの大きさ調整（PCは小さめ・スマホは大きめ。Discordくらいの密度） ===== */
         body.mode-chat .container { padding: 16px 20px 18px; margin-top: 12px; }
         .chat-layout { height: calc(100vh - 176px); gap: 12px; }
@@ -542,6 +552,7 @@
             .chat-row { gap: 6px; }
             .chat-row textarea { min-height: 40px; font-size: 16px; }   /* 16px未満だと、iPhoneは入力のたびに拡大してしまう */
             .chat-row textarea::placeholder { font-size: 13px; }
+            .chat-edit textarea { font-size: 16px; }
             .chat-attach-btn { width: 40px; }
             body .chat-row .tw-warn-btn { padding: 0 14px; font-size: 14px; }
             .chat-file { max-width: 100%; }
@@ -3030,6 +3041,7 @@ var CHAT_T = {
           trSame: 'このメッセージはすでに日本語です', trPair: 'この言語の組み合わせは、このブラウザでは翻訳できません', trFail: 'GAS翻訳に失敗しました。ネットワークやGASの公開設定を確認してください', trLogin: 'GAS翻訳を使うにはログインしてください', trUnavailable: 'GAS翻訳サーバーの設定が不足しています。WorkerのTRANSLATE_URLとTRANSLATE_SECRETを確認してください', trQuota: 'GAS翻訳の1日の利用上限に達しました。時間をおいてください', trRateLimit: '短時間の翻訳回数制限に達しました。時間をおいてください',
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           older: '以前のメッセージを読み込む', more: 'そのほか', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', react: 'リアクション', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
+          editBtn: '編集', editSave: '保存', editCancel: 'キャンセル', editedTag: '（編集済み）', editHint: 'Enterで保存・Escでキャンセル', e_edit_unavailable: 'この機能は、サーバーの更新後に使えます', e_forbidden: 'この操作はできません',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -3047,6 +3059,7 @@ var CHAT_T = {
           trSame: 'This message is already in English', trPair: "This browser can't translate this language pair", trFail: "Google translation failed. Check the network or GAS deployment and try again.", trLogin: "Sign in to use Google translation.", trUnavailable: "Google translation is not configured on the server.", trQuota: "The daily Google translation limit has been reached.", trRateLimit: "Too many translations in a short time. Please try again later.",
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           older: 'Load older messages', more: 'More', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', react: 'React', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
+          editBtn: 'Edit', editSave: 'Save', editCancel: 'Cancel', editedTag: ' (edited)', editHint: 'Enter to save, Esc to cancel', e_edit_unavailable: 'Editing will work after the server is updated', e_forbidden: 'You cannot do that',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -3093,7 +3106,8 @@ async function chatTick() {
     if (document.hidden || userIdle()) { chatSchedule(); return; }
     chatPolls++;
     var before = chatTopId();
-    try { await loadChat(false, chatPolls % 12 !== 0); } catch (e) {}
+    var full = chatFull; chatFull = false;   // 編集・削除は、新着だけの取得では届かないので、通知のたびに取り直す
+    try { await loadChat(false, !full && chatPolls % 12 !== 0); } catch (e) {}
     chatReactSync();
     chatDelay = chatTopId() !== before ? CHAT_POLL_MIN : Math.min(Math.round(chatDelay * 1.5), CHAT_POLL_MAX);
     if (chatESok) chatDelay = CHAT_POLL_MAX;   // 新着はSSEで届くので、定期確認は念のため
@@ -3134,6 +3148,7 @@ var TYPING_T = {
     ja: { one: ' さんが入力中…', many: ' が入力中…', several: '数人が入力中…' },
     en: { one: ' is typing…', many: ' are typing…', several: 'Several people are typing…' }
 };
+var chatFull = false;
 var chatTyping = {};          // '部屋|名前' -> 表示をやめる時刻
 var chatTypingAt = 0, chatTypingTimer = null, chatTypingOff = false;
 function chatTypingPing() {
@@ -3175,7 +3190,7 @@ function chatStreamOpen() {
         chatES = new EventSource(TWC_CHAT_API + '/api/chat/stream');
         chatES.onopen = function() { chatESok = true; };
         chatES.onerror = function() { chatESok = false; };
-        chatES.addEventListener('changed', function() { if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
+        chatES.addEventListener('changed', function() { chatFull = true; if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
         chatES.addEventListener('typing', function(ev) { try { chatTypingEvent(JSON.parse(ev.data)); } catch (e) {} });
     } catch (e) { chatES = null; chatESok = false; }
 }
@@ -3790,7 +3805,7 @@ async function loadChat(forceScroll, partialOk) {
         var keepOld = chatMsgs.filter(function(m) { return m.id < firstId; });
         if (!keepOld.length) chatHasMore = !!d.has_more;
         chatMsgs = keepOld.concat(d.messages);
-        var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : '') + (m.reactions ? JSON.stringify(m.reactions) : ''); }).join(',') +
+        var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : '') + (m.edited_at ? 'e' + m.edited_at : '') + (m.reactions ? JSON.stringify(m.reactions) : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;
         chatSig = sig;
@@ -3827,10 +3842,17 @@ function renderChat(msgs, forceScroll) {
         return;
     }
     var me = loginUser ? loginUser.id : 0;
+    var eta = chatEditing ? document.getElementById('chat-edit-text') : null, hadFocus = !!eta && document.activeElement === eta;
+    if (eta) chatEditDraft = eta.value;   // 新着で描き直されても、編集中の文字は消さない
     box.innerHTML = (chatHasMore ? '<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>' : '') +
         msgs.map(function(m, i) { return chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null); }).join('') +
         pend.map(chatPendHTML).join('');
     if (atBottom) box.scrollTop = box.scrollHeight;
+    if (chatEditing) {
+        var nt = document.getElementById('chat-edit-text');
+        if (nt) { chatEditFit(nt); if (hadFocus) { nt.focus(); nt.setSelectionRange(nt.value.length, nt.value.length); } }
+        else { chatEditing = 0; chatEditDraft = ''; }   // 編集中のメッセージが消えた（削除など）
+    }
     trAutoUI(); trAutoSoon();
     if (chatJumpTo) {
         var target = chatJumpTo;
@@ -3870,6 +3892,7 @@ function chatMsgHTML(m, me, prev) {
             tools += '<button class="tool-btn" title="' + esc(ct('reply')) + '" data-i="' + m.id + '" data-u="' + esc(m.username) + '" data-c="' + esc(m.content.slice(0, 60)) +
                 '" onclick="chatStartReply(Number(this.dataset.i),this.dataset.u,this.dataset.c)">' + RX_ICON_REPLY + '</button>';
         }
+        if (loginUser && m.user_id === me && chatEditing !== id) tools += '<button class="tool-btn" title="' + esc(ct('editBtn')) + '" onclick="chatEditStart(' + id + ')">' + RX_ICON_EDIT + '</button>';
         if (menu) tools += '<span class="chat-more"><button class="tool-btn" title="' + esc(ct('more')) + '" onclick="chatMoreToggle(event,this)">' + RX_ICON_MORE + '</button><div class="chat-more-menu">' + menu + '</div></span>';
         tools = tools ? '<div class="chat-tools">' + tools + '</div>' : '';
         var tags = (m.tags || []).map(function(g) { return '<span class="chat-tag tag-' + esc(g) + '">' + esc(g) + '</span>'; }).join('');
@@ -3880,7 +3903,7 @@ function chatMsgHTML(m, me, prev) {
                 : '<div class="chat-quote" onclick="chatJump(' + Number(m.reply.id) + ')">↪ @' + esc(m.reply.username) + ': ' + esc(m.reply.content) + '</div>';
         }
         var toMe = !!(loginUser && m.reply && !m.reply.gone && m.user_id !== me && String(m.reply.username).toLowerCase() === String(loginUser.username).toLowerCase());
-        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + (cont ? ' cont' : '') + (toMe ? ' to-me' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
+        return '<div class="chat-msg' + (m.hidden ? ' hidden' : '') + (cont ? ' cont' : '') + (toMe ? ' to-me' : '') + (chatEditing === id ? ' editing' : '') + '" id="chat-msg-' + Number(m.id) + '">' +
             (cont ? '' : avatarImg(m.user_id, 22, m.username) + ' ' + '<span class="chat-name" data-u="' + esc(m.username) + '" onclick="chatMention(this.dataset.u)">' + esc(m.username) + '</span>' + tags) +
             '<span class="chat-time">' + timeA + (m.hidden ? esc(ct('hiddenTag')) : '') + '</span>' + tools + quote +
             (m.content ? chatTextBlockHTML(m) : '') +
@@ -3992,7 +4015,13 @@ function chatTrBtnHTML(m) {
 function chatTextBlockHTML(m) {
     var id = Number(m.id), c = trCache[trKey(id)], showTr = !!(trView[id] && c && c.s === 'g');
     var n = trNote[id];
-    return '<div class="chat-text">' + chatTextHTML(showTr ? c.t : m.content) + '</div>' +
+    if (chatEditing === id) {
+        return '<div class="chat-edit"><textarea id="chat-edit-text" maxlength="300" rows="2" onkeydown="chatEditKey(event,' + id + ')">' + esc(chatEditDraft) + '</textarea>' +
+            '<div class="chat-edit-row"><button class="save" id="chat-edit-save" onclick="chatEditSave(' + id + ')">' + esc(ct('editSave')) + '</button>' +
+            '<button onclick="chatEditCancel()">' + esc(ct('editCancel')) + '</button><span>' + esc(ct('editHint')) + '</span></div></div>';
+    }
+    var edTag = m.edited_at ? '<span class="chat-edited" title="' + esc(new Date(m.edited_at).toLocaleString()) + '">' + esc(ct('editedTag')) + '</span>' : '';
+    return '<div class="chat-text">' + chatTextHTML(showTr ? c.t : m.content) + edTag + '</div>' +
         (showTr ? '<div class="chat-tr-note">' + esc(ct(c.s === 'g' ? 'trLabelG' : 'trLabel')) + '</div>' : '') +
         (n ? '<div class="chat-tr-note">' + esc(ct(n.k) + (n.p != null ? ' ' + n.p + '%' : '')) + '</div>' : '');
 }
@@ -4001,6 +4030,7 @@ function chatTextBlockHTML(m) {
 var RX_SVG = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
 var RX_ICON_SMILE = RX_SVG + '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.2c.9 1.2 2 1.8 3.5 1.8s2.6-.6 3.5-1.8"/><path d="M9 9.6h.01M15 9.6h.01"/></svg>';
 var RX_ICON_REPLY = RX_SVG + '<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
+var RX_ICON_EDIT = RX_SVG + '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>';
 var RX_ICON_MORE = RX_SVG + '<circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>';
 
 // 「⋯」のメニュー（通報・削除など）。外側か、メニューの中のボタンを押したら閉じる
@@ -4558,6 +4588,49 @@ async function chatReport(id) {
         setChatMsg(ct('reported'));
         loadChat(false);
     } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+// ===== 自分のメッセージの編集 =====
+var chatEditing = 0, chatEditDraft = '', chatEditBusy = false;
+function chatEditStart(id) {
+    var m = chatMsgs.filter(function(x) { return x.id === id; })[0];
+    if (!m || !loginUser || m.user_id !== loginUser.id) return;
+    chatEditing = id; chatEditDraft = m.content || '';
+    chatSig = ''; renderChat(chatMsgs, false);
+    var ta = document.getElementById('chat-edit-text');
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); chatEditFit(ta); }
+}
+function chatEditFit(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight + 2, 240) + 'px'; }
+function chatEditCancel() { chatEditing = 0; chatEditDraft = ''; chatSig = ''; renderChat(chatMsgs, false); }
+function chatEditKey(e, id) {
+    chatEditFit(e.target);
+    if (e.key === 'Escape') { e.preventDefault(); chatEditCancel(); }
+    else if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); chatEditSave(id); }
+}
+async function chatEditSave(id) {
+    var ta = document.getElementById('chat-edit-text');
+    if (!ta || chatEditBusy) return;
+    var m = chatMsgs.filter(function(x) { return x.id === id; })[0];
+    if (!m) return chatEditCancel();
+    var text = ta.value.replace(/\r\n?/g, '\n').trim();
+    if (text === (m.content || '')) return chatEditCancel();
+    var hasMedia = !!(m.image || m.video || m.file);
+    if (!text && !hasMedia) { setChatMsg(ct('e_empty')); return; }
+    chatEditBusy = true;
+    var btn = document.getElementById('chat-edit-save'); if (btn) btn.disabled = true;
+    setChatMsg('');
+    try {
+        var d = await apiCall('POST', '/api/chat/messages/' + id + '/edit', { content: text });
+        m.content = d.content; if (d.edited_at) m.edited_at = d.edited_at;
+        delete trCache[trKey(id)]; trView[id] = false; trSave();   // 本文が変わったので、前の訳は捨てる
+        chatEditing = 0; chatEditDraft = '';
+        chatSig = ''; renderChat(chatMsgs, false);
+    } catch (e) {
+        chatEditDraft = ta.value;
+        if (btn) btn.disabled = false;
+        setChatMsg(chatErr(e));
+    }
+    chatEditBusy = false;
 }
 
 async function chatDelete(id) {

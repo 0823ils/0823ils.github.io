@@ -505,6 +505,17 @@
         .chat-edit-row button:disabled { opacity: .5; cursor: default; }
         .chat-edited { font-size: 11px; color: #8a94a6; margin-left: 4px; white-space: nowrap; }
         .chat-msg.editing { background: #f4f8ff; border-radius: 8px; }
+        /* 絵文字ピッカー（全種類） */
+        .react-picker.full { display: block; width: 332px; max-width: calc(100vw - 16px); padding: 6px; border-radius: 14px; }
+        .react-picker .rp-quick { display: flex; gap: 2px; padding-bottom: 5px; border-bottom: 1px solid #edf0f5; margin-bottom: 4px; }
+        .react-picker .rp-quick button { font-size: 21px; padding: 5px; }
+        .react-picker .rp-tabs { display: flex; gap: 2px; margin-bottom: 4px; }
+        .react-picker .rp-tabs button { flex: 1; font-size: 17px; padding: 5px 0; border-radius: 8px; opacity: .55; }
+        .react-picker .rp-tabs button.on { opacity: 1; background: #e8f0ff; }
+        .react-picker .rp-grid { display: grid; grid-template-columns: repeat(8, 1fr); height: 224px; overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+        .react-picker .rp-grid button { font-size: 22px; padding: 4px 0; border-radius: 8px; }
+        .react-picker .rp-grid .rp-none { grid-column: 1 / -1; color: #8a94a6; font-size: 12px; padding: 16px 8px; }
+        .react-picker .rp-grid button:hover { transform: none; }
         /* ===== チャットの大きさ調整（PCは小さめ・スマホは大きめ。Discordくらいの密度） ===== */
         body.mode-chat .container { padding: 16px 20px 18px; margin-top: 12px; }
         .chat-layout { height: calc(100vh - 176px); gap: 12px; }
@@ -3042,6 +3053,7 @@ var CHAT_T = {
           jumpMissing: 'メッセージが見つかりませんでした（古いメッセージの可能性があります）', e_reply_not_found: '返信先のメッセージが見つかりません', ph: 'メッセージ（300字まで・@ユーザー名でメンション）', send: '送信', login: '投稿するにはログインしてください', loginBtn: 'ログイン',
           older: '以前のメッセージを読み込む', more: 'そのほか', empty: 'まだメッセージがありません', report: '通報', sending: '送信中…', sendFail: '送信できませんでした', retry: '再送', confirmReport: 'このメッセージを通報しますか？（通報が集まると自動で非表示になります）', reply: '返信', react: 'リアクション', del: '削除', ban: '投稿禁止', hide: '非表示', restore: '再表示', close: '閉じる',
           editBtn: '編集', editSave: '保存', editCancel: 'キャンセル', editedTag: '（編集済み）', editHint: 'Enterで保存・Escでキャンセル', e_edit_unavailable: 'この機能は、サーバーの更新後に使えます', e_forbidden: 'この操作はできません',
+          e_bad_emoji: 'その絵文字は使えません（サーバーの更新後に、すべての絵文字が使えます）', e_too_many_emoji: '1つのメッセージにつけられる絵文字は24種類までです', emRecent: 'よく使う', emSearchNone: 'この端末で表示できる絵文字がありません',
           hiddenTag: '（非表示中）', reported: '通報しました', confirmDel: 'このメッセージを削除しますか？', confirmBan: ' さんを投稿禁止にしますか？',
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
@@ -3060,6 +3072,7 @@ var CHAT_T = {
           jumpMissing: "Couldn't find that message (it may be too old)", e_reply_not_found: 'The message you replied to was not found', ph: 'Message (max 300 chars, @username to mention)', send: 'Send', login: 'Log in to post a message', loginBtn: 'Log in',
           older: 'Load older messages', more: 'More', empty: 'No messages yet', report: 'Report', sending: 'Sending…', sendFail: 'Failed to send', retry: 'Retry', confirmReport: 'Report this message? (Messages with enough reports are hidden automatically.)', reply: 'Reply', react: 'React', del: 'Delete', ban: 'Ban', hide: 'Hide', restore: 'Restore', close: 'Close',
           editBtn: 'Edit', editSave: 'Save', editCancel: 'Cancel', editedTag: ' (edited)', editHint: 'Enter to save, Esc to cancel', e_edit_unavailable: 'Editing will work after the server is updated', e_forbidden: 'You cannot do that',
+          e_bad_emoji: 'That emoji is not allowed (all emojis work after the server is updated)', e_too_many_emoji: 'A message can have up to 24 kinds of reactions', emRecent: 'Recent', emSearchNone: 'No emoji available on this device',
           hiddenTag: ' (hidden)', reported: 'Reported', confirmDel: 'Delete this message?', confirmBan: ' will be banned from chat. Continue?',
           banned_done: ' was banned',
           e_too_fast: 'Too fast. Please wait a moment', e_banned: 'You are banned from chat', e_empty: 'Please enter a message',
@@ -4073,30 +4086,95 @@ function chatReactsHTML(m) {
 function chatReactPickerClose() {
     var p = document.getElementById('react-picker');
     if (p) p.remove();
-    document.removeEventListener('click', chatReactPickerClose, true);
+    document.removeEventListener('click', chatReactOutside, true);
 }
+function chatReactOutside(e) { var p = document.getElementById('react-picker'); if (!p || !p.contains(e.target)) chatReactPickerClose(); }
+// ----- 絵文字ピッカー（どの絵文字でも付けられる） -----
+// 絵文字の一覧は、ブラウザの文字の範囲から作る（大きなデータは持たない）。この端末の文字で表示できないもの（□になるもの）は出さない
+var RP_CATS = [
+    { i: '😀', r: [[0x1F600, 0x1F64F], [0x1F910, 0x1F92F], [0x1F970, 0x1F97A], [0x1F9D0, 0x1F9D0], [0x1FAE0, 0x1FAE8]] },   // 顔
+    { i: '👍', r: [[0x1F442, 0x1F450], [0x1F466, 0x1F487], [0x1F4AA, 0x1F4AA], [0x1F590, 0x1F596], [0x1F645, 0x1F64F], [0x1F90C, 0x1F90F], [0x1F930, 0x1F93A], [0x1F9B4, 0x1F9BB], [0x1F9D1, 0x1F9DD], [0x261D, 0x261D], [0x270A, 0x270D], [0x1FAF0, 0x1FAF8]] },   // 手・人
+    { i: '🐱', r: [[0x1F400, 0x1F43E], [0x1F980, 0x1F9AE], [0x1F331, 0x1F344], [0x1F337, 0x1F33F], [0x1F490, 0x1F490], [0x1F9A0, 0x1F9A4], [0x1FAB0, 0x1FAB6], [0x1FAB8, 0x1FABD]] },   // 動物・植物
+    { i: '🍔', r: [[0x1F345, 0x1F37C], [0x1F37E, 0x1F37F], [0x1F950, 0x1F96B], [0x1F9C0, 0x1F9CB], [0x1FAD0, 0x1FADB], [0x2615, 0x2615]] },   // 食べ物
+    { i: '⚽', r: [[0x1F383, 0x1F3CE], [0x1F3CF, 0x1F3D3], [0x1F3E0, 0x1F3F0], [0x1F680, 0x1F6C5], [0x1F6D0, 0x1F6D2], [0x1F6D5, 0x1F6D7], [0x1F6DC, 0x1F6DF], [0x1F6E9, 0x1F6EC], [0x1F6F0, 0x1F6FC], [0x1F938, 0x1F93A], [0x1F93C, 0x1F945], [0x1F947, 0x1F94F], [0x26BD, 0x26BE], [0x26F5, 0x26FA]] },   // 活動・乗り物
+    { i: '💡', r: [[0x1F4A1, 0x1F4FF], [0x1F507, 0x1F53D], [0x1F5A4, 0x1F5A5], [0x1F5B1, 0x1F5B2], [0x1F5D1, 0x1F5D3], [0x1F9E0, 0x1F9FF], [0x231A, 0x231B], [0x23F0, 0x23F3], [0x1FA70, 0x1FA7C], [0x1FA80, 0x1FA88], [0x1FA90, 0x1FABD]] },   // 物
+    { i: '❤️', r: [[0x1F493, 0x1F49F], [0x1F300, 0x1F320], [0x1F32D, 0x1F335], [0x1F4A0, 0x1F4A0], [0x1F4A2, 0x1F4A9], [0x1F4AB, 0x1F4AF], [0x1F52E, 0x1F53D], [0x1F7E0, 0x1F7EB], [0x2600, 0x2604], [0x2614, 0x2614], [0x2640, 0x2642], [0x2648, 0x2653], [0x2660, 0x2668], [0x267B, 0x267F], [0x2692, 0x2699], [0x26A0, 0x26AB], [0x26C4, 0x26CE], [0x2705, 0x2705], [0x2728, 0x2728], [0x274C, 0x274C], [0x2753, 0x2757], [0x2763, 0x2764], [0x2795, 0x2797], [0x2B50, 0x2B55], [0x1FA75, 0x1FA77], [0x1F9E1, 0x1F9E1]] },   // 記号・ハート
+    { i: '🚩', flags: true }   // 旗
+];
+var RP_FLAG_CODES = 'JP US GB FR DE IT ES PT NL BE CH AT SE NO DK FI IS IE PL CZ HU GR TR RU UA RO BG HR RS SK SI EE LV LT CN KR KP TW HK MO IN PK BD LK NP TH VN MY SG ID PH AU NZ CA MX BR AR CL CO PE VE CU DO JM EG ZA NG KE ET MA DZ TN GH SA AE IL IR IQ JO LB QA KW KZ UZ MN AF'.split(' ');
+var rpCache = {}, rpCanvas = null, rpBase = 0, rpTofu = 0;
+function rpWidth(ch) {
+    if (!rpCanvas) { rpCanvas = document.createElement('canvas').getContext('2d'); rpCanvas.font = '32px sans-serif'; }
+    return rpCanvas.measureText(ch).width;
+}
+function rpOk(ch) {   // この端末で、1つの絵文字として表示できるか（□や、2文字に分かれて出るものは除く）
+    try {
+        if (!rpBase) { rpBase = rpWidth('😀'); rpTofu = rpWidth(String.fromCodePoint(0x10FFFE)); }
+        var w = rpWidth(ch);
+        return w > 0 && Math.abs(w - rpTofu) > 0.5 && w < rpBase * 1.5;
+    } catch (e) { return true; }
+}
+function rpList(ci) {
+    if (rpCache[ci]) return rpCache[ci];
+    var c = RP_CATS[ci], out = [], seen = {};
+    if (c.flags) {
+        if (rpOk('\uD83C\uDDEF\uD83C\uDDF5')) RP_FLAG_CODES.forEach(function(cc) {
+            out.push(String.fromCodePoint(0x1F1E6 + cc.charCodeAt(0) - 65, 0x1F1E6 + cc.charCodeAt(1) - 65));
+        });
+    } else {
+        c.r.forEach(function(r) {
+            for (var cp = r[0]; cp <= r[1]; cp++) {
+                var ch = String.fromCodePoint(cp);
+                if (!/\p{Emoji}/u.test(ch) || seen[cp]) continue;
+                seen[cp] = 1;
+                if (!/\p{Emoji_Presentation}/u.test(ch)) ch += '\uFE0F';   // 文字として出るものは、絵文字の形にする
+                if (rpOk(ch)) out.push(ch);
+            }
+        });
+    }
+    return (rpCache[ci] = out);
+}
+var RP_RECENT = 'twc_react_recent';
+function rpRecent() { try { var a = JSON.parse(localStorage.getItem(RP_RECENT) || '[]'); return Array.isArray(a) ? a.filter(function(x) { return typeof x === 'string'; }).slice(0, 8) : []; } catch (e) { return []; } }
+function rpRemember(e) { try { var a = rpRecent().filter(function(x) { return x !== e; }); a.unshift(e); localStorage.setItem(RP_RECENT, JSON.stringify(a.slice(0, 8))); } catch (x) {} }
+function rpBtns(list) { return list.map(function(e) { return '<button data-e="' + esc(e) + '">' + esc(e) + '</button>'; }).join(''); }
+
 function chatReactPicker(ev, id) {
     ev.stopPropagation();
     var had = document.getElementById('react-picker');
     chatReactPickerClose();
     if (had && had.dataset.id === String(id)) return;   // 同じボタンをもう一度押したら閉じる
     var p = document.createElement('div');
-    p.id = 'react-picker'; p.className = 'react-picker'; p.dataset.id = String(id);
-    p.innerHTML = REACT_EMOJIS.map(function(e) { return '<button data-e="' + esc(e) + '">' + esc(e) + '</button>'; }).join('');
+    p.id = 'react-picker'; p.className = 'react-picker full'; p.dataset.id = String(id);
+    var quick = rpRecent(); REACT_EMOJIS.forEach(function(e) { if (quick.length < 8 && quick.indexOf(e) < 0) quick.push(e); });
+    p.innerHTML = '<div class="rp-quick">' + rpBtns(quick.slice(0, 8)) + '</div>' +
+        '<div class="rp-tabs">' + RP_CATS.map(function(c, i) { return '<button type="button" data-t="' + i + '"' + (i === 0 ? ' class="on"' : '') + '>' + esc(c.i) + '</button>'; }).join('') + '</div>' +
+        '<div class="rp-grid"></div>';
     document.body.appendChild(p);
+    var grid = p.querySelector('.rp-grid');
+    function show(i) {
+        var list = rpList(i);
+        grid.innerHTML = list.length ? rpBtns(list) : '<div class="rp-none">' + esc(ct('emSearchNone')) + '</div>';
+        grid.scrollTop = 0;
+        Array.prototype.forEach.call(p.querySelectorAll('.rp-tabs button'), function(b) { b.classList.toggle('on', b.dataset.t === String(i)); });
+    }
+    show(0);
     var b = ev.currentTarget.getBoundingClientRect();
     var w = p.offsetWidth, h = p.offsetHeight;
     var left = Math.max(8, Math.min(window.innerWidth - w - 8, b.left + b.width / 2 - w / 2));
-    var top = b.top - h - 6; if (top < 8) top = b.bottom + 6;
+    var top = b.top - h - 6; if (top < 8) top = Math.min(b.bottom + 6, Math.max(8, window.innerHeight - h - 8));
     p.style.left = left + 'px'; p.style.top = top + 'px';
     p.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var tb = e.target.closest('button[data-t]');
+        if (tb) { show(Number(tb.dataset.t)); return; }
         var t = e.target.closest('button[data-e]');
         if (!t) return;
-        e.stopPropagation();
         chatReactPickerClose();
+        rpRemember(t.dataset.e);
         chatReact(id, t.dataset.e);
     });
-    setTimeout(function() { document.addEventListener('click', chatReactPickerClose, true); }, 0);
+    setTimeout(function() { document.addEventListener('click', chatReactOutside, true); }, 0);
 }
 
 async function chatReact(id, emoji) {

@@ -1092,7 +1092,20 @@ async function chatPost(request, env) {
 // ---------- 絵文字リアクション ----------
 //   POST /api/chat/messages/:id/react { emoji }   -> { reactions: [{e, n, me}] }  (要ログイン。同じ絵文字をもう一度送ると取り消し)
 //   GET  /api/chat/reactions?ids=1,2,3             -> { reactions: { "1": [{e, n, me}], ... } }  (公開。最大100件)
-const REACTION_EMOJIS = ['👍', '❤️', '😂', '🎉', '😮', '🙏', '🔥', '👀'];   // 決まった絵文字だけ（自由な文字は受け付けない）
+// どの絵文字でもよい。ただし「絵文字1つ」だけ（文字や、2つ以上は受け付けない）。1つのメッセージにつく絵文字は種類を限る
+const REACTION_MAX_KINDS = 24;
+const EMOJI_RE = /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3)/u;
+function isReactionEmoji(e) {
+  if (typeof e !== 'string' || !e || e.length > 32) return false;
+  if (!EMOJI_RE.test(e)) return false;
+  // 見た目で1つ分（結合文字・肌の色・ZWJでつないだものを含む）だけ
+  try {
+    let n = 0;
+    for (const _ of new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(e)) if (++n > 1) return false;
+  } catch (err) { return /^[^\s\w]{1,12}$/u.test(e); }
+  // 文字・数字・空白・制御が混ざっていないか（キーキャップの数字、ZWJ・異体字セレクタは除く）
+  return !/[\p{L}\p{Zs}\p{Cc}]/u.test(e.replace(/^[#*0-9]\uFE0F?\u20E3$/u, '').replace(/[\u200D\uFE0F\u{1F3FB}-\u{1F3FF}]/gu, ''));
+}
 const REACT_PER_MINUTE = 40;
 
 // ids のメッセージごとのリアクション一覧。me は、いまのユーザーが付けたか
@@ -1125,7 +1138,7 @@ async function chatReact(request, env, id) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
   const emoji = body && body.emoji;
-  if (typeof emoji !== 'string' || !REACTION_EMOJIS.includes(emoji)) throw new HttpError(400, 'bad_emoji');
+  if (!isReactionEmoji(emoji)) throw new HttpError(400, 'bad_emoji');
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
   const msg = await env.DB.prepare('SELECT id FROM chat_messages WHERE id = ? AND deleted = 0 AND hidden = 0').bind(id).first();
@@ -1133,6 +1146,10 @@ async function chatReact(request, env, id) {
   const now = Date.now();
   const recent = await env.DB.prepare('SELECT COUNT(*) AS c FROM chat_reactions WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 60000).first();
   const mine = await env.DB.prepare('SELECT 1 AS x FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?').bind(id, user.uid, emoji).first();
+  if (!mine) {
+    const kinds = await env.DB.prepare('SELECT COUNT(DISTINCT emoji) AS c, SUM(emoji = ?) AS has FROM chat_reactions WHERE message_id = ?').bind(emoji, id).first();
+    if (kinds && !kinds.has && kinds.c >= REACTION_MAX_KINDS) throw new HttpError(400, 'too_many_emoji');
+  }
   if (mine) {
     await env.DB.prepare('DELETE FROM chat_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?').bind(id, user.uid, emoji).run();
   } else {

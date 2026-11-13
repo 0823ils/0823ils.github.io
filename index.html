@@ -357,17 +357,35 @@
         .chat-embed { position: relative; display: block; max-width: 400px; aspect-ratio: 16 / 9; margin-top: 6px; border-radius: 10px; overflow: hidden; background: #1f2a3c; cursor: pointer; }
         .chat-embed.scratch { aspect-ratio: 4 / 3; width: min(100%, 560px); max-width: 560px; background: none; border: 0; box-sizing: border-box; }
         .chat-embed.scratch.running { aspect-ratio: auto; }
-        /* sb3: 押すまでは、枠も背景もない文字だけのボタン。押すと実行画面が出る */
-        .chat-embed.sb3run:not(.running) { aspect-ratio: auto; width: auto; max-width: none; display: inline-flex; align-items: center; gap: 6px; overflow: visible; border-radius: 0; margin: 6px 0 0 12px; color: #4D97FF; font-weight: bold; }
-        .chat-embed.sb3run:not(.running) .play { position: static; inset: auto; display: inline; font-size: 14px; color: #4D97FF; text-shadow: none; }
-        .chat-embed.sb3run:not(.running) .cap { position: static; padding: 0; font-size: 14px; color: #4D97FF; background: none; }
-        .chat-embed.sb3run:not(.running):hover { text-decoration: underline; }
+        /* sb3 のカード: 名前・サイズ・「実行」「保存」「TurboWarpで開く」を1枚にまとめる。実行すると、中に実行画面が広がる */
+        .sb3-card { width: min(100%, 380px); margin-top: 6px; padding: 12px; box-sizing: border-box; border: 1px solid #dfe5ef; border-radius: 14px; background: #f6f8fc; transition: width .2s; }
+        .sb3-card.open { width: min(100%, 560px); }
+        .sb3-card .sc-head { display: flex; align-items: center; gap: 12px; }
+        .sb3-card .sc-ico { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 11px; background: linear-gradient(135deg, #ffbf3c, #ff8c1a); color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .3px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(255,140,26,.35); }
+        .sb3-card .sc-body { min-width: 0; display: flex; flex-direction: column; }
+        .sb3-card .sc-body b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sb3-card .sc-body small { color: #8a94a6; font-size: 12px; }
+        .sb3-card .sc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; }
+        .sb3-card .sc-run { border: 0; border-radius: 999px; padding: 8px 18px; background: #4D97FF; color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(77,151,255,.35); }
+        .sb3-card .sc-run:hover { background: #3b85ee; }
+        .sb3-card.open .sc-run { background: #e8edf6; color: #5b6b85; box-shadow: none; }
+        .sb3-card .sc-sub { padding: 8px 12px; border-radius: 999px; color: #5b6b85; font-size: 12px; text-decoration: none; }
+        .sb3-card .sc-sub:hover { background: #e6edfb; color: #4D97FF; }
+        .sb3-card .sc-stage { margin-top: 10px; border-radius: 10px; overflow: hidden; }
+        .sb3-card .sc-thumb { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; cursor: pointer; background: linear-gradient(135deg, #e8f0ff, #dfe8f7); }
+        .sb3-card .sc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .sb3-card .sc-play { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(255,255,255,.94); color: #4D97FF; font-size: 24px; display: flex; align-items: center; justify-content: center; padding-left: 4px; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,0,0,.22); transition: transform .15s; }
+        .sb3-card .sc-thumb:hover .sc-play { transform: scale(1.08); }
+        .sb3-card.open .sc-thumb { display: none; }
+        .sb3-card .sc-meta { margin: 10px 2px 0; font-size: 13px; font-weight: 700; color: #3d4a63; }
+        .sb3-card .sc-meta small { margin-left: 6px; font-weight: 400; color: #8a94a6; font-size: 12px; }
+        .sb3-card .sc-thumb + .sc-meta + .sc-actions { margin-top: 6px; }
+        .sb3-card .sc-stage:empty { display: none; }
+        .sb3-card .sc-stage iframe { width: 100%; height: 100%; border: 0; display: block; }
         .chat-embed img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.9; }
         .chat-embed .play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 38px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         .chat-embed .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 10px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.65)); }
         .chat-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
-        .chat-sb3-open { display: inline-block; margin: 4px 0 0 12px; font-size: 12px; color: #4D97FF; text-decoration: none; }
-        .chat-sb3-open:hover { text-decoration: underline; }
         .chat-text a { color: #4D97FF; word-break: break-all; }
         .chat-video { display: block; max-width: min(100%, 400px); max-height: 320px; margin-top: 6px; border-radius: 10px; background: #000; }
         .chat-file { display: inline-flex; align-items: center; gap: 10px; margin-top: 6px; max-width: min(100%, 360px); padding: 8px 12px; border: 1px solid #dfe5ef; border-radius: 10px; background: #f6f8fc; color: inherit; text-decoration: none; }
@@ -2912,7 +2930,7 @@ async function notifReadAll() {
 var CHAT_T = {
     ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
           attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', uploading: 'アップロード中', attached: '添付済み',
-          e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', sb3Run: 'その場で実行', sb3Open: 'TurboWarpで開く', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
+          e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scOpen: 'Scratchで開く', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
           videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
@@ -2929,7 +2947,7 @@ var CHAT_T = {
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', uploading: 'Uploading', attached: 'Attached',
-          e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', sb3Run: 'Run it here', sb3Open: 'Open in TurboWarp', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
+          e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scOpen: 'Open on Scratch', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
           videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
@@ -3240,9 +3258,18 @@ function chatEmbedsHTML(content) {
         if (!e || n >= 2 || seen[e.k + e.id]) return;
         seen[e.k + e.id] = true;
         n++;
-        var thumb = e.k === 'scratch' ? 'https://uploads.scratch.mit.edu/get_image/project/' + e.id + '_480x360.png'
-                  : e.k === 'yt' ? 'https://i.ytimg.com/vi/' + e.id + '/mqdefault.jpg' : '';
-        var cap = e.k === 'scratch' ? ct('embedScratch') : e.k === 'yt' ? ct('embedYt') : ct('embedNico');
+        if (e.k === 'scratch') {
+            var sid = encodeURIComponent(e.id);
+            html += '<div class="sb3-card" data-src="https://turbowarp.org/' + sid + '/embed?autoplay">' +
+                '<div class="sc-thumb" onclick="chatCardToggle(this)"><img loading="lazy" alt="" referrerpolicy="no-referrer" src="https://uploads.scratch.mit.edu/get_image/project/' + sid + '_480x360.png" onerror="this.style.display=\'none\'"><span class="sc-play">▶</span></div>' +
+                '<div class="sc-meta">' + esc(ct('scTitle')) + '<small>#' + esc(e.id) + '</small></div>' +
+                '<div class="sc-actions"><button type="button" class="sc-run" onclick="chatCardToggle(this)">▶ ' + esc(ct('sb3Run')) + '</button>' +
+                '<a class="sc-sub" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + sid + '/">' + esc(ct('scOpen')) + ' ↗</a></div>' +
+                '<div class="sc-stage"></div></div>';
+            return;
+        }
+        var thumb = e.k === 'yt' ? 'https://i.ytimg.com/vi/' + e.id + '/mqdefault.jpg' : '';
+        var cap = e.k === 'yt' ? ct('embedYt') : ct('embedNico');
         html += '<div class="chat-embed ' + e.k + '" data-k="' + e.k + '" data-id="' + esc(e.id) + '" onclick="chatEmbedPlay(this)">' +
             (thumb ? '<img loading="lazy" alt="" referrerpolicy="no-referrer" src="' + esc(thumb) + '" onerror="this.style.display=\'none\'">' : '') +
             '<span class="play">▶</span><span class="cap">' + esc(cap) + '</span></div>';
@@ -3330,18 +3357,33 @@ function chatFileHTML(f) {
     if (!f) return '';
     if (f.expired || !f.url) return '<div class="chat-video-gone">' + esc(ct('fileGone')) + '</div>';
     var mb = chatFmtSize(f.size);
+    if (/\.sb3$/i.test(f.name)) return chatSb3CardHTML(f, mb);
     return '<a class="chat-file" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">' +
-        '<span class="cf-icon">' + (/\.sb3$/i.test(f.name) ? '📦' : '📎') + '</span><span class="cf-body"><b>' + esc(f.name) + '</b><small>' + mb + ' ・ ' + esc(ct('fileDownload')) + '</small></span></a>' +
-        (/\.sb3$/i.test(f.name) ? chatSb3RunHTML(f.url) : '');
+        '<span class="cf-icon">📎</span><span class="cf-body"><b>' + esc(f.name) + '</b><small>' + mb + ' ・ ' + esc(ct('fileDownload')) + '</small></span></a>';
 }
 
-// sb3 は、その場で動かせる（TurboWarpの埋め込みに、このサーバーのファイルのURLを渡す。押すまで読み込まない）
-function chatSb3RunHTML(url) {
-    return '<div class="chat-embed scratch sb3run" data-url="' + esc(url) + '" onclick="chatSb3Play(this)"><span class="play">▶</span><span class="cap">' + esc(ct('sb3Run')) + '</span></div>' +
-        '<a class="chat-sb3-open" target="_blank" rel="noopener" href="https://turbowarp.org/?project_url=' + encodeURIComponent(url) + '">' + esc(ct('sb3Open')) + ' ↗</a>';
+// sb3 は、その場で動かせる（TurboWarpの埋め込みに、このサーバーのファイルのURLを渡す。「実行」を押すまで読み込まない）
+function chatSb3CardHTML(f, mb) {
+    return '<div class="sb3-card" data-src="' + esc('https://turbowarp.org/embed?autoplay&project_url=' + encodeURIComponent(f.url)) + '">' +
+        '<div class="sc-head"><span class="sc-ico">sb3</span><span class="sc-body"><b>' + esc(f.name) + '</b><small>' + mb + '</small></span></div>' +
+        '<div class="sc-actions"><button type="button" class="sc-run" onclick="chatCardToggle(this)">▶ ' + esc(ct('sb3Run')) + '</button>' +
+        '<a class="sc-sub" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">' + esc(ct('sb3Save')) + '</a>' +
+        '<a class="sc-sub" target="_blank" rel="noopener" href="https://turbowarp.org/?project_url=' + encodeURIComponent(f.url) + '">' + esc(ct('sb3Open')) + ' ↗</a></div>' +
+        '<div class="sc-stage"></div></div>';
 }
-function chatSb3Play(el) {
-    chatEmbedFrame(el, 'https://turbowarp.org/embed?autoplay&project_url=' + encodeURIComponent(el.dataset.url));   // 作品は、TurboWarpの中だけで動く（このサイトには触れない）
+// 「実行」「閉じる」の切り替え（sb3 のカードと、Scratch のリンクのカードで共通）。開くとき、はじめて埋め込みを読み込む
+function chatCardToggle(el) {
+    var card = el.closest('.sb3-card'), stage = card.querySelector('.sc-stage'), btn = card.querySelector('.sc-run');
+    if (card.classList.contains('open')) {          // 閉じる（ゲームも止まる）
+        if (stage._ro) { stage._ro.disconnect(); stage._ro = null; }
+        stage.innerHTML = ''; stage.style.height = '';
+        card.classList.remove('open');
+        btn.textContent = '▶ ' + ct('sb3Run');
+        return;
+    }
+    card.classList.add('open');
+    btn.textContent = '■ ' + ct('sb3Close');
+    chatEmbedFrame(stage, card.dataset.src);   // 作品は、TurboWarpの中だけで動く（このサイトには触れない）
 }
 // TurboWarp の埋め込みを置く。背景は透明・明るい配色（color-scheme: auto）にして、幅に合わせて高さを決める（ステージ 4:3 ＋ 操作バー）
 function chatEmbedFrame(el, src) {
@@ -3359,7 +3401,7 @@ function chatEmbedFrame(el, src) {
     var fit = function() { var w = el.clientWidth || 360; el.style.height = Math.round((w - 2) * 3 / 4 + 56) + 'px'; };
     fit();
     el.appendChild(f);
-    if (window.ResizeObserver) new ResizeObserver(fit).observe(el);
+    if (window.ResizeObserver) { if (el._ro) el._ro.disconnect(); el._ro = new ResizeObserver(fit); el._ro.observe(el); }
 }
 
 function chatJump(id) {

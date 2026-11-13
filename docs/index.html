@@ -4303,7 +4303,7 @@ function chatPendHTML(p) {
         '<div class="chat-text">' + chatTextHTML(p.content) + '</div></div>';
 }
 async function chatPendSend(p) {
-    if (!p || p._busy || p.status === 'sending') return;
+    if (!p || p._busy) return;
     p._busy = true;
     p.status = 'sending'; p.err = '';
     renderChat(chatMsgs, true);

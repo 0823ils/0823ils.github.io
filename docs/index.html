@@ -399,6 +399,10 @@
         .ab-thumb { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
         .chat-video-gone { margin-top: 6px; font-size: 12px; color: #aaa; font-style: italic; }
         .chat-attach-btn { width: 44px; flex: 0 0 auto; border: 1px solid #ddd; border-radius: 8px; background: #fff; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        /* 「↓ 新着」: 一覧の一番下に、高さ0で貼りつく入れ物。ボタンは、その上に浮かせる */
+        .chat-new-wrap { position: sticky; bottom: 0; height: 0; overflow: visible; z-index: 3; }
+        .chat-new-btn { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); white-space: nowrap; padding: 6px 16px; border: none; border-radius: 16px; background: #4D97FF; color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+        .chat-new-btn:hover { background: #3a7fd4; }
         .chat-attach-wrap { position: relative; display: flex; }
         .attach-menu { display: none; position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 30; min-width: 150px; padding: 4px; background: #fff; border: 1px solid #dfe5ef; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
         .attach-menu.open { display: block; }
@@ -3669,6 +3673,70 @@ async function chatVideoChosen(inp) {
     }
     renderAttachBar();
 }
+
+// ===== 画像の貼り付け =====
+// 入力欄で Cmd/Ctrl+V をしたとき、クリップボードに画像（スクリーンショットなど）があれば、添付にする。
+// 文字も一緒に入っているとき（表計算のコピーなど）は、いつもどおり文字を貼る
+document.addEventListener('paste', function(e) {
+    if (!e.target || e.target.id !== 'chat-text' || !loginUser || !chatVideoEnabled) return;
+    var cd = e.clipboardData;
+    if (!cd || !cd.files || !cd.files.length) return;
+    if ((cd.getData('text/plain') || '').trim()) return;
+    var f = null;
+    for (var i = 0; i < cd.files.length; i++) { if (/^image\//.test(cd.files[i].type)) { f = cd.files[i]; break; } }
+    if (!f) return;
+    e.preventDefault();
+    var ext = (f.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+    // 添付の取り込みは、ファイルを選んだときと同じ処理を使う（圧縮・アップロード・プレビュー）
+    chatVideoChosen({ files: [new File([f], 'paste-' + Date.now() + '.' + ext, { type: f.type })], value: '' });
+});
+
+// ===== 「↓ 新着」ボタン =====
+var chatNewCount = 0;        // 下に読んでいない新着が、何件あるか
+var chatNewLastId = 0;       // 最後に画面に出したメッセージのID
+var chatNewRoom = '';
+var chatNewScrollBound = false;
+
+function chatNearBottom(box) { return box.scrollHeight - box.scrollTop - box.clientHeight < 40; }
+
+function chatNewBtn() {
+    var box = document.getElementById('chat-list');
+    var old = box.querySelector('.chat-new-wrap');
+    if (old) old.remove();
+    if (chatNewCount <= 0) return;
+    var label = (currentLang === 'en' ? '↓ New' : '↓ 新着') + (chatNewCount > 1 ? ' ' + chatNewCount : '');
+    box.insertAdjacentHTML('beforeend', '<div class="chat-new-wrap"><button class="chat-new-btn" onclick="chatScrollToNew()">' + label + '</button></div>');
+}
+
+function chatScrollToNew() {
+    var box = document.getElementById('chat-list');
+    chatNewCount = 0;
+    chatNewBtn();
+    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+}
+
+// 一覧を描くたびに、「下に、読んでいない新着があるか」を数え直して、ボタンを付ける
+var renderChatNewBase = renderChat;
+renderChat = function(msgs, forceScroll) {
+    var box = document.getElementById('chat-list');
+    var wasAtBottom = !!forceScroll || chatNearBottom(box);
+    if (chatNewRoom !== chatRoom) { chatNewRoom = chatRoom; chatNewCount = 0; chatNewLastId = 0; }   // 部屋を替えたら、数え直す
+    var last = msgs.length ? msgs[msgs.length - 1].id : 0;
+    if (chatNewLastId && last > chatNewLastId && !wasAtBottom) {
+        var me = loginUser ? String(loginUser.username).toLowerCase() : '';
+        chatNewCount += msgs.filter(function(m) { return m.id > chatNewLastId && String(m.username).toLowerCase() !== me; }).length;
+    }
+    if (wasAtBottom) chatNewCount = 0;
+    if (last > chatNewLastId) chatNewLastId = last;
+    renderChatNewBase(msgs, forceScroll);
+    chatNewBtn();
+    if (!chatNewScrollBound) {   // 自分で一番下までスクロールしたら、ボタンを消す
+        chatNewScrollBound = true;
+        box.addEventListener('scroll', function() {
+            if (chatNewCount > 0 && chatNearBottom(box)) { chatNewCount = 0; chatNewBtn(); }
+        });
+    }
+};
 
 async function chatDiscardAttach() {
     var a = chatAttach;

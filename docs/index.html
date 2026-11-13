@@ -2024,6 +2024,17 @@ function closeLogin() {
     document.getElementById('login-overlay').style.display = 'none';
 }
 
+// 秘密を、本人の画面だけで作る。サーバーには、そのSHA-256だけを渡す（コメントを読んだ他人が、先にログインを完了できないように）
+function b64urlOfBytes(bytes) {
+    var s = '';
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function randomSecret() { return b64urlOfBytes(crypto.getRandomValues(new Uint8Array(32))); }
+async function sha256B64u(text) {
+    return b64urlOfBytes(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))));
+}
+
 async function issueLoginCode() {
     var name = document.getElementById('login-username').value.trim();
     if (!/^[A-Za-z0-9_-]{3,20}$/.test(name)) {
@@ -2032,8 +2043,9 @@ async function issueLoginCode() {
     }
     setLoginMsg('');
     try {
-        var data = await apiCall('POST', '/api/auth/start', { username: name });
-        loginPending = { username: name, code: data.code, at: Date.now() };
+        var secret = randomSecret();
+        var data = await apiCall('POST', '/api/auth/start', { username: name, verifier: await sha256B64u(secret) });
+        loginPending = { username: name, code: data.code, secret: secret, at: Date.now() };
         try { sessionStorage.setItem('twc_pending', JSON.stringify(loginPending)); } catch(e) {}
         document.getElementById('login-code').innerText = loginPending.code;
         showLoginView('code');
@@ -2063,6 +2075,11 @@ function copyLoginCode() {
 
 async function verifyLogin() {
     if (!loginPending) return;
+    if (!loginPending.secret) {   // 秘密のない古い状態（更新前に始めたログイン）は、やり直す
+        backToLoginInput();
+        setLoginMsg(t('loginExpired'), 'error');
+        return;
+    }
     if (Date.now() - loginPending.at > AUTH_CODE_TTL) {
         backToLoginInput();
         setLoginMsg(t('loginExpired'), 'error');
@@ -2072,7 +2089,7 @@ async function verifyLogin() {
     btn.disabled = true;
     setLoginMsg(t('loginVerifying'));
     try {
-        var data = await apiCall('POST', '/api/auth/verify', { code: loginPending.code });
+        var data = await apiCall('POST', '/api/auth/verify', { code: loginPending.code, secret: loginPending.secret });
         loginUser = { username: data.username, id: data.id, token: data.token, expires_at: data.expires_at };
         loginPending = null;
         try {
@@ -2087,7 +2104,7 @@ async function verifyLogin() {
     } catch(e) {
         if (e.message === 'comment_not_found') {
             setLoginMsg(t('loginNotFound'), 'error');
-        } else if (e.message === 'no_challenge' || e.message === 'expired') {
+        } else if (e.message === 'no_challenge' || e.message === 'expired' || e.message === 'bad_secret') {
             backToLoginInput();
             setLoginMsg(t('loginExpired'), 'error');
         } else {

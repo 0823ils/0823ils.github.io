@@ -1,6 +1,6 @@
 // scratch-TWC API (Cloudflare Workers + D1)
-//   POST   /api/auth/start      { username }   -> { code }
-//   POST   /api/auth/verify     { code }       -> { token, username, id, expires_at }
+//   POST   /api/auth/start      { username, verifier }  -> { code }   verifier = SHA-256(本人の画面だけが知る秘密)（base64url）
+//   POST   /api/auth/verify     { code, secret }        -> { token, username, id, expires_at }   secret = 元の秘密。ハッシュが一致しないと完了できない
 //   GET    /api/ratings?ids=1,2,3              -> { ratings: { "1": { avg(RMS), count, mine } } }
 //   GET    /api/ratings/ranking                -> { items: [{ id, score, avg(RMS), count }] } 技術力の高い順
 //   PUT    /api/ratings/:projectId { score }   -> { avg(RMS), count, mine } (要ログイン。自分の作品・存在しない作品は不可)
@@ -175,11 +175,25 @@ function genCode() {
   return 'TWC-' + s;
 }
 
+// コメントは誰でも読めるので、コードだけではログインを完了できないようにする。
+// 本人の画面が作った秘密のSHA-256だけを、start で預かり、verify で元の秘密を確かめる。
+async function sha256B64u(text) {
+  return b64urlEncode(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))));
+}
+function timingSafeEqualStr(a, b) {
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
 async function authStart(request, env) {
   const body = await readJson(request);
   const username = String(body.username || '');
   if (!/^[A-Za-z0-9_-]{3,20}$/.test(username)) throw new HttpError(400, 'bad_username');
   const lower = username.toLowerCase();
+  const verifier = String(body.verifier || '');
+  if (!/^[A-Za-z0-9_-]{43}$/.test(verifier)) throw new HttpError(400, 'bad_verifier');
   const now = Date.now();
 
   await env.DB.prepare('DELETE FROM auth_challenges WHERE created_at < ?').bind(now - CODE_TTL).run();
@@ -187,8 +201,8 @@ async function authStart(request, env) {
   if (pending && pending.c >= MAX_PENDING_PER_USER) throw new HttpError(429, 'too_many_requests');
 
   const code = genCode();
-  await env.DB.prepare('INSERT INTO auth_challenges (code, username, created_at) VALUES (?, ?, ?)')
-    .bind(code, lower, now).run();
+  await env.DB.prepare('INSERT INTO auth_challenges (code, username, created_at, verifier) VALUES (?, ?, ?, ?)')
+    .bind(code, lower, now, verifier).run();
   return json({ code, expires_in: CODE_TTL / 1000 });
 }
 
@@ -232,12 +246,17 @@ async function authVerify(request, env) {
   const code = String(body.code || '').toUpperCase();
   if (!/^TWC-[A-Z2-9]{8}$/.test(code)) throw new HttpError(400, 'bad_code');
 
-  const ch = await env.DB.prepare('SELECT username, created_at FROM auth_challenges WHERE code = ?').bind(code).first();
+  const ch = await env.DB.prepare('SELECT username, created_at, verifier FROM auth_challenges WHERE code = ?').bind(code).first();
   if (!ch) throw new HttpError(404, 'no_challenge');
   if (Date.now() - ch.created_at > CODE_TTL) {
     await env.DB.prepare('DELETE FROM auth_challenges WHERE code = ?').bind(code).run();
     throw new HttpError(410, 'expired');
   }
+
+  // ログインを始めた本人の画面だけが知る秘密。コメントを読んだだけの他人は、これを持っていない
+  const secret = String(body.secret || '');
+  if (!/^[A-Za-z0-9_-]{22,128}$/.test(secret)) throw new HttpError(403, 'bad_secret');
+  if (!ch.verifier || !timingSafeEqualStr(await sha256B64u(secret), ch.verifier)) throw new HttpError(403, 'bad_secret');
 
   const owner = await getAuthOwner(env);
   const found = await findComment(env, owner, ch.username, code, ch.created_at - CLOCK_SKEW);

@@ -2,7 +2,8 @@
 CREATE TABLE IF NOT EXISTS auth_challenges (
   code TEXT PRIMARY KEY,
   username TEXT NOT NULL,          -- 小文字
-  created_at INTEGER NOT NULL      -- ミリ秒
+  created_at INTEGER NOT NULL,     -- ミリ秒
+  verifier TEXT                    -- 本人の画面だけが知る秘密のSHA-256（base64url）。verify で、元の秘密を確かめる
 );
 CREATE INDEX IF NOT EXISTS idx_challenge_user ON auth_challenges(username, created_at);
 

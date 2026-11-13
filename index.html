@@ -355,7 +355,11 @@
         .chat-msg.flash { animation: chatflash 1.8s ease-out; }
         @keyframes chatflash { 0%, 40% { background: #fff3c4; } 100% { background: transparent; } }
         .chat-embed { position: relative; display: block; max-width: 400px; aspect-ratio: 16 / 9; margin-top: 6px; border-radius: 10px; overflow: hidden; background: #1f2a3c; cursor: pointer; }
-        .chat-embed.scratch { aspect-ratio: 4 / 3; max-width: 360px; }
+        .chat-embed.scratch { aspect-ratio: 4 / 3; width: min(100%, 560px); max-width: 560px; background: #eef3fb; border: 1px solid #dfe5ef; box-sizing: border-box; }
+        .chat-embed.scratch.running { aspect-ratio: auto; background: transparent; border: 0; }
+        .chat-embed.sb3run .play { color: #4D97FF; text-shadow: none; font-size: 56px; }
+        .chat-embed.sb3run:hover .play { color: #2f7fe8; }
+        .chat-embed.sb3run .cap { color: #4a5568; background: none; text-align: center; font-size: 13px; padding: 8px 10px 14px; }
         .chat-embed img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.9; }
         .chat-embed .play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 38px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         .chat-embed .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 10px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.65)); }
@@ -3249,6 +3253,7 @@ function chatEmbedPlay(el) {
     var src = k === 'scratch' ? 'https://turbowarp.org/' + encodeURIComponent(id) + '/embed'
             : k === 'yt' ? 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1'
             : 'https://embed.nicovideo.jp/watch/' + encodeURIComponent(id);
+    if (k === 'scratch') return chatEmbedFrame(el, src);
     var f = document.createElement('iframe');
     f.src = src;
     f.setAttribute('allowfullscreen', '');
@@ -3313,10 +3318,16 @@ function pickAttach(kind) {
 }
 document.addEventListener('click', function() { var m = document.getElementById('attach-menu'); if (m) m.classList.remove('open'); });
 
+// 1MBより小さいときは KB で表す（0.0MB にならないように）
+function chatFmtSize(n) {
+    n = Number(n) || 0;
+    return n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB';
+}
+
 function chatFileHTML(f) {
     if (!f) return '';
     if (f.expired || !f.url) return '<div class="chat-video-gone">' + esc(ct('fileGone')) + '</div>';
-    var mb = (f.size / 1048576).toFixed(1) + 'MB';
+    var mb = chatFmtSize(f.size);
     return '<a class="chat-file" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">' +
         '<span class="cf-icon">' + (/\.sb3$/i.test(f.name) ? '📦' : '📎') + '</span><span class="cf-body"><b>' + esc(f.name) + '</b><small>' + mb + ' ・ ' + esc(ct('fileDownload')) + '</small></span></a>' +
         (/\.sb3$/i.test(f.name) ? chatSb3RunHTML(f.url) : '');
@@ -3328,15 +3339,25 @@ function chatSb3RunHTML(url) {
         '<a class="chat-sb3-open" target="_blank" rel="noopener" href="https://turbowarp.org/?project_url=' + encodeURIComponent(url) + '">' + esc(ct('sb3Open')) + ' ↗</a>';
 }
 function chatSb3Play(el) {
+    chatEmbedFrame(el, 'https://turbowarp.org/embed?autoplay&project_url=' + encodeURIComponent(el.dataset.url));   // 作品は、TurboWarpの中だけで動く（このサイトには触れない）
+}
+// TurboWarp の埋め込みを置く。背景は透明・明るい配色（color-scheme: auto）にして、幅に合わせて高さを決める（ステージ 4:3 ＋ 操作バー）
+function chatEmbedFrame(el, src) {
     var f = document.createElement('iframe');
-    f.src = 'https://turbowarp.org/embed?autoplay&project_url=' + encodeURIComponent(el.dataset.url);
+    f.src = src;
     f.setAttribute('allowfullscreen', '');
+    f.setAttribute('allowtransparency', 'true');
     f.setAttribute('allow', 'autoplay; fullscreen');
     f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');   // 作品は、TurboWarpの中だけで動く（このサイトには触れない）
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
+    f.style.colorScheme = 'auto';
     el.onclick = null;
     el.innerHTML = '';
+    el.classList.add('running');
+    var fit = function() { var w = el.clientWidth || 360; el.style.height = Math.round((w - 2) * 3 / 4 + 56) + 'px'; };
+    fit();
     el.appendChild(f);
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(el);
 }
 
 function chatJump(id) {
@@ -3379,7 +3400,7 @@ function renderAttachBar() {
     var bar = document.getElementById('chat-attach-bar');
     if (!bar) return;
     if (!chatAttach) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
-    var mb = (chatAttach.size / 1048576).toFixed(1) + 'MB';
+    var mb = chatFmtSize(chatAttach.size);
     var up = chatAttach.status === 'uploading';
     bar.style.display = 'flex';
     bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>' + (chatAttach.sb3 ? '📦' : chatAttach.other ? '📎' : '🎞') + '</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
@@ -3493,7 +3514,11 @@ async function loadChat(forceScroll, partialOk) {
         if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; renderChatInput(); }
         if (d.partial) {
             if (!d.messages.length) return;
-            chatMsgs = chatMsgs.concat(d.messages);
+            // 送信の返事と自動更新の取得が重なっても、同じメッセージを2回足さない
+            var have = {}; chatMsgs.forEach(function(x) { have[x.id] = 1; });
+            var fresh = d.messages.filter(function(x) { return !have[x.id]; });
+            if (!fresh.length) return;
+            chatMsgs = chatMsgs.concat(fresh);
             if (chatMsgs.length > CHAT_KEEP) { chatMsgs = chatMsgs.slice(-CHAT_KEEP); chatHasMore = true; }
             chatSig = '';
             renderChat(chatMsgs, forceScroll);

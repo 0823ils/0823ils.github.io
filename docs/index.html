@@ -520,17 +520,25 @@
             body.mode-chat .container { margin: 0; padding: 8px 10px 10px; border-radius: 0; box-shadow: none; }
             .chat-layout { height: calc(100vh - 124px); height: calc(100dvh - 124px); min-height: 0; gap: 6px; }
             .chat-rooms { gap: 6px; padding-bottom: 2px; flex-shrink: 0; }
-            .chat-head { font-size: 16px; }
-            #chat-list { font-size: 16px; line-height: 1.4; }
-            .chat-name { font-size: 16px; }
-            .chat-time { font-size: 12px; }
-            .chat-msg { padding: 3px 6px; }
-            .chat-row textarea { min-height: 44px; font-size: 16px; }   /* 16px未満だと、iPhoneは入力のたびに拡大してしまう */
-            .chat-row textarea::placeholder { font-size: 14px; }
+            .chat-head { font-size: 14px; }
+            #chat-list { font-size: 14px; line-height: 1.4; }
+            .chat-name { font-size: 14px; }
+            .chat-time { font-size: 11px; }
+            .chat-msg { padding: 2px 6px; }
+            .chat-rooms .chat-tab { padding: 6px 11px; font-size: 12.5px; }
+            .chat-row { gap: 6px; }
+            .chat-row textarea { min-height: 40px; font-size: 16px; }   /* 16px未満だと、iPhoneは入力のたびに拡大してしまう */
+            .chat-row textarea::placeholder { font-size: 13px; }
+            .chat-attach-btn { width: 40px; }
+            body .chat-row .tw-warn-btn { padding: 0 14px; font-size: 14px; }
             .chat-file { max-width: 100%; }
-            .chat-file .cf-body b { font-size: 15px; }
-            .chat-file .cf-body small { font-size: 12px; }
-            .chat-typing { height: 20px; line-height: 20px; margin: 0 0 2px; font-size: 12.5px; }
+            .chat-file .cf-body b { font-size: 13.5px; }
+            .chat-file .cf-body small { font-size: 11px; }
+            .sb3-card { padding: 10px; }
+            .sb3-card .sc-body b { font-size: 13.5px; }
+            .sb3-card .sc-run { padding: 7px 15px; font-size: 12.5px; }
+            .sb3-card .sc-sub { padding: 7px 10px; font-size: 11.5px; }
+            .chat-typing { height: 18px; line-height: 18px; margin: 0 0 2px; font-size: 11.5px; }
         }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
@@ -2997,7 +3005,7 @@ async function notifReadAll() {
 // ===== チャット =====
 var CHAT_T = {
     ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
-          attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', uploading: 'アップロード中', attached: '添付済み',
+          attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scOpen: 'Scratchで開く', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
@@ -3014,7 +3022,7 @@ var CHAT_T = {
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
-          attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', uploading: 'Uploading', attached: 'Attached',
+          attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scOpen: 'Open on Scratch', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",

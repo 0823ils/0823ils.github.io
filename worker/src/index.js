@@ -127,6 +127,8 @@ async function route(request, env) {
     if (cm[2] && method === 'POST') return chatReport(request, env, id);
     if (!cm[2] && method === 'DELETE') return chatDelete(request, env, id);
   }
+  const em = path.match(/^\/api\/chat\/messages\/(\d{1,12})\/edit$/);
+  if (em && method === 'POST') return chatEdit(request, env, Number(em[1]));
   const rm = path.match(/^\/api\/chat\/messages\/(\d{1,12})\/react$/);
   if (rm && method === 'POST') return chatReact(request, env, Number(rm[1]));
   if (path === '/api/chat/reactions' && method === 'GET') return chatReactions(request, env, url);
@@ -766,6 +768,7 @@ async function approvedUsers(env) {
 //   GET    /api/chat/messages?room=3d|math|physics|triangle  -> { messages: [...最新50件、古い順], is_admin }  (公開。管理者は非表示のものも見える)
 //   POST   /api/chat/messages { content }        -> { message }       (要ログイン。禁止ユーザー・連投は不可)
 //   DELETE /api/chat/messages/:id                -> { deleted }       (本人 or 管理者)
+//   POST   /api/chat/messages/:id/edit { content } -> { id, content, edited_at }  (本人のみ)
 //   POST   /api/chat/messages/:id/report         -> { reported }      (要ログイン。通報が3件で自動的に非表示)
 //   POST   /api/admin/chat/messages/:id { action: hide | restore | delete }   (管理者のみ)
 //   POST   /api/admin/chat/bans { username, banned }                          (管理者のみ。投稿禁止/解除)
@@ -796,6 +799,7 @@ function chatRow(r, env) {
   const o = { id: r.id, user_id: r.user_id, username: r.username, content: r.content,
               created_at: r.created_at, hidden: !!r.hidden, tags: r.tags || [] };
   if (r.reactions && r.reactions.length) o.reactions = r.reactions;
+  if (r.edited_at) o.edited_at = r.edited_at;
   if (r.video_id) {
     if (isImageType(r.video_type)) o.image = videoInfo(r, env);
     else if (isFileType(r.video_type)) o.file = Object.assign(videoInfo(r, env), { name: r.video_name || (isSb3Type(r.video_type) ? 'project.sb3' : 'file'), size: r.video_size || 0 });
@@ -874,6 +878,7 @@ async function chatList(request, env, url) {
   const beforeRaw = url.searchParams.get('before');
   const before = since === null && beforeRaw !== null && /^\d{1,12}$/.test(beforeRaw) ? Number(beforeRaw) : null;
   if (since === null && before === null) await syncStudioRoles(env);
+  await ensureEditedCol(env);
   // around=<メッセージID> のときは、そのメッセージの前後25件ずつを返す（リンクから古いメッセージを開くため）
   const aroundRaw = url.searchParams.get('around');
   const around = since === null && aroundRaw !== null && /^\d{1,12}$/.test(aroundRaw) ? Number(aroundRaw) : null;
@@ -885,7 +890,7 @@ async function chatList(request, env, url) {
     if (a && a.x && b && b.x) { lo = a.x; hi = b.x; }
   }
   const rows = await env.DB.prepare(
-    `SELECT m.id, m.user_id, m.username, m.content, m.created_at, m.hidden,
+    `SELECT m.id, m.user_id, m.username, m.content, m.created_at, m.hidden${_editedCol ? ', m.edited_at' : ''},
             rp.reply_to, p.username AS reply_username, p.content AS reply_content,
             p.deleted AS reply_deleted, p.hidden AS reply_hidden,
             v.id AS video_id, v.object_key AS video_key, v.content_type AS video_type, v.created_at AS video_created,
@@ -1146,6 +1151,40 @@ async function chatReactions(request, env, url) {
   const user = await getUser(request, env);
   const ids = String(url.searchParams.get('ids') || '').split(',').filter(s => /^\d{1,12}$/.test(s)).map(Number).slice(0, 100);
   return json({ reactions: await reactionsFor(env, ids, user ? user.uid : 0) });
+}
+
+// 編集した印（edited_at）の列。なければ、最初に使うときに足す（D1にもホストの自前DBにも、そのまま効く）
+let _editedCol = false;
+async function ensureEditedCol(env) {
+  if (_editedCol) return;
+  try {
+    const r = await env.DB.prepare('PRAGMA table_info(chat_messages)').all();
+    if (!(r.results || []).some(c => c.name === 'edited_at')) await env.DB.prepare('ALTER TABLE chat_messages ADD COLUMN edited_at INTEGER').run();
+    _editedCol = true;
+  } catch (e) { /* 失敗しても、チャットは今までどおり動く（編集だけ使えない） */ }
+}
+
+// POST /api/chat/messages/:id/edit { content } -> { id, content, edited_at }  (本人のみ。削除・非表示のものは不可)
+async function chatEdit(request, env, id) {
+  const user = await requireUser(request, env);
+  await ensureEditedCol(env);
+  if (!_editedCol) throw new HttpError(503, 'edit_unavailable');
+  const body = await readJson(request);
+  const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, CHAT_MAX_LEN);
+  const row = await env.DB.prepare(
+    `SELECT m.user_id, m.hidden, m.content, (SELECT 1 FROM chat_videos v WHERE v.message_id = m.id AND v.state = 'ready' LIMIT 1) AS has_media
+       FROM chat_messages m WHERE m.id = ? AND m.deleted = 0`
+  ).bind(id).first();
+  if (!row) throw new HttpError(404, 'not_found');
+  if (row.user_id !== user.uid) throw new HttpError(403, 'forbidden');
+  if (row.hidden) throw new HttpError(403, 'forbidden');
+  if (!content && !row.has_media) throw new HttpError(400, 'empty');
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+  if (content === row.content) return json({ id, content, edited_at: null });   // 変更なし
+  const now = Date.now();
+  await env.DB.prepare('UPDATE chat_messages SET content = ?, edited_at = ? WHERE id = ?').bind(content, now, id).run();
+  return json({ id, content, edited_at: now });
 }
 
 async function chatDelete(request, env, id) {

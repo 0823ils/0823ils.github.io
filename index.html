@@ -374,6 +374,9 @@
         .sb3-card .sc-stage { margin-top: 10px; border-radius: 10px; overflow: hidden; }
         .sb3-card .sc-thumb { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; cursor: pointer; background: linear-gradient(135deg, #e8f0ff, #dfe8f7); }
         .sb3-card .sc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* Scratch のぼかしロゴ代替サムネイルを表示しない */
+        .sb3-card .sc-thumb img[src*="1410099506_480x360"] { display: none; }
+        .sb3-card .sc-thumb:has(img[src*="1410099506_480x360"]) { background: #dce7f7; }
         .sb3-card .sc-play { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(255,255,255,.94); color: #4D97FF; font-size: 24px; display: flex; align-items: center; justify-content: center; padding-left: 4px; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,0,0,.22); transition: transform .15s; }
         .sb3-card .sc-thumb:hover .sc-play { transform: scale(1.08); }
         .sb3-card.open .sc-thumb { display: none; }

@@ -2743,10 +2743,53 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
 var notifUser = 0;
 
 function setNotifBadge(n) {
+    updateAppBadge(n);
     var b = document.getElementById('notif-badge');
     if (!b) return;
     b.innerText = n > 99 ? '99+' : String(n);
     b.style.display = n > 0 ? 'block' : 'none';
+}
+
+// 未読があるとき、アプリのアイコン（Dock・ホーム画面。ホーム画面に追加した場合など）の右上に、赤い丸と件数を出す。
+// ブラウザのタブでは、タブのアイコン（ファビコン）の右上に、赤い丸を重ねる
+function updateAppBadge(n) {
+    n = Number(n) || 0;
+    try {
+        var p = n > 0 ? (navigator.setAppBadge && navigator.setAppBadge(n)) : (navigator.clearAppBadge && navigator.clearAppBadge());
+        if (p && p.catch) p.catch(function() {});
+    } catch (e) {}
+    updateFaviconBadge(n > 0);
+}
+var favBadgeOn = false, favOrig = null, favImg = null;
+function updateFaviconBadge(on) {
+    if (on === favBadgeOn) return;
+    var links = document.querySelectorAll('link[rel="icon"]');
+    if (!on) {
+        favBadgeOn = false;
+        var dyn = document.getElementById('fav-badge');
+        if (dyn) dyn.remove();
+        if (favOrig) { favOrig.forEach(function(l) { document.head.appendChild(l); }); favOrig = null; }
+        return;
+    }
+    if (!favImg) {
+        favImg = new Image();
+        favImg.onload = function() { favBadgeOn = false; updateFaviconBadge(true); };
+        favImg.src = '/favicon-96.png';
+        return;
+    }
+    if (!favImg.complete || !favImg.naturalWidth) return;
+    try {
+        var c = document.createElement('canvas'); c.width = c.height = 64;
+        var g = c.getContext('2d');
+        g.drawImage(favImg, 0, 0, 64, 64);
+        g.beginPath(); g.arc(49, 15, 14, 0, Math.PI * 2); g.fillStyle = '#ff3b30'; g.fill();
+        g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke();
+        if (!favOrig) { favOrig = []; links.forEach(function(l) { favOrig.push(l); l.remove(); }); }
+        var d = document.getElementById('fav-badge');
+        if (!d) { d = document.createElement('link'); d.id = 'fav-badge'; d.rel = 'icon'; d.type = 'image/png'; document.head.appendChild(d); }
+        d.href = c.toDataURL('image/png');
+        favBadgeOn = true;
+    } catch (e) {}
 }
 
 // いまチャットを開いて見ているときは、その部屋の分は未読に数えない（サーバーに部屋を伝える）

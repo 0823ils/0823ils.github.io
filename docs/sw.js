@@ -14,9 +14,16 @@ self.addEventListener('push', function(event) {
             data: { url: d.url || '/' }
         });
         // 開いているタブに知らせる（画面のベルの未読数を、すぐ取り直してもらうため）
+        var list = [];
         try {
-            var list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
             list.forEach(function(c) { try { c.postMessage({ type: 'twc-push' }); } catch (e) {} });
+        } catch (e) {}
+        // 画面を見ていないとき（閉じている・裏にある）は、アプリのアイコンに、赤い丸を出す。
+        // 見ているときは、画面が正しい件数で、取り直す
+        try {
+            var seeing = list.some(function(c) { return c.visibilityState === 'visible'; });
+            if (!seeing && self.navigator && self.navigator.setAppBadge) await self.navigator.setAppBadge();
         } catch (e) {}
     })());
 });

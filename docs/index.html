@@ -3602,21 +3602,36 @@ async function chatDiscardAttach() {
 
 // partialOk のときは、前回より新しいメッセージだけを取る（サーバーの読み取りが軽い）。
 // そうでないときは最新50件を取り直す（削除・非表示・タグの変化もここで反映される）
+var chatLoadSeq = 0, chatAppliedSeq = 0;
+function chatScrollBottom() {
+    var box = document.getElementById('chat-list');
+    if (box) box.scrollTop = box.scrollHeight;
+}
 async function loadChat(forceScroll, partialOk) {
     try {
         var room = chatRoom;
         var partial = !!partialOk && chatMsgs.length > 0;
+        var seq = ++chatLoadSeq;   // 読み込みの開始順を記録
         var path = '/api/chat/messages?room=' + encodeURIComponent(room) +
             (partial ? '&since=' + chatMsgs[chatMsgs.length - 1].id : '') +
             (!partial && chatAround ? '&around=' + chatAround : '');
         chatAround = 0;
         var d = await apiCall('GET', path);
         if (room !== chatRoom) return;  // 取得中に部屋を切り替えた場合は捨てる
+        if (seq < chatAppliedSeq) {      // 新しい読み込みが先に反映済みなら、古い応答を捨てる
+            if (forceScroll) chatScrollBottom();
+            return;
+        }
+        chatAppliedSeq = seq;
         chatIsAdmin = !!d.is_admin;
         if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; renderChatInput(); }
         if (d.partial) {
             if (!d.messages.length) return;
-            chatMsgs = chatMsgs.concat(d.messages);
+            var have = {};
+            chatMsgs.forEach(function(m) { have[m.id] = true; });
+            var fresh = d.messages.filter(function(m) { return !have[m.id]; });   // 画面にあるIDは再追加しない
+            if (!fresh.length) return;
+            chatMsgs = chatMsgs.concat(fresh);
             if (chatMsgs.length > CHAT_KEEP) { chatMsgs = chatMsgs.slice(-CHAT_KEEP); chatHasMore = true; }
             chatSig = '';
             renderChat(chatMsgs, forceScroll);

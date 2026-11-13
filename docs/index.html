@@ -4517,6 +4517,7 @@ async function trAutoRun() {
         var list = chatMsgs.filter(function(m) {
             return m.user_id !== me && !m.hidden && chatTrOffer(m) && !trBusy[m.id] && !trAutoTried[trKey(m.id)];
         }).reverse();
+        var fails = 0;
         for (var i = 0; i < list.length; i++) {
             if (!trAutoOn() || currentMode !== 'chat') break;
             var id = Number(list[i].id);
@@ -4527,7 +4528,7 @@ async function trAutoRun() {
             }
             did++;
             await chatTranslate(id);
-            if (trCache[trKey(id)] || trBusy[id]) continue;
+            if (trCache[trKey(id)] || trBusy[id]) { fails = 0; continue; }
             var note = trNote[id];
             delete trNote[id]; chatTrRefresh(id);   // 自動のときは、エラー表示を残さない
             if (!note) {   // 確認でキャンセルした
@@ -4535,7 +4536,16 @@ async function trAutoRun() {
                 trAutoUI();
                 break;
             }
-            if (note.k !== 'trSame' && note.k !== 'trPair') { trAutoPaused = true; break; }
+            if (note.k === 'trSame' || note.k === 'trPair') continue;
+            if (note.k === 'trFail') {   // 一時的な失敗: この1件は飛ばして続ける。3回続けて失敗したら、60秒休んでからやり直す
+                if (++fails >= 3) {
+                    trAutoPaused = true;
+                    setTimeout(function() { trAutoPaused = false; trAutoTried = {}; trAutoSoon(0); }, 60000);
+                    break;
+                }
+                continue;
+            }
+            trAutoPaused = true; break;   // ログイン切れ・上限・未設定: 止める
         }
     } finally { trAutoRunning = false; }
     // 訳している間に増えたメッセージも拾う

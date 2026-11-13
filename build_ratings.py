@@ -33,6 +33,10 @@ MAX_ITEMS = 5000         # 載せる作品数の上限
 # 順位用スコアの、少数評価への補正。評価が少ない作品は、全作品の平均スコアに近づける。
 # 評価1件の★5が、評価の多い作品より上位を占めないようにする（k件ぶんの「平均的な評価」を足して計算）
 SHRINK_K = 3
+# わざと★1ばかりつける評価者の除外（find_outlier_raters）
+OUTLIER_MIN_RATINGS = 4   # この件数以上つけた人だけ調べる
+OUTLIER_ONE_SHARE = 0.7   # ★1がこの割合以上
+OUTLIER_GAP = 1.5         # 他の人の平均より、この点以上低い
 WEEK_MS = 7 * 24 * 3600 * 1000
 WEEKLY_LIMIT = 30
 WEEKLY_PRIOR_MEAN, WEEKLY_PRIOR_WEIGHT = 3.0, 2.0
@@ -159,11 +163,48 @@ def calculate_scores(project_points):
     }
 
 
-def build(rows, now_ms):
+def find_outlier_raters(projects):
+    """わざと低い点（★1）ばかりつける評価者を見つける。{評価者: 理由} を返す。
+    次のどちらかに当てはまる人の評価は、順位にも表示の平均にも使わない（評価が4作品以上ある人だけ調べる）。
+      ・つけた点の7割以上が★1
+      ・ほかの人が2人以上つけた作品で、いつも他の人の平均より1.5点以上低い（3作品以上）
+    """
+    by_user = {}
+    for pid, ratings in projects.items():
+        for uid, sc in ratings.items():
+            by_user.setdefault(uid, []).append((pid, sc))
+    out = {}
+    for uid, lst in by_user.items():
+        if len(lst) < OUTLIER_MIN_RATINGS:
+            continue
+        ones = sum(1 for _, sc in lst if sc == 1)
+        if ones / len(lst) >= OUTLIER_ONE_SHARE:
+            out[uid] = "★1が%d/%d件" % (ones, len(lst))
+            continue
+        diffs = []
+        for pid, sc in lst:
+            others = [v for u, v in projects[pid].items() if u != uid]
+            if len(others) >= 2:
+                diffs.append(sc - sum(others) / len(others))
+        if len(diffs) >= 3 and sum(diffs) / len(diffs) <= -OUTLIER_GAP:
+            out[uid] = "他の人より平均%.1f点低い(%d作品)" % (-sum(diffs) / len(diffs), len(diffs))
+    return out
+
+
+def build(rows, now_ms, blocked=()):
     """rows: [[project_id, user_id, score, updated_at], ...] -> JSONにする辞書"""
     projects = {}
     for pid, uid, score, _ in rows:
         projects.setdefault(int(pid), {})[int(uid)] = int(score)
+    # 荒らしの評価を外す（自動で見つけた人＋blocked_raters.txt に書いた人）
+    bad = find_outlier_raters(projects)
+    for uid in blocked:
+        bad.setdefault(int(uid), "blocked_raters.txt")
+    if bad:
+        print("除外した評価者 %d 人: %s" % (len(bad), ", ".join("%d(%s)" % (u, r) for u, r in sorted(bad.items()))))
+        projects = {p: {u: v for u, v in r.items() if u not in bad} for p, r in projects.items()}
+        projects = {p: r for p, r in projects.items() if r}
+        rows = [r for r in rows if int(r[1]) not in bad]
     res = calculate_scores(projects) if projects else {
         "scores": {}, "averages": {}, "counts": {}, "correlations": {}, "user_stats": {}
     }
@@ -218,6 +259,12 @@ def selftest():
     top = [(x["id"], x["score"], x["avg"], x["count"]) for x in out[:3]]
     print("補正後の上位:", top)
     assert out[0]["id"] == 2, "評価の多い作品が上に来るはず"
+    # ★1ばかりつける人を外す：作品2に★1を8件つけた荒らしがいても、順位と平均は変わらない
+    bomb = rows + [[2, 900, 1, 0]] + [[100 + i, 900, 1, 0] for i in range(10)]
+    out2 = {x["id"]: x for x in build(bomb, 0)["items"]}
+    base = {x["id"]: x for x in out}
+    assert out2[2]["avg"] == base[2]["avg"] and out2[2]["count"] == base[2]["count"], "荒らしの評価は外れるはず"
+    print("荒らしの除外: OK")
 
 
 def main():
@@ -235,7 +282,13 @@ def main():
         sys.exit("評価の取得に失敗: HTTP %d %s" % (r.status_code, r.text[:200]))
     rows = r.json().get("ratings", [])
     now_ms = int(time.time() * 1000)
-    data = build(rows, now_ms)
+    blocked = []
+    try:
+        with open("blocked_raters.txt", encoding="utf-8") as f:
+            blocked = [int(x.split("#")[0].strip()) for x in f if x.split("#")[0].strip().isdigit()]
+    except OSError:
+        pass
+    data = build(rows, now_ms, blocked)
     print("評価 %d 件 → 作品 %d 件、今週 %d 件" % (len(rows), len(data["items"]), len(data["weekly"])))
 
     # 中身が変わらないときは書き直さない（コミットを増やさない）

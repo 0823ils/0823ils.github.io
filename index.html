@@ -2954,7 +2954,7 @@ async function notifReadAll() {
 // ===== チャット =====
 var CHAT_T = {
     ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
-          attachTitle: 'ファイルを添付（動画・sb3は20MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3（Scratchの作品）', uploading: 'アップロード中', attached: '添付済み',
+          attachTitle: 'ファイルを添付（動画・sb3は20MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は20MBまでです', e_sb3_too_big: 'sb3は20MBまでです', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scOpen: 'Scratchで開く', fileDownload: 'ダウンロード', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIF、作品は.sb3にしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
@@ -2971,7 +2971,7 @@ var CHAT_T = {
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
-          attachTitle: 'Attach a file (video / .sb3 up to 20MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: '.sb3 (Scratch project)', uploading: 'Uploading', attached: 'Attached',
+          attachTitle: 'Attach a file (video / .sb3 up to 20MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to 20MB', e_sb3_too_big: '.sb3 files can be up to 20MB', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scOpen: 'Open on Scratch', fileDownload: 'Download', e_bad_video_type: 'Use MP4/MOV/WebM for videos, JPEG/PNG/WebP/GIF for photos, or .sb3 for projects', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
@@ -3380,7 +3380,7 @@ function chatVideoFirstFrame(file) {
 
 // 添付ボタンのメニュー（種類を選ぶと、その種類だけがファイル選択に出る）
 var ATTACH_KINDS = [
-    ['all', 'attAll', 'video/mp4,video/webm,video/quicktime,.mov,.sb3,image/jpeg,image/png,image/webp,image/gif'],
+    ['all', 'attAll', ''],
     ['photo', 'attPhoto', 'image/jpeg,image/png,image/webp,image/gif'],
     ['video', 'attVideo', 'video/mp4,video/webm,video/quicktime,.mov'],
     ['sb3', 'attSb3', '.sb3']
@@ -3399,7 +3399,7 @@ function pickAttach(kind) {
     var m = document.getElementById('attach-menu'); if (m) m.classList.remove('open');
     var inp = document.getElementById('chat-file'); if (!inp) return;
     var k = ATTACH_KINDS.filter(function(x) { return x[0] === kind; })[0];
-    inp.accept = k ? k[2] : ATTACH_KINDS[0][2];
+    inp.accept = k ? k[2] : '';
     inp.click();
 }
 document.addEventListener('click', function() { var m = document.getElementById('attach-menu'); if (m) m.classList.remove('open'); });
@@ -3495,7 +3495,7 @@ function renderChatInput() {
     w.innerHTML = '<div class="chat-row">' +
         (chatVideoEnabled ? '<div class="chat-attach-wrap"><button class="chat-attach-btn" title="' + esc(ct('attachTitle')) + '" onclick="toggleAttachMenu(event)">' +
             '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 11.5l-8.2 8.2a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' + attachMenuHTML() + '</div>' +
-            '<input type="file" id="chat-file" accept="video/mp4,video/webm,video/quicktime,.mov,.sb3,image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="chatVideoChosen(this)">' : '') +
+            '<input type="file" id="chat-file" style="display:none" onchange="chatVideoChosen(this)">' : '') +
         '<textarea id="chat-text" class="apply-textarea" maxlength="300" rows="2" placeholder="' +
         esc(ct('ph')) + '"></textarea><button type="button" id="chat-send-btn" class="tw-warn-btn tw-warn-btn-tw" onclick="sendChat()">' + esc(ct('send')) + '</button></div>';
     var ta = document.getElementById('chat-text');

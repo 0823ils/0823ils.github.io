@@ -479,7 +479,7 @@
         .chat-row textarea { min-height: 40px; font-size: 14px; }
         .chat-row .tw-warn-btn { padding: 0 16px; }
         /* 入力中の表示（Discord風：はねる3つの点＋名前） */
-        .chat-typing { flex-shrink: 0; height: 18px; min-height: 0; line-height: 18px; padding: 0 4px; margin-top: -4px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .chat-typing { flex-shrink: 0; height: 18px; min-height: 0; line-height: 18px; padding: 0 4px; margin: 0 0 2px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
         .chat-typing.on::before { content: none; }
         .chat-typing .tdots { display: inline-flex; gap: 3px; margin-right: 7px; vertical-align: 1px; }
         .chat-typing .tdots i { width: 4px; height: 4px; border-radius: 50%; background: #8a94a6; animation: tdot 1.2s infinite ease-in-out; }
@@ -499,7 +499,7 @@
             .chat-msg { padding: 3px 6px; }
             .chat-row textarea { min-height: 44px; font-size: 16px; }   /* 16px未満だと、iPhoneは入力のたびに拡大してしまう */
             .chat-row textarea::placeholder { font-size: 14px; }
-            .chat-typing { height: 20px; line-height: 20px; margin-top: -2px; font-size: 12.5px; }
+            .chat-typing { height: 20px; line-height: 20px; margin: 0 0 2px; font-size: 12.5px; }
         }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
@@ -771,8 +771,8 @@
                     <div class="login-msg" id="chat-msg"></div>
                     <div id="chat-reply-bar"></div>
                     <div id="chat-attach-bar"></div>
-                    <div id="chat-input-wrap"></div>
                     <div id="chat-typing" class="chat-typing"></div>
+                    <div id="chat-input-wrap"></div>
                 </div>
             </div>
         </div>

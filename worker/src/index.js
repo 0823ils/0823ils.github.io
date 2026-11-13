@@ -986,6 +986,20 @@ async function chatPost(request, env) {
   const body = await readJson(request);
   const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, CHAT_MAX_LEN);
   const room = chatRoom(body.room);
+  const clientId = body.client_id == null || body.client_id === '' ? '' : String(body.client_id);
+  if (clientId && !/^[a-f0-9]{32}$/.test(clientId)) throw new HttpError(400, 'bad_client_id');
+
+  // 同じ送信要求の再送は、投稿済みのメッセージを返すだけにする。
+  // ネットワーク切断後にブラウザが再試行しても、同じコメントを二重登録しない。
+  if (clientId) {
+    const existing = await env.DB.prepare(
+      'SELECT id, user_id, username, content, created_at, hidden FROM chat_messages WHERE user_id = ? AND client_id = ?'
+    ).bind(user.uid, clientId).first();
+    if (existing) {
+      return json({ message: { id: existing.id, user_id: existing.user_id, username: existing.username,
+        content: existing.content, created_at: existing.created_at, hidden: !!existing.hidden, tags: [] } });
+    }
+  }
 
   // 動画（先にアップロードして確認済みのものだけ）
   let video = null;
@@ -1019,9 +1033,25 @@ async function chatPost(request, env) {
     if (!parent) throw new HttpError(404, 'reply_not_found');
   }
 
-  const res = await env.DB.prepare(
-    'INSERT INTO chat_messages (user_id, username, content, created_at, room) VALUES (?, ?, ?, ?, ?)'
-  ).bind(user.uid, user.u, content, now, room).run();
+  let res;
+  if (clientId) {
+    res = await env.DB.prepare(
+      'INSERT INTO chat_messages (user_id, username, content, created_at, room, client_id) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(user_id, client_id) DO NOTHING'
+    ).bind(user.uid, user.u, content, now, room, clientId).run();
+    if (!res.meta.changes) {
+      // 別リクエストと同時に同じIDが届いた場合も、先に作られた1件だけを返す。
+      const existing = await env.DB.prepare(
+        'SELECT id, user_id, username, content, created_at, hidden FROM chat_messages WHERE user_id = ? AND client_id = ?'
+      ).bind(user.uid, clientId).first();
+      if (!existing) throw new HttpError(503, 'post_retry');
+      return json({ message: { id: existing.id, user_id: existing.user_id, username: existing.username,
+        content: existing.content, created_at: existing.created_at, hidden: !!existing.hidden, tags: [] } });
+    }
+  } else {
+    res = await env.DB.prepare(
+      'INSERT INTO chat_messages (user_id, username, content, created_at, room) VALUES (?, ?, ?, ?, ?)'
+    ).bind(user.uid, user.u, content, now, room).run();
+  }
   const id = res.meta.last_row_id;
   if (parent) await env.DB.prepare('INSERT INTO chat_replies (message_id, reply_to) VALUES (?, ?)').bind(id, parent.id).run();
   if (video) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(id, video.id).run();

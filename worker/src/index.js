@@ -319,13 +319,13 @@ async function requireUser(request, env) {
 
 function summarize(row, mine) {
   const count = row ? row.c : 0;
-  // message.txt の helper → helper2 と同じ変換。平均二乗平方根 (RMS) を表示する。
-  const avg = count ? Math.sqrt(Math.max(0, row.a)) : 0;
+  // 表示は、つけられた点の普通の平均（順位用のスコアとは別）
+  const avg = count ? Number(row.a) || 0 : 0;
   return { avg: Math.round(avg * 100) / 100, count, mine: mine ?? null };
 }
 
 async function summaryFor(env, projectId, userId) {
-  const row = await env.DB.prepare('SELECT COUNT(*) AS c, AVG(score * score) AS a FROM ratings WHERE project_id = ?').bind(projectId).first();
+  const row = await env.DB.prepare('SELECT COUNT(*) AS c, AVG(score) AS a FROM ratings WHERE project_id = ?').bind(projectId).first();
   let mine = null;
   if (userId) {
     const r = await env.DB.prepare('SELECT score FROM ratings WHERE project_id = ? AND user_id = ?').bind(projectId, userId).first();
@@ -342,7 +342,7 @@ async function getRatings(request, env, url) {
 
   const ph = ids.map(() => '?').join(',');
   const rows = await env.DB.prepare(
-    `SELECT project_id, COUNT(*) AS c, AVG(score * score) AS a FROM ratings WHERE project_id IN (${ph}) GROUP BY project_id`
+    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a FROM ratings WHERE project_id IN (${ph}) GROUP BY project_id`
   ).bind(...ids).all();
 
   const mineMap = new Map();

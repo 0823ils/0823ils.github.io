@@ -4,7 +4,7 @@ name: Update Ratings
 # サイトはこのファイルを読むので、順位表や評価数の表示でWorkerを使わない。
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 # データ更新（update.yml）と同時にpushしないよう、順番に実行する

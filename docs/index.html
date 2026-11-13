@@ -1233,7 +1233,10 @@ async function ppLoadDetail() {
     try {
         var d = await apiCall('GET', '/api/ratings/detail?id=' + id);
         if (id !== ppId) return;
-        ratingCache[id] = { avg: d.avg, count: d.count, mine: d.mine };
+        var dd = d.dist || null, tot = dd ? dd.reduce(function(a, n) { return a + n; }, 0) : 0;
+        // 平均は、内訳の人数から出す普通の平均（古いWorkerが二乗平均を返しても、ずれないように）
+        var plain = tot ? dd.reduce(function(a, n, i) { return a + n * (i + 1); }, 0) / tot : d.avg;
+        ratingCache[id] = { avg: plain, count: d.count, mine: d.mine };
         if (myRatings) { if (d.mine) myRatings[id] = d.mine; else delete myRatings[id]; }
         ppDist = d.dist || [0,0,0,0,0];
         renderPpRate();

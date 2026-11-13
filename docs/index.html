@@ -2954,8 +2954,8 @@ async function notifReadAll() {
 // ===== チャット =====
 var CHAT_T = {
     ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
-          attachTitle: 'ファイルを添付（動画・sb3は20MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', uploading: 'アップロード中', attached: '添付済み',
-          e_video_too_big: '動画は20MBまでです', e_sb3_too_big: 'sb3は20MBまでです', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scOpen: 'Scratchで開く', fileDownload: 'ダウンロード', e_bad_video_type: '動画はMP4・MOV・WebM、写真はJPEG・PNG・WebP・GIF、作品は.sb3にしてください', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
+          attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', uploading: 'アップロード中', attached: '添付済み',
+          e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
           e_video_not_found: '添付した動画が見つかりません', e_storage_error: '動画の保存先に接続できませんでした', e_bad_video: '動画を確認できませんでした',
           videoGone: '動画は保存期間が過ぎたため見られません', embedScratch: 'Scratchの作品を動かす', embedYt: 'YouTube', embedNico: 'ニコニコ動画',
@@ -2971,8 +2971,8 @@ var CHAT_T = {
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
-          attachTitle: 'Attach a file (video / .sb3 up to 20MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', uploading: 'Uploading', attached: 'Attached',
-          e_video_too_big: 'Videos can be up to 20MB', e_sb3_too_big: '.sb3 files can be up to 20MB', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scOpen: 'Open on Scratch', fileDownload: 'Download', e_bad_video_type: 'Use MP4/MOV/WebM for videos, JPEG/PNG/WebP/GIF for photos, or .sb3 for projects', e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
+          attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', uploading: 'Uploading', attached: 'Attached',
+          e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
           e_video_not_found: 'The attached video was not found', e_storage_error: "Couldn't reach the video storage", e_bad_video: "Couldn't verify the video",
           videoGone: 'This video has expired', embedScratch: 'Run the Scratch project', embedYt: 'YouTube', embedNico: 'Niconico',
@@ -3005,7 +3005,7 @@ var chatAround = 0;       // URLのリンクで開いたとき、このメッセ
 var chatJumpTo = 0;       // 通知から開いたときに表示したいメッセージID
 try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
 
-function ct(k) { return (CHAT_T[currentLang] || CHAT_T.ja)[k] || k; }
+function ct(k) { return ((CHAT_T[currentLang] || CHAT_T.ja)[k] || k).replace('{mb}', Math.round(CHAT_VIDEO_MAX / 1048576)); }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
 function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
 
@@ -3383,8 +3383,11 @@ var ATTACH_KINDS = [
     ['all', 'attAll', ''],
     ['photo', 'attPhoto', 'image/jpeg,image/png,image/webp,image/gif'],
     ['video', 'attVideo', 'video/mp4,video/webm,video/quicktime,.mov'],
-    ['sb3', 'attSb3', '.sb3']
+    ['sb3', 'attSb3', '.sb3'],
+    ['file', 'attFile', '']
 ];
+var CHAT_FILE_DENY = /^(exe|msi|bat|cmd|com|scr|pif|ps1|psm1|vbs|vbe|wsf|wsh|hta|jar|apk|dmg|app|pkg|deb|rpm|lnk|reg|dll|sys|cpl|msc|html|htm|xhtml|svg|swf)$/i;
+var CHAT_FILE_TYPE = 'application/x.twc.file';
 function attachMenuHTML() {
     return '<div class="attach-menu" id="attach-menu">' + ATTACH_KINDS.map(function(k) {
         return '<button data-k="' + k[0] + '" onclick="pickAttach(this.dataset.k)">' + esc(ct(k[1])) + '</button>';
@@ -3519,7 +3522,7 @@ function renderAttachBar() {
     var mb = (chatAttach.size / 1048576).toFixed(1) + 'MB';
     var up = chatAttach.status === 'uploading';
     bar.style.display = 'flex';
-    bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>' + (chatAttach.sb3 ? '📦' : '🎞') + '</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
+    bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>' + (chatAttach.sb3 ? '📦' : chatAttach.other ? '📎' : '🎞') + '</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
         (up ? '<span class="ab-prog"><i style="width:' + Math.round(chatAttach.progress * 100) + '%"></i></span><span>' + esc(ct('uploading')) + '</span>'
             : '<span>' + esc(ct('attached')) + '</span><button onclick="chatDiscardAttach()" title="' + esc(ct('cancel')) + '">✕</button>');
 }
@@ -3530,7 +3533,11 @@ function chatPutFile(url, headers, file, onProgress) {
         x.open('PUT', url);
         Object.keys(headers || {}).forEach(function(k) { x.setRequestHeader(k, headers[k]); });
         x.upload.onprogress = function(e) { if (e.lengthComputable) onProgress(e.loaded / e.total); };
-        x.onload = function() { (x.status >= 200 && x.status < 300) ? resolve() : reject(new Error('upload_failed')); };
+        x.onload = function() {
+            if (x.status >= 200 && x.status < 300) return resolve();
+            var j = null; try { j = JSON.parse(x.responseText); } catch (e) {}
+            reject(new Error(j && j.error === 'storage_full' ? 'storage_full' : 'upload_failed'));
+        };
         x.onerror = function() { reject(new Error('upload_failed')); };
         x.send(file);
     });
@@ -3564,9 +3571,16 @@ async function chatVideoChosen(inp) {
     var isMov = !isSb3 && (f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name)));
     var vtype = isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type);
     var isVideo = vtype === 'video/mp4' || vtype === 'video/webm' || vtype === 'video/quicktime';
-    if (!isImage && !isVideo && !isSb3) { setChatMsg(ct('e_bad_video_type')); return; }
+    var isOther = !isImage && !isVideo && !isSb3;      // zip・pdf・音声・テキストなど、ほかのファイルはダウンロード形式で送る
+    if (isOther) {
+        var ext = (/\.([A-Za-z0-9]{1,8})$/.exec(f.name) || [])[1];
+        if (ext && CHAT_FILE_DENY.test(ext)) { setChatMsg(ct('e_bad_file_type')); return; }
+        vtype = CHAT_FILE_TYPE;
+    }
+    if (f.size < 1) { setChatMsg(ct('e_bad_video_type')); return; }
     if (isSb3 && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_sb3_too_big')); return; }
     if (isVideo && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_video_too_big')); return; }
+    if (isOther && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_file_too_big')); return; }
     if (isImage && f.size > 30 * 1048576) { setChatMsg(ct('e_image_too_big')); return; }
     if (chatAttach) await chatDiscardAttach();
     var blob = f, preview = '';
@@ -3575,12 +3589,12 @@ async function chatVideoChosen(inp) {
         catch (e) { setChatMsg(ct('e_bad_image')); return; }
         preview = URL.createObjectURL(blob);
     }
-    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3 };
+    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3, other: isOther };
     renderAttachBar();
     var mine = chatAttach;
     if (isVideo) chatVideoFirstFrame(f).then(function(u) { if (u && chatAttach === mine) { mine.preview = u; renderAttachBar(); } });
     try {
-        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype, name: isSb3 ? f.name : undefined });
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype, name: (isSb3 || isOther) ? f.name : undefined });
         mine.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
@@ -3627,6 +3641,7 @@ async function loadChat(forceScroll, partialOk) {
         }
         chatAppliedSeq = seq;
         chatIsAdmin = !!d.is_admin;
+        if (d.file_max_mb && d.file_max_mb * 1048576 !== CHAT_VIDEO_MAX) { CHAT_VIDEO_MAX = d.file_max_mb * 1048576; renderChatInput(); }
         if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; renderChatInput(); }
         if (d.partial) {
             if (!d.messages.length) return;

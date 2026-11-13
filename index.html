@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
     <title>Technical Works Collection ｜スクラッチ技術作品集</title>
     <meta name="description" content="scratch-TWC（スクラッチTWC・scratch TWC／スクラッチ技術作品集）は、Scratchの技術作品を検索・閲覧できるコレクションサイト。scratch技術作品をプロジェクト名・ユーザー名で検索し、技術力順・いいね順で探せます。TurboWarpでも開けます。">
     <meta name="keywords" content="スクラッチTWC,スクラッチ技術作品集,scratch TWC スクラッチ技術作品集,scratch TWC,scratch-TWC,Scratch TWC,scratch技術作品,Scratch技術作品,scratch,スクラッチ,技術作品,Technical Works Collection,Scratch Technical Works Collection,TurboWarp">
@@ -461,6 +462,45 @@
         .chat-typing { min-height: 20px; font-size: 12px; color: #8a94a6; padding: 3px 6px 0; }
         .chat-typing.on::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #4D97FF; margin-right: 6px; vertical-align: 1px; animation: typingpulse 1.2s ease-in-out infinite; }
         @keyframes typingpulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+        /* ===== チャットの大きさ調整（PCは小さめ・スマホは大きめ。Discordくらいの密度） ===== */
+        body.mode-chat .container { padding: 16px 20px 18px; margin-top: 12px; }
+        .chat-layout { height: calc(100vh - 176px); gap: 12px; }
+        .chat-rooms { width: 140px; }
+        .chat-main { min-height: 0; }
+        #chat-list { min-height: 0; }
+        .chat-head { font-size: 14px; padding: 0 2px 8px; }
+        #chat-list { font-size: 13.5px; line-height: 1.45; padding: 14px 2px 4px; margin: 6px 0 2px; overscroll-behavior: contain; }
+        .chat-msg { padding: 2px 6px; border-bottom: none; }
+        .chat-msg:not(.cont) { margin-top: 10px; padding-top: 3px; }
+        .chat-msg:not(.cont):first-child { margin-top: 0; }
+        .chat-name { font-size: 13.5px; }
+        .chat-text { margin-top: 0; }
+        .chat-row textarea { min-height: 40px; font-size: 14px; }
+        .chat-row .tw-warn-btn { padding: 0 16px; }
+        /* 入力中の表示（Discord風：はねる3つの点＋名前） */
+        .chat-typing { height: 20px; min-height: 0; line-height: 20px; padding: 0 6px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .chat-typing.on::before { content: none; }
+        .chat-typing .tdots { display: inline-flex; gap: 3px; margin-right: 7px; vertical-align: 1px; }
+        .chat-typing .tdots i { width: 4px; height: 4px; border-radius: 50%; background: #8a94a6; animation: tdot 1.2s infinite ease-in-out; }
+        .chat-typing .tdots i:nth-child(2) { animation-delay: 0.15s; }
+        .chat-typing .tdots i:nth-child(3) { animation-delay: 0.3s; }
+        .chat-typing b { color: #475467; font-weight: 700; }
+        @keyframes tdot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-3px); opacity: 1; } }
+        @media (max-width: 640px) {
+            html:has(body.mode-chat), body.mode-chat { overflow: hidden; overscroll-behavior: none; }   /* ページ全体は動かさず、一覧の中だけをスクロールする（入力欄が一緒に動かない） */
+            body.mode-chat .container { margin: 0; padding: 8px 10px 10px; border-radius: 0; box-shadow: none; }
+            .chat-layout { height: calc(100vh - 124px); height: calc(100dvh - 124px); min-height: 0; gap: 6px; }
+            .chat-rooms { gap: 6px; padding-bottom: 2px; flex-shrink: 0; }
+            .chat-head { font-size: 16px; }
+            #chat-list { font-size: 16px; line-height: 1.4; }
+            .chat-name { font-size: 16px; }
+            .chat-time { font-size: 12px; }
+            .chat-msg { padding: 3px 6px; }
+            .chat-row textarea { min-height: 44px; font-size: 16px; }   /* 16px未満だと、iPhoneは入力のたびに拡大してしまう */
+            .chat-row textarea::placeholder { font-size: 14px; }
+            .chat-typing { height: 22px; line-height: 22px; font-size: 13px; }
+        }
         .chat-quote { border-left-color: #cfe8d7; }
         .chat-quote:hover { color: #2a9d4a; border-left-color: #2a9d4a; }
         .chat-msg.to-me { background: #f7fcf9; border-left: 3px solid #bfe3cb; padding-left: 6px; }
@@ -3006,7 +3046,8 @@ function chatTypingRender() {
     var el = document.getElementById('chat-typing');
     if (el) {
         var T = TYPING_T[currentLang] || TYPING_T.ja;
-        el.textContent = !names.length ? '' : names.length > 2 ? T.several : names.join(', ') + (names.length === 1 ? T.one : T.many);
+        el.innerHTML = !names.length ? '' : '<span class="tdots"><i></i><i></i><i></i></span>' +
+            (names.length > 2 ? esc(T.several) : '<b>' + esc(names.join(', ')) + '</b>' + esc(names.length === 1 ? T.one : T.many));
         el.classList.toggle('on', names.length > 0);
     }
     if (Object.keys(chatTyping).length) chatTypingTimer = setTimeout(chatTypingRender, 1000);

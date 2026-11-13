@@ -30,6 +30,9 @@ import requests
 
 HEADERS = {"User-Agent": "scratch-twc/1.0"}
 MAX_ITEMS = 5000         # 載せる作品数の上限
+# 順位用スコアの、少数評価への補正。評価が少ない作品は、全作品の平均スコアに近づける。
+# 評価1件の★5が、評価の多い作品より上位を占めないようにする（k件ぶんの「平均的な評価」を足して計算）
+SHRINK_K = 3
 WEEK_MS = 7 * 24 * 3600 * 1000
 WEEKLY_LIMIT = 30
 WEEKLY_PRIOR_MEAN, WEEKLY_PRIOR_WEIGHT = 3.0, 2.0
@@ -165,8 +168,18 @@ def build(rows, now_ms):
         "scores": {}, "averages": {}, "counts": {}, "correlations": {}, "user_stats": {}
     }
 
+    # 少数評価の補正：全作品の平均スコアを基準に、評価が少ないほどそこへ寄せる
+    scores = res["scores"]
+    prior = sum(scores.values()) / len(scores) if scores else 3.0
+    shrunk = {
+        p: (scores[p] * res["counts"][p] + prior * SHRINK_K) / (res["counts"][p] + SHRINK_K)
+        for p in scores
+    }
+
+    # avg は、つけられた点の普通の平均（表示用）。score は順位用（偏差値補正＋少数評価の補正）
     items = [
-        {"id": p, "score": round(res["scores"][p], 2), "avg": round(res["averages"][p], 2), "count": res["counts"][p]}
+        {"id": p, "score": round(shrunk[p], 2),
+         "avg": round(sum(projects[p].values()) / len(projects[p]), 2), "count": res["counts"][p]}
         for p in projects
     ]
     items.sort(key=lambda x: (-x["score"], -x["count"], -x["id"]))
@@ -198,6 +211,13 @@ def selftest():
     print("Project Scores:")
     for p, v in res["scores"].items():
         print("  %s: %.3f (平均 %.3f, %d人)" % (p, v, res["averages"][p], res["counts"][p]))
+    # 少数評価の補正の確認：平均的な作品が20個ある中で、1件の★5 より、7件の★5・★4 のほうが上に来る
+    rows = [[100 + i, 50 + i % 7, 3, 0] for i in range(20)] + [[100 + i, 70 + i % 5, 3, 0] for i in range(20)]
+    rows += [[1, 1, 5, 0]] + [[2, u, 5 if u % 2 else 4, 0] for u in range(10, 17)]
+    out = build(rows, 0)["items"]
+    top = [(x["id"], x["score"], x["avg"], x["count"]) for x in out[:3]]
+    print("補正後の上位:", top)
+    assert out[0]["id"] == 2, "評価の多い作品が上に来るはず"
 
 
 def main():

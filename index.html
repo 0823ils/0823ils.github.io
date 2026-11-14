@@ -263,11 +263,12 @@
         .home-search input { flex: 1; min-width: 0; padding: 11px 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 22px; outline: none; background: #fff; }
         .home-search input:focus { border-color: #4d97ff; box-shadow: 0 0 0 3px rgba(77,151,255,0.18); }
         .home-search button { padding: 0 20px; font-size: 14px; font-weight: bold; color: #fff; background: #4d97ff; border: none; border-radius: 22px; cursor: pointer; }
-        .home-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 6px; }
-        .home-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; font-size: 14px; font-weight: bold; color: #333; background: #fff; border: 1px solid #e6e6e6; border-radius: 12px; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
-        .home-tile:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
-        .home-tile .ht-ico { font-size: 22px; line-height: 1; }
-        .home-tile.has-unread::after { content: ''; position: absolute; top: 8px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d; }
+        .home-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0 4px; }
+        .home-tile { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 10px; font-size: 14px; font-weight: bold; color: #2b3a55; background: #f1f6ff; border: 1px solid #dbe8ff; border-radius: 12px; cursor: pointer; transition: background 0.15s, border-color 0.15s, transform 0.15s; }
+        .home-tile:hover { background: #e4efff; border-color: #c4dbff; transform: translateY(-1px); }
+        .home-tile:active { transform: none; background: #d9e9ff; }
+        .home-tile svg { width: 20px; height: 20px; flex: none; fill: none; stroke: #4d97ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .home-tile.has-unread::after { content: ''; position: absolute; top: 7px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #ff5b5b; }
         .home-sec { margin-top: 24px; }
         .home-sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .home-sec-head h2 { margin: 0; font-size: 17px; color: #222; }
@@ -275,6 +276,7 @@
         .home-more { font-size: 13px; font-weight: bold; color: #4d97ff; background: none; border: none; cursor: pointer; padding: 4px 2px; }
         .home-shuffle { font-size: 13px; color: #555; background: #f3f3f3; border: none; border-radius: 14px; padding: 5px 12px; cursor: pointer; }
         @media (max-width: 640px) {
+            .home-tiles { grid-template-columns: repeat(2, 1fr); }
             .home-title { font-size: 20px; } .home-hero { padding-top: 16px; }
             /* スマホでは、作品を横にスワイプして見る */
             .home-sec .project-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; margin-right: -12px; padding-right: 12px; scrollbar-width: none; }
@@ -1885,11 +1887,14 @@ function homeTilesSync() {
 function renderHome() {
     var box = document.getElementById('home-rows');
     if (!db || !box) return;
-    document.getElementById('home-tiles').innerHTML =
-        '<button class="home-tile" onclick="setMode(\'browse\')"><span class="ht-ico">📚</span>' + esc(t('homeTileBrowse')) + '</button>' +
-        '<button class="home-tile" onclick="setMode(\'rank\')"><span class="ht-ico">🏆</span>' + esc(t('homeTileRank')) + '</button>' +
-        '<button class="home-tile" onclick="setMode(\'short\')"><span class="ht-ico">▶</span>' + esc(t('homeTileShort')) + '</button>' +
-        '<button class="home-tile" id="home-tile-chat" onclick="setMode(\'chat\')"><span class="ht-ico">💬</span>' + esc(t('homeTileChat')) + '</button>';
+    var ico = {
+        browse: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+        rank: '<path d="M6 20v-8M12 20V4M18 20v-12"/>',
+        short: '<circle cx="12" cy="12" r="9"/><path d="M10.5 8.5l5 3.5-5 3.5z"/>',
+        chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.3l1.2-4.4A8 8 0 1 1 21 12z"/>'
+    };
+    var tile = function(mode, key, id) { return '<button class="home-tile"' + (id ? ' id="' + id + '"' : '') + ' onclick="setMode(\'' + mode + '\')"><svg viewBox="0 0 24 24" aria-hidden="true">' + ico[mode] + '</svg>' + esc(t(key)) + '</button>'; };
+    document.getElementById('home-tiles').innerHTML = tile('browse', 'homeTileBrowse') + tile('rank', 'homeTileRank') + tile('short', 'homeTileShort') + tile('chat', 'homeTileChat', 'home-tile-chat');
     homeTilesSync();
     var tab = document.getElementById('mode-chat-btn');
     var ht = document.getElementById('home-tile-chat');

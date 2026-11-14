@@ -3352,8 +3352,10 @@ var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><pat
 
 
 // ===== リンク（作品カード・ユーザー・通知） =====
-function projectUrl(id) { return location.href.split(/[?#]/)[0].replace(/(?:p|u)\/[^\/]+\.html$/, '') + '?m=p&id=' + Number(id) + langQ(); }
-function userUrl(name) { return location.href.split(/[?#]/)[0] + '?m=u&u=' + encodeURIComponent(name) + langQ(); }
+function siteBase() { return location.href.split(/[?#]/)[0].replace(/(?:p|u)\/[^\/]+\.html$/, ''); }
+// 作品・ユーザーのリンクは、貼るとサムネ/アイコンが出る静的ページのURLにする
+function projectUrl(id) { return siteBase() + 'p/' + Number(id) + '.html'; }
+function userUrl(name) { return /^[A-Za-z0-9_-]{1,30}$/.test(name) ? siteBase() + 'u/' + name + '.html' : siteBase() + '?m=u&u=' + encodeURIComponent(name) + langQ(); }
 // Cmd/Ctrl/Shiftクリックは、ふつうのリンクとして別タブで開く。ふつうのクリックは、その場で切り替える
 function isNewTabClick(ev) { return ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey; }
 function cardLink(ev) {

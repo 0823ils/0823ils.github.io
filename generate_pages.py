@@ -176,7 +176,7 @@ def main():
 </div>
 <p class="desc">この作品はScratchの技術作品コレクション「scratch TWC（Scratch Technical Works Collection）」に収録されています。
 作品名やユーザー名で他のscratch技術作品を探すには<a href="../" style="color:#4D97FF">トップページの検索</a>をご利用ください。</p>
-{others_html}<script>if(!/bot|crawl|spider|slurp|facebookexternalhit|preview|discord/i.test(navigator.userAgent))location.replace('../?m=p&id={pid}'+location.hash);</script>"""
+{others_html}<script>if(!/bot|crawl|spider|slurp|facebookexternalhit|preview|discord/i.test(navigator.userAgent))location.replace('../?m='+(/[?&]m=h/.test(location.search)?'h':'p')+'&id={pid}'+location.hash);</script>"""
             jsonld = {
                 "@context": "https://schema.org",
                 "@type": "CreativeWork",

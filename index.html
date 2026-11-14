@@ -255,6 +255,32 @@
         .header-mode-tab.has-unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ffd24d; margin-left: 6px; vertical-align: middle; }
         .chat-tab.unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-left: 6px; vertical-align: middle; }
         .rank-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+        /* ホーム */
+        .home-hero { text-align: center; padding: 26px 8px 10px; }
+        .home-title { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; color: #222; }
+        .home-sub { font-size: 14px; color: #777; margin-top: 6px; }
+        .home-search { display: flex; gap: 8px; max-width: 520px; margin: 18px auto 0; }
+        .home-search input { flex: 1; min-width: 0; padding: 11px 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 22px; outline: none; background: #fff; }
+        .home-search input:focus { border-color: #4d97ff; box-shadow: 0 0 0 3px rgba(77,151,255,0.18); }
+        .home-search button { padding: 0 20px; font-size: 14px; font-weight: bold; color: #fff; background: #4d97ff; border: none; border-radius: 22px; cursor: pointer; }
+        .home-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+        .home-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; font-size: 14px; font-weight: bold; color: #333; background: #fff; border: 1px solid #e6e6e6; border-radius: 12px; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+        .home-tile:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .home-tile .ht-ico { font-size: 22px; line-height: 1; }
+        .home-tile.has-unread::after { content: ''; position: absolute; top: 8px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d; }
+        .home-sec { margin-top: 24px; }
+        .home-sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .home-sec-head h2 { margin: 0; font-size: 17px; color: #222; }
+        .home-sec-head .spacer { flex: 1; }
+        .home-more { font-size: 13px; font-weight: bold; color: #4d97ff; background: none; border: none; cursor: pointer; padding: 4px 2px; }
+        .home-shuffle { font-size: 13px; color: #555; background: #f3f3f3; border: none; border-radius: 14px; padding: 5px 12px; cursor: pointer; }
+        @media (max-width: 640px) {
+            .home-title { font-size: 20px; } .home-hero { padding-top: 16px; }
+            /* スマホでは、作品を横にスワイプして見る */
+            .home-sec .project-grid { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; margin-right: -12px; padding-right: 12px; scrollbar-width: none; }
+            .home-sec .project-grid::-webkit-scrollbar { display: none; }
+            .home-sec .project-card { flex: 0 0 62%; max-width: 260px; scroll-snap-align: start; }
+        }
         .rank-toggle button { padding: 6px 18px; border-radius: 20px; border: 2px solid #ddd; background: #fff; color: #888; font-weight: bold; font-size: 13px; cursor: pointer; }
         .rank-toggle button.active { border-color: #4D97FF; background: #4D97FF; color: #fff; }
         .rank-wrap { position: relative; display: flex; flex-direction: column; }
@@ -634,7 +660,7 @@
 <!-- ===== サイトヘッダー ===== -->
 <header class="site-header">
     <div class="header-inner">
-        <h1 class="header-logo">scratch-TWC</h1>
+        <h1 class="header-logo" style="cursor:pointer" onclick="setMode('home')">scratch-TWC</h1>
         <div class="header-spacer"></div>
         <div class="header-menu-wrap" id="notif-wrap" style="display:none">
             <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifMenu(event)" aria-label="Notifications" title="Notifications" style="position:relative">
@@ -684,7 +710,8 @@
     </div>
     <nav class="header-nav">
         <div class="header-mode-tabs">
-            <button class="header-mode-tab active" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
+            <button class="header-mode-tab active" id="mode-home-btn" onclick="setMode('home')" data-i18n="modeHome">ホーム</button>
+            <button class="header-mode-tab" id="mode-search-btn" onclick="setMode('search')" data-i18n="modeSearch">検索</button>
             <button class="header-mode-tab" id="mode-browse-btn" onclick="setMode('browse')" data-i18n="modeBrowse">全作品</button>
             <button class="header-mode-tab" id="mode-rank-btn" onclick="setMode('rank')" data-i18n="modeRank">ランキング</button>
             <button class="header-mode-tab" id="mode-short-btn" onclick="setMode('short')" data-i18n="modeShort">ショート</button>
@@ -713,6 +740,20 @@
 
     <!-- メインUI -->
     <div id="main-ui">
+
+        <!-- ホーム -->
+        <div id="home-section" style="display:none">
+            <div class="home-hero">
+                <div class="home-title" data-i18n="homeTitle">Technical Works Collection</div>
+                <div class="home-sub" data-i18n="homeSub">スクラッチ技術作品集</div>
+                <form class="home-search" onsubmit="return homeSearch(event)">
+                    <input type="text" id="home-q" data-i18n-placeholder="searchPlaceholder" placeholder="検索したいものを入力..." autocomplete="off" enterkeyhint="search">
+                    <button type="submit" data-i18n="modeSearch">検索</button>
+                </form>
+            </div>
+            <div class="home-tiles" id="home-tiles"></div>
+            <div id="home-rows"></div>
+        </div>
 
         <!-- 検索モード -->
         <div id="search-section">
@@ -927,6 +968,9 @@ const LANG = {
         twToggleLabel: 'TurboWarp で開く',
         trAutoLabel: 'チャットを自動翻訳',
         modeSearch: '検索',
+        modeHome: 'ホーム', homeTitle: 'Technical Works Collection', homeSub: 'スクラッチ技術作品集',
+        homeRated: '技術力が高い作品', homeLoved: 'いいねの多い作品', homeNew: '新しい作品', homeRandom: 'ランダムおすすめ', homeShuffle: '🔄 入れ替え', homeMore: 'もっと見る ›',
+        homeTileBrowse: '全作品', homeTileRank: 'ランキング', homeTileShort: 'ショート', homeTileChat: 'チャット',
         modeBrowse: '全作品',
         searchPlaceholder: '検索したいものを入力...',
         tabTitle: 'プロジェクト名',
@@ -1047,6 +1091,9 @@ const LANG = {
         twToggleLabel: 'Open in TurboWarp',
         trAutoLabel: 'Auto-translate chat',
         modeSearch: 'Search',
+        modeHome: 'Home', homeTitle: 'Technical Works Collection', homeSub: 'A collection of technical Scratch projects',
+        homeRated: 'Top-rated for skill', homeLoved: 'Most loved', homeNew: 'Newest', homeRandom: 'Random picks', homeShuffle: '🔄 Shuffle', homeMore: 'See more ›',
+        homeTileBrowse: 'All Projects', homeTileRank: 'Ranking', homeTileShort: 'Shorts', homeTileChat: 'Chat',
         modeBrowse: 'All Projects',
         searchPlaceholder: 'Search...',
         tabTitle: 'Project name',
@@ -1217,6 +1264,7 @@ function applyLang() {
     refreshSaveButtons();
     if (typeof refreshApplyText === 'function') refreshApplyText();
     if (typeof renderChatTabs === 'function') { renderChatTabs(); renderChatInput(); if (currentMode === 'chat') { chatSig = ''; loadChat(false); } }
+    if (typeof currentMode !== 'undefined' && currentMode === 'home') renderHome();
 }
 
 function loadLangPref() {
@@ -1785,8 +1833,8 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
-var MODE_SECTIONS = { search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', short: 'short-section', admin: 'admin-section' };
-var MODE_TABS = { search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
+var MODE_SECTIONS = { home: 'home-section', search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', short: 'short-section', admin: 'admin-section' };
+var MODE_TABS = { home: 'mode-home-btn', search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
 function setMode(mode, forcePush) {
@@ -1800,6 +1848,7 @@ function setMode(mode, forcePush) {
     document.body.classList.toggle('mode-short', mode === 'short');
     if (mode === 'short') enterShort(); else leaveShort();
     if (mode === 'chat') enterChat(); else leaveChat();
+    if (mode === 'home') renderHome();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
         browseReset();
@@ -1810,6 +1859,74 @@ function setMode(mode, forcePush) {
     if (mode !== 'project') ppStopEmbed();
     updateNavDots();
     updateUrl(changedMode || !!forcePush);
+}
+
+// ===== ホーム =====
+// 開いて最初に見える画面。検索ボックス、各画面へのボタン、作品の一覧（技術力が高い・新しい・ランダム）を出す
+var HOME_N = 6;
+function homeLowCond() { var low = lowSkillSql(); return low ? 'id NOT IN (' + low + ')' : '1=1'; }
+function homeByIds(ids) {
+    if (!ids.length) return [];
+    var byId = {};
+    queryAll('SELECT * FROM projects WHERE id IN (' + ids.map(Number).join(',') + ')').forEach(function(r) { byId[r.id] = r; });
+    return ids.map(function(id) { return byId[id]; }).filter(Boolean);
+}
+function homeSec(id, title, rows, moreSort, shuffle) {
+    return '<div class="home-sec" id="' + id + '"><div class="home-sec-head"><h2>' + esc(title) + '</h2><div class="spacer"></div>' +
+        (shuffle ? '<button class="home-shuffle" onclick="homeShuffle()">' + esc(t('homeShuffle')) + '</button>' : '') +
+        (moreSort ? '<button class="home-more" onclick="homeMore(\'' + moreSort + '\')">' + esc(t('homeMore')) + '</button>' : '') +
+        '</div><div class="project-grid">' + rows.map(cardHTML).join('') + '</div></div>';
+}
+function homeRandomRows() { return queryAll('SELECT * FROM projects WHERE ' + homeLowCond() + ' ORDER BY RANDOM() LIMIT ' + HOME_N); }
+function homeTilesSync() {
+    var tile = document.getElementById('home-tile-chat'), tab = document.getElementById('mode-chat-btn');
+    if (tile) tile.style.display = (tab && tab.style.display === 'none') ? 'none' : '';
+}
+function renderHome() {
+    var box = document.getElementById('home-rows');
+    if (!db || !box) return;
+    document.getElementById('home-tiles').innerHTML =
+        '<button class="home-tile" onclick="setMode(\'browse\')"><span class="ht-ico">📚</span>' + esc(t('homeTileBrowse')) + '</button>' +
+        '<button class="home-tile" onclick="setMode(\'rank\')"><span class="ht-ico">🏆</span>' + esc(t('homeTileRank')) + '</button>' +
+        '<button class="home-tile" onclick="setMode(\'short\')"><span class="ht-ico">▶</span>' + esc(t('homeTileShort')) + '</button>' +
+        '<button class="home-tile" id="home-tile-chat" onclick="setMode(\'chat\')"><span class="ht-ico">💬</span>' + esc(t('homeTileChat')) + '</button>';
+    homeTilesSync();
+    var tab = document.getElementById('mode-chat-btn');
+    var ht = document.getElementById('home-tile-chat');
+    if (ht && tab) ht.classList.toggle('has-unread', tab.classList.contains('has-unread'));
+    try {
+        var cond = homeLowCond(), html = '';
+        var rated = skillRank && skillRank.ids.length;
+        var top = rated ? homeByIds(skillRank.ids.slice(0, HOME_N)) : queryAll('SELECT * FROM projects WHERE ' + cond + ' ORDER BY loves DESC LIMIT ' + HOME_N);
+        html += homeSec('home-top', t(rated ? 'homeRated' : 'homeLoved'), top, rated ? 'skill' : 'loves');
+        html += homeSec('home-new', t('homeNew'), queryAll('SELECT * FROM projects WHERE ' + cond + ' ORDER BY id DESC LIMIT ' + HOME_N), 'newest');
+        html += homeSec('home-rand', t('homeRandom'), homeRandomRows(), '', true);
+        box.innerHTML = html;
+        loadRatings(box);
+    } catch (e) { box.innerHTML = '<div class="status-text">' + esc(t('error') + e.message) + '</div>'; }
+}
+function homeShuffle() {
+    var sec = document.getElementById('home-rand');
+    if (!db || !sec) return;
+    var grid = sec.querySelector('.project-grid');
+    grid.innerHTML = homeRandomRows().map(cardHTML).join('');
+    loadRatings(sec);
+}
+// 「もっと見る」: 全作品を、その並びで開く
+function homeMore(sort) {
+    setMode('browse');
+    var sel = document.getElementById('b-sort-select');
+    if (sel) sel.value = sort;
+    setBrowseSort(sort);
+}
+function homeSearch(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var q = (document.getElementById('home-q').value || '').trim();
+    document.getElementById('query').value = q;
+    sPage = 1;
+    setMode('search');
+    if (q) triggerSearch(); else document.getElementById('query').focus();
+    return false;
 }
 
 // ===== 検索モード =====
@@ -2084,6 +2201,7 @@ function updateLoginUI() {
     }
     var chTab = document.getElementById('mode-chat-btn');
     if (chTab) chTab.style.display = apiEnabled() ? '' : 'none';
+    if (typeof homeTilesSync === 'function') homeTilesSync();
     if (typeof currentMode !== 'undefined' && currentMode === 'chat') { chatSig = ''; renderChatInput(); loadChat(true); }
     var svTab = document.getElementById('mode-saved-btn');
     if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
@@ -2655,7 +2773,7 @@ async function applyDefaultView() {
         setMode('chat');
         return;
     }
-    setMode(st && st.m === 's' ? 'search' : 'browse');
+    setMode(!st ? 'home' : (st.m === 's' ? 'search' : 'browse'));
     if (st && st.m === 's') triggerSearch();
 }
 
@@ -2724,7 +2842,7 @@ function shareParams() {
     } else if (currentMode === 'chat') {
         p.set('m', 'c'); p.set('room', chatRoom);
     } else {
-        return null;   // 保存タブは、個人のものなので共有しない
+        return null;   // ホーム・保存タブは、URLに条件を付けない
     }
     return p;
 }
@@ -2759,7 +2877,8 @@ window.addEventListener('popstate', function() {
         else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
         else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
         else if (st && st.m === 's') setMode('search');
-        else setMode('browse');
+        else if (st && st.m === 'b') setMode('browse');
+        else setMode('home');
     } finally { popping = false; }
 });
 
@@ -5186,6 +5305,8 @@ function updateNavDots() {
     });
     var tab = document.getElementById('mode-chat-btn');
     if (tab) tab.classList.toggle('has-unread', any && currentMode !== 'chat');
+    var ht = document.getElementById('home-tile-chat');
+    if (ht) ht.classList.toggle('has-unread', any);
 }
 function initUnread() {
     // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする

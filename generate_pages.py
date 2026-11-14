@@ -123,12 +123,15 @@ def main():
 
     con = sqlite3.connect(DB_PATH)
     rows = con.execute(
-        "SELECT id, title, author_username FROM projects "
+        "SELECT id, title, author_username, author_id FROM projects "
         "WHERE author_username IS NOT NULL AND author_username != '' ORDER BY id DESC"
     ).fetchall()
 
     by_author = {}
-    for pid, title, author in rows:
+    author_ids = {}
+    for pid, title, author, aid in rows:
+        if aid:
+            author_ids.setdefault(author, aid)
         by_author.setdefault(author, []).append((pid, clean_title(title)))
 
     # 生成物を毎回作り直す（DBから消えた作品のページも消すため）
@@ -217,13 +220,16 @@ def main():
 <ul class="list">
 {lis}
 </ul>
+<script>if(!/bot|crawl|spider|slurp|facebookexternalhit|preview|discord/i.test(navigator.userAgent))location.replace('../?m=u&u={quote(author)}'+location.hash);</script>
 """
+        aid = author_ids.get(author)
         page = layout(
             title="%s のScratch技術作品一覧 - scratch TWC" % author,
             description=desc,
             canonical=canonical,
             rel="../",
             body=body,
+            og_image=("https://uploads.scratch.mit.edu/get_image/user/%d_90x90.png" % aid) if aid else None,
             jsonld={
                 "@context": "https://schema.org",
                 "@type": "ProfilePage",

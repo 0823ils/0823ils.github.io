@@ -2893,6 +2893,9 @@ window.addEventListener('popstate', function() {
 function copyShareLink() {
     updateUrl();
     var url = shareUrl();
+    // 作品のリンクは、Discord/LINEでサムネが出る静的ページ（OGP付き）のURLにする
+    var pm = url.match(/[?&]m=p&id=(\d{1,12})/);
+    if (pm) url = 'https://0823ils.github.io/p/' + pm[1] + '.html';
     var done = function() { showToast(t('shareCopied')); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(done, function() { showToast(url); });
@@ -3492,6 +3495,8 @@ function chatEmbedOf(url) {
     // このサイト自身の作品ページ（?m=p&id=作品番号）も、同じカードにする
     try {
         var su = new URL(url);
+        var sp = su.pathname.match(/^\/p\/(\d{1,12})\.html$/);
+        if (sp && (su.host === '0823ils.github.io' || su.host === location.host)) return { k: 'scratch', id: sp[1], site: true };
         if ((su.host === '0823ils.github.io' || su.host === location.host) && su.searchParams.get('m') === 'p' && /^\d{1,12}$/.test(su.searchParams.get('id') || ''))
             return { k: 'scratch', id: su.searchParams.get('id'), site: true };
     } catch (err) {}

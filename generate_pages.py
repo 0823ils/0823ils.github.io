@@ -170,7 +170,8 @@ def main():
 <p class="meta">作者: <a href="{u_href}">{esc(author)}</a>（Scratchユーザー）</p>
 <img class="thumb" src="{esc(thumb)}" alt="Scratch作品「{esc(short(title, 60))}」のサムネイル" loading="lazy" width="480" height="360">
 <div class="btns">
-<a class="btn primary" href="https://scratch.mit.edu/projects/{pid}/" target="_blank" rel="noopener">Scratchで開く</a>
+<a class="btn primary" href="../?m=p&amp;id={pid}">サイトで開く</a>
+<a class="btn" href="https://scratch.mit.edu/projects/{pid}/" target="_blank" rel="noopener">Scratchで開く</a>
 <a class="btn" href="https://turbowarp.org/{pid}" target="_blank" rel="noopener">TurboWarpで開く</a>
 </div>
 <p class="desc">この作品はScratchの技術作品コレクション「scratch TWC（Scratch Technical Works Collection）」に収録されています。

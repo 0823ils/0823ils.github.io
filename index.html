@@ -293,6 +293,7 @@
         .call-share-head .sp { flex: 1; }
         .call-share-head button { border: none; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; background: #25334d; color: #dbe6ff; }
         .call-share-slot video, .call-share-video { display: block; width: 100%; max-height: 48vh; background: #000; object-fit: contain; cursor: pointer; }
+        .call-tts-note { margin-top: 6px; font-size: 12px; color: #6b7890; }
         .call-tts { display: flex; gap: 6px; margin-top: 12px; }
         .call-tts input[type=text] { flex: 1; min-width: 0; padding: 9px 12px; font-size: 14px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: inherit; }
         .call-tts-opt { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: #6b7890; }
@@ -1973,7 +1974,17 @@ function uiSound(kind) {
     });
 }
 // 新着メッセージ（自分以外）が来たとき、見えている画面なら鳴らす。自分が呼ばれたとき（@名前）は、別の音
+function callReadChat(list) {      // 通話ルームのチャットを、通話中の人の端末で読み上げる（自分の発言は読まない）
+    if (!call || call.closed || chatRoom !== CALL_ROOM || !list || !list.length) return;
+    var me = loginUser ? String(loginUser.id) : '';
+    var items = list.filter(function(m) { return !m.hidden && String(m.user_id) !== me && callTtsClean(m.content); }).slice(-3);
+    items.forEach(function(m) {
+        var who = String(m.username || m.user || '').trim();
+        callSpeak((who ? who + '、' : '') + callTtsClean(m.content));
+    });
+}
 function chatSoundNew(list) {
+    callReadChat(list);
     if (!list || !list.length || document.hidden || currentMode !== 'chat') return;
     var me = loginUser ? String(loginUser.id) : '';
     var others = list.filter(function(m) { return !me || String(m.user_id) !== me; });
@@ -2037,7 +2048,7 @@ function renderCallPanel() {
             callShareBtnHTML() +
             '<button class="call-btn leave" onclick="callLeave()">' + esc(ct('call_leave')) + '</button></div>' + callTtsHTML() + err;
     }
-    var kin = document.getElementById('call-tts-in'), kv = kin ? kin.value : '', kf = !!kin && document.activeElement === kin;   // 再描画しても、入力中の文字を失わない
+    var kin = null, kv = '', kf = false;   // 再描画しても、入力中の文字を失わない
     el.innerHTML = h;
     var slot = el.querySelector('#call-share-slot');
     if (slot && call && call.shareEl) slot.appendChild(call.shareEl);
@@ -2265,12 +2276,14 @@ function callRemovePeer(st, uid) {
 
 // ----- 画面共有 -----
 // 共有する人の画面（映像だけ）を、通話と同じつながりで、ほかの人へ送る。同時に共有できるのは1人。
-function callShareSupported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
+function callShareScreenOK() { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
+function callShareSupported() { return callShareScreenOK() || !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }   // スマホは画面共有ができないので、カメラの映像を送る
+function callShareLabel() { return ct(callShareScreenOK() ? 'call_share' : 'call_share_cam'); }
 function callShareBtnHTML() {
-    if (!callShareSupported()) return '<button class="call-btn share" disabled title="' + esc(ct('call_share_unsupported')) + '">' + esc(ct('call_share')) + '</button>';
+    if (!callShareSupported()) return '<button class="call-btn share" disabled title="' + esc(ct('call_share_unsupported')) + '">' + esc(callShareLabel()) + '</button>';
     if (call.screen) return '<button class="call-btn share on" onclick="callShareStop()">' + esc(ct('call_unshare')) + '</button>';
     var other = call.sharer && call.sharer.uid !== loginUser.id;
-    return '<button class="call-btn share" onclick="callShareStart()"' + (other ? ' disabled title="' + esc(ct('call_share_busy')) + '"' : '') + '>' + esc(ct('call_share')) + '</button>';
+    return '<button class="call-btn share" onclick="callShareStart()"' + (other ? ' disabled title="' + esc(ct('call_share_busy')) + '"' : '') + '>' + esc(callShareLabel()) + '</button>';
 }
 function callShareHTML() {
     if (!call.sharer) return '';
@@ -2299,11 +2312,13 @@ async function callShareStart() {
     var st = call;
     if (!st || st.screen || !callShareSupported() || (st.sharer && st.sharer.uid !== loginUser.id)) return;
     var s;
-    try { s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 } }, audio: false }); }
+    var cam = !callShareScreenOK();
+    try { s = cam ? await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, frameRate: { ideal: 15, max: 24 } }, audio: false })
+                  : await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 } }, audio: false }); }
     catch (e) { if (e && e.name !== 'NotAllowedError' && e.name !== 'AbortError') { callErrMsg = ct('call_e_share'); renderCallPanel(); } return; }
     var tr = s.getVideoTracks()[0];
     if (call !== st || st.closed || !tr || st.screen || (st.sharer && st.sharer.uid !== loginUser.id)) { s.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} }); return; }
-    try { tr.contentHint = 'detail'; } catch (e) {}
+    try { tr.contentHint = cam ? 'motion' : 'detail'; } catch (e) {}
     st.screen = s; st.sharer = { uid: loginUser.id, username: loginUser.username };
     tr.onended = function() { if (call === st && st.screen === s) callShareStop(); };          // ブラウザの「共有を停止」ボタン
     Object.keys(st.peers).forEach(function(k) { callShareAttach(st, st.peers[k]); });
@@ -2356,13 +2371,10 @@ function callTtsHTML() {
     var opts = '<option value="">' + esc(ct('call_tts_auto')) + '</option>' + callTtsVoices().map(function(v) {
         return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === cur ? ' selected' : '') + '>' + esc(v.name) + '</option>';
     }).join('');
-    var log = (call.ttsLog || []).map(function(l) { return '<div><b>' + esc(l.name) + '</b>' + esc(l.text) + '</div>'; }).join('');
-    return '<div class="call-tts"><input id="call-tts-in" type="text" maxlength="140" placeholder="' + esc(ct('call_tts_ph')) + '" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)callTtsSend()">' +
-        '<button class="call-btn share" onclick="callTtsSend()">' + esc(ct('call_tts_send')) + '</button></div>' +
-        '<div class="call-tts-opt"><label><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="ttsSet(\'on\',this.checked?\'1\':\'0\')"> ' + esc(ct('call_tts_listen')) + '</label>' +
+    return '<div class="call-tts-opt"><label><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="ttsSet(\'on\',this.checked?\'1\':\'0\')"> ' + esc(ct('call_tts_listen')) + '</label>' +
         '<label>' + esc(ct('call_tts_voice')) + ' <select onchange="ttsSet(\'voice\',this.value)">' + opts + '</select></label>' +
         '<label>' + esc(ct('call_tts_rate')) + ' <select onchange="ttsSet(\'rate\',this.value)">' + [0.8, 1, 1.2, 1.5].map(function(r) { return '<option value="' + r + '"' + (r === rate ? ' selected' : '') + '>×' + r + '</option>'; }).join('') + '</select></label></div>' +
-        (log ? '<div class="call-tts-log">' + log + '</div>' : '');
+        '<div class="call-tts-note">' + esc(ct('call_tts_note')) + '</div>';
 }
 // 声が読みにくい書き方を、読みやすい形に直す（画面に出る文字は、そのまま）
 function ttsNormalize(text) {
@@ -2401,6 +2413,7 @@ function callTtsLog(st, name, text) {
 }
 function callTtsClean(t) { return typeof t === 'string' ? t.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 140) : ''; }
 function callTtsIncoming(st, p, text) {
+    return;                                                        // 古い版の読み上げ信号は、使わない（チャットを読む）
     var t = callTtsClean(text);
     var now = Date.now();
     if (!t || now - (p.ttsAt || 0) < 700) return;                // 連続で送られても、読み上げすぎない
@@ -3779,7 +3792,7 @@ async function notifReadAll() {
 var CHAT_T = {
     ja: { room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
-          call_share: '画面を共有', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
+          call_share: '画面を共有', call_share_cam: 'カメラを共有', call_tts_note: '通話ルームのチャットに書かれた文字を、読み上げます（自分の発言は読みません）', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
           call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: 'ほかの人が共有中です', call_e_share: '画面共有を始められませんでした',
           call_tts_ph: '読み上げるテキスト', call_tts_send: '読み上げ', call_tts_listen: '読み上げを聞く', call_tts_voice: '声', call_tts_auto: '自動', call_tts_rate: '速さ',
           call_mute: 'ミュート', call_unmute: 'ミュート解除', call_leave: '退出', call_bar: '通話中・{n}人', call_kick: 'この人を外す',
@@ -3807,7 +3820,7 @@ var CHAT_T = {
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
-          call_share: 'Share screen', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
+          call_share: 'Share screen', call_share_cam: 'Share camera', call_tts_note: 'Messages in the call room chat are read aloud (your own are not).', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
           call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Someone else is sharing', call_e_share: 'Could not start screen sharing',
           call_tts_ph: 'Text to read aloud', call_tts_send: 'Speak', call_tts_listen: 'Hear read-aloud', call_tts_voice: 'Voice', call_tts_auto: 'Auto', call_tts_rate: 'Speed',
           call_mute: 'Mute', call_unmute: 'Unmute', call_leave: 'Leave', call_bar: 'In call · {n}', call_kick: 'Remove',
@@ -3841,6 +3854,7 @@ var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback', 'v
 var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ
+var chatLoadedFor = '';     // 最初の読み込みが済んだ部屋（空の部屋の最初の1件も、新着として扱うため）
 var chatHasMore = false;  // これより古いメッセージが、まだあるか
 var chatOlderBusy = false;
 var CHAT_KEEP = 300;      // 画面に持っておく上限（超えた古い分は、ボタンでまた読める）
@@ -3891,7 +3905,7 @@ function enterChat() {
     document.getElementById('chat-rooms-title').innerText = ct('rooms');
     setChatMsg('');
     chatSig = '';
-    chatMsgs = [];
+    chatMsgs = []; chatLoadedFor = '';
     chatPolls = 0;
     renderChatTabs();
     renderChatInput();
@@ -4055,7 +4069,7 @@ function setChatRoom(r) {
     try { localStorage.setItem('twc_chat_room', r); } catch (e) {}
     updateUrl();
     chatSig = '';
-    chatMsgs = [];
+    chatMsgs = []; chatLoadedFor = '';
     chatReplyTo = null;
     renderReplyBar();
     document.getElementById('chat-list').innerHTML = '';
@@ -4624,7 +4638,8 @@ async function loadChat(forceScroll, partialOk) {
         if (!keepOld.length) chatHasMore = !!d.has_more;
         var prevTop = chatTopId();
         chatMsgs = keepOld.concat(d.messages);
-        if (prevTop) chatSoundNew(d.messages.filter(function(m) { return m.id > prevTop; }));
+        chatSoundNew(prevTop ? d.messages.filter(function(m) { return m.id > prevTop; }) : (chatLoadedFor === room ? d.messages : []));
+        chatLoadedFor = room;
         var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : '') + (m.edited_at ? 'e' + m.edited_at : '') + (m.reactions ? JSON.stringify(m.reactions) : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;

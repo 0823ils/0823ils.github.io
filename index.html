@@ -2860,6 +2860,7 @@ function shareUrl() {
     var p = shareParams();
     // 作品ページのアドレスは /p/ID.html にする（貼るとDiscord/LINEでサムネが出る）
     if (p && p.get('m') === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return base + 'p/' + p.get('id') + '.html';
+    if (p && p.get('m') === 'h' && /^\d{1,12}$/.test(p.get('id') || '')) return base + 'p/' + p.get('id') + '.html?m=h';
     if (p && urlLang) p.set('lang', urlLang);
     return p ? base + '?' + p.toString() : base;
 }
@@ -2911,6 +2912,7 @@ function readUrlState() {
     var p = new URLSearchParams(location.search);
     var m = p.get('m');
     var pp = location.pathname.match(/\/p\/(\d{1,12})\.html$/);
+    if (pp && m === 'h') return { m: 'h', id: Number(pp[1]) };
     if (!m && pp) return { m: 'p', id: Number(pp[1]) };
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };

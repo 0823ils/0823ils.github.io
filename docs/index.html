@@ -2364,8 +2364,26 @@ function callTtsHTML() {
         '<label>' + esc(ct('call_tts_rate')) + ' <select onchange="ttsSet(\'rate\',this.value)">' + [0.8, 1, 1.2, 1.5].map(function(r) { return '<option value="' + r + '"' + (r === rate ? ' selected' : '') + '>×' + r + '</option>'; }).join('') + '</select></label></div>' +
         (log ? '<div class="call-tts-log">' + log + '</div>' : '');
 }
+// 声が読みにくい書き方を、読みやすい形に直す（画面に出る文字は、そのまま）
+function ttsNormalize(text) {
+    var ja = TTS_JA.test(text) || /[ｗＷ]/.test(text), t = String(text);   // 全角の「ｗ」は、日本語の入力
+    t = t.replace(/https?:\/\/\S+/gi, ja ? 'リンク' : 'link');
+    t = t.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, ' ');
+    if (ja) {
+        t = t.replace(/[wWｗＷ]{2,}/g, ' わらわら ');                                                 // ｗｗｗ・wwww
+        t = t.replace(/([぀-ヿ㐀-鿿!！?？。、])[wWｗＷ](?![A-Za-z])/g, '$1 わら ');            // 文の終わりの「w」
+        t = t.replace(/\blol\b|\blmao\b/gi, ' わら ');
+        t = t.replace(/笑(?![぀-ヿ一-龥])/g, 'わら');                                       // 「笑」「(笑)」。「笑顔」「笑う」は、そのまま
+    } else {
+        t = t.replace(/\blol\b/gi, 'L O L').replace(/\blmao\b/gi, 'L M A O').replace(/\bw{2,}\b/gi, 'ha ha');
+    }
+    t = t.replace(/\s+/g, ' ').trim();
+    return t;
+}
 function callSpeak(text) {
     if (!window.speechSynthesis || ttsGet('on', '1') !== '1') return;
+    text = ttsNormalize(text);
+    if (!text) return;
     try {
         var u = new SpeechSynthesisUtterance(text), ja = TTS_JA.test(text);
         u.lang = ja ? 'ja-JP' : 'en-US';

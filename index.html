@@ -285,7 +285,21 @@
         .call-chip.muted .call-off { display: block; }
         .call-chip .call-kick { border: none; background: none; color: #aab4c6; cursor: pointer; font-size: 14px; padding: 0 2px; }
         .call-chip .call-kick:hover { color: #e5484d; }
-        .call-ctl { display: flex; gap: 8px; margin-top: 12px; }
+        .call-ctl { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .call-btn.share { color: #2b3a55; background: #fff; border: 1px solid #cfdcf5; }
+        .call-btn.share.on { color: #fff; background: #3b82f6; border-color: #3b82f6; }
+        .call-share { margin-top: 12px; border-radius: 14px; background: #0e1522; overflow: hidden; }
+        .call-share-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #dbe6ff; font-size: 13px; font-weight: 700; }
+        .call-share-head .sp { flex: 1; }
+        .call-share-head button { border: none; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; background: #25334d; color: #dbe6ff; }
+        .call-share-slot video, .call-share-video { display: block; width: 100%; max-height: 48vh; background: #000; object-fit: contain; cursor: pointer; }
+        .call-tts { display: flex; gap: 6px; margin-top: 12px; }
+        .call-tts input[type=text] { flex: 1; min-width: 0; padding: 9px 12px; font-size: 14px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: inherit; }
+        .call-tts-opt { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: #6b7890; }
+        .call-tts-opt select { font-size: 12px; max-width: 180px; padding: 3px 6px; border-radius: 8px; border: 1px solid #cfdcf5; background: #fff; color: inherit; }
+        .call-tts-log { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+        .call-tts-log div { padding: 4px 10px; border-radius: 10px; background: rgba(59,130,246,.1); }
+        .call-tts-log b { margin-right: 6px; }
         #call-audio { position: absolute; width: 0; height: 0; overflow: hidden; }
         #call-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 60; display: none; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; background: #1f2a3d; color: #fff; border-radius: 28px; box-shadow: 0 6px 22px rgba(0,0,0,.28); font-size: 13px; font-weight: 700; max-width: calc(100vw - 24px); }
         #call-bar.on { display: flex; }
@@ -2018,10 +2032,18 @@ function renderCallPanel() {
             esc(peers.length ? ct('call_talking').replace('{n}', peers.length + 1) : ct('call_wait')) + '</div></div></div>' +
             '<div class="call-who">' + callChipHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted }) +
             peers.map(function(p) { return callChipHTML(p.uid, p.username, { muted: p.muted, state: p.state }); }).join('') + '</div>' +
+            callShareHTML() +
             '<div class="call-ctl"><button class="call-btn mute' + (call.muted ? ' on' : '') + '" onclick="callToggleMute()">' + (call.muted ? MIC_OFF_SVG : MIC_SVG) + esc(call.muted ? ct('call_unmute') : ct('call_mute')) + '</button>' +
-            '<button class="call-btn leave" onclick="callLeave()">' + esc(ct('call_leave')) + '</button></div>' + err;
+            callShareBtnHTML() +
+            '<button class="call-btn leave" onclick="callLeave()">' + esc(ct('call_leave')) + '</button></div>' + callTtsHTML() + err;
     }
+    var kin = document.getElementById('call-tts-in'), kv = kin ? kin.value : '', kf = !!kin && document.activeElement === kin;   // 再描画しても、入力中の文字を失わない
     el.innerHTML = h;
+    var slot = el.querySelector('#call-share-slot');
+    if (slot && call && call.shareEl) slot.appendChild(call.shareEl);
+    var nin = document.getElementById('call-tts-in');
+    if (nin && kv) nin.value = kv;
+    if (nin && kf) nin.focus();
 }
 function callBarSync() {
     var bar = document.getElementById('call-bar');
@@ -2039,13 +2061,14 @@ function callChipSet(uid, fn) { var el = document.querySelector('#call-panel .ca
 // ----- 参加 -----
 async function callJoin() {
     if (call || callBusy || !loginUser) return;
+    try { if (window.speechSynthesis) speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch (e) {}   // 読み上げを、スマホで鳴らせるようにする（ボタンを押した瞬間にしか、許可されない）
     callBusy = true; callErrMsg = ''; renderCallPanel();
     var local = null;
     try {
         if (!window.isSecureContext) throw new Error('insecure');
         local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
         var ice = await apiCall('GET', '/api/chat/call/ice');
-        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: false, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null };
+        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: false, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null, screen: null, sharer: null, shareEl: null, ttsLog: [], ttsLast: 0 };
         call = st;
         try { var AC = window.AudioContext || window.webkitAudioContext; st.ctx = new AC(); st.ctx.resume(); st.localAn = callAnalyser(st, local); } catch (e) {}
         await callOpenStream(st);                                 // 合図を受け取る道を先に開く（取りこぼさないため）
@@ -2150,6 +2173,7 @@ function callNewPc(st, p) {
     };
     pc.ontrack = function(ev) {
         var stream = ev.streams && ev.streams[0] ? ev.streams[0] : new MediaStream([ev.track]);
+        if (ev.track.kind === 'video') { callShowShare(st, p, stream); ev.track.onended = function() { if (st.sharer && st.sharer.uid === p.uid) callHideShare(st); }; return; }   // 画面共有の映像
         if (!p.audio) {
             p.audio = document.createElement('audio');
             p.audio.autoplay = true; p.audio.setAttribute('playsinline', '');
@@ -2183,20 +2207,34 @@ async function callOffer(st, p, restart) {
 async function callOnSignal(st, m) {
     var d = m.data || {}, p = st.peers[m.from];
     if (!p) p = callAddPeer(st, { uid: m.from, username: m.username, muted: false }, false);
+    if (d.k === 'share') {                                                     // 画面共有の開始・終了
+        if (d.on) { if (!st.screen) st.sharer = { uid: p.uid, username: p.username }; }
+        else if (st.sharer && st.sharer.uid === p.uid) { st.sharer = null; callHideShare(st); }
+        renderCallPanel(); callBarSync();
+        return;
+    }
+    if (d.k === 'tts') { callTtsIncoming(st, p, d.text); return; }            // 読み上げ
     if (d.k === 'offer') {
         if (p.pc && p.sid && p.sid !== d.sid) { callClosePc(p); }            // 相手が入り直した（別の通話として、つなぎ直す）
         p.sid = d.sid || '';
         if (!p.pc) callNewPc(st, p);
+        if (p.pc.signalingState === 'have-local-offer') {                      // おたがいに同時に提案した：「つなぐ側（initiator）」を優先する
+            if (p.initiator) return;
+            p.renegWanted = !!st.screen;
+        }
         await p.pc.setRemoteDescription({ type: 'offer', sdp: d.sdp });
         await callFlushIce(p);
         var ans = await p.pc.createAnswer();
         await p.pc.setLocalDescription(ans);
         callSignal(st, p.uid, { k: 'answer', sdp: p.pc.localDescription.sdp, sid: st.sid });
+        if (st.screen) { callShareAttach(st, p); if (st.sharer) callSignal(st, p.uid, { k: 'share', on: true }); }   // 共有中に入ってきた人にも、画面を送る
+        if (p.renegWanted) callRenegotiate(st, p);
     } else if (d.k === 'answer') {
         if (!p.pc || (p.sid && p.sid !== d.sid)) return;
         p.sid = d.sid || p.sid;
         await p.pc.setRemoteDescription({ type: 'answer', sdp: d.sdp });
         await callFlushIce(p);
+        if (p.renegWanted) callRenegotiate(st, p);
     } else if (d.k === 'ice') {
         if (p.sid && d.sid && p.sid !== d.sid) return;
         if (!p.sid && d.sid) p.sid = d.sid;
@@ -2221,8 +2259,151 @@ function callRemovePeer(st, uid) {
     var p = st.peers[uid];
     if (!p) return;
     callClosePc(p); delete st.peers[uid];
+    if (st.sharer && st.sharer.uid === uid) { st.sharer = null; callHideShare(st); }
     renderCallPanel(); callBarSync(); callBadgeSync();
 }
+
+// ----- 画面共有 -----
+// 共有する人の画面（映像だけ）を、通話と同じつながりで、ほかの人へ送る。同時に共有できるのは1人。
+function callShareSupported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
+function callShareBtnHTML() {
+    if (!callShareSupported()) return '<button class="call-btn share" disabled title="' + esc(ct('call_share_unsupported')) + '">' + esc(ct('call_share')) + '</button>';
+    if (call.screen) return '<button class="call-btn share on" onclick="callShareStop()">' + esc(ct('call_unshare')) + '</button>';
+    var other = call.sharer && call.sharer.uid !== loginUser.id;
+    return '<button class="call-btn share" onclick="callShareStart()"' + (other ? ' disabled title="' + esc(ct('call_share_busy')) + '"' : '') + '>' + esc(ct('call_share')) + '</button>';
+}
+function callShareHTML() {
+    if (!call.sharer) return '';
+    var mine = call.sharer.uid === loginUser.id;
+    return '<div class="call-share"><div class="call-share-head"><span>' + esc(mine ? ct('call_sharing_you') : ct('call_sharing').replace('{name}', call.sharer.username)) + '</span><span class="sp"></span>' +
+        (mine ? '' : '<button onclick="callShareFull()">' + esc(ct('call_share_full')) + '</button>') + '</div>' + (mine ? '' : '<div class="call-share-slot" id="call-share-slot"></div>') + '</div>';
+}
+function callShareBroadcast(st, on) { Object.keys(st.peers).forEach(function(k) { callSignal(st, st.peers[k].uid, { k: 'share', on: !!on }); }); }
+function callRenegotiate(st, p) {
+    if (st.closed || !p.pc) return;
+    if (!p.pc.remoteDescription || p.pc.signalingState !== 'stable') { p.renegWanted = true; return; }
+    p.renegWanted = false;
+    callOffer(st, p, false).catch(function(e) { console.warn('reoffer', e); });
+}
+function callShareAttach(st, p) {
+    if (!st.screen || !p.pc || p.shareSender) return;
+    var tr = st.screen.getVideoTracks()[0];
+    if (!tr) return;
+    try { p.shareSender = p.pc.addTrack(tr, st.screen); } catch (e) { return; }
+    setTimeout(function() {                                       // 画質（回線がせまいときは、自動で下がる）
+        try { var pr = p.shareSender.getParameters(); if (!pr.encodings || !pr.encodings.length) pr.encodings = [{}]; pr.encodings[0].maxBitrate = 1500000; p.shareSender.setParameters(pr).catch(function() {}); } catch (e) {}
+    }, 1200);
+    callRenegotiate(st, p);
+}
+async function callShareStart() {
+    var st = call;
+    if (!st || st.screen || !callShareSupported() || (st.sharer && st.sharer.uid !== loginUser.id)) return;
+    var s;
+    try { s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 } }, audio: false }); }
+    catch (e) { if (e && e.name !== 'NotAllowedError' && e.name !== 'AbortError') { callErrMsg = ct('call_e_share'); renderCallPanel(); } return; }
+    var tr = s.getVideoTracks()[0];
+    if (call !== st || st.closed || !tr || st.screen || (st.sharer && st.sharer.uid !== loginUser.id)) { s.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} }); return; }
+    try { tr.contentHint = 'detail'; } catch (e) {}
+    st.screen = s; st.sharer = { uid: loginUser.id, username: loginUser.username };
+    tr.onended = function() { if (call === st && st.screen === s) callShareStop(); };          // ブラウザの「共有を停止」ボタン
+    Object.keys(st.peers).forEach(function(k) { callShareAttach(st, st.peers[k]); });
+    callShareBroadcast(st, true);
+    renderCallPanel(); callBarSync();
+}
+function callShareStop() {
+    var st = call;
+    if (!st || !st.screen) return;
+    var s = st.screen; st.screen = null; st.sharer = null;
+    Object.keys(st.peers).forEach(function(k) {
+        var p = st.peers[k];
+        if (p.shareSender && p.pc) { try { p.pc.removeTrack(p.shareSender); } catch (e) {} p.shareSender = null; callRenegotiate(st, p); }
+    });
+    s.getTracks().forEach(function(t) { t.onended = null; try { t.stop(); } catch (e) {} });
+    callShareBroadcast(st, false);
+    renderCallPanel(); callBarSync();
+}
+function callShowShare(st, p, stream) {
+    if (st.closed) return;
+    if (!st.shareEl) {
+        var v = document.createElement('video');
+        v.className = 'call-share-video'; v.autoplay = true; v.muted = true; v.setAttribute('playsinline', '');
+        v.onclick = callShareFull;
+        st.shareEl = v;
+    }
+    st.shareEl.srcObject = stream;
+    var pr = st.shareEl.play(); if (pr && pr.catch) pr.catch(function() {});
+    if (!st.screen) st.sharer = { uid: p.uid, username: p.username };
+    renderCallPanel(); callBarSync();
+}
+function callHideShare(st) {
+    if (st.shareEl) { try { st.shareEl.srcObject = null; st.shareEl.remove(); } catch (e) {} st.shareEl = null; }
+    renderCallPanel(); callBarSync();
+}
+function callShareFull() {
+    var v = call && call.shareEl;
+    if (!v) return;
+    try { if (v.requestFullscreen) v.requestFullscreen(); else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen(); else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen(); } catch (e) {}
+}
+
+// ----- 読み上げ（文字を、みんなの端末の声で読み上げる。マイクが使えない人向け） -----
+var TTS_JA = /[぀-ヿ㐀-鿿]/;
+function ttsGet(k, d) { try { var v = localStorage.getItem('twc_tts_' + k); return v === null ? d : v; } catch (e) { return d; } }
+function ttsSet(k, v) { try { localStorage.setItem('twc_tts_' + k, v); } catch (e) {} }
+function callTtsVoices() { try { return (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(function(v) { return /^(ja|en)/i.test(v.lang); }); } catch (e) { return []; } }
+function callTtsHTML() {
+    if (!window.speechSynthesis) return '';
+    var on = ttsGet('on', '1') === '1', rate = Number(ttsGet('rate', '1')) || 1, cur = ttsGet('voice', '');
+    var opts = '<option value="">' + esc(ct('call_tts_auto')) + '</option>' + callTtsVoices().map(function(v) {
+        return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === cur ? ' selected' : '') + '>' + esc(v.name) + '</option>';
+    }).join('');
+    var log = (call.ttsLog || []).map(function(l) { return '<div><b>' + esc(l.name) + '</b>' + esc(l.text) + '</div>'; }).join('');
+    return '<div class="call-tts"><input id="call-tts-in" type="text" maxlength="140" placeholder="' + esc(ct('call_tts_ph')) + '" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)callTtsSend()">' +
+        '<button class="call-btn share" onclick="callTtsSend()">' + esc(ct('call_tts_send')) + '</button></div>' +
+        '<div class="call-tts-opt"><label><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="ttsSet(\'on\',this.checked?\'1\':\'0\')"> ' + esc(ct('call_tts_listen')) + '</label>' +
+        '<label>' + esc(ct('call_tts_voice')) + ' <select onchange="ttsSet(\'voice\',this.value)">' + opts + '</select></label>' +
+        '<label>' + esc(ct('call_tts_rate')) + ' <select onchange="ttsSet(\'rate\',this.value)">' + [0.8, 1, 1.2, 1.5].map(function(r) { return '<option value="' + r + '"' + (r === rate ? ' selected' : '') + '>×' + r + '</option>'; }).join('') + '</select></label></div>' +
+        (log ? '<div class="call-tts-log">' + log + '</div>' : '');
+}
+function callSpeak(text) {
+    if (!window.speechSynthesis || ttsGet('on', '1') !== '1') return;
+    try {
+        var u = new SpeechSynthesisUtterance(text), ja = TTS_JA.test(text);
+        u.lang = ja ? 'ja-JP' : 'en-US';
+        var vs = callTtsVoices(), want = ttsGet('voice', ''), v = null;
+        for (var i = 0; i < vs.length; i++) if (vs[i].voiceURI === want && vs[i].lang.slice(0, 2).toLowerCase() === u.lang.slice(0, 2)) v = vs[i];
+        if (v) u.voice = v;
+        u.rate = Number(ttsGet('rate', '1')) || 1;
+        speechSynthesis.speak(u);
+    } catch (e) {}
+}
+function callTtsLog(st, name, text) {
+    st.ttsLog.push({ name: name, text: text });
+    while (st.ttsLog.length > 4) st.ttsLog.shift();
+    renderCallPanel();
+}
+function callTtsClean(t) { return typeof t === 'string' ? t.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 140) : ''; }
+function callTtsIncoming(st, p, text) {
+    var t = callTtsClean(text);
+    var now = Date.now();
+    if (!t || now - (p.ttsAt || 0) < 700) return;                // 連続で送られても、読み上げすぎない
+    p.ttsAt = now;
+    callTtsLog(st, p.username, t);
+    callSpeak(t);
+}
+function callTtsSend() {
+    var st = call, inp = document.getElementById('call-tts-in');
+    if (!st || !inp) return;
+    var t = callTtsClean(inp.value);
+    if (!t) return;
+    var now = Date.now();
+    if (now - st.ttsLast < 1200) return;
+    st.ttsLast = now;
+    inp.value = '';
+    Object.keys(st.peers).forEach(function(k) { callSignal(st, st.peers[k].uid, { k: 'tts', text: t }); });
+    callTtsLog(st, loginUser.username, t);
+    callSpeak(t);
+}
+try { if (window.speechSynthesis) speechSynthesis.onvoiceschanged = function() { if (call) renderCallPanel(); }; } catch (e) {}
 
 // ----- 操作 -----
 async function callPing() {
@@ -2249,6 +2430,9 @@ function callTeardown(notify, reason) {
     clearInterval(st.pingT); clearInterval(st.levelT);
     if (st.ctl) { try { st.ctl.abort(); } catch (e) {} }
     Object.keys(st.peers).forEach(function(k) { callClosePc(st.peers[k]); });
+    if (st.screen) { st.screen.getTracks().forEach(function(t) { t.onended = null; try { t.stop(); } catch (e) {} }); st.screen = null; }
+    callHideShare(st);
+    try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
     st.local.getTracks().forEach(function(t) { t.stop(); });
     try { if (st.ctx) st.ctx.close(); } catch (e) {}
     if (notify) apiCall('POST', '/api/chat/call/leave', {}).catch(function() {});
@@ -3577,6 +3761,9 @@ async function notifReadAll() {
 var CHAT_T = {
     ja: { room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
+          call_share: '画面を共有', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
+          call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: 'ほかの人が共有中です', call_e_share: '画面共有を始められませんでした',
+          call_tts_ph: '読み上げるテキスト', call_tts_send: '読み上げ', call_tts_listen: '読み上げを聞く', call_tts_voice: '声', call_tts_auto: '自動', call_tts_rate: '速さ',
           call_mute: 'ミュート', call_unmute: 'ミュート解除', call_leave: '退出', call_bar: '通話中・{n}人', call_kick: 'この人を外す',
           call_e_micDenied: 'マイクが許可されていません。ブラウザのアドレス欄の鍵アイコンから、マイクを許可してください', call_e_noMic: 'マイクが見つかりません', call_e_full: '満員です（最大{n}人）',
           call_e_kicked: '通話から外されました。しばらく入れません', call_e_banned: 'この部屋は使えません', call_e_too_fast: '操作が早すぎます。少し待ってください', call_e_insecure: '安全な接続（https）でないため、マイクを使えません',
@@ -3602,6 +3789,9 @@ var CHAT_T = {
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
     en: { room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
+          call_share: 'Share screen', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
+          call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Someone else is sharing', call_e_share: 'Could not start screen sharing',
+          call_tts_ph: 'Text to read aloud', call_tts_send: 'Speak', call_tts_listen: 'Hear read-aloud', call_tts_voice: 'Voice', call_tts_auto: 'Auto', call_tts_rate: 'Speed',
           call_mute: 'Mute', call_unmute: 'Unmute', call_leave: 'Leave', call_bar: 'In call · {n}', call_kick: 'Remove',
           call_e_micDenied: 'Microphone access is blocked. Allow it from the lock icon in the address bar', call_e_noMic: 'No microphone found', call_e_full: 'The call is full (max {n})',
           call_e_kicked: 'You were removed from the call and cannot rejoin for a while', call_e_banned: 'You cannot use this room', call_e_too_fast: 'Too fast. Please wait a moment', call_e_insecure: 'The microphone needs a secure (https) connection',
@@ -3643,7 +3833,7 @@ var chatAround = 0;       // URLのリンクで開いたとき、このメッセ
 var chatJumpTo = 0;       // 通知から開いたときに表示したいメッセージID
 try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
 
-function ct(k) { return ((CHAT_T[currentLang] || CHAT_T.ja)[k] || k).replace('{mb}', Math.round(CHAT_VIDEO_MAX / 1048576)); }
+function ct(k) { return ((CHAT_T[currentLang] || CHAT_T.ja)[k] || CHAT_T.ja[k] || k).replace('{mb}', Math.round(CHAT_VIDEO_MAX / 1048576)); }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
 function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
 

@@ -255,6 +255,46 @@
         .header-mode-tab.has-unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ffd24d; margin-left: 6px; vertical-align: middle; }
         .chat-tab.unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-left: 6px; vertical-align: middle; }
         .rank-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+        /* 通話 */
+        .chat-tab .call-count { display: none; margin-left: 6px; min-width: 18px; padding: 0 6px; height: 18px; line-height: 18px; text-align: center; font-size: 11px; font-weight: 800; color: #fff; background: #2fb36d; border-radius: 9px; font-style: normal; }
+        .chat-tab .call-count.on { display: inline-block; }
+        .chat-tab .call-mic { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .call-panel { margin: 10px 0 8px; padding: 14px; background: #f6f9ff; border: 1px solid #dbe8ff; border-radius: 14px; }
+        .call-panel .call-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .call-panel .call-title { font-size: 14px; font-weight: 800; color: #2b3a55; }
+        .call-panel .call-sub { font-size: 12px; color: #6b7890; }
+        .call-panel .call-sp { flex: 1; }
+        .call-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; font-size: 14px; font-weight: 800; border: none; border-radius: 22px; cursor: pointer; color: #fff; background: #4d97ff; }
+        .call-btn:disabled { opacity: .55; cursor: default; }
+        .call-btn.leave { background: #e5484d; }
+        .call-btn.mute { color: #2b3a55; background: #fff; border: 1px solid #cfdcf5; }
+        .call-btn.mute.on { color: #fff; background: #6b7890; border-color: #6b7890; }
+        .call-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .call-err { margin-top: 10px; font-size: 13px; color: #d33; }
+        .call-who { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .call-chip { position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; background: #fff; border: 1px solid #e3ebf8; border-radius: 26px; font-size: 13px; font-weight: 700; color: #2b3a55; }
+        .call-chip .call-av { position: relative; width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex: none; transition: box-shadow .12s; }
+        .call-chip .call-av img { width: 36px; height: 36px; border-radius: 50%; display: block; background: #e6edf9; }
+        .call-chip.speaking .call-av { box-shadow: 0 0 0 3px #2fb36d; }
+        .call-chip .call-nm { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .call-chip .call-st { width: 8px; height: 8px; border-radius: 50%; background: #f0a93b; flex: none; }
+        .call-chip.st-connected .call-st { background: #2fb36d; }
+        .call-chip.st-failed .call-st { background: #e5484d; }
+        .call-chip.me .call-st { display: none; }
+        .call-chip .call-off { display: none; width: 15px; height: 15px; flex: none; fill: none; stroke: #e5484d; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .call-chip.muted .call-off { display: block; }
+        .call-chip .call-kick { border: none; background: none; color: #aab4c6; cursor: pointer; font-size: 14px; padding: 0 2px; }
+        .call-chip .call-kick:hover { color: #e5484d; }
+        .call-ctl { display: flex; gap: 8px; margin-top: 12px; }
+        #call-audio { position: absolute; width: 0; height: 0; overflow: hidden; }
+        #call-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 60; display: none; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; background: #1f2a3d; color: #fff; border-radius: 28px; box-shadow: 0 6px 22px rgba(0,0,0,.28); font-size: 13px; font-weight: 700; max-width: calc(100vw - 24px); }
+        #call-bar.on { display: flex; }
+        #call-bar .cb-dot { width: 9px; height: 9px; border-radius: 50%; background: #2fb36d; animation: callPulse 1.6s infinite; flex: none; }
+        #call-bar .cb-main { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #call-bar button { border: none; border-radius: 18px; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; color: #fff; background: #3a4963; }
+        #call-bar button.on { background: #6b7890; }
+        #call-bar button.leave { background: #e5484d; }
+        @keyframes callPulse { 0% { box-shadow: 0 0 0 0 rgba(47,179,109,.6); } 70% { box-shadow: 0 0 0 8px rgba(47,179,109,0); } 100% { box-shadow: 0 0 0 0 rgba(47,179,109,0); } }
         /* ホーム */
         .home-hero { text-align: center; padding: 26px 8px 10px; }
         .home-title { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; color: #222; }
@@ -705,6 +745,13 @@
                         <span class="tw-slider"></span>
                     </label>
                 </div>
+                <div class="header-menu-row" id="snd-row">
+                    <span class="header-tw-label" data-i18n="soundLabel">通知音（新着・通話）</span>
+                    <label class="tw-toggle">
+                        <input type="checkbox" id="snd-cb" onchange="soundSet(this.checked)">
+                        <span class="tw-slider"></span>
+                    </label>
+                </div>
                 <!-- 通知の設定（ログイン中だけ表示）: 範囲（すべて / 返信・メンションだけ）と、この端末への通知 -->
                 <div class="set-notif" id="set-notif">
                     <div class="notif-mode" id="notif-mode"></div>
@@ -887,6 +934,7 @@
                 </aside>
                 <div class="chat-main">
                     <div class="chat-head" id="chat-title"></div>
+                    <div id="call-panel" class="call-panel" style="display:none"></div>
                     <div id="chat-list"></div>
                     <div class="login-msg" id="chat-msg"></div>
                     <div id="chat-reply-bar"></div>
@@ -896,6 +944,9 @@
                 </div>
             </div>
         </div>
+
+        <div id="call-audio"></div>
+        <div id="call-bar"></div>
 
         <!-- ランキング -->
         <div id="rank-section" style="display:none">
@@ -972,6 +1023,7 @@ const LANG = {
         loadError: '読み込みエラー: ',
         twToggleLabel: 'TurboWarp で開く',
         trAutoLabel: 'チャットを自動翻訳',
+        soundLabel: '通知音（新着・通話）',
         modeSearch: '検索',
         modeHome: 'ホーム', homeTitle: 'Technical Works Collection', homeSub: 'スクラッチ技術作品集',
         homeRated: '技術力が高い作品', homeLoved: 'いいねの多い作品', homeNew: '新しい作品', homeRandom: 'ランダムおすすめ', homeShuffle: '🔄 入れ替え', homeMore: 'もっと見る ›',
@@ -1095,6 +1147,7 @@ const LANG = {
         loadError: 'Load error: ',
         twToggleLabel: 'Open in TurboWarp',
         trAutoLabel: 'Auto-translate chat',
+        soundLabel: 'Notification sounds',
         modeSearch: 'Search',
         modeHome: 'Home', homeTitle: 'Technical Works Collection', homeSub: 'A collection of technical Scratch projects',
         homeRated: 'Top-rated for skill', homeLoved: 'Most loved', homeNew: 'Newest', homeRandom: 'Random picks', homeShuffle: '🔄 Shuffle', homeMore: 'See more ›',
@@ -1863,8 +1916,354 @@ function setMode(mode, forcePush) {
     if (mode === 'admin') enterAdmin();
     if (mode !== 'project') ppStopEmbed();
     updateNavDots();
+    renderCallPanel(); callBarSync();
     updateUrl(changedMode || !!forcePush);
 }
+
+// ===== 通話（みんなでしゃべる部屋） =====
+// 音声は、参加者のブラウザどうしが直接やり取りする（WebRTC）。自前チャットサーバーは、
+// 「だれが部屋にいるか」と、つなぐための合図の受け渡しだけを担当する（音声はサーバーを通らない）。
+// 参加者が多いと、全員とつなぐ分だけ通信が増えるので、人数に上限がある（サーバー側。既定8人）。
+var CALL_ROOM = 'voice';
+var callRoster = {};          // 部屋 -> [{ uid, username }]  いま通話中の人（誰でも見える）
+var callMax = 8;
+var call = null;              // 参加中だけ入る
+var callBusy = false, callErrMsg = '';
+var MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+var MIC_OFF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>';
+
+function callSupported() { return !!(window.RTCPeerConnection && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+function callRand() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+function callNames(list) { return (list || []).map(function(u) { return u.username; }).join(', '); }
+
+// ----- 通知音（新着メッセージ・通話の出入り）。小さなビープ音を、その場で作って鳴らす -----
+var SOUND_KEY = 'twc_sound';
+function soundOn() { try { return localStorage.getItem(SOUND_KEY) !== '0'; } catch (e) { return true; } }
+function soundSet(on) { try { localStorage.setItem(SOUND_KEY, on ? '1' : '0'); } catch (e) {} if (on) uiSound('msg'); }
+function soundUI() { var cb = document.getElementById('snd-cb'); if (cb) cb.checked = soundOn(); }
+var uiCtx = null;
+function uiAudio() {
+    try {
+        if (!uiCtx) { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; uiCtx = new AC(); }
+        if (uiCtx.state === 'suspended') uiCtx.resume();
+        return uiCtx;
+    } catch (e) { return null; }
+}
+['pointerdown', 'keydown', 'touchend'].forEach(function(ev) { document.addEventListener(ev, function() { uiAudio(); }, { passive: true, once: false }); });
+var SOUNDS = { msg: [[988, 0, 0.13]], mention: [[988, 0, 0.12], [1319, 0.13, 0.18]], join: [[660, 0, 0.12], [880, 0.12, 0.16]], leave: [[880, 0, 0.12], [587, 0.12, 0.16]] };
+function uiSound(kind) {
+    if (!soundOn()) return;
+    var ctx = uiAudio(); if (!ctx || ctx.state !== 'running') return;
+    (SOUNDS[kind] || SOUNDS.msg).forEach(function(n) {
+        var o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + n[1];
+        o.type = 'sine'; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + n[2]);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + n[2] + 0.02);
+    });
+}
+// 新着メッセージ（自分以外）が来たとき、見えている画面なら鳴らす。自分が呼ばれたとき（@名前）は、別の音
+function chatSoundNew(list) {
+    if (!list || !list.length || document.hidden || currentMode !== 'chat') return;
+    var me = loginUser ? String(loginUser.id) : '';
+    var others = list.filter(function(m) { return !me || String(m.user_id) !== me; });
+    if (!others.length) return;
+    var name = loginUser ? loginUser.username.toLowerCase() : '';
+    var mention = name && others.some(function(m) { return String(m.content || '').toLowerCase().indexOf('@' + name) >= 0; });
+    uiSound(mention ? 'mention' : 'msg');
+}
+
+// ----- 部屋の一覧（だれが通話中か） -----
+async function callFetchRooms() {
+    if (!TWC_CHAT_API) return;
+    try { var d = await apiCall('GET', '/api/chat/call/rooms'); callRoster = d.rooms || {}; callMax = d.max || 8; } catch (e) { return; }
+    callRosterChanged();
+}
+function callRosterChanged() { callBadgeSync(); if (currentMode === 'chat' && chatRoom === CALL_ROOM) renderCallPanel(); callBarSync(); }
+function callCount() { return call ? 1 + Object.keys(call.peers).length : (callRoster[CALL_ROOM] || []).length; }
+function callBadgeSync() {
+    var el = document.querySelector('#chat-tabs .call-count');
+    if (!el) return;
+    var n = callCount();
+    el.innerText = n; el.classList.toggle('on', n > 0);
+}
+
+// ----- 画面 -----
+function callErrText(e) {
+    var k = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'micDenied' : e && e.name === 'NotFoundError' ? 'noMic' : e && e.message;
+    var s = ct('call_e_' + k);
+    return s === 'call_e_' + k ? ct('call_e_other') : s.replace('{n}', callMax);
+}
+function callChipHTML(uid, name, o) {
+    return '<div class="call-chip' + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' +
+        '<span class="call-av">' + avatarImg(uid, 36) + '</span><span class="call-nm">' + esc(name) + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
+        '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>' +
+        (chatIsAdmin && !o.me && call ? '<button class="call-kick" title="' + esc(ct('call_kick')) + '" onclick="callKick(' + Number(uid) + ')">✕</button>' : '') + '</div>';
+}
+function renderCallPanel() {
+    var el = document.getElementById('call-panel');
+    if (!el) return;
+    if (chatRoom !== CALL_ROOM || currentMode !== 'chat') { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = '';
+    var h;
+    var err = callErrMsg ? '<div class="call-err">' + esc(callErrMsg) + '</div>' : '';
+    if (!TWC_CHAT_API || !callSupported()) {
+        h = '<div class="call-top"><span class="call-title">' + esc(ct('call_title')) + '</span></div><div class="call-sub" style="margin-top:6px">' + esc(ct('call_unsupported')) + '</div>';
+    } else if (!call) {
+        var users = callRoster[CALL_ROOM] || [], full = users.length >= callMax;
+        h = '<div class="call-top"><div><div class="call-title">' + esc(ct('call_title')) + '</div><div class="call-sub">' +
+            esc(users.length ? ct('call_now').replace('{n}', users.length) : ct('call_nobody')) + '</div></div><div class="call-sp"></div>' +
+            (loginUser ? '<button class="call-btn" onclick="callJoin()"' + (callBusy || full ? ' disabled' : '') + '>' + MIC_SVG + esc(callBusy ? ct('call_joining') : full ? ct('call_full').replace('{n}', callMax) : ct('call_join')) + '</button>'
+                : '<span class="call-sub">' + esc(ct('call_login')) + '</span>') + '</div>' +
+            (users.length ? '<div class="call-who">' + users.map(function(u) { return callChipHTML(u.uid, u.username, { state: 'connected', me: true }); }).join('') + '</div>' : '') + err;
+    } else {
+        var peers = Object.keys(call.peers).map(function(k) { return call.peers[k]; });
+        h = '<div class="call-top"><div><div class="call-title">' + esc(ct('call_title')) + '</div><div class="call-sub">' +
+            esc(peers.length ? ct('call_talking').replace('{n}', peers.length + 1) : ct('call_wait')) + '</div></div></div>' +
+            '<div class="call-who">' + callChipHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted }) +
+            peers.map(function(p) { return callChipHTML(p.uid, p.username, { muted: p.muted, state: p.state }); }).join('') + '</div>' +
+            '<div class="call-ctl"><button class="call-btn mute' + (call.muted ? ' on' : '') + '" onclick="callToggleMute()">' + (call.muted ? MIC_OFF_SVG : MIC_SVG) + esc(call.muted ? ct('call_unmute') : ct('call_mute')) + '</button>' +
+            '<button class="call-btn leave" onclick="callLeave()">' + esc(ct('call_leave')) + '</button></div>' + err;
+    }
+    el.innerHTML = h;
+}
+function callBarSync() {
+    var bar = document.getElementById('call-bar');
+    if (!bar) return;
+    var show = !!call && !(currentMode === 'chat' && chatRoom === CALL_ROOM);
+    bar.classList.toggle('on', show);
+    if (!show) return;
+    bar.innerHTML = '<span class="cb-dot"></span><span class="cb-main" onclick="callGoRoom()">' + esc(ct('call_bar').replace('{n}', callCount())) + '</span>' +
+        '<button class="' + (call.muted ? 'on' : '') + '" onclick="callToggleMute()">' + esc(call.muted ? ct('call_unmute') : ct('call_mute')) + '</button>' +
+        '<button class="leave" onclick="callLeave()">' + esc(ct('call_leave')) + '</button>';
+}
+function callGoRoom() { setMode('chat'); setChatRoom(CALL_ROOM); }
+function callChipSet(uid, fn) { var el = document.querySelector('#call-panel .call-chip[data-uid="' + Number(uid) + '"]'); if (el) fn(el); }
+
+// ----- 参加 -----
+async function callJoin() {
+    if (call || callBusy || !loginUser) return;
+    callBusy = true; callErrMsg = ''; renderCallPanel();
+    var local = null;
+    try {
+        if (!window.isSecureContext) throw new Error('insecure');
+        local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        var ice = await apiCall('GET', '/api/chat/call/ice');
+        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: false, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null };
+        call = st;
+        try { var AC = window.AudioContext || window.webkitAudioContext; st.ctx = new AC(); st.ctx.resume(); st.localAn = callAnalyser(st, local); } catch (e) {}
+        await callOpenStream(st);                                 // 合図を受け取る道を先に開く（取りこぼさないため）
+        var j = await apiCall('POST', '/api/chat/call/join', { room: CALL_ROOM });
+        if (st.closed) return;
+        j.peers.forEach(function(p) { if (!st.peers[p.uid]) callAddPeer(st, p, true); });
+        st.pingT = setInterval(callPing, 15000);
+        st.levelT = setInterval(callLevels, 120);
+        uiSound('join');
+    } catch (e) {
+        if (call) callTeardown(false); else if (local) local.getTracks().forEach(function(t) { t.stop(); });
+        callErrMsg = callErrText(e);
+    } finally { callBusy = false; renderCallPanel(); callBarSync(); callBadgeSync(); }
+}
+function callAnalyser(st, stream) {
+    if (!st.ctx) return null;
+    var src = st.ctx.createMediaStreamSource(stream), an = st.ctx.createAnalyser();
+    an.fftSize = 512; src.connect(an);
+    return { an: an, buf: new Uint8Array(an.fftSize) };
+}
+function callLevel(a) {
+    if (!a) return 0;
+    a.an.getByteTimeDomainData(a.buf);
+    var s = 0; for (var i = 0; i < a.buf.length; i++) { var v = (a.buf[i] - 128) / 128; s += v * v; }
+    return Math.sqrt(s / a.buf.length);
+}
+function callLevels() {
+    if (!call) return;
+    var me = loginUser ? loginUser.id : 0;
+    callChipSet(me, function(el) { el.classList.toggle('speaking', !call.muted && callLevel(call.localAn) > 0.03); });
+    Object.keys(call.peers).forEach(function(k) { var p = call.peers[k]; callChipSet(p.uid, function(el) { el.classList.toggle('speaking', !p.muted && callLevel(p.an) > 0.03); }); });
+}
+
+// 合図を受け取る道（SSE）。切れたら、つなぎ直す（サーバーは、つながりが切れてから12秒は待ってくれる）
+function callOpenStream(st) {
+    return new Promise(function(resolve, reject) {
+        var ctl = new AbortController(), ready = false, tries = 0;
+        st.ctl = ctl;
+        var to = setTimeout(function() { if (!ready) { ctl.abort(); reject(new Error('stream')); } }, 8000);
+        (async function loop() {
+            while (!st.closed) {
+                try {
+                    var r = await fetch(TWC_CHAT_API + '/api/chat/call/stream', { headers: { Authorization: 'Bearer ' + loginUser.token }, signal: ctl.signal });
+                    if (!r.ok) throw new Error('stream');
+                    var reader = r.body.getReader(), dec = new TextDecoder(), buf = '';
+                    for (;;) {
+                        var x = await reader.read();
+                        if (x.done) break;
+                        buf += dec.decode(x.value, { stream: true });
+                        var i;
+                        while ((i = buf.indexOf('\n\n')) >= 0) {
+                            var chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+                            var ev = /event: (.*)/.exec(chunk), da = /data: (.*)/.exec(chunk);
+                            if (!ev || !da) continue;
+                            if (ev[1] === 'ready') { tries = 0; if (!ready) { ready = true; clearTimeout(to); resolve(); } }
+                            else if (ev[1] === 'call') { try { callHandle(st, JSON.parse(da[1])); } catch (e) { console.warn('call', e); } }
+                        }
+                    }
+                } catch (e) {
+                    if (st.closed || (e && e.name === 'AbortError')) return;
+                    if (!ready) { clearTimeout(to); reject(e); return; }
+                }
+                if (st.closed) return;
+                await new Promise(function(res) { setTimeout(res, Math.min(5000, 700 * (++tries))); });
+            }
+        })();
+    });
+}
+
+function callHandle(st, m) {
+    if (st.closed) return;
+    if (m.type === 'joined') {
+        if (!st.peers[m.peer.uid]) { callAddPeer(st, m.peer, false); uiSound('join'); }
+    } else if (m.type === 'left') {
+        if (st.peers[m.uid]) { callRemovePeer(st, m.uid); uiSound('leave'); }
+    } else if (m.type === 'state') {
+        var p = st.peers[m.uid];
+        if (p) { p.muted = !!m.muted; callChipSet(p.uid, function(el) { el.classList.toggle('muted', p.muted); }); }
+    } else if (m.type === 'signal') {
+        callOnSignal(st, m).catch(function(e) { console.warn('signal', e); });
+    } else if (m.type === 'kicked') {
+        callTeardown(false, 'kicked');
+    }
+}
+
+// ----- 相手ごとのつながり -----
+function callAddPeer(st, info, initiator) {
+    var p = { uid: info.uid, username: info.username, muted: !!info.muted, pc: null, sid: '', state: 'connecting', pendingIce: [], iceBuf: [], iceT: null, an: null, audio: null, restarts: 0, initiator: initiator };
+    st.peers[p.uid] = p;
+    renderCallPanel(); callBarSync(); callBadgeSync();
+    if (initiator) { callNewPc(st, p); callOffer(st, p, false).catch(function(e) { console.warn('offer', e); }); }
+    return p;
+}
+function callNewPc(st, p) {
+    var pc = new RTCPeerConnection({ iceServers: st.ice });
+    p.pc = pc; p.pendingIce = []; p.state = 'connecting';
+    st.local.getTracks().forEach(function(t) { pc.addTrack(t, st.local); });
+    pc.onicecandidate = function(ev) {
+        if (!ev.candidate) return;
+        p.iceBuf.push(ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate);
+        if (!p.iceT) p.iceT = setTimeout(function() { p.iceT = null; var cs = p.iceBuf; p.iceBuf = []; if (cs.length) callSignal(st, p.uid, { k: 'ice', cs: cs, sid: st.sid }); }, 150);   // 候補は、まとめて送る
+    };
+    pc.ontrack = function(ev) {
+        var stream = ev.streams && ev.streams[0] ? ev.streams[0] : new MediaStream([ev.track]);
+        if (!p.audio) {
+            p.audio = document.createElement('audio');
+            p.audio.autoplay = true; p.audio.setAttribute('playsinline', '');
+            document.getElementById('call-audio').appendChild(p.audio);
+        }
+        p.audio.srcObject = stream;
+        var pr = p.audio.play(); if (pr && pr.catch) pr.catch(function() {});
+        try { p.an = callAnalyser(st, stream); } catch (e) {}
+    };
+    pc.onconnectionstatechange = function() {
+        if (st.closed || p.pc !== pc) return;
+        var s = pc.connectionState;
+        if (s === 'connected') { p.state = 'connected'; p.restarts = 0; }
+        else if (s === 'failed') {
+            p.state = 'failed';
+            if (p.initiator && p.restarts < 3) { p.restarts++; p.state = 'connecting'; callOffer(st, p, true).catch(function() {}); }
+        } else if (s === 'disconnected') {
+            p.state = 'connecting';
+            if (p.initiator) setTimeout(function() { if (!st.closed && p.pc === pc && pc.connectionState !== 'connected' && p.restarts < 3) { p.restarts++; callOffer(st, p, true).catch(function() {}); } }, 4000);
+        } else p.state = 'connecting';
+        callChipSet(p.uid, function(el) { el.classList.remove('st-connecting', 'st-connected', 'st-failed'); el.classList.add('st-' + p.state); });
+    };
+    return pc;
+}
+async function callOffer(st, p, restart) {
+    var pc = p.pc;
+    var offer = await pc.createOffer(restart ? { iceRestart: true } : undefined);
+    await pc.setLocalDescription(offer);
+    callSignal(st, p.uid, { k: 'offer', sdp: pc.localDescription.sdp, sid: st.sid });
+}
+async function callOnSignal(st, m) {
+    var d = m.data || {}, p = st.peers[m.from];
+    if (!p) p = callAddPeer(st, { uid: m.from, username: m.username, muted: false }, false);
+    if (d.k === 'offer') {
+        if (p.pc && p.sid && p.sid !== d.sid) { callClosePc(p); }            // 相手が入り直した（別の通話として、つなぎ直す）
+        p.sid = d.sid || '';
+        if (!p.pc) callNewPc(st, p);
+        await p.pc.setRemoteDescription({ type: 'offer', sdp: d.sdp });
+        await callFlushIce(p);
+        var ans = await p.pc.createAnswer();
+        await p.pc.setLocalDescription(ans);
+        callSignal(st, p.uid, { k: 'answer', sdp: p.pc.localDescription.sdp, sid: st.sid });
+    } else if (d.k === 'answer') {
+        if (!p.pc || (p.sid && p.sid !== d.sid)) return;
+        p.sid = d.sid || p.sid;
+        await p.pc.setRemoteDescription({ type: 'answer', sdp: d.sdp });
+        await callFlushIce(p);
+    } else if (d.k === 'ice') {
+        if (p.sid && d.sid && p.sid !== d.sid) return;
+        if (!p.sid && d.sid) p.sid = d.sid;
+        (d.cs || []).forEach(function(c) { p.pendingIce.push(c); });
+        if (p.pc && p.pc.remoteDescription) await callFlushIce(p);
+    }
+}
+async function callFlushIce(p) {
+    var list = p.pendingIce; p.pendingIce = [];
+    for (var i = 0; i < list.length; i++) { try { await p.pc.addIceCandidate(list[i]); } catch (e) {} }
+}
+function callSignal(st, to, data) {
+    apiCall('POST', '/api/chat/call/signal', { to: to, data: data }).catch(function(e) { if (e.message === 'peer_gone' && !st.closed && st.peers[to]) callRemovePeer(st, to); });
+}
+function callClosePc(p) {
+    clearTimeout(p.iceT); p.iceT = null; p.iceBuf = [];
+    if (p.pc) { p.pc.onicecandidate = p.pc.ontrack = p.pc.onconnectionstatechange = null; try { p.pc.close(); } catch (e) {} p.pc = null; }
+    if (p.audio) { try { p.audio.srcObject = null; p.audio.remove(); } catch (e) {} p.audio = null; }
+    p.an = null;
+}
+function callRemovePeer(st, uid) {
+    var p = st.peers[uid];
+    if (!p) return;
+    callClosePc(p); delete st.peers[uid];
+    renderCallPanel(); callBarSync(); callBadgeSync();
+}
+
+// ----- 操作 -----
+async function callPing() {
+    if (!call) return;
+    try { await apiCall('POST', '/api/chat/call/ping', {}); }
+    catch (e) { if (e.message === 'not_in_call') callTeardown(false, 'lost'); }
+}
+function callToggleMute() {
+    if (!call) return;
+    call.muted = !call.muted;
+    call.local.getAudioTracks().forEach(function(t) { t.enabled = !call.muted; });
+    apiCall('POST', '/api/chat/call/state', { muted: call.muted }).catch(function() {});
+    renderCallPanel(); callBarSync();
+}
+function callLeave() { callTeardown(true); }
+async function callKick(uid) {
+    if (!chatIsAdmin) return;
+    try { await apiCall('POST', '/api/chat/call/kick', { uid: uid }); } catch (e) { callErrMsg = callErrText(e); renderCallPanel(); }
+}
+function callTeardown(notify, reason) {
+    var st = call;
+    if (!st) return;
+    call = null; st.closed = true;
+    clearInterval(st.pingT); clearInterval(st.levelT);
+    if (st.ctl) { try { st.ctl.abort(); } catch (e) {} }
+    Object.keys(st.peers).forEach(function(k) { callClosePc(st.peers[k]); });
+    st.local.getTracks().forEach(function(t) { t.stop(); });
+    try { if (st.ctx) st.ctx.close(); } catch (e) {}
+    if (notify) apiCall('POST', '/api/chat/call/leave', {}).catch(function() {});
+    callErrMsg = reason ? ct('call_e_' + reason) : '';
+    if (notify || reason) uiSound('leave');
+    renderCallPanel(); callBarSync(); callBadgeSync();
+}
+// ページを閉じる・移動するときは、退出を知らせる（届かなくても、45秒で自動的に外れる）
+window.addEventListener('pagehide', function() {
+    if (!call || !loginUser) return;
+    try { fetch(TWC_CHAT_API + '/api/chat/call/leave', { method: 'POST', keepalive: true, headers: { Authorization: 'Bearer ' + loginUser.token, 'Content-Type': 'application/json' }, body: '{}' }); } catch (e) {}
+});
 
 // ===== ホーム =====
 // 開いて最初に見える画面。検索ボックス、各画面へのボタン、作品の一覧（技術力が高い・新しい・ランダム）を出す
@@ -2224,6 +2623,7 @@ function updateLoginUI() {
     }
     renderProfileAccount();
     if (typeof trAutoUI === 'function') trAutoUI();
+    if (typeof soundUI === 'function') soundUI();
     if (loginUser && typeof trAutoSoon === 'function' && typeof trAutoOn === 'function' && trAutoOn()) trAutoSoon(0);
 }
 
@@ -3178,7 +3578,13 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
+    ja: { room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
+          call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
+          call_mute: 'ミュート', call_unmute: 'ミュート解除', call_leave: '退出', call_bar: '通話中・{n}人', call_kick: 'この人を外す',
+          call_e_micDenied: 'マイクが許可されていません。ブラウザのアドレス欄の鍵アイコンから、マイクを許可してください', call_e_noMic: 'マイクが見つかりません', call_e_full: '満員です（最大{n}人）',
+          call_e_kicked: '通話から外されました。しばらく入れません', call_e_banned: 'この部屋は使えません', call_e_too_fast: '操作が早すぎます。少し待ってください', call_e_insecure: '安全な接続（https）でないため、マイクを使えません',
+          call_e_stream: 'サーバーにつながりません。もう一度試してください', call_e_lost: '通話が切れました。もう一度参加してください', call_e_other: '通話に参加できませんでした。もう一度試してください',
+          copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
           attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scSite: '作品ページ', scOpen: 'Scratchで開く', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '動画は1日3本までです',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
@@ -3197,7 +3603,13 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
+    en: { room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
+          call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
+          call_mute: 'Mute', call_unmute: 'Unmute', call_leave: 'Leave', call_bar: 'In call · {n}', call_kick: 'Remove',
+          call_e_micDenied: 'Microphone access is blocked. Allow it from the lock icon in the address bar', call_e_noMic: 'No microphone found', call_e_full: 'The call is full (max {n})',
+          call_e_kicked: 'You were removed from the call and cannot rejoin for a while', call_e_banned: 'You cannot use this room', call_e_too_fast: 'Too fast. Please wait a moment', call_e_insecure: 'The microphone needs a secure (https) connection',
+          call_e_stream: 'Cannot reach the server. Please try again', call_e_lost: 'Disconnected from the call. Please join again', call_e_other: 'Could not join the call. Please try again',
+          copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scSite: 'Project page', scOpen: 'Open on Scratch', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You can send up to 3 videos a day',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
@@ -3220,7 +3632,7 @@ var CHAT_T = {
 var chatTimer = null;
 var chatSig = '';
 var chatIsAdmin = false;
-var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback'];
+var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback', 'voice'];
 var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ
@@ -3283,6 +3695,7 @@ function enterChat() {
     chatDelay = CHAT_POLL_MIN;
     chatSchedule();
     chatStreamOpen();
+    callFetchRooms();
 }
 
 function leaveChat() {
@@ -3344,6 +3757,7 @@ function chatStreamOpen() {
         chatES.onerror = function() { chatESok = false; };
         chatES.addEventListener('changed', function() { chatFull = true; if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
         chatES.addEventListener('typing', function(ev) { try { chatTypingEvent(JSON.parse(ev.data)); } catch (e) {} });
+        chatES.addEventListener('callroster', function(ev) { try { var d = JSON.parse(ev.data); callRoster[d.room] = d.users || []; callRosterChanged(); } catch (e) {} });
     } catch (e) { chatES = null; chatESok = false; }
 }
 function chatStreamClose() { if (chatES) { try { chatES.close(); } catch (e) {} } chatES = null; chatESok = false; }
@@ -3421,12 +3835,13 @@ function chatTabClick(e, r) {
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
         return '<a class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
-            '" onclick="return chatTabClick(event, this.dataset.r)"><i>#</i>' + esc(ct('room_' + r)) + '</a>';
+            '" onclick="return chatTabClick(event, this.dataset.r)">' + (r === CALL_ROOM ? '<svg class="call-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' : '<i>#</i>') + esc(ct('room_' + r)) + (r === CALL_ROOM ? '<i class="call-count"></i>' : '') + '</a>';
     }).join('');
     var act = document.querySelector('#chat-tabs .chat-tab.active');
     if (act && act.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) act.scrollIntoView({ inline: 'center', block: 'nearest' });
     document.getElementById('chat-title').innerHTML = '<span>#</span>' + esc(ct('room_' + chatRoom)) +
         '<button class="chat-head-link" onclick="copyShareLink()" title="' + esc(ct('copyLink')) + '">' + LINK_SVG + '</button>';
+    renderCallPanel(); callBadgeSync();
 }
 
 function setChatRoom(r) {
@@ -3441,6 +3856,7 @@ function setChatRoom(r) {
     document.getElementById('chat-list').innerHTML = '';
     setChatMsg('');
     renderChatTabs();
+    callBarSync();
     loadChat(true);
 }
 
@@ -3975,6 +4391,7 @@ async function loadChat(forceScroll, partialOk) {
             var fresh = d.messages.filter(function(m) { return !have[m.id]; });   // 画面にあるIDは再追加しない
             if (!fresh.length) return;
             chatMsgs = chatMsgs.concat(fresh);
+            chatSoundNew(fresh);
             if (chatMsgs.length > CHAT_KEEP) { chatMsgs = chatMsgs.slice(-CHAT_KEEP); chatHasMore = true; }
             chatSig = '';
             renderChat(chatMsgs, forceScroll);
@@ -3984,7 +4401,9 @@ async function loadChat(forceScroll, partialOk) {
         var firstId = d.messages.length ? d.messages[0].id : 0;
         var keepOld = chatMsgs.filter(function(m) { return m.id < firstId; });
         if (!keepOld.length) chatHasMore = !!d.has_more;
+        var prevTop = chatTopId();
         chatMsgs = keepOld.concat(d.messages);
+        if (prevTop) chatSoundNew(d.messages.filter(function(m) { return m.id > prevTop; }));
         var sig = chatMsgs.map(function(m) { return m.id + (m.hidden ? 'h' : '') + (m.edited_at ? 'e' + m.edited_at : '') + (m.reactions ? JSON.stringify(m.reactions) : ''); }).join(',') +
             '|' + (chatIsAdmin ? 1 : 0) + '|' + (loginUser ? loginUser.id : 0) + '|' + room;
         if (sig === chatSig) return;

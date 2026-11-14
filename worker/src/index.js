@@ -392,7 +392,7 @@ async function scratchProjectInfo(url) {
   } catch (e) { throw new HttpError(502, 'scratch_unreachable'); }
   if (!r.ok) throw new HttpError(r.status === 404 ? 404 : 502, 'scratch_error');
   const j = await r.json();
-  const res = json({ instructions: String(j.instructions || ''), description: String(j.description || '') });
+  const res = json({ instructions: String(j.instructions || ''), description: String(j.description || ''), title: String(j.title || ''), author: String((j.author && j.author.username) || '') });
   res.headers.set('Cache-Control', 'public, max-age=600');
   return res;
 }

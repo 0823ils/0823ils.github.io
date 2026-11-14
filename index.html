@@ -2856,8 +2856,10 @@ function shareParams() {
 }
 
 function shareUrl() {
-    var base = location.href.split(/[?#]/)[0];
+    var base = location.href.split(/[?#]/)[0].replace(/p\/\d+\.html$/, '');
     var p = shareParams();
+    // 作品ページのアドレスは /p/ID.html にする（貼るとDiscord/LINEでサムネが出る）
+    if (p && p.get('m') === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return base + 'p/' + p.get('id') + '.html';
     if (p && urlLang) p.set('lang', urlLang);
     return p ? base + '?' + p.toString() : base;
 }
@@ -2908,6 +2910,8 @@ function copyShareLink() {
 function readUrlState() {
     var p = new URLSearchParams(location.search);
     var m = p.get('m');
+    var pp = location.pathname.match(/\/p\/(\d{1,12})\.html$/);
+    if (!m && pp) return { m: 'p', id: Number(pp[1]) };
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
@@ -3343,7 +3347,7 @@ var LINK_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><pat
 
 
 // ===== リンク（作品カード・ユーザー・通知） =====
-function projectUrl(id) { return location.href.split(/[?#]/)[0] + '?m=p&id=' + Number(id) + langQ(); }
+function projectUrl(id) { return location.href.split(/[?#]/)[0].replace(/p\/\d+\.html$/, '') + '?m=p&id=' + Number(id) + langQ(); }
 function userUrl(name) { return location.href.split(/[?#]/)[0] + '?m=u&u=' + encodeURIComponent(name) + langQ(); }
 // Cmd/Ctrl/Shiftクリックは、ふつうのリンクとして別タブで開く。ふつうのクリックは、その場で切り替える
 function isNewTabClick(ev) { return ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey; }

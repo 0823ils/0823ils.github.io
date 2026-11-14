@@ -118,6 +118,8 @@ async function route(request, env) {
   if (path === '/api/chat/messages' && method === 'GET') return chatList(request, env, url);
   if (path === '/api/chat/messages' && method === 'POST') return chatPost(request, env);
   if (path === '/api/chat/translate' && method === 'POST') return translateChat(request, env);
+  if (path === '/api/chat/translate-text' && method === 'POST') return translateText(request, env);
+  if (path === '/api/chat/search' && method === 'GET') return chatSearch(request, env, url);
   const cm = path.match(/^\/api\/chat\/messages\/(\d{1,12})(\/report)?$/);
   if (cm) {
     const id = Number(cm[1]);
@@ -1002,6 +1004,64 @@ async function translateChat(request, env) {
   await env.DB.prepare('INSERT OR IGNORE INTO chat_translations (message_id, lang, text, user_id, created_at) VALUES (?, ?, ?, ?, ?)')
     .bind(id, lang, text, user.uid, now).run();
   return json({ text });
+}
+
+// 通話の字幕など、保存しない短い文を訳す。POST { text, lang } -> { text }（要ログイン。1人あたり1分に40回まで）
+const CAP_TR_PER_MIN = 40, CAP_TR_MAX = 240;
+const _capTr = new Map();
+async function translateText(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.TRANSLATE_URL || !env.TRANSLATE_SECRET) throw new HttpError(503, 'translate_unavailable');
+  const body = await readJson(request);
+  const text = typeof body.text === 'string' ? body.text.trim().slice(0, CAP_TR_MAX) : '', lang = body.lang;
+  if (!text || !TRANSLATE_LANGS.includes(lang)) throw new HttpError(400, 'bad_request');
+  if (!TRANSLATE_WORDS.test(text)) return json({ text });
+  const now = Date.now();
+  const hits = (_capTr.get(user.uid) || []).filter((t) => t > now - 60000);
+  if (hits.length >= CAP_TR_PER_MIN) throw new HttpError(429, 'too_many');
+  hits.push(now); _capTr.set(user.uid, hits);
+  if (_capTr.size > 2000) for (const [k, v] of _capTr) if (!v.some((t) => t > now - 60000)) _capTr.delete(k);
+  let data;
+  try {
+    const res = await fetch(env.TRANSLATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ secret: env.TRANSLATE_SECRET, to: lang, texts: [text] }),
+      redirect: 'follow',
+    });
+    data = await res.json();
+  } catch { throw new HttpError(502, 'translate_failed'); }
+  if (!data || data.ok !== true) throw new HttpError(data && data.error === 'quota' ? 503 : 502, data && data.error === 'quota' ? 'translate_quota' : 'translate_failed');
+  if (!Array.isArray(data.texts) || data.texts.length !== 1 || typeof data.texts[0] !== 'string') throw new HttpError(502, 'translate_failed');
+  return json({ text: data.texts[0].slice(0, CAP_TR_MAX * 4) });
+}
+
+// ---------- 投稿の検索 ----------
+// 本文か名前に、検索語が含まれる投稿を、新しい順に返す（削除・非表示は除く。管理者は非表示も探せる）
+//   GET /api/chat/search?q=&room=&before=  -> { items: [{ id, room, user_id, username, content, created_at }], has_more }
+//   room=all で全部屋。before=ID で、それより古いものの続き
+const CHAT_SEARCH_PAGE = 30;
+async function chatSearch(request, env, url) {
+  const user = await requireUser(request, env);
+  const admin = isAdmin(user, env);
+  const q = (url.searchParams.get('q') || '').trim().slice(0, 60);
+  if ([...q].length < 2) throw new HttpError(400, 'query_too_short');
+  const roomParam = url.searchParams.get('room');
+  const rooms = roomParam === 'all' ? CHAT_ROOMS : [chatRoom(roomParam)];
+  const beforeRaw = url.searchParams.get('before');
+  const before = beforeRaw !== null && /^\d{1,12}$/.test(beforeRaw) ? Number(beforeRaw) : null;
+  const like = '%' + q.replace(/[\\%_]/g, '\\$&') + '%';          // % と _ は、ふつうの文字として探す
+  const rows = await env.DB.prepare(
+    `SELECT id, room, user_id, username, content, created_at FROM chat_messages
+      WHERE room IN (${rooms.map(() => '?').join(',')}) AND deleted = 0 ${admin ? '' : 'AND hidden = 0'}
+        AND (content LIKE ? ESCAPE '\\' OR username LIKE ? ESCAPE '\\') ${before !== null ? 'AND id < ?' : ''}
+      ORDER BY id DESC LIMIT ?`
+  ).bind(...rooms, like, like, ...(before !== null ? [before] : []), CHAT_SEARCH_PAGE + 1).all();
+  const list = rows.results.slice(0, CHAT_SEARCH_PAGE);
+  return json({
+    items: list.map(r => ({ id: r.id, room: r.room, user_id: r.user_id, username: r.username, content: String(r.content || '').slice(0, 300), created_at: r.created_at })),
+    has_more: rows.results.length > CHAT_SEARCH_PAGE,
+  });
 }
 
 async function chatPost(request, env) {

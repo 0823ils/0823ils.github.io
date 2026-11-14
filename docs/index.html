@@ -1473,11 +1473,8 @@ function renderPpInfo(failed) {
 }
 async function ppFetchInfo(id) {
     var j = null;
-    try {   // まず Scratch から直接。だめならWorker経由
-        var r = await fetch('https://api.scratch.mit.edu/projects/' + id);
-        if (r.ok) j = await r.json();
-    } catch (e) {}
-    if (!j && apiEnabled()) { try { j = await apiCall('GET', '/api/scratch/project?id=' + id); } catch (e) {} }
+    // Scratchの公開APIは、このサイトから直接は呼べない（CORS）。Worker経由で取る
+    if (apiEnabled()) { try { j = await apiCall('GET', '/api/scratch/project?id=' + id); } catch (e) {} }
     return j ? { instructions: String(j.instructions || '').trim(), description: String(j.description || '').trim() } : null;
 }
 async function ppLoadInfo() {
@@ -3964,14 +3961,30 @@ function chatEmbedsHTML(content) {
 
 // 作品カードに、作品名と作者名を入れる（Scratchの公開APIから。取れなければ、そのまま）
 var scMetaCache = {};
+async function scProjectMeta(id) {
+    try {
+        var r = await fetch(siteBase() + 'p/' + encodeURIComponent(id) + '.html');
+        if (r.ok) {
+            var d = new DOMParser().parseFromString(await r.text(), 'text/html');
+            var h = d.querySelector('h1'), a = d.querySelector('.meta a');
+            if (h && h.textContent.trim()) return { title: h.textContent.trim(), author: a ? a.textContent.trim() : '' };
+        }
+    } catch (e) {}
+    if (apiEnabled()) {
+        try {
+            var j = await apiCall('GET', '/api/scratch/project?id=' + encodeURIComponent(id));
+            if (j && j.title) return { title: String(j.title), author: String(j.author || '') };
+        } catch (e) {}
+    }
+    return null;
+}
 function chatCardsMeta(root) {
     Array.prototype.forEach.call((root || document).querySelectorAll('.sb3-card[data-pid]:not([data-meta])'), function(card) {
         card.dataset.meta = '1';
         var id = card.dataset.pid;
-        if (!scMetaCache[id]) scMetaCache[id] = fetch('https://api.scratch.mit.edu/projects/' + encodeURIComponent(id))
-            .then(function(r) { return r.ok ? r.json() : null; })
-            .then(function(j) { return j && j.title ? { title: String(j.title), author: j.author && j.author.username ? String(j.author.username) : '' } : null; })
-            .catch(function() { return null; });
+        // Scratchの公開APIは、このサイトからは直接呼べない（CORSで拒否される）。
+        // まずこのサイト自身の作品ページ（/p/ID.html・同じ場所なので取れる）から、取れなければWorker経由で取る
+        if (!scMetaCache[id]) scMetaCache[id] = scProjectMeta(id);
         scMetaCache[id].then(function(t) {
             var el = t && card.querySelector('.sc-meta');
             if (el) el.innerHTML = '<span class="sc-title">' + esc(t.title) + '</span><small>' + (t.author ? 'by ' + esc(t.author) + ' · ' : '') + '#' + esc(id) + '</small>';

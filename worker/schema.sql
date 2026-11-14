@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS ratings (
   username TEXT NOT NULL,
   score INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
   updated_at INTEGER NOT NULL,
+  created_at INTEGER,              -- 最初につけた日時（今週ランキング用）。古いDBは、最初の評価時に自動で足される
   PRIMARY KEY (project_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_ratings_user ON ratings(user_id);

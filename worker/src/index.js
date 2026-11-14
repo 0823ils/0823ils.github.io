@@ -23,9 +23,6 @@ const MAX_PENDING_PER_USER = 5;             // 同一ユーザー名の同時発
 const MAX_IDS = 100;
 const MAX_SAVES = 1000;
 const MAX_RANKING = 5000;                   // 順位表に載せる作品数の上限
-// 今週ランキング用の少数評価補正（技術力順位の計算には使用しない）
-const PRIOR_MEAN = 3;
-const PRIOR_WEIGHT = 2;
 const MAX_PENDING_APPLICATIONS = 10;        // 1ユーザーが同時に出せる未審査の申請数
 const MAX_APP_MESSAGE = 300;
 
@@ -441,8 +438,9 @@ async function exportRatings(request, env) {
   let diff = a.length ^ b.length;
   for (let i = 0; i < b.length; i++) diff |= (a[i] || 0) ^ b[i];
   if (diff !== 0) throw new HttpError(403, 'forbidden');
-  const rows = await env.DB.prepare('SELECT project_id, user_id, score, updated_at FROM ratings').all();
-  return json({ ratings: rows.results.map(r => [r.project_id, r.user_id, r.score, r.updated_at]) });
+  await ensureRatingCreatedCol(env);
+  const rows = await env.DB.prepare('SELECT project_id, user_id, score, updated_at, COALESCE(created_at, updated_at) AS created_at FROM ratings').all();
+  return json({ ratings: rows.results.map(r => [r.project_id, r.user_id, r.score, r.updated_at, r.created_at]) });
 }
 
 // 作品の作者のIDを返す。一度調べたらD1に覚えておく（作者は変わらない）。
@@ -469,6 +467,20 @@ async function scratchProject(projectId) {
   try { return await r.json(); } catch { throw new HttpError(502, 'scratch_error'); }
 }
 
+// 評価に「最初につけた日時（created_at）」の列を、なければ足す。今週ランキングは、今週あたらしくついた評価だけを数える
+let _ratingCreatedCol = false;
+async function ensureRatingCreatedCol(env) {
+  if (_ratingCreatedCol) return;
+  try {
+    const r = await env.DB.prepare('PRAGMA table_info(ratings)').all();
+    if (!(r.results || []).some(c => c.name === 'created_at')) {
+      await env.DB.prepare('ALTER TABLE ratings ADD COLUMN created_at INTEGER').run();
+      await env.DB.prepare('UPDATE ratings SET created_at = updated_at WHERE created_at IS NULL').run();   // これまでの分は、最後に更新した日時で代用
+    }
+    _ratingCreatedCol = true;
+  } catch (e) { /* 失敗しても、評価は今までどおり動く（今週ランキングは更新日時で代用） */ }
+}
+
 async function putRating(request, env, projectId) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
@@ -477,10 +489,12 @@ async function putRating(request, env, projectId) {
   // 自分の作品には付けられない（存在しない作品への書き込みも、ここで止まる）
   const authorId = await getProjectAuthorId(env, projectId);
   if (authorId === user.uid) throw new HttpError(403, 'own_project');
+  await ensureRatingCreatedCol(env);
+  const now = Date.now();
   await env.DB.prepare(
-    `INSERT INTO ratings (project_id, user_id, username, score, updated_at) VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO ratings (project_id, user_id, username, score, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(project_id, user_id) DO UPDATE SET score = excluded.score, username = excluded.username, updated_at = excluded.updated_at`
-  ).bind(projectId, user.uid, user.u, score, Date.now()).run();
+  ).bind(projectId, user.uid, user.u, score, now, now).run();
   return json(await summaryFor(env, projectId, user.uid));
 }
 
@@ -536,7 +550,7 @@ const USER_PRIOR_COUNT = 1;   // 評価作品数として数える件数
 
 // message.txt の calculate_scores と同じアルゴリズム。
 // raw rating -> (rating / 5)^2 * 5 -> 評価者補正・相関重み -> helper2。
-function calculateRatingRanking(rows) {
+function calculateRatingRanking(rows, only) {   // only: 「作品ID:ユーザーID」の集合。あれば、その評価だけを作品の点数にする（評価者の補正は全評価から）
   const projects = new Map();
   for (const row of rows) {
     const projectId = Number(row.project_id);
@@ -604,7 +618,10 @@ function calculateRatingRanking(rows) {
   for (const [projectId, ratings] of projects) {
     let weightedSum = 0;
     let importanceSum = 0;
+    let used = 0, rawSum = 0;
     for (const [userId, rating] of ratings) {
+      if (only && !only.has(projectId + ':' + userId)) continue;
+      used++; rawSum += rating;
       const stats = userStats.get(userId);
       const hensachi = stats.sd === 0
         ? 50
@@ -619,12 +636,13 @@ function calculateRatingRanking(rows) {
       weightedSum += adjusted * importance;
       importanceSum += importance;
     }
+    if (!used) continue;
     const internalScore = weightedSum / importanceSum;
     items.push({
       id: projectId,
       score: Math.round(displayRatingValue(internalScore) * 100) / 100,
-      avg: Math.round(displayRatingValue(projectAverages.get(projectId)) * 100) / 100,
-      count: ratings.size,
+      avg: Math.round(displayRatingValue(only ? rawSum / used : projectAverages.get(projectId)) * 100) / 100,
+      count: used,
     });
   }
 
@@ -1745,16 +1763,25 @@ async function genreVote(request, env, projectId, genre, on) {
 const WEEK_MS = 7 * 24 * 3600 * 1000;
 const WEEKLY_LIMIT = 30;
 
+// 今週ランキング: 今週あたらしくついた評価だけを数える（前につけた★を直しただけでは入らない）。
+//   点数は、技術力ランキングと同じ計算（評価者の偏差値補正・信頼度の重み）。評価が少ないほど3.0へ寄せ、
+//   評価の数が多いほど少し上に来るようにする。
+const WEEKLY_PRIOR = 3.0, WEEKLY_PRIOR_W = 2, WEEKLY_ATTN = 0.35;
+function weeklyOrder(score, count) {
+  const shrunk = (score * count + WEEKLY_PRIOR * WEEKLY_PRIOR_W) / (count + WEEKLY_PRIOR_W);
+  return shrunk + WEEKLY_ATTN * Math.log(count);
+}
 async function weeklyRanking(env) {
   const since = Date.now() - WEEK_MS;
-  const rows = await env.DB.prepare(
-    `SELECT project_id, COUNT(*) AS c, AVG(score) AS a,
-            (SUM(score) + ?) * 1.0 / (COUNT(*) + ?) AS w
-       FROM ratings WHERE updated_at >= ?
-      GROUP BY project_id
-      ORDER BY w DESC, c DESC, project_id DESC LIMIT ?`
-  ).bind(PRIOR_MEAN * PRIOR_WEIGHT, PRIOR_WEIGHT, since, WEEKLY_LIMIT).all();
-  const items = rows.results.map(r => ({ id: r.project_id, avg: Math.round(r.a * 100) / 100, count: r.c, saves: 0 }));
+  await ensureRatingCreatedCol(env);
+  let rows;
+  try { rows = await env.DB.prepare('SELECT project_id, user_id, score, COALESCE(created_at, updated_at) AS made FROM ratings').all(); }
+  catch (e) { rows = await env.DB.prepare('SELECT project_id, user_id, score, updated_at AS made FROM ratings').all(); }
+  const only = new Set();
+  for (const r of rows.results) if (r.made >= since) only.add(Number(r.project_id) + ':' + Number(r.user_id));
+  const calc = only.size ? calculateRatingRanking(rows.results, only) : [];
+  calc.sort((a, b) => (weeklyOrder(b.score, b.count) - weeklyOrder(a.score, a.count)) || (b.count - a.count) || (b.id - a.id));
+  const items = calc.slice(0, WEEKLY_LIMIT).map(r => ({ id: r.id, avg: r.avg, count: r.count, saves: 0 }));
   if (items.length) {
     const ph = items.map(() => '?').join(',');
     const sv = await env.DB.prepare(

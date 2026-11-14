@@ -40,6 +40,7 @@ OUTLIER_GAP = 1.5         # 他の人の平均より、この点以上低い
 WEEK_MS = 7 * 24 * 3600 * 1000
 WEEKLY_LIMIT = 30
 WEEKLY_PRIOR_MEAN, WEEKLY_PRIOR_WEIGHT = 3.0, 2.0
+WEEKLY_ATTENTION = 0.35   # 今週の評価が多い作品を、少し上に出す（log(件数) × この値）
 
 
 def helper(projects):
@@ -62,8 +63,11 @@ def helper2(values):
     }
 
 
-def calculate_scores(project_points):
-    """projects: {作品: {評価者: 点}} -> {scores, averages, counts, correlations, user_stats}"""
+def calculate_scores(project_points, only=None):
+    """projects: {作品: {評価者: 点}} -> {scores, averages, counts, correlations, user_stats}
+
+    only: {(作品, 評価者), ...} を渡すと、作品の点数・件数には、その評価だけを使う
+    （評価者の平均・相関・重みは、これまでどおり全評価から出す）。今週ランキング用。"""
     projects = helper(project_points)
     users = {
         user
@@ -125,11 +129,16 @@ def calculate_scores(project_points):
 
     # プロジェクトごとの補正後スコア
     scores_internal = {}
+    used_counts = {}
     for project, ratings in projects.items():
         weighted_sum = 0.0
         importance_sum = 0.0
 
+        used = 0
         for user, rating in ratings.items():
+            if only is not None and (project, user) not in only:
+                continue
+            used += 1
             stats = user_stats[user]
 
             # 偏差値
@@ -152,12 +161,14 @@ def calculate_scores(project_points):
             weighted_sum += adjusted * importance
             importance_sum += importance
 
-        scores_internal[project] = weighted_sum / importance_sum
+        if used:
+            scores_internal[project] = weighted_sum / importance_sum
+            used_counts[project] = used
 
     return {
         "scores": helper2(scores_internal),
         "averages": helper2(project_averages),
-        "counts": {project: len(ratings) for project, ratings in projects.items()},
+        "counts": used_counts,
         "correlations": correlations,
         "user_stats": user_stats,
     }
@@ -192,9 +203,9 @@ def find_outlier_raters(projects):
 
 
 def build(rows, now_ms, blocked=()):
-    """rows: [[project_id, user_id, score, updated_at], ...] -> JSONにする辞書"""
+    """rows: [[project_id, user_id, score, updated_at, created_at], ...]（created_at は無くてもよい） -> JSONにする辞書"""
     projects = {}
-    for pid, uid, score, _ in rows:
+    for pid, uid, score, *_ in rows:
         projects.setdefault(int(pid), {})[int(uid)] = int(score)
     # 荒らしの評価を外す（自動で見つけた人＋blocked_raters.txt に書いた人）
     bad = find_outlier_raters(projects)
@@ -226,16 +237,23 @@ def build(rows, now_ms, blocked=()):
     items.sort(key=lambda x: (-x["score"], -x["count"], -x["id"]))
     items = items[:MAX_ITEMS]
 
-    # 今週の一覧は、直近7日分の単純平均に従来の少数評価向け補正を適用する。
-    # message.txt の全期間スコア計算とは別枠のランキング。
-    recent = {}
-    for pid, uid, score, updated in rows:
-        if now_ms - int(updated) <= WEEK_MS:
-            recent.setdefault(int(pid), []).append(int(score))
+    # 今週の一覧は、今週あたらしくついた評価（最初につけた日時 created_at が7日以内）だけを数える。
+    # 前につけた★を直しただけの作品は入らない。点数は、全期間と同じ計算（評価者の偏差値補正・信頼度の重み）。
+    # 評価が少ないほど3.0へ寄せ、今週の評価が多いほど少し上に出す。
+    recent = set()
+    for row in rows:
+        made = int(row[4]) if len(row) > 4 and row[4] is not None else int(row[3])   # created_at が無い古い書き出しは、更新日時で代用
+        if now_ms - made <= WEEK_MS:
+            recent.add((int(row[0]), int(row[1])))
     weekly = []
-    for p, vals in recent.items():
-        w = (sum(vals) + WEEKLY_PRIOR_MEAN * WEEKLY_PRIOR_WEIGHT) / (len(vals) + WEEKLY_PRIOR_WEIGHT)
-        weekly.append({"id": p, "avg": round(sum(vals) / len(vals), 2), "count": len(vals), "_w": w})
+    if recent and projects:
+        wk = calculate_scores(projects, only=recent)
+        for p, cnt in wk["counts"].items():
+            vals = [projects[p][u] for u in projects[p] if (p, u) in recent]
+            sc = wk["scores"][p]
+            shrunk = (sc * cnt + WEEKLY_PRIOR_MEAN * WEEKLY_PRIOR_WEIGHT) / (cnt + WEEKLY_PRIOR_WEIGHT)
+            weekly.append({"id": p, "avg": round(sum(vals) / len(vals), 2), "count": cnt,
+                           "_w": shrunk + WEEKLY_ATTENTION * math.log(cnt)})
     weekly.sort(key=lambda x: (-x["_w"], -x["count"], -x["id"]))
     weekly = [{k: v for k, v in x.items() if k != "_w"} for x in weekly[:WEEKLY_LIMIT]]
     return {"items": items, "weekly": weekly}
@@ -265,6 +283,19 @@ def selftest():
     base = {x["id"]: x for x in out}
     assert out2[2]["avg"] == base[2]["avg"] and out2[2]["count"] == base[2]["count"], "荒らしの評価は外れるはず"
     print("荒らしの除外: OK")
+    # 今週ランキング: 古い評価を今週直しただけの作品は入らず、今週あたらしくついた評価が多い作品が上に来る
+    day = 24 * 3600 * 1000; now = 100 * day
+    wrows = [[1, u, 5, now - day, now - 60 * day] for u in range(40, 44)]          # 作品1: 2か月前につけた★5を、昨日直しただけ
+    wrows += [[2, u, 5 if u % 2 else 4, now - day, now - day] for u in range(10, 14)]   # 作品2: 昨日あたらしく4件
+    wrows += [[3, 30, 5, now - day, now - day]]                                        # 作品3: 昨日あたらしく1件（★5）
+    wrows += [[4, 20 + i, 3, now - 30 * day, now - 30 * day] for i in range(3)]        # 作品4: 先月だけ
+    wk = build(wrows, now)["weekly"]
+    ids = [x["id"] for x in wk]
+    assert ids[0] == 2 and 1 not in ids and 4 not in ids, "今週あたらしくついた評価だけが数えられるはず: %s" % ids
+    assert ids.index(2) < ids.index(3), "評価が1件の★5より、4件のほうが上のはず"
+    old = build([r[:4] for r in wrows], now)["weekly"]            # created_at なし（古い書き出し）でも動く
+    assert old, "created_at が無くても動くはず"
+    print("今週ランキング: OK", ids)
 
 
 def main():

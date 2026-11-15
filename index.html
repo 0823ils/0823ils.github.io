@@ -2457,6 +2457,7 @@ function callNewPc(st, p) {
         var stream = ev.streams && ev.streams[0] ? ev.streams[0] : new MediaStream([ev.track]);
         if (ev.track.kind === 'video' && p.camSid && stream.id === p.camSid) { callShowCam(st, p, stream); return; }   // ビデオ（その人のタイルに出す）
         if (ev.track.kind === 'video') { callShowShare(st, p, stream); ev.track.onended = function() { if (st.shares[p.uid]) { delete st.shares[p.uid]; callHideShare(st, p); } }; return; }   // 画面共有の映像
+        if (stream.getVideoTracks().length) return;   // 画面の音は、共有画面のビデオ側で鳴らす
         if (!p.audio) {
             p.audio = document.createElement('audio');
             p.audio.autoplay = true; p.audio.setAttribute('playsinline', '');
@@ -2546,7 +2547,7 @@ function callClosePc(p) {
     clearTimeout(p.iceT); p.iceT = null; p.iceBuf = [];
     if (p.pc) { p.pc.onicecandidate = p.pc.ontrack = p.pc.onconnectionstatechange = null; try { p.pc.close(); } catch (e) {} p.pc = null; }
     if (p.audio) { try { p.audio.srcObject = null; p.audio.remove(); } catch (e) {} p.audio = null; }
-    p.an = null; p.shareSender = null; p.camSender = null; p.camStream = null;
+    p.an = null; p.shareSender = null; p.shareASender = null; p.camSender = null; p.camStream = null;
 }
 function callRemovePeer(st, uid) {
     var p = st.peers[uid];
@@ -2641,6 +2642,8 @@ function callShareAttach(st, p) {
     var tr = st.screen.getVideoTracks()[0];
     if (!tr) return;
     try { p.shareSender = p.pc.addTrack(tr, st.screen); } catch (e) { return; }
+    var at = st.screen.getAudioTracks()[0];
+    if (at) { try { p.shareASender = p.pc.addTrack(at, st.screen); } catch (e) {} }   // 画面の音
     setTimeout(function() {                                       // 画質（回線がせまいときは、自動で下がる）
         try { var pr = p.shareSender.getParameters(); if (!pr.encodings || !pr.encodings.length) pr.encodings = [{}]; pr.encodings[0].maxBitrate = 1500000; p.shareSender.setParameters(pr).catch(function() {}); } catch (e) {}
     }, 1200);
@@ -2652,7 +2655,7 @@ async function callShareStart() {
     var s;
     var cam = !callShareScreenOK();
     try { s = cam ? await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, frameRate: { ideal: 15, max: 24 } }, audio: false })
-                  : await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 } }, audio: false }); }
+                  : await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 30 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, suppressLocalAudioPlayback: true }); }   // 音は、Chrome/Edgeで「音も共有」にしたときだけ付く
     catch (e) { if (e && e.name !== 'NotAllowedError' && e.name !== 'AbortError') { callErrMsg = ct('call_e_share'); renderCallPanel(); } return; }
     var tr = s.getVideoTracks()[0];
     if (call !== st || st.closed || !tr || st.screen || callShareCount(st) >= CALL_MAX_SHARES) { s.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} }); return; }
@@ -2669,7 +2672,7 @@ function callShareStop() {
     var s = st.screen; st.screen = null; delete st.shares[loginUser.id];
     Object.keys(st.peers).forEach(function(k) {
         var p = st.peers[k];
-        if (p.shareSender && p.pc) { try { p.pc.removeTrack(p.shareSender); } catch (e) {} p.shareSender = null; callRenegotiate(st, p); }
+        if (p.shareSender && p.pc) { try { p.pc.removeTrack(p.shareSender); } catch (e) {} p.shareSender = null; if (p.shareASender) { try { p.pc.removeTrack(p.shareASender); } catch (e) {} p.shareASender = null; } callRenegotiate(st, p); }
     });
     s.getTracks().forEach(function(t) { t.onended = null; try { t.stop(); } catch (e) {} });
     callShareBroadcast(st, false);
@@ -2679,11 +2682,11 @@ function callShowShare(st, p, stream) {
     if (st.closed) return;
     if (!p.shareEl) {
         var v = document.createElement('video');
-        v.className = 'call-share-video'; v.autoplay = true; v.muted = true; v.setAttribute('playsinline', '');
+        v.className = 'call-share-video'; v.autoplay = true; v.setAttribute('playsinline', '');
         v.onclick = function() { callShareFull(p.uid); };
         p.shareEl = v;
     }
-    p.shareEl.srcObject = stream;
+    p.shareEl.srcObject = stream; p.shareEl.muted = !stream.getAudioTracks().length;
     var pr = p.shareEl.play(); if (pr && pr.catch) pr.catch(function() {});
     st.shares[p.uid] = { uid: p.uid, username: p.username };
     renderCallPanel(); callBarSync();

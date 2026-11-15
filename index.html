@@ -453,6 +453,22 @@
             .call-stage.has-share .call-cell:not(.share) { flex-basis: calc(33.33% - 6px); }
             .call-stage.has-share .call-cell.share { flex: 1 0 100% !important; }
         }
+        /* 画面（パネル）の幅に合わせて、文字・アイコン・余白を自動で調整する */
+        .call-panel.zoom { container-type: inline-size; }
+        .call-panel.zoom .call-ctl { flex-wrap: nowrap; gap: clamp(2px, 1cqw, 8px); padding: clamp(4px, 1.4cqw, 10px); }
+        .call-panel.zoom .call-ctl .call-btn { flex: 1 1 0; min-width: 0; max-width: 120px; padding: clamp(5px, 1.4cqw, 9px) 2px clamp(4px, 1.2cqw, 8px); font-size: clamp(8.5px, 2.3cqw, 13px); white-space: nowrap; }
+        .call-panel.zoom .call-ctl .call-btn.leave { flex: 0 1 auto; min-width: 0; padding-left: clamp(8px, 2.4cqw, 18px); padding-right: clamp(8px, 2.4cqw, 18px); }
+        .call-panel.zoom .call-ctl .call-btn span { white-space: nowrap; overflow: hidden; text-overflow: clip; max-width: 100%; }
+        .call-panel.zoom .call-ctl .call-btn svg { width: clamp(18px, 4.6cqw, 28px); height: clamp(18px, 4.6cqw, 28px); }
+        .call-panel.zoom .call-title { font-size: clamp(13px, 2.8cqw, 16px); }
+        .call-panel.zoom .call-sub { font-size: clamp(11px, 2.3cqw, 13px); }
+        .call-tile .call-nm { font-size: clamp(10px, 2.2cqw, 13px); }
+        .call-tile .call-cap-line { font-size: clamp(11px, 2.6cqw, 16px); }
+        .call-tile .call-cap-line .tr { font-size: clamp(10px, 2.3cqw, 14px); }
+        @container (max-width: 470px) {
+            .call-panel.zoom .call-ctl .call-btn { white-space: normal; font-size: 9.5px; line-height: 1.15; }
+            .call-panel.zoom .call-ctl .call-btn span { white-space: normal; overflow: visible; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+        }
         .call-tts-note { margin-top: 6px; font-size: 12px; color: #6b7890; }
         .call-tts { display: flex; gap: 6px; margin-top: 12px; }
         .call-tts input[type=text] { flex: 1; min-width: 0; padding: 9px 12px; font-size: 14px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: inherit; }

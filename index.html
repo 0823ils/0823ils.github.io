@@ -353,8 +353,13 @@
         .call-stage.has-share .call-tile .call-av { min-width: 30px; }
         .call-panel.zoom .call-share { margin-top: 0; background: #000; border-radius: 12px; }
         .call-panel.zoom .call-share-slot video, .call-panel.zoom .call-share-video { max-height: 56vh; }
-        .call-stage .call-cap-box { position: absolute; left: 8px; right: 8px; bottom: 8px; margin: 0; align-items: center; pointer-events: none; z-index: 4; }
-        .call-stage .call-cap-line { background: rgba(0,0,0,.78); max-width: 92%; text-align: center; }
+        .call-cell { min-width: 0; display: flex; flex-direction: column; }
+        .call-cap { display: flex; flex-direction: column; gap: 2px; padding: 0 3px; }
+        .call-cap:empty { display: none; }
+        .call-cap .call-cap-line { margin-top: 5px; padding: 5px 9px; border-radius: 9px; background: #2b2c33; color: #fff; font-size: 13px; line-height: 1.45; text-align: left; }
+        .call-cap .call-cap-line.interim { opacity: .6; }
+        .call-cap .call-cap-line .tr { color: #ffd37a; margin-top: 2px; }
+        .call-stage.has-share .call-cap .call-cap-line { font-size: 11px; padding: 4px 7px; }
         .call-panel.zoom .call-react { justify-content: center; margin: 10px 0 0; }
         .call-panel.zoom .call-react button { background: #2b2c33; border-color: #3a3c46; font-size: 22px; padding: 6px 12px; }
         .call-panel.zoom .call-react button:hover { background: #3a3c46; }
@@ -362,16 +367,32 @@
         .call-panel.zoom .call-ctl .call-btn { flex-direction: column; justify-content: center; gap: 3px; min-width: 64px; padding: 7px 10px 6px; border: 0; border-radius: 10px; background: transparent; color: #e8eaf0; font-size: 11px; font-weight: 600; line-height: 1.2; }
         .call-panel.zoom .call-ctl .call-btn:hover:not(:disabled) { background: #363843; }
         .call-panel.zoom .call-ctl .call-btn svg { width: 24px; height: 24px; }
-        .call-panel.zoom .call-ctl .call-btn .em { font-size: 22px; line-height: 24px; height: 24px; }
         .call-panel.zoom .call-ctl .call-btn.mute.on { background: transparent; color: #ff7b80; }
         .call-panel.zoom .call-ctl .call-btn.share { color: #2fd27a; }
         .call-panel.zoom .call-ctl .call-btn.share.on { color: #ff7b80; }
         .call-panel.zoom .call-ctl .call-btn.share:disabled { color: #6c7385; }
         .call-panel.zoom .call-ctl .call-btn.on-y { color: #f5b73d; }
+        .call-panel.zoom .call-ctl .call-btn.on-y svg { fill: rgba(245,183,61,.22); }
         .call-panel.zoom .call-ctl .call-btn.leave { margin-left: 6px; background: #e5484d; color: #fff; min-width: 72px; }
         .call-panel.zoom .call-ctl .call-btn.leave:hover { background: #f05a5f !important; }
-        .call-more { margin-top: 8px; font-size: 12px; color: #aab2c5; }
-        .call-more summary { cursor: pointer; padding: 4px 2px; user-select: none; }
+        .call-set { margin-top: 10px; padding: 4px 14px 8px; border-radius: 14px; background: #25262d; }
+        .call-set-h { padding: 12px 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .08em; color: #8a93a8; }
+        .call-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid #30323b; cursor: pointer; }
+        .call-row:last-child { border-bottom: 0; }
+        .call-row-t { font-size: 14px; font-weight: 600; color: #eef0f6; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .call-row-t small { font-size: 11px; font-weight: 400; color: #8a93a8; line-height: 1.4; }
+        .call-set-note { padding: 8px 0; font-size: 12px; color: #8a93a8; }
+        .sw { position: relative; flex: none; width: 44px; height: 26px; }
+        .sw input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+        .sw i { position: absolute; inset: 0; border-radius: 999px; background: #4a4d5a; transition: background .15s; }
+        .sw i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); transition: transform .15s; }
+        .sw input:checked + i { background: #2fb36d; }
+        .sw input:checked + i::after { transform: translateX(18px); }
+        .sw input:focus-visible + i { outline: 2px solid #8ab8ff; outline-offset: 2px; }
+        .seg { flex: none; display: inline-flex; padding: 3px; border-radius: 10px; background: #1b1b20; gap: 2px; }
+        .seg button { border: 0; background: transparent; color: #aab2c5; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+        .seg button.on { background: #3b82f6; color: #fff; }
+        .call-row select { max-width: 52%; padding: 7px 10px; font-size: 13px; border-radius: 10px; }
         .call-panel.zoom .call-cap-set, .call-panel.zoom .call-tts-opt, .call-panel.zoom .call-tts-note, .call-panel.zoom .call-sub { color: #aab2c5; }
         .call-panel.zoom select { background: #2b2c33; color: #e8eaf0; border-color: #3a3c46; }
         .call-panel.zoom .call-err { color: #ff8b8f; }
@@ -2111,6 +2132,8 @@ var callBusy = false, callErrMsg = '';
 var MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 var SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 13V8M9.5 10.5L12 8l2.5 2.5"/></svg>';
 var CC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 10a2.2 2.2 0 1 0 0 4M16.5 10a2.2 2.2 0 1 0 0 4"/></svg>';
+var HAND_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
+var SMILE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 14s1.5 2.2 4 2.2 4-2.2 4-2.2M9 9.5h.01M15 9.5h.01"/></svg>';
 var LEAVE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 14.5c4.8-4.4 12.2-4.4 17 0l-2.4 2.6-3.1-1.5v-2.6a8.6 8.6 0 0 0-6 0v2.6l-3.1 1.5z"/></svg>';
 var MIC_OFF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>';
 
@@ -2198,6 +2221,7 @@ function callTileHTML(uid, name, o) {
         '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>' +
         (chatIsAdmin && !o.me && call ? '<button class="call-kick" title="' + esc(ct('call_kick')) + '" onclick="callKick(' + Number(uid) + ')">✕</button>' : '') + '</div>';
 }
+function callCellHTML(uid, name, o) { return '<div class="call-cell">' + callTileHTML(uid, name, o) + '<div class="call-cap" data-cap="' + Number(uid) + '"></div></div>'; }
 function renderCallPanel() {
     var el = document.getElementById('call-panel');
     if (!el) return;
@@ -2220,17 +2244,16 @@ function renderCallPanel() {
         h = '<div class="call-stage' + (call.sharer ? ' has-share' : '') + '"><div class="call-top"><div class="call-title">' + esc(ct('call_title')) + '</div><div class="call-sub">' +
             esc(peers.length ? ct('call_talking').replace('{n}', nAll) : ct('call_wait')) + '</div></div>' +
             callShareHTML() +
-            '<div class="call-who n' + Math.min(nAll, 3) + '">' + callTileHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted, hand: call.hand }) +
-            peers.map(function(p) { return callTileHTML(p.uid, p.username, { muted: p.muted, state: p.state, hand: p.hand }); }).join('') + '</div>' +
-            '<div class="call-cap-box" id="call-cap-box"></div></div>' +
+            '<div class="call-who n' + Math.min(nAll, 3) + '">' + callCellHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted, hand: call.hand }) +
+            peers.map(function(p) { return callCellHTML(p.uid, p.username, { muted: p.muted, state: p.state, hand: p.hand }); }).join('') + '</div></div>' +
             callReactHTML() +
             '<div class="call-ctl"><button class="call-btn mute' + (call.muted ? ' on' : '') + '" onclick="callToggleMute()">' + (call.muted ? MIC_OFF_SVG : MIC_SVG) + '<span>' + esc(call.muted ? ct('call_unmute') : ct('call_mute')) + '</span></button>' +
             callShareBtnHTML() +
-            '<button class="call-btn hand-btn' + (call.hand ? ' on-y' : '') + '" onclick="callHandToggle()"><span class="em">✋</span><span>' + esc(ct(call.hand ? 'call_hand_down' : 'call_hand')) + '</span></button>' +
-            '<button class="call-btn react-btn' + (call.reactOpen ? ' on-y' : '') + '" onclick="callReactToggle()"><span class="em">😊</span><span>' + esc(ct('call_react')) + '</span></button>' +
+            '<button class="call-btn hand-btn' + (call.hand ? ' on-y' : '') + '" onclick="callHandToggle()">' + HAND_SVG + '<span>' + esc(ct(call.hand ? 'call_hand_down' : 'call_hand')) + '</span></button>' +
+            '<button class="call-btn react-btn' + (call.reactOpen ? ' on-y' : '') + '" onclick="callReactToggle()">' + SMILE_SVG + '<span>' + esc(ct('call_react')) + '</span></button>' +
             '<button class="call-btn more-btn' + (call.moreOpen ? ' on-y' : '') + '" onclick="callMoreToggle()">' + CC_SVG + '<span>' + esc(ct('call_more')) + '</span></button>' +
             '<button class="call-btn leave" onclick="callLeave()">' + LEAVE_SVG + '<span>' + esc(ct('call_leave')) + '</span></button></div>' +
-            (call.moreOpen ? '<div class="call-more">' + callCapSetHTML() + callTtsHTML() + '</div>' : '') + err;
+            (call.moreOpen ? '<div class="call-set">' + callCapSetHTML() + callTtsHTML() + '</div>' : '') + err;
     }
     el.className = 'call-panel' + (call ? ' zoom' : '');
     var kin = null, kv = '', kf = false;   // 再描画しても、入力中の文字を失わない
@@ -2561,11 +2584,12 @@ function callTtsHTML() {
     var opts = '<option value="">' + esc(ct('call_tts_auto')) + '</option>' + callTtsVoices().map(function(v) {
         return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === cur ? ' selected' : '') + '>' + esc(v.name) + '</option>';
     }).join('');
-    return '<div class="call-tts-opt"><label><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="ttsSet(\'on\',this.checked?\'1\':\'0\')"> ' + esc(ct('call_tts_listen')) + '</label>' +
-        '<label>' + esc(ct('call_tts_voice')) + ' <select onchange="ttsSet(\'voice\',this.value)">' + opts + '</select></label>' +
-        '<label>' + esc(ct('call_tts_rate')) + ' <select onchange="ttsSet(\'rate\',this.value)">' + [0.8, 1, 1.2, 1.5].map(function(r) { return '<option value="' + r + '"' + (r === rate ? ' selected' : '') + '>×' + r + '</option>'; }).join('') + '</select></label></div>' +
-        '<div class="call-tts-note">' + esc(ct('call_tts_note')) + '</div>';
+    return '<div class="call-set-h">' + esc(ct('call_tts_head')) + '</div>' +
+        callRowSw('', ct('call_tts_listen'), on, "ttsSet('on',this.checked?'1':'0')", ct('call_tts_note')) +
+        '<div class="call-row"><span class="call-row-t">' + esc(ct('call_tts_voice')) + '</span><select onchange="ttsSet(\'voice\',this.value)">' + opts + '</select></div>' +
+        callRowSeg(ct('call_tts_rate'), [0.8, 1, 1.2, 1.5].map(function(r) { return { v: r, t: '×' + r, fn: "ttsSet('rate','" + r + "');renderCallPanel()" }; }), rate);
 }
+
 // 声が読みにくい書き方を、読みやすい形に直す（画面に出る文字は、そのまま）
 function ttsNormalize(text) {
     var ja = TTS_JA.test(text) || /[ｗＷ]/.test(text), t = String(text);   // 全角の「ｗ」は、日本語の入力
@@ -2709,14 +2733,24 @@ function capGet(k, d) { try { var v = localStorage.getItem('twc_cap_' + k); retu
 function capSet(k, v) { try { localStorage.setItem('twc_cap_' + k, v); } catch (e) {} }
 function capMyLang() { return capGet('lang', currentLang === 'en' ? 'en' : 'ja') === 'en' ? 'en' : 'ja'; }
 function capCallLang() { return currentLang === 'en' ? 'en' : 'ja'; }       // 見る人の言葉（訳す先）
+function callRowSw(id, label, on, handler, sub) {
+    return '<label class="call-row"><span class="call-row-t">' + esc(label) + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span>' +
+        '<span class="sw"><input type="checkbox"' + (id ? ' id="' + id + '"' : '') + (on ? ' checked' : '') + ' onchange="' + handler + '"><i></i></span></label>';
+}
+function callRowSeg(label, opts, cur) {
+    return '<div class="call-row"><span class="call-row-t">' + esc(label) + '</span><span class="seg">' + opts.map(function(o) {
+        return '<button type="button" class="' + (String(o.v) === String(cur) ? 'on' : '') + '" onclick="' + o.fn + '">' + esc(o.t) + '</button>';
+    }).join('') + '</span></div>';
+}
 function callCapSetHTML() {
-    var tgt = capCallLang(), lang = capMyLang();
-    return '<div class="call-cap-set"><label><input type="checkbox"' + (capGet('view', '1') === '1' ? ' checked' : '') + ' onchange="capSet(\'view\',this.checked?\'1\':\'0\');capPaint()"> ' + esc(ct('cap_view')) + '</label>' +
-        '<label><input type="checkbox"' + (capGet('tr', '1') === '1' ? ' checked' : '') + ' onchange="capSet(\'tr\',this.checked?\'1\':\'0\')"> ' + esc(ct('cap_tr').replace('{lang}', ct(tgt === 'en' ? 'cap_en' : 'cap_ja'))) + '</label>' +
-        (CAP_SR ? '<label><input type="checkbox" id="cap-send"' + (capGet('send', '0') === '1' ? ' checked' : '') + ' onchange="capSendToggle(this.checked)"> ' + esc(ct('cap_send')) + '</label>' +
-            '<label>' + esc(ct('cap_lang')) + ' <select onchange="capSet(\'lang\',this.value);capRestart()"><option value="ja"' + (lang === 'ja' ? ' selected' : '') + '>' + esc(ct('cap_ja')) + '</option><option value="en"' + (lang === 'en' ? ' selected' : '') + '>' + esc(ct('cap_en')) + '</option></select></label>'
-            : '<span>' + esc(ct('cap_nosup')) + '</span>') +
-        '</div><div class="call-sub" style="margin-top:4px;font-size:11px">' + esc(ct('cap_note')) + '</div>' + (call && call.capErr ? '<div class="call-err">' + esc(call.capErr) + '</div>' : '');
+    var tgt = capCallLang(), lang = capMyLang(), h = '<div class="call-set-h">' + esc(ct('cap_head')) + '</div>';
+    h += callRowSw('', ct('cap_view'), capGet('view', '1') === '1', "capSet('view',this.checked?'1':'0');capPaint()");
+    h += callRowSw('', ct('cap_tr').replace('{lang}', ct(tgt === 'en' ? 'cap_en' : 'cap_ja')), capGet('tr', '1') === '1', "capSet('tr',this.checked?'1':'0')");
+    if (CAP_SR) {
+        h += callRowSw('cap-send', ct('cap_send'), capGet('send', '1') === '1', 'capSendToggle(this.checked)', ct('cap_note'));
+        h += callRowSeg(ct('cap_lang'), [{ v: 'ja', t: ct('cap_ja'), fn: "capSet('lang','ja');capRestart();renderCallPanel()" }, { v: 'en', t: ct('cap_en'), fn: "capSet('lang','en');capRestart();renderCallPanel()" }], lang);
+    } else h += '<div class="call-set-note">' + esc(ct('cap_nosup')) + '</div>';
+    return h + (call && call.capErr ? '<div class="call-err">' + esc(call.capErr) + '</div>' : '');
 }
 function capSendToggle(on) {
     capSet('send', on ? '1' : '0');
@@ -2726,7 +2760,7 @@ function capSendToggle(on) {
 }
 function capRestart() { if (call && call.rec) { capStop(call); capStart(call); } }
 function capStart(st) {
-    if (!st || st.closed || st.rec || !CAP_SR || capGet('send', '0') !== '1' || st.muted) return;
+    if (!st || st.closed || st.rec || !CAP_SR || capGet('send', '1') !== '1' || st.muted) return;
     var r;
     try { r = new CAP_SR(); } catch (e) { return; }
     r.continuous = true; r.interimResults = true; r.lang = capMyLang() === 'en' ? 'en-US' : 'ja-JP';
@@ -2748,7 +2782,7 @@ function capStart(st) {
     };
     r.onend = function() {
         if (st.rec === r) st.rec = null;
-        if (!st.closed && call === st && capGet('send', '0') === '1' && !st.muted) setTimeout(function() { capStart(st); }, 250);   // 認識は、しばらく無音だと終わるので、続ける
+        if (!st.closed && call === st && capGet('send', '1') === '1' && !st.muted) setTimeout(function() { capStart(st); }, 250);   // 認識は、しばらく無音だと終わるので、続ける
     };
     try { r.start(); } catch (e) { st.rec = null; }
 }
@@ -2761,7 +2795,11 @@ function capStop(st) {
 function capLine(st, uid, name, text, fin, lang, mine) {
     var lines = st.capLines, open = null;
     for (var i = lines.length - 1; i >= 0; i--) if (lines[i].uid === uid && !lines[i].fin) { open = lines[i]; break; }
-    if (!open) { open = { uid: uid, name: name, id: ++st.capSeq, tr: '' }; lines.push(open); while (lines.length > 5) lines.shift(); }
+    if (!open) {
+        open = { uid: uid, name: name, id: ++st.capSeq, tr: '' }; lines.push(open);
+        var mineIdx = []; lines.forEach(function(l, k) { if (l.uid === uid) mineIdx.push(k); });
+        if (mineIdx.length > 2) lines.splice(mineIdx[0], 1);         // 1人につき、新しい2行まで
+    }
     open.text = text; open.fin = fin; open.lang = lang; open.at = Date.now();
     capPaint();
     if (fin && !mine) capTranslate(st, open);
@@ -2782,14 +2820,16 @@ async function capTranslate(st, line) {
     } catch (e) { /* 訳せなくても、原文の字幕は出ている */ }
 }
 function capPaint() {
-    var box = document.getElementById('call-cap-box');
-    if (!box) return;
-    var st = call, now = Date.now();
-    if (!st || capGet('view', '1') !== '1') { box.innerHTML = ''; return; }
-    st.capLines = st.capLines.filter(function(l) { return now - l.at < 14000; });
-    box.innerHTML = st.capLines.map(function(l) {
-        return '<div class="call-cap-line' + (l.fin ? '' : ' interim') + '"><b>' + esc(l.name) + '</b>' + esc(l.text) + (l.tr && l.tr !== l.text ? '<span class="tr">→ ' + esc(l.tr) + '</span>' : '') + '</div>';
-    }).join('');
+    var st = call, now = Date.now(), view = capGet('view', '1') === '1';
+    var boxes = document.querySelectorAll('#call-panel .call-cap');
+    if (st) st.capLines = st.capLines.filter(function(l) { return now - l.at < 14000; });
+    for (var i = 0; i < boxes.length; i++) {
+        var uid = Number(boxes[i].dataset.cap);
+        var ls = st && view ? st.capLines.filter(function(l) { return l.uid === uid; }) : [];
+        boxes[i].innerHTML = ls.map(function(l) {
+            return '<div class="call-cap-line' + (l.fin ? '' : ' interim') + '">' + esc(l.text) + (l.tr && l.tr !== l.text ? '<span class="tr">' + esc(l.tr) + '</span>' : '') + '</div>';
+        }).join('');
+    }
 }
 setInterval(function() { if (call && call.capLines && call.capLines.length) capPaint(); }, 2000);
 
@@ -4106,7 +4146,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: '字幕は、あなたのブラウザの音声認識で作られ、通話の人に送られます（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
+    ja: { cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
           call_share: '画面を共有', call_share_cam: 'カメラを共有', call_tts_note: '通話ルームのチャットに書かれた文字を、読み上げます（自分の発言は読みません）', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
           call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: 'ほかの人が共有中です', call_e_share: '画面共有を始められませんでした',
@@ -4134,7 +4174,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
+    en: { cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
           call_share: 'Share screen', call_share_cam: 'Share camera', call_tts_note: 'Messages in the call room chat are read aloud (your own are not).', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
           call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Someone else is sharing', call_e_share: 'Could not start screen sharing',

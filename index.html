@@ -469,6 +469,62 @@
             .call-panel.zoom .call-ctl .call-btn { white-space: normal; font-size: 8.5px; line-height: 1.15; }
             .call-panel.zoom .call-ctl .call-btn span { white-space: normal; overflow: visible; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
         }
+
+        /* ===== 通話中のレイアウト（PC: 横に2画面 / 狭い・縦長: Discordのスマホ風） ===== */
+        .call-badge { position: absolute; top: 2px; right: 22%; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #e5484d; color: #fff; font-style: normal; font-size: 10px; font-weight: 800; line-height: 16px; text-align: center; box-sizing: border-box; }
+        .call-panel.zoom .call-ctl .call-btn { position: relative; }
+        #chat-section.callmode .chat-layout { height: calc(100vh - 156px); height: calc(100dvh - 156px); min-height: 0; }
+        @media (max-width: 640px) { #chat-section.callmode .chat-layout { height: calc(100vh - 124px); height: calc(100dvh - 124px); } }
+        #chat-section.callmode .chat-main { min-height: 0; }
+        #chat-section.callmode #call-panel { display: flex; flex-direction: column; min-height: 0; margin: 0; }
+        #chat-section.callmode #call-panel .call-stage { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #555a6a transparent; }
+        #chat-section.callmode #call-panel .call-react, #chat-section.callmode #call-panel .call-ctl { flex: none; }
+        #chat-section.callmode .call-tile.is-share { max-height: none; aspect-ratio: 16 / 9; }
+        #chat-section.callmode .call-stage.shares-1 .call-tile.is-share { max-height: 100%; }
+        .call-watch { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); z-index: 6; border: 0; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 800; cursor: pointer; background: #3b82f6; color: #fff; white-space: nowrap; }
+        .call-unwatch { position: absolute; top: 8px; right: 76px; z-index: 5; border: 0; border-radius: 8px; padding: 5px 11px; font-size: 12px; font-weight: 700; cursor: pointer; background: rgba(0,0,0,.6); color: #fff; }
+        .call-unwatch:hover { background: rgba(0,0,0,.8); }
+        .call-tile.sharing-self::after { box-shadow: inset 0 0 0 3px #2fd27a; }
+        .call-tile.sharing-self { background: #1f3a2a; }
+        .call-tile .call-nm svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+        @media (min-width: 900px) and (min-aspect-ratio: 1 / 1) {
+            #chat-section.cm-wide .chat-main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: auto auto minmax(0, 1fr) auto auto auto auto auto; column-gap: 12px; }
+            body.mode-chat:has(#chat-section.cm-wide) .container { max-width: min(1760px, 98vw); }          /* 通話中は、横に広く使う */
+            body.mode-chat:has(#chat-section.cm-wide) .header-inner, body.mode-chat:has(#chat-section.cm-wide) .header-mode-tabs { max-width: min(1760px, 98vw); }
+            #chat-section.cm-wide #call-panel { grid-column: 1; grid-row: 1 / -1; height: 0; min-height: 100%; }       /* 高さは、まわりに合わせる（中身で行を押し広げない） */
+            #chat-section.cm-wide #chat-title { grid-column: 2; grid-row: 1; }
+            #chat-section.cm-wide #chat-search { grid-column: 2; grid-row: 2; }
+            #chat-section.cm-wide #chat-list { grid-column: 2; grid-row: 3; }
+            #chat-section.cm-wide #chat-msg { grid-column: 2; grid-row: 4; }
+            #chat-section.cm-wide #chat-reply-bar { grid-column: 2; grid-row: 5; }
+            #chat-section.cm-wide #chat-attach-bar { grid-column: 2; grid-row: 6; }
+            #chat-section.cm-wide #chat-typing { grid-column: 2; grid-row: 7; }
+            #chat-section.cm-wide #chat-input-wrap { grid-column: 2; grid-row: 8; }
+            #chat-section.cm-wide.cm-nochat .chat-main { grid-template-columns: minmax(0, 1fr); }
+            #chat-section.cm-wide.cm-nochat .chat-main > :not(#call-panel) { display: none !important; }
+            #chat-section.cm-wide .call-who .call-tile { max-height: none !important; }
+        }
+        /* 狭い・縦長: 通話を画面いっぱいに。チャットは、ボタンで出す（出すと、通話は上の細い帯になる） */
+        @media not all and (min-width: 900px) and (min-aspect-ratio: 1 / 1) {
+            #chat-section.cm-narrow.cm-nochat .chat-main > :not(#call-panel) { display: none !important; }
+            #chat-section.cm-narrow.cm-nochat #call-panel { flex: 1 1 auto; }
+            #chat-section.cm-narrow:not(.cm-nochat) #call-panel { flex: none; }
+            #chat-section.cm-narrow .call-panel.zoom:not(.mini) .call-who { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #chat-section.cm-narrow .call-panel.zoom:not(.mini) .call-who.n1 { grid-template-columns: minmax(0, 1fr); }
+            #chat-section.cm-narrow .call-panel.zoom:not(.mini) .call-tile:not(.is-share) { aspect-ratio: 4 / 3; max-height: none !important; min-height: 0; }
+            #chat-section.cm-narrow .call-panel.zoom:not(.mini) .call-stage.has-share .call-cell:not(.share) { flex-basis: calc(50% - 4px); }
+            .call-panel.zoom.mini { padding: 6px; }
+            .call-panel.mini .call-top { display: none; }
+            .call-panel.mini .call-stage { flex: none !important; overflow: visible !important; }
+            .call-panel.mini .call-who, .call-panel.mini .call-stage.has-share .call-who { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 6px; scrollbar-width: none; }
+            .call-panel.mini .call-cell, .call-panel.mini .call-stage.has-share .call-cell, .call-panel.mini .call-stage.has-share .call-cell.share, .call-panel.mini .call-stage.has-share .call-cell:not(.share) { flex: 0 0 58px !important; order: 0; }
+            .call-panel.mini .call-tile, .call-panel.mini .call-tile.is-share { aspect-ratio: 1; min-height: 0 !important; max-height: none !important; border-radius: 12px; }
+            .call-panel.mini .call-tile .call-av { width: 62%; min-width: 0; }
+            .call-panel.mini .call-nm, .call-panel.mini .call-cap, .call-panel.mini .call-full, .call-panel.mini .call-unwatch, .call-panel.mini .call-watch, .call-panel.mini .call-kick { display: none !important; }
+            .call-panel.mini .call-ctl { margin-top: 6px; padding: 3px; }
+            .call-panel.mini .call-ctl .call-btn span { display: none; }
+            .call-panel.mini .call-ctl .call-btn { padding: 8px 2px; }
+        }
         .call-tts-note { margin-top: 6px; font-size: 12px; color: #6b7890; }
         .call-tts { display: flex; gap: 6px; margin-top: 12px; }
         .call-tts input[type=text] { flex: 1; min-width: 0; padding: 9px 12px; font-size: 14px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: inherit; }
@@ -2198,6 +2254,7 @@ var SHARE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" w
 var CC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 10a2.2 2.2 0 1 0 0 4M16.5 10a2.2 2.2 0 1 0 0 4"/></svg>';
 var CAM_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5z"/></svg>';
 var CAM_OFF_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5l6-3.5v10l-6-3.5zM3 3l18 18"/></svg>';
+var CHAT_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.5-4.4A8 8 0 1 1 21 12z"/></svg>';
 var HAND_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
 var SMILE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8 14s1.5 2.2 4 2.2 4-2.2 4-2.2M9 9.5h.01M15 9.5h.01"/></svg>';
 var LEAVE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 14.5c4.8-4.4 12.2-4.4 17 0l-2.4 2.6-3.1-1.5v-2.6a8.6 8.6 0 0 0-6 0v2.6l-3.1 1.5z"/></svg>';
@@ -2233,7 +2290,12 @@ function uiSound(kind) {
     });
 }
 // 新着メッセージ（自分以外）が来たとき、見えている画面なら鳴らす。自分が呼ばれたとき（@名前）は、別の音
-function callReadChat(list) {      // 通話ルームのチャットを、通話中の人の端末で読み上げる（自分の発言は読まない）
+function callReadChat(list) {
+    if (call && !call.closed && chatRoom === CALL_ROOM && list && list.length && !callChatShown()) {      // チャットを隠している間の新着は、ボタンに数を出す
+        var me0 = loginUser ? String(loginUser.id) : '';
+        var n0 = list.filter(function(m) { return !m.hidden && String(m.user_id) !== me0; }).length;
+        if (n0) { call.chatUnread = (call.chatUnread || 0) + n0; renderCallPanel(); }
+    }      // 通話ルームのチャットを、通話中の人の端末で読み上げる（自分の発言は読まない）
     if (!call || call.closed || chatRoom !== CALL_ROOM || !list || !list.length) return;
     var me = loginUser ? String(loginUser.id) : '';
     var items = list.filter(function(m) { return !m.hidden && String(m.user_id) !== me && callTtsClean(m.content); }).slice(-3);
@@ -2284,23 +2346,53 @@ function callChipHTML(uid, name, o) {
 function callTileHTML(uid, name, o) {
     if (o.share) {      // 画面共有中: この人のタイルが、共有画面になる（Zoomと同じ）
         var inner = o.me
-            ? '<div class="call-sharing-me">' + SHARE_SVG + '<b>' + esc(ct('call_sharing_you')) + '</b><button onclick="callShareStop()">' + esc(ct('call_unshare')) + '</button></div>'
-            : '<span class="call-sharevid" data-share="' + Number(uid) + '"></span><button class="call-full" onclick="callShareFull(' + Number(uid) + ')">' + esc(ct('call_share_full')) + '</button>';
+            ? ''
+            : '<span class="call-sharevid" data-share="' + Number(uid) + '"></span><button class="call-unwatch" onclick="callShareWatch(' + Number(uid) + ',false)">' + esc(ct('call_unwatch')) + '</button><button class="call-full" onclick="callShareFull(' + Number(uid) + ')">' + esc(ct('call_share_full')) + '</button>';
         return '<div class="call-chip call-tile is-share' + (o.cam ? ' has-vid' : '') + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + (o.hand ? ' hand' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' + inner +
             (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + (o.hand ? '<span class="call-hand">✋</span>' : '') +
             '<div class="call-cap" data-cap="' + Number(uid) + '"></div><span class="call-nm">' + SHARE_SVG + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
             '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg></div>';
     }
-    return '<div class="call-chip call-tile' + (o.cam ? ' has-vid' : '') + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + (o.hand ? ' hand' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' + (o.hand ? '<span class="call-hand">✋</span>' : '') +
-        '<span class="call-av">' + avatarImg(uid, 96) + '</span>' + '<div class="call-cap" data-cap="' + Number(uid) + '"></div>' + (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + '<span class="call-nm">' + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
+    var shareMark = (o.selfShare || o.shareOff) ? SHARE_SVG : '';
+    return '<div class="call-chip call-tile' + (o.selfShare ? ' sharing-self' : '') + (o.shareOff ? ' share-off' : '') + (o.cam ? ' has-vid' : '') + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + (o.hand ? ' hand' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' + (o.hand ? '<span class="call-hand">✋</span>' : '') +
+        '<span class="call-av">' + avatarImg(uid, 96) + '</span>' + '<div class="call-cap" data-cap="' + Number(uid) + '"></div>' + (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + '<span class="call-nm">' + shareMark + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
         '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>' +
+        (o.shareOff ? '<button class="call-watch" onclick="callShareWatch(' + Number(uid) + ',true)">' + esc(ct('call_watch')) + '</button>' : '') +
         (chatIsAdmin && !o.me && call ? '<button class="call-kick" title="' + esc(ct('call_kick')) + '" onclick="callKick(' + Number(uid) + ')">✕</button>' : '') + '</div>';
 }
-function callCellHTML(uid, name, o) { o.share = !!(call && call.shares && call.shares[uid]); return '<div class="call-cell' + (o.share ? ' share' : '') + '">' + callTileHTML(uid, name, o) + '</div>'; }
+function callCellHTML(uid, name, o) {
+    var sh = !!(call && call.shares && call.shares[uid]), other = uid !== loginUser.id;
+    o.share = sh && other && !call.noWatch[uid];          // 見ている共有: タイルが共有画面になる
+    o.shareOff = sh && other && !!call.noWatch[uid];       // 見ない共有: ふつうのタイルのまま（「見る」ボタンつき）
+    o.selfShare = sh && !other;                            // 自分の共有: ふつうのタイル（共有中のしるしだけ）
+    return callCellInner(uid, name, o);
+}
+function callCellInner(uid, name, o) { return '<div class="call-cell' + (o.share ? ' share' : '') + '">' + callTileHTML(uid, name, o) + '</div>'; }
+// ----- 通話中のレイアウト -----
+//   広い横長の画面: 左に通話（共有画面など）、右にチャットの2画面。狭い・縦長の画面: Discordのスマホのように、通話を全面に出し、チャットは切り替えて出す。
+//   どちらも「チャット」ボタンで、チャットの表示・非表示を切り替えられる（画面の種類ごとに覚える）。
+var CALL_WIDE_MQ = window.matchMedia ? window.matchMedia('(min-width: 900px) and (min-aspect-ratio: 1/1)') : null;
+function callWide() { return !!(CALL_WIDE_MQ && CALL_WIDE_MQ.matches); }
+function callChatKey() { return 'twc_call_chat_' + (callWide() ? 'w' : 'n'); }
+function callChatShown() { try { var v = localStorage.getItem(callChatKey()); if (v !== null) return v === '1'; } catch (e) {} return callWide(); }
+function callChatToggle() {
+    var show = !callChatShown();
+    try { localStorage.setItem(callChatKey(), show ? '1' : '0'); } catch (e) {}
+    if (call) call.chatUnread = 0;
+    callLayoutSync(); renderCallPanel();
+    if (show) setTimeout(function() { var l = document.getElementById('chat-list'); if (l) l.scrollTop = l.scrollHeight; }, 0);
+}
+function callLayoutSync() {
+    var sec = document.getElementById('chat-section');
+    if (!sec) return;
+    var cm = !!call && currentMode === 'chat' && chatRoom === CALL_ROOM, wide = callWide(), shown = callChatShown();
+    sec.classList.toggle('callmode', cm); sec.classList.toggle('cm-wide', cm && wide); sec.classList.toggle('cm-narrow', cm && !wide); sec.classList.toggle('cm-nochat', cm && !shown);
+}
+if (CALL_WIDE_MQ) { var _cwf = function() { callLayoutSync(); if (call) renderCallPanel(); }; if (CALL_WIDE_MQ.addEventListener) CALL_WIDE_MQ.addEventListener('change', _cwf); else if (CALL_WIDE_MQ.addListener) CALL_WIDE_MQ.addListener(_cwf); }
 function renderCallPanel() {
     var el = document.getElementById('call-panel');
     if (!el) return;
-    if (chatRoom !== CALL_ROOM || currentMode !== 'chat') { el.style.display = 'none'; el.innerHTML = ''; return; }
+    if (chatRoom !== CALL_ROOM || currentMode !== 'chat') { el.style.display = 'none'; el.innerHTML = ''; callLayoutSync(); return; }
     el.style.display = '';
     var h;
     var err = callErrMsg ? '<div class="call-err">' + esc(callErrMsg) + '</div>' : '';
@@ -2316,7 +2408,7 @@ function renderCallPanel() {
     } else {
         var peers = Object.keys(call.peers).map(function(k) { return call.peers[k]; });
         var nAll = peers.length + 1;
-        h = '<div class="call-stage' + (callShareCount(call) ? ' has-share shares-' + Math.min(callShareCount(call), 4) : '') + '"><div class="call-top"><div class="call-title">' + esc(ct('call_title')) + '</div><div class="call-sub">' +
+        h = '<div class="call-stage' + (callWatchCount(call) ? ' has-share shares-' + Math.min(callWatchCount(call), 4) : '') + '"><div class="call-top"><div class="call-title">' + esc(ct('call_title')) + '</div><div class="call-sub">' +
             esc(peers.length ? ct('call_talking').replace('{n}', nAll) : ct('call_wait')) + '</div></div>' +
             '<div class="call-who n' + Math.min(nAll, 3) + '">' + callCellHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted, hand: call.hand, cam: !!call.cam }) +
             peers.map(function(p) { return callCellHTML(p.uid, p.username, { muted: p.muted, state: p.state, hand: p.hand, cam: !!p.camEl }); }).join('') + '</div></div>' +
@@ -2326,11 +2418,13 @@ function renderCallPanel() {
             callShareBtnHTML() +
             '<button class="call-btn hand-btn' + (call.hand ? ' on-y' : '') + '" onclick="callHandToggle()">' + HAND_SVG + '<span>' + esc(ct(call.hand ? 'call_hand_down' : 'call_hand')) + '</span></button>' +
             '<button class="call-btn react-btn' + (call.reactOpen ? ' on-y' : '') + '" onclick="callReactToggle()">' + SMILE_SVG + '<span>' + esc(ct('call_react')) + '</span></button>' +
+            '<button class="call-btn chat-btn' + (callChatShown() ? ' on-y' : '') + '" onclick="callChatToggle()">' + CHAT_SVG + (call.chatUnread && !callChatShown() ? '<i class="call-badge">' + Math.min(call.chatUnread, 99) + '</i>' : '') + '<span>' + esc(ct('call_chat')) + '</span></button>' +
             '<button class="call-btn more-btn' + (call.moreOpen ? ' on-y' : '') + '" onclick="callMoreToggle()">' + CC_SVG + '<span>' + esc(ct('call_more')) + '</span></button>' +
             '<button class="call-btn leave" onclick="callLeave()">' + LEAVE_SVG + '<span>' + esc(ct('call_leave')) + '</span></button></div>' +
             (call.moreOpen ? '<div class="call-set-wrap" onclick="if(event.target===this)callMoreToggle()"><div class="call-set"><div class="call-set-top"><span>' + esc(ct('call_more')) + '</span><button onclick="callMoreToggle()" aria-label="close">✕</button></div>' + callCapSetHTML() + callTtsHTML() + '</div></div>' : '') + err;
     }
-    el.className = 'call-panel' + (call ? ' zoom' : '');
+    el.className = 'call-panel' + (call ? ' zoom' : '') + (call && !callWide() && callChatShown() ? ' mini' : '');
+    callLayoutSync();
     var kin = null, kv = '', kf = false;   // 再描画しても、入力中の文字を失わない
     var oldSet = el.querySelector('.call-set'), setTop = oldSet ? oldSet.scrollTop : 0;   // 設定シートの、スクロール位置も保つ
     el.innerHTML = h;
@@ -2374,7 +2468,7 @@ async function callJoin() {
         try { local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }); }
         catch (me) { if (me && me.message === 'insecure') throw me; noMic = true; local = new MediaStream(); }   // マイクなし（拒否・未接続）でも、聞くだけで入れる
         var ice = await apiCall('GET', '/api/chat/call/ice');
-        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: noMic, noMic: noMic, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null, screen: null, shares: {}, sharer: null, shareEl: null, ttsLog: [], ttsLast: 0, hand: false, cam: null, camEl: null, reactOpen: false, moreOpen: false, reactAt: 0, rec: null, capLines: [], capSeq: 0, capInterimAt: 0, capErr: '' };
+        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: noMic, noMic: noMic, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null, screen: null, shares: {}, noWatch: {}, sharer: null, shareEl: null, ttsLog: [], ttsLast: 0, hand: false, cam: null, camEl: null, reactOpen: false, moreOpen: false, reactAt: 0, rec: null, capLines: [], capSeq: 0, capInterimAt: 0, capErr: '' };
         call = st;
         try { var AC = window.AudioContext || window.webkitAudioContext; st.ctx = new AC(); st.ctx.resume(); st.localAn = callAnalyser(st, local); } catch (e) {}
         await callOpenStream(st);                                 // 合図を受け取る道を先に開く（取りこぼさないため）
@@ -2656,6 +2750,17 @@ function callShareBtnHTML() {
     return '<button class="call-btn share" onclick="callShareStart()"' + (other ? ' disabled title="' + esc(ct('call_share_busy').replace('{n}', CALL_MAX_SHARES)) + '"' : '') + '>' + SHARE_SVG + '<span>' + esc(callShareLabel()) + '</span></button>';
 }
 var CALL_MAX_SHARES = 4;      // 同時に共有できる人数
+function callWatchCount(st) { return st && st.shares ? Object.keys(st.shares).filter(function(k) { return Number(k) !== loginUser.id && !st.noWatch[k]; }).length : 0; }
+function callShareWatch(uid, on) {            // 人ごとに、共有画面を「見る／見ない」。見ないと、ふつうのタイルの大きさに戻る
+    var st = call; if (!st) return;
+    if (on) delete st.noWatch[uid]; else st.noWatch[uid] = true;
+    var q = st.peers[uid], v = q && q.shareEl;
+    if (v) {
+        if (on) { v.muted = !(v.srcObject && v.srcObject.getAudioTracks().length); var pr = v.play(); if (pr && pr.catch) pr.catch(function() {}); }
+        else { try { v.pause(); } catch (e) {} v.muted = true; }        // 見ない間は、共有の音も止める
+    }
+    renderCallPanel();
+}
 function callShareCount(st) { return st && st.shares ? Object.keys(st.shares).length : 0; }
 function callShareBroadcast(st, on) { Object.keys(st.peers).forEach(function(k) { callSignal(st, st.peers[k].uid, { k: 'share', on: !!on }); }); }
 function callRenegotiate(st, p) {
@@ -2720,7 +2825,7 @@ function callShowShare(st, p, stream) {
 }
 function callHideShare(st, p) {            // p を渡すとその人の共有画面だけ、渡さないと全部片づける
     var list = p ? [p] : Object.keys(st.peers).map(function(k) { return st.peers[k]; });
-    list.forEach(function(q) { if (q && q.shareEl) { try { q.shareEl.srcObject = null; q.shareEl.remove(); } catch (e) {} q.shareEl = null; } });
+    list.forEach(function(q) { if (q) delete st.noWatch[q.uid]; if (q && q.shareEl) { try { q.shareEl.srcObject = null; q.shareEl.remove(); } catch (e) {} q.shareEl = null; } });
     renderCallPanel(); callBarSync();
 }
 function callShareFull(uid) {
@@ -4324,7 +4429,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
+    ja: { call_chat: 'チャット', call_watch: '画面共有を見る', call_unwatch: '見ない', call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
           call_share: '画面を共有', call_share_cam: 'カメラを共有', call_tts_note: '通話ルームのチャットに書かれた文字を、読み上げます（自分の発言は読みません）', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
           call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: '同時に共有できるのは{n}人までです', call_e_share: '画面共有を始められませんでした',
@@ -4352,7 +4457,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
+    en: { call_chat: 'Chat', call_watch: 'Watch screen share', call_unwatch: 'Hide', call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
           call_share: 'Share screen', call_share_cam: 'Share camera', call_tts_note: 'Messages in the call room chat are read aloud (your own are not).', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
           call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Up to {n} people can share at once', call_e_share: 'Could not start screen sharing',

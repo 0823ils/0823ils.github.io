@@ -2938,7 +2938,7 @@ function capSendToggle(on) {
 }
 function capRestart() { if (call && call.rec) { capStop(call); capStart(call); } }
 function capStart(st) {
-    if (!st || st.closed || st.rec || !CAP_SR || capGet('send', '1') !== '1' || st.muted) return;
+    if (!st || st.closed || st.rec || !CAP_SR || capGet('send', '1') !== '1' || st.muted || st.noMic) return;   // マイクなしのときは、自分の字幕は始めない
     var r;
     try { r = new CAP_SR(); } catch (e) { return; }
     r.continuous = true; r.interimResults = true; r.lang = capMyLang() === 'en' ? 'en-US' : 'ja-JP';

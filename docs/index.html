@@ -379,12 +379,17 @@
         .call-panel.zoom .call-share { margin-top: 0; background: #000; border-radius: 12px; }
         .call-panel.zoom .call-share-slot video, .call-panel.zoom .call-share-video { max-height: 56vh; }
         .call-cell { min-width: 0; display: flex; flex-direction: column; }
-        .call-cap { display: flex; flex-direction: column; gap: 2px; padding: 0 3px; }
-        .call-cap:empty { display: none; }
-        .call-cap .call-cap-line { margin-top: 5px; padding: 5px 9px; border-radius: 9px; background: #2b2c33; color: #fff; font-size: 13px; line-height: 1.45; text-align: left; }
-        .call-cap .call-cap-line.interim { opacity: .6; }
-        .call-cap .call-cap-line .tr { color: #ffd37a; margin-top: 2px; }
-        .call-stage.has-share .call-cap .call-cap-line { font-size: 11px; padding: 4px 7px; }
+        /* 字幕は、話している人のタイルの中（下のほう・名前の上）に重ねて出す */
+        .call-tile .call-cap { position: absolute; left: 6px; right: 6px; bottom: 34px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 3px; max-height: 62%; overflow: hidden; justify-content: flex-end; pointer-events: none; }
+        .call-tile .call-cap:empty { display: none; }
+        .call-tile .call-cap-line { max-width: 100%; margin: 0; padding: 4px 10px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+        .call-tile .call-cap-line b { display: none; }
+        .call-tile .call-cap-line.interim { opacity: .7; }
+        .call-tile .call-cap-line .tr { display: block; color: #ffd37a; margin-top: 1px; font-size: 13px; }
+        .call-stage.has-share .call-cell:not(.share) .call-cap { bottom: 28px; }
+        .call-stage.has-share .call-cell:not(.share) .call-cap-line { font-size: 10px; padding: 2px 6px; }
+        .call-stage.has-share .call-cell:not(.share) .call-cap-line .tr { font-size: 10px; }
+        @media (max-width: 640px) { .call-tile .call-cap-line { font-size: 12px; padding: 3px 8px; } .call-tile .call-cap-line .tr { font-size: 11px; } }
         .call-panel.zoom .call-react { justify-content: center; margin: 10px 0 0; }
         .call-panel.zoom .call-react button { background: #2b2c33; border-color: #3a3c46; font-size: 22px; padding: 6px 12px; }
         .call-panel.zoom .call-react button:hover { background: #3a3c46; }
@@ -401,7 +406,12 @@
         .call-panel.zoom .call-ctl .call-btn.on-y svg { fill: rgba(245,183,61,.22); }
         .call-panel.zoom .call-ctl .call-btn.leave { margin-left: 6px; background: #e5484d; color: #fff; min-width: 72px; }
         .call-panel.zoom .call-ctl .call-btn.leave:hover { background: #f05a5f !important; }
-        .call-set { margin-top: 10px; padding: 4px 14px 8px; border-radius: 14px; background: #25262d; }
+        /* 字幕・設定は、画面の下から出るシート（縦に伸びない。中だけスクロールする） */
+        .call-set-wrap { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,.5); }
+        .call-set { position: relative; width: min(520px, 100%); max-height: min(78vh, 640px); overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 0 16px 14px; border-radius: 18px 18px 0 0; background: #25262d; color: #e8eaf0; box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
+        .call-set-top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 14px 0 8px; background: #25262d; font-size: 15px; font-weight: 800; }
+        .call-set-top button { border: 0; border-radius: 999px; width: 30px; height: 30px; font-size: 16px; line-height: 1; cursor: pointer; background: #3a3c46; color: #e8eaf0; }
+        @media (min-width: 700px) { .call-set-wrap { align-items: center; } .call-set { border-radius: 18px; } }
         .call-set-h { padding: 12px 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .08em; color: #8a93a8; }
         .call-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid #30323b; cursor: pointer; }
         .call-row:last-child { border-bottom: 0; }
@@ -2251,15 +2261,15 @@ function callTileHTML(uid, name, o) {
             : '<span class="call-sharevid" data-share="' + Number(uid) + '"></span><button class="call-full" onclick="callShareFull(' + Number(uid) + ')">' + esc(ct('call_share_full')) + '</button>';
         return '<div class="call-chip call-tile is-share' + (o.cam ? ' has-vid' : '') + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + (o.hand ? ' hand' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' + inner +
             (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + (o.hand ? '<span class="call-hand">✋</span>' : '') +
-            '<span class="call-nm">' + SHARE_SVG + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
+            '<div class="call-cap" data-cap="' + Number(uid) + '"></div><span class="call-nm">' + SHARE_SVG + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
             '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg></div>';
     }
     return '<div class="call-chip call-tile' + (o.cam ? ' has-vid' : '') + (o.me ? ' me' : '') + (o.muted ? ' muted' : '') + (o.hand ? ' hand' : '') + ' st-' + (o.state || 'connecting') + '" data-uid="' + Number(uid) + '">' + (o.hand ? '<span class="call-hand">✋</span>' : '') +
-        '<span class="call-av">' + avatarImg(uid, 96) + '</span>' + (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + '<span class="call-nm">' + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
+        '<span class="call-av">' + avatarImg(uid, 96) + '</span>' + '<div class="call-cap" data-cap="' + Number(uid) + '"></div>' + (o.cam ? '<span class="call-vid" data-vid="' + Number(uid) + '"></span>' : '') + '<span class="call-nm">' + esc(name) + (o.me ? ' (' + esc(ct('cap_you')) + ')' : '') + '</span>' + (o.me ? '' : '<span class="call-st"></span>') +
         '<svg class="call-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>' +
         (chatIsAdmin && !o.me && call ? '<button class="call-kick" title="' + esc(ct('call_kick')) + '" onclick="callKick(' + Number(uid) + ')">✕</button>' : '') + '</div>';
 }
-function callCellHTML(uid, name, o) { o.share = !!(call && call.shares && call.shares[uid]); return '<div class="call-cell' + (o.share ? ' share' : '') + '">' + callTileHTML(uid, name, o) + '<div class="call-cap" data-cap="' + Number(uid) + '"></div></div>'; }
+function callCellHTML(uid, name, o) { o.share = !!(call && call.shares && call.shares[uid]); return '<div class="call-cell' + (o.share ? ' share' : '') + '">' + callTileHTML(uid, name, o) + '</div>'; }
 function renderCallPanel() {
     var el = document.getElementById('call-panel');
     if (!el) return;
@@ -2291,11 +2301,14 @@ function renderCallPanel() {
             '<button class="call-btn react-btn' + (call.reactOpen ? ' on-y' : '') + '" onclick="callReactToggle()">' + SMILE_SVG + '<span>' + esc(ct('call_react')) + '</span></button>' +
             '<button class="call-btn more-btn' + (call.moreOpen ? ' on-y' : '') + '" onclick="callMoreToggle()">' + CC_SVG + '<span>' + esc(ct('call_more')) + '</span></button>' +
             '<button class="call-btn leave" onclick="callLeave()">' + LEAVE_SVG + '<span>' + esc(ct('call_leave')) + '</span></button></div>' +
-            (call.moreOpen ? '<div class="call-set">' + callCapSetHTML() + callTtsHTML() + '</div>' : '') + err;
+            (call.moreOpen ? '<div class="call-set-wrap" onclick="if(event.target===this)callMoreToggle()"><div class="call-set"><div class="call-set-top"><span>' + esc(ct('call_more')) + '</span><button onclick="callMoreToggle()" aria-label="close">✕</button></div>' + callCapSetHTML() + callTtsHTML() + '</div></div>' : '') + err;
     }
     el.className = 'call-panel' + (call ? ' zoom' : '');
     var kin = null, kv = '', kf = false;   // 再描画しても、入力中の文字を失わない
+    var oldSet = el.querySelector('.call-set'), setTop = oldSet ? oldSet.scrollTop : 0;   // 設定シートの、スクロール位置も保つ
     el.innerHTML = h;
+    var newSet = el.querySelector('.call-set');
+    if (newSet && setTop) newSet.scrollTop = setTop;
     if (call) Array.prototype.forEach.call(el.querySelectorAll('.call-vid'), function(slot) {      // 映像は作り直さず、同じ要素をタイルへ戻す
         var uid = Number(slot.dataset.vid), v = uid === loginUser.id ? call.camEl : (call.peers[uid] && call.peers[uid].camEl);
         if (v) slot.appendChild(v);

@@ -2343,14 +2343,17 @@ async function callJoin() {
     var local = null;
     try {
         if (!window.isSecureContext) throw new Error('insecure');
-        local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        var noMic = false;
+        try { local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }); }
+        catch (me) { if (me && me.message === 'insecure') throw me; noMic = true; local = new MediaStream(); }   // マイクなし（拒否・未接続）でも、聞くだけで入れる
         var ice = await apiCall('GET', '/api/chat/call/ice');
-        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: false, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null, screen: null, shares: {}, sharer: null, shareEl: null, ttsLog: [], ttsLast: 0, hand: false, cam: null, camEl: null, reactOpen: false, moreOpen: false, reactAt: 0, rec: null, capLines: [], capSeq: 0, capInterimAt: 0, capErr: '' };
+        var st = { room: CALL_ROOM, local: local, ice: ice.iceServers, peers: {}, muted: noMic, noMic: noMic, sid: callRand(), closed: false, ctl: null, pingT: null, levelT: null, ctx: null, localAn: null, screen: null, shares: {}, sharer: null, shareEl: null, ttsLog: [], ttsLast: 0, hand: false, cam: null, camEl: null, reactOpen: false, moreOpen: false, reactAt: 0, rec: null, capLines: [], capSeq: 0, capInterimAt: 0, capErr: '' };
         call = st;
         try { var AC = window.AudioContext || window.webkitAudioContext; st.ctx = new AC(); st.ctx.resume(); st.localAn = callAnalyser(st, local); } catch (e) {}
         await callOpenStream(st);                                 // 合図を受け取る道を先に開く（取りこぼさないため）
         var j = await apiCall('POST', '/api/chat/call/join', { room: CALL_ROOM });
         if (st.closed) return;
+        if (noMic) apiCall('POST', '/api/chat/call/state', { muted: true }).catch(function() {});
         j.peers.forEach(function(p) { if (!st.peers[p.uid]) callAddPeer(st, p, true); });
         st.pingT = setInterval(callPing, 15000);
         st.levelT = setInterval(callLevels, 120);
@@ -2444,6 +2447,7 @@ function callNewPc(st, p) {
     var pc = new RTCPeerConnection({ iceServers: st.ice });
     p.pc = pc; p.pendingIce = []; p.state = 'connecting';
     st.local.getTracks().forEach(function(t) { pc.addTrack(t, st.local); });
+    if (!st.local.getAudioTracks().length) { try { pc.addTransceiver('audio', { direction: 'recvonly' }); } catch (e) {} }   // 聞くだけ
     pc.onicecandidate = function(ev) {
         if (!ev.candidate) return;
         p.iceBuf.push(ev.candidate.toJSON ? ev.candidate.toJSON() : ev.candidate);
@@ -2780,11 +2784,32 @@ async function callPing() {
 }
 function callToggleMute() {
     if (!call) return;
+    if (call.noMic) { callMicEnable(); return; }
     call.muted = !call.muted;
     call.local.getAudioTracks().forEach(function(t) { t.enabled = !call.muted; });
     apiCall('POST', '/api/chat/call/state', { muted: call.muted }).catch(function() {});
     if (call.muted) capStop(call); else capStart(call);
     renderCallPanel(); callBarSync();
+}
+async function callMicEnable() {
+    var st = call; if (!st || st.micBusy) return;
+    st.micBusy = true;
+    try {
+        var ms = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        if (call !== st) { ms.getTracks().forEach(function(t) { t.stop(); }); return; }
+        var tr = ms.getAudioTracks()[0];
+        st.local.addTrack(tr); st.noMic = false; st.muted = false;
+        try { st.localAn = callAnalyser(st, ms); } catch (e) {}
+        Object.keys(st.peers).forEach(function(k) {
+            var p = st.peers[k]; if (!p.pc) return;
+            var tx = p.pc.getTransceivers().filter(function(t) { return t.receiver && t.receiver.track && t.receiver.track.kind === 'audio'; })[0];
+            if (tx) { tx.sender.replaceTrack(tr).catch(function() {}); try { tx.direction = 'sendrecv'; } catch (e) {} callRenegotiate(st, p); }
+            else { try { p.pc.addTrack(tr, st.local); } catch (e) {} callRenegotiate(st, p); }
+        });
+        apiCall('POST', '/api/chat/call/state', { muted: false }).catch(function() {});
+        capStart(st);
+    } catch (e) { callErrMsg = callErrText(e); }
+    finally { st.micBusy = false; renderCallPanel(); callBarSync(); }
 }
 function callLeave() { callTeardown(true); }
 async function callKick(uid) {

@@ -393,6 +393,14 @@
         }
         .call-tile .call-cap { position: absolute; left: 6px; right: 6px; bottom: 34px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 3px; max-height: 80%; overflow: hidden; justify-content: flex-end; pointer-events: none; }
         .call-tile .call-cap:empty { display: none; }
+        /* 字幕バー: 全文がかならず読める。タイルの字幕は、短い目印 */
+        .call-capbar { display: none; flex: none; max-height: 30%; overflow-y: auto; margin: 6px 8px 0; padding: 6px 10px; border-radius: 10px; background: rgba(0,0,0,.78); color: #fff; font-size: 14px; line-height: 1.5; word-break: break-word; scrollbar-width: thin; }
+        .call-capbar.on { display: block; }
+        .call-capbar .cb-line + .cb-line { margin-top: 4px; }
+        .call-capbar .cb-line b { color: #9cc4ff; font-size: 12px; margin-right: 6px; }
+        .call-capbar .cb-line.interim { opacity: .75; }
+        .call-capbar .tr { display: block; color: #ffd37a; }
+        .call-panel.mini .call-capbar { max-height: 22vh; }
         .call-tile .call-cap-line { max-width: 100%; flex: none; word-break: break-word; margin: 0; padding: 4px 10px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
         .call-tile .call-cap-line b { display: none; }
         .call-tile .call-cap-line.interim { opacity: .7; }
@@ -2412,7 +2420,7 @@ function renderCallPanel() {
             esc(peers.length ? ct('call_talking').replace('{n}', nAll) : ct('call_wait')) + '</div></div>' +
             '<div class="call-who n' + Math.min(nAll, 3) + '">' + callCellHTML(loginUser.id, loginUser.username, { me: true, muted: call.muted, hand: call.hand, cam: !!call.cam }) +
             peers.map(function(p) { return callCellHTML(p.uid, p.username, { muted: p.muted, state: p.state, hand: p.hand, cam: !!p.camEl }); }).join('') + '</div></div>' +
-            callReactHTML() +
+            callReactHTML() + '<div class="call-capbar" id="call-capbar"></div>' +
             '<div class="call-ctl"><button class="call-btn mute' + (call.muted ? ' on' : '') + '" onclick="callToggleMute()">' + (call.muted ? MIC_OFF_SVG : MIC_SVG) + '<span>' + esc(call.muted ? ct('call_unmute') : ct('call_mute')) + '</span></button>' +
             '<button class="call-btn cam' + (call.cam ? ' on' : '') + '" onclick="callCamToggle()">' + (call.cam ? CAM_SVG : CAM_OFF_SVG) + '<span>' + esc(ct(call.cam ? 'call_cam_off' : 'call_cam')) + '</span></button>' +
             callShareBtnHTML() +
@@ -3051,7 +3059,7 @@ function capStart(st) {
     r.onresult = function(ev) {
         if (st.closed || st.rec !== r) return;
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
-            var res = ev.results[i], t = String(res[0].transcript || '').trim().slice(0, 200);
+            var res = ev.results[i], t = String(res[0].transcript || '').trim().slice(-600);
             if (!t) continue;
             var fin = !!res.isFinal, now = Date.now();
             if (!fin && now - st.capInterimAt < 700) { capLine(st, loginUser.id, ct('cap_you'), t, false, capMyLang(), true); continue; }   // 途中経過は、送りすぎない
@@ -3088,14 +3096,14 @@ function capLine(st, uid, name, text, fin, lang, mine) {
     if (fin && !mine) capTranslate(st, open);
 }
 function capIncoming(st, p, d) {
-    var t = typeof d.t === 'string' ? d.t.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200) : '';
+    var t = typeof d.t === 'string' ? d.t.replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(-600) : '';
     if (!t) return;
     capLine(st, p.uid, p.username, t, !!d.f, d.l === 'en' ? 'en' : 'ja', false);
 }
 async function capTranslate(st, line) {
     var tgt = capCallLang();
     if (capGet('tr', '1') !== '1' || line.lang === tgt || !/[\p{L}]/u.test(line.text)) return;
-    var text = line.text;
+    var text = line.text.slice(-240);   // 翻訳の上限に合わせ、いま話している末尾を訳す
     try {
         var d = await apiCall('POST', '/api/chat/translate-text', { text: text, lang: tgt });
         if (st.closed || !d || typeof d.text !== 'string') return;
@@ -3115,6 +3123,16 @@ function capPaint() {
             return '<div class="call-cap-line' + (l.fin ? '' : ' interim') + '">' + esc(capTail(l.text, 70)) + (l.tr && l.tr !== l.text ? '<span class="tr">' + esc(capTail(l.tr, 70)) + '</span>' : '') + '</div>';
         }).join('');
     }
+    capBarPaint(st, view, now);
+}
+function capBarPaint(st, view, now) {
+    var bar = document.getElementById('call-capbar'); if (!bar) return;
+    var ls = st && view ? st.capLines.slice(-4) : [];
+    bar.innerHTML = ls.map(function(l) {
+        return '<div class="cb-line' + (l.fin ? '' : ' interim') + '"><b>' + esc(l.name || '') + '</b>' + esc(l.text) + (l.tr && l.tr !== l.text ? '<span class="tr">' + esc(l.tr) + '</span>' : '') + '</div>';
+    }).join('');
+    bar.classList.toggle('on', ls.length > 0);
+    bar.scrollTop = bar.scrollHeight;
 }
 setInterval(function() { if (call && call.capLines && call.capLines.length) capPaint(); }, 2000);
 

@@ -391,9 +391,9 @@
             .call-panel.zoom .call-ctl .call-btn span { font-size: 10px; }
             .call-stage .call-top { margin-bottom: 6px; }
         }
-        .call-tile .call-cap { position: absolute; left: 6px; right: 6px; bottom: 34px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 3px; max-height: 62%; overflow: hidden; justify-content: flex-end; pointer-events: none; }
+        .call-tile .call-cap { position: absolute; left: 6px; right: 6px; bottom: 34px; z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 3px; max-height: 80%; overflow: hidden; justify-content: flex-end; pointer-events: none; }
         .call-tile .call-cap:empty { display: none; }
-        .call-tile .call-cap-line { max-width: 100%; margin: 0; padding: 4px 10px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+        .call-tile .call-cap-line { max-width: 100%; flex: none; word-break: break-word; margin: 0; padding: 4px 10px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font-size: 14px; font-weight: 600; line-height: 1.4; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
         .call-tile .call-cap-line b { display: none; }
         .call-tile .call-cap-line.interim { opacity: .7; }
         .call-tile .call-cap-line .tr { display: block; color: #ffd37a; margin-top: 1px; font-size: 13px; }
@@ -3102,15 +3102,17 @@ async function capTranslate(st, line) {
         line.tr = d.text; capPaint();
     } catch (e) { /* 訳せなくても、原文の字幕は出ている */ }
 }
+// 長い字幕は、末尾（いま話している所）だけをタイルに出す。はみ出して見えなくなるのを防ぐ
+function capTail(t, n) { t = String(t); return t.length > n ? '…' + t.slice(-n) : t; }
 function capPaint() {
     var st = call, now = Date.now(), view = capGet('view', '1') === '1';
     var boxes = document.querySelectorAll('#call-panel .call-cap');
-    if (st) st.capLines = st.capLines.filter(function(l) { return now - l.at < 14000; });
+    if (st) st.capLines = st.capLines.filter(function(l) { return now - l.at < 12000 + Math.min(l.text.length + ((l.tr || '').length), 300) * 60; });
     for (var i = 0; i < boxes.length; i++) {
         var uid = Number(boxes[i].dataset.cap);
-        var ls = st && view ? st.capLines.filter(function(l) { return l.uid === uid; }) : [];
+        var ls = st && view ? st.capLines.filter(function(l) { return l.uid === uid; }).slice(-2) : [];
         boxes[i].innerHTML = ls.map(function(l) {
-            return '<div class="call-cap-line' + (l.fin ? '' : ' interim') + '">' + esc(l.text) + (l.tr && l.tr !== l.text ? '<span class="tr">' + esc(l.tr) + '</span>' : '') + '</div>';
+            return '<div class="call-cap-line' + (l.fin ? '' : ' interim') + '">' + esc(capTail(l.text, 70)) + (l.tr && l.tr !== l.text ? '<span class="tr">' + esc(capTail(l.tr, 70)) + '</span>' : '') + '</div>';
         }).join('');
     }
 }

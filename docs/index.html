@@ -50,6 +50,22 @@
         #chat-tabs { display: none; }
         #chat-tabs .chat-tab { flex: 0 0 auto; padding-left: 12px; padding-right: 12px; white-space: nowrap; }
         #chat-tabs .chat-tab i { font-style: normal; opacity: .72; margin-right: 4px; }
+        /* チャットのルームタブも「見る・探す」と同じヘッダータブの見た目に統一 */
+        .header-mode-nav #chat-tabs .chat-tab {
+            display: flex; align-items: center; flex: 0 0 auto;
+            padding: 8px 14px 7px; margin: 0;
+            border: 0; border-bottom: 3px solid transparent; border-radius: 0;
+            background: transparent; color: rgba(255,255,255,0.78);
+            font-size: 13px; font-weight: bold; text-align: center;
+            text-decoration: none; cursor: pointer;
+            transition: color 0.15s, background 0.15s;
+        }
+        .header-mode-nav #chat-tabs .chat-tab.active {
+            color: #fff; background: transparent; border-bottom-color: #fff;
+        }
+        .header-mode-nav #chat-tabs .chat-tab:not(.active):hover {
+            color: #fff; background: rgba(255,255,255,0.12);
+        }
         .nav-state-proxies { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
         .nav-state-proxy { position: absolute !important; width: 1px !important; height: 1px !important; min-width: 0 !important; min-height: 0 !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap !important; border: 0 !important; pointer-events: none !important; }
         body.header-no-subnav { padding-top: 64px !important; }

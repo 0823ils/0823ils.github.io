@@ -1776,12 +1776,38 @@ const PG_THREADS_PER_DAY = 5, PG_UPDATES_PER_HOUR = 20, PG_LIST_MAX = 200;
 const PG_ROOM_RE = /^pg(\d{1,9})$/;
 const pgClaim = (kind, id) => kind === 'thread' ? -(1000000000 + id) : -id;   // 添付ファイルの持ち主の印（負の数にしておくと、期限切れの掃除から外れる）
 
-function pgScratchId(v) {
-  const s = String(v == null ? '' : v).trim();
-  if (!s) return 0;
-  const m = /^(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})(?:[\/?#].*)?$/i.exec(s) || /^(\d{3,12})$/.exec(s);
-  if (!m) throw new HttpError(400, 'bad_scratch');
-  return Number(m[1]);
+let _pgLinkCol = false;
+async function pgEnsureLinkCol(env) {
+  if (_pgLinkCol) return;
+  const info = await env.DB.prepare('PRAGMA table_info(progress_threads)').all();
+  if (!(info.results || []).some(c => c.name === 'link_url')) {
+    try {
+      await env.DB.prepare("ALTER TABLE progress_threads ADD COLUMN link_url TEXT NOT NULL DEFAULT ''").run();
+    } catch (e) {
+      // 別リクエストが同時に追加した場合だけは許容し、列が本当にあるか再確認する
+      const check = await env.DB.prepare('PRAGMA table_info(progress_threads)').all();
+      if (!(check.results || []).some(c => c.name === 'link_url')) throw e;
+    }
+  }
+  _pgLinkCol = true;
+}
+function pgLinkUrl(v) {
+  let s = String(v == null ? '' : v).trim();
+  if (!s) return '';
+  if (s.length > 500) throw new HttpError(400, 'bad_link');
+  // 以前のScratch作品IDだけが送られてきた場合も、そのまま移行できる
+  if (/^\d{3,12}$/.test(s)) s = 'https://scratch.mit.edu/projects/' + s + '/';
+  else if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) s = 'https://' + s;
+  let u;
+  try { u = new URL(s); } catch { throw new HttpError(400, 'bad_link'); }
+  if (!['http:', 'https:'].includes(u.protocol) || !u.hostname || u.username || u.password) {
+    throw new HttpError(400, 'bad_link');
+  }
+  return u.href;
+}
+function pgScratchIdFromUrl(value) {
+  const m = /^(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})(?:[\/?#].*)?$/i.exec(String(value || '').trim());
+  return m ? Number(m[1]) : 0;
 }
 async function pgFilesOf(env, ids) {
   const out = {};
@@ -1812,8 +1838,10 @@ async function pgImageOf(env, imageId) {
   return o.image.url;
 }
 async function pgThreadRow(env, t, withLast) {
+  const legacyScratch = Number(t.scratch_id) || 0;
+  const linkUrl = String(t.link_url || '').trim() || (legacyScratch ? 'https://scratch.mit.edu/projects/' + legacyScratch + '/' : '');
   const o = { id: t.id, user_id: t.user_id, username: t.username, title: t.title, description: t.description,
-    scratch_id: t.scratch_id || 0, created_at: t.created_at, last_msg_at: t.last_msg_at, last_update_at: t.last_update_at,
+    scratch_id: legacyScratch, link_url: linkUrl, created_at: t.created_at, last_msg_at: t.last_msg_at, last_update_at: t.last_update_at,
     cover: await pgImageOf(env, t.image_id) };
   if (withLast) {
     const c = await env.DB.prepare('SELECT COUNT(*) AS n FROM progress_updates WHERE thread_id = ? AND deleted = 0').bind(t.id).first();
@@ -1863,7 +1891,9 @@ async function pgCreateThread(request, env) {
   const title = String(body.title || '').replace(/\s+/g, ' ').trim().slice(0, PG_TITLE_MAX);
   const desc = String(body.description || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, PG_DESC_MAX);
   if (!title) throw new HttpError(400, 'empty_title');
-  const scratch = pgScratchId(body.scratch);
+  await pgEnsureLinkCol(env);
+  const linkUrl = pgLinkUrl(body.link_url != null ? body.link_url : body.scratch);
+  const scratch = pgScratchIdFromUrl(linkUrl);
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
   const now = Date.now();
@@ -1871,8 +1901,8 @@ async function pgCreateThread(request, env) {
   if (n && n.c >= PG_THREADS_PER_DAY) throw new HttpError(429, 'too_fast');
   const img = body.image_id ? await pgTakeFiles(env, user, [body.image_id], isImageType) : [];
   const res = await env.DB.prepare(
-    'INSERT INTO progress_threads (user_id, username, title, description, scratch_id, image_id, created_at, last_msg_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).bind(user.uid, user.u, title, desc, scratch, img[0] || null, now, now).run();
+    'INSERT INTO progress_threads (user_id, username, title, description, scratch_id, link_url, image_id, created_at, last_msg_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(user.uid, user.u, title, desc, scratch, linkUrl, img[0] || null, now, now).run();
   const id = res.meta.last_row_id;
   if (img[0]) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(pgClaim('thread', id), img[0]).run();
   const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ?').bind(id).first();
@@ -1933,7 +1963,9 @@ async function pgDeleteUpdate(request, env, id) {
   await env.DB.prepare('UPDATE progress_threads SET last_update_at = ? WHERE id = ?').bind((last && last.m) || 0, u.thread_id).run();
   return json({ deleted: true });
 }
-function pgRoute(request, env, path, method) {
+async function pgRoute(request, env, path, method) {
+  if (!path.startsWith('/api/chat/progress/')) return null;
+  await pgEnsureLinkCol(env);
   if (path === '/api/chat/progress/threads' && method === 'GET') return pgListThreads(request, env);
   if (path === '/api/chat/progress/threads' && method === 'POST') return pgCreateThread(request, env);
   let m = path.match(/^\/api\/chat\/progress\/threads\/(\d{1,9})$/);

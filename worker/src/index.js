@@ -1855,6 +1855,7 @@ async function pgThreadRow(env, t, withLast) {
   return o;
 }
 async function pgListThreads(request, env) {
+  await pgEnsureLinkCol(env);
   const rows = await env.DB.prepare(
     `SELECT * FROM progress_threads WHERE deleted = 0
       ORDER BY (last_update_at > 0) DESC, last_update_at DESC, last_msg_at DESC, id DESC LIMIT ?`
@@ -1864,6 +1865,7 @@ async function pgListThreads(request, env) {
   return json({ threads, video_enabled: videoEnabled(env) });
 }
 async function pgGetThread(request, env, id) {
+  await pgEnsureLinkCol(env);
   const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ? AND deleted = 0').bind(id).first();
   if (!t) throw new HttpError(404, 'not_found');
   const rows = await env.DB.prepare('SELECT id, user_id, username, content, created_at FROM progress_updates WHERE thread_id = ? AND deleted = 0 ORDER BY id DESC LIMIT 100').bind(id).all();
@@ -1963,9 +1965,7 @@ async function pgDeleteUpdate(request, env, id) {
   await env.DB.prepare('UPDATE progress_threads SET last_update_at = ? WHERE id = ?').bind((last && last.m) || 0, u.thread_id).run();
   return json({ deleted: true });
 }
-async function pgRoute(request, env, path, method) {
-  if (!path.startsWith('/api/chat/progress/')) return null;
-  await pgEnsureLinkCol(env);
+function pgRoute(request, env, path, method) {
   if (path === '/api/chat/progress/threads' && method === 'GET') return pgListThreads(request, env);
   if (path === '/api/chat/progress/threads' && method === 'POST') return pgCreateThread(request, env);
   let m = path.match(/^\/api\/chat\/progress\/threads\/(\d{1,9})$/);

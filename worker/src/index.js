@@ -1993,6 +1993,7 @@ function pgRoute(request, env, path, method) {
 // 本文は Markdown の文字列のまま保存する（表示はブラウザ側で、安全な部分だけ変換する）。
 // 本文中の画像は ![説明](img:<画像ID>) と書く。画像は、チャットの添付と同じ手順（/api/chat/videos/start → PUT → complete）で先に上げて、そのIDを使う。
 const GD_TITLE_MAX = 80, GD_BODY_MAX = 30000, GD_TAGS_MAX = 5, GD_TAG_LEN = 20, GD_IMAGES_MAX = 20, GD_COMMENT_MAX = 500;
+const GD_SB3_MAX = 5;
 const GD_NEW_PER_DAY = 10, GD_SAVES_PER_HOUR = 120, GD_COMMENTS_PER_HOUR = 30, GD_LIST_N = 20;
 const gdClaim = (id) => -(2000000000 + id);   // 画像の持ち主の印（負の数にしておくと、期限切れの掃除から外れる）
 let _gdTables = false;
@@ -2013,8 +2014,11 @@ async function ensureGuideTables(env) {
        content TEXT NOT NULL, created_at INTEGER NOT NULL, deleted INTEGER NOT NULL DEFAULT 0)`,
     'CREATE INDEX IF NOT EXISTS idx_guide_comments ON guide_comments(guide_id, id)',
     'CREATE TABLE IF NOT EXISTS guide_images (guide_id INTEGER NOT NULL, video_id TEXT NOT NULL, PRIMARY KEY (guide_id, video_id))',
+    'CREATE TABLE IF NOT EXISTS guide_bookmarks (guide_id INTEGER NOT NULL, user_id INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY (guide_id, user_id))',
+    'CREATE INDEX IF NOT EXISTS idx_guide_bm_user ON guide_bookmarks(user_id, created_at DESC)',
   ];
   for (const q of ddl) await env.DB.prepare(q).run();
+  try { await env.DB.prepare('ALTER TABLE guides ADD COLUMN project_id INTEGER NOT NULL DEFAULT 0').run(); } catch (e) { /* すでにある */ }
   _gdTables = true;
 }
 function gdClean(body) {
@@ -2035,6 +2039,7 @@ function gdExcerpt(md) {
     .replace(/^[#>\-*+\d.\s]+/gm, '').replace(/[*_`~]/g, '').replace(/\s+/g, ' ').trim().slice(0, 140);
 }
 const gdImgIds = (md) => [...new Set([...String(md).matchAll(/!\[[^\]]*\]\(img:([a-f0-9]{32})\)/g)].map(m => m[1]))];
+const gdSb3Ids = (md) => [...new Set([...String(md).matchAll(/(?<!!)\[[^\]]*\]\(sb3:([a-f0-9]{32})\)/g)].map(m => m[1]))];
 async function gdImageUrls(env, ids) {
   const out = {};
   if (!ids.length) return out;
@@ -2046,17 +2051,32 @@ async function gdImageUrls(env, ids) {
   for (const o of items) out[o._id] = o.image.url;
   return out;
 }
+async function gdFileUrls(env, ids) {
+  const out = {};
+  if (!ids.length) return out;
+  const rows = await env.DB.prepare(
+    `SELECT v.id, v.object_key, v.content_type, v.size, n.name FROM chat_videos v LEFT JOIN chat_video_names n ON n.video_id = v.id
+      WHERE v.state = 'ready' AND v.id IN (${ids.map(() => '?').join(',')})`
+  ).bind(...ids).all();
+  const items = rows.results.filter(r => isSb3Type(r.content_type)).map(r => ({ _id: r.id, file: { id: r.id, type: r.content_type, _key: r.object_key, name: r.name || 'project.sb3', size: r.size || 0 } }));
+  await attachMediaUrls(env, items);
+  for (const o of items) out[o._id] = { url: o.file.url, name: o.file.name, size: o.file.size };
+  return out;
+}
 async function gdRow(env, g, user, opts) {
   const o = {
     id: g.id, user_id: g.user_id, username: g.username, title: g.title, excerpt: g.excerpt,
     tags: g.tags ? g.tags.split(',').filter(Boolean) : [], likes: g.likes, comments: g.comments,
     published: !!g.published, published_at: g.published_at, updated_at: g.updated_at, created_at: g.created_at,
-    cover: await pgImageOf(env, g.cover_id), cover_id: g.cover_id || '',
+    cover: await pgImageOf(env, g.cover_id), cover_id: g.cover_id || '', project_id: g.project_id || 0,
   };
   if (opts && opts.full) {
     o.body = g.body;
     o.images = await gdImageUrls(env, gdImgIds(g.body));
+    o.files = await gdFileUrls(env, gdSb3Ids(g.body));
     if (user) {
+      const b = await env.DB.prepare('SELECT 1 AS x FROM guide_bookmarks WHERE guide_id = ? AND user_id = ?').bind(g.id, user.uid).first();
+      o.bookmarked = !!b;
       const l = await env.DB.prepare('SELECT 1 AS x FROM guide_likes WHERE guide_id = ? AND user_id = ?').bind(g.id, user.uid).first();
       o.liked = !!l;
     }
@@ -2072,7 +2092,13 @@ async function gdList(request, env, url) {
   const author = String(url.searchParams.get('author') || '').slice(0, 40);
   const before = Number(url.searchParams.get('before') || 0);
   const offset = Number(url.searchParams.get('offset') || 0);
+  const project = Math.floor(Number(url.searchParams.get('project') || 0));
   const where = ['deleted = 0', 'published = 1'], bind = [];
+  if (url.searchParams.get('bookmarked') === '1') {
+    const me = await requireUser(request, env);
+    where.push('id IN (SELECT guide_id FROM guide_bookmarks WHERE user_id = ?)'); bind.push(me.uid);
+  }
+  if (Number.isFinite(project) && project > 0) { where.push('project_id = ?'); bind.push(project); }
   if (tag) { where.push("(',' || tags || ',') LIKE ? ESCAPE '\\'"); bind.push(gdLike(',' + tag + ',')); }
   if (q) { where.push("(title LIKE ? ESCAPE '\\' OR excerpt LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\')"); const l = gdLike(q); bind.push(l, l, l); }
   if (author) { where.push('username = ? COLLATE NOCASE'); bind.push(author); }
@@ -2105,13 +2131,16 @@ async function gdGet(request, env, id) {
 // 本文と表紙で使っている画像を確かめて、この記事のものにする（使わなくなった画像は消す）
 async function gdSyncImages(env, user, gid, bodyText, coverId) {
   const want = gdImgIds(bodyText);
+  const sb3 = gdSb3Ids(bodyText);
+  if (sb3.length > GD_SB3_MAX) throw new HttpError(400, 'too_many_files');
+  for (const id of sb3) if (!want.includes(id)) want.push(id);
   if (coverId && !want.includes(coverId)) want.push(coverId);
-  if (want.length > GD_IMAGES_MAX) throw new HttpError(400, 'too_many_images');
+  if (want.length > GD_IMAGES_MAX + GD_SB3_MAX) throw new HttpError(400, 'too_many_images');
   const have = new Set((await env.DB.prepare('SELECT video_id FROM guide_images WHERE guide_id = ?').bind(gid).all()).results.map(r => r.video_id));
   for (const id of want) {
     if (have.has(id)) continue;
     const v = await env.DB.prepare("SELECT id, content_type FROM chat_videos WHERE id = ? AND user_id = ? AND state = 'ready' AND message_id IS NULL").bind(id, user.uid).first();
-    if (!v || !isImageType(v.content_type)) throw new HttpError(404, 'image_not_found');
+    if (!v || !(isImageType(v.content_type) || (sb3.includes(id) && isSb3Type(v.content_type)))) throw new HttpError(404, 'image_not_found');
   }
   for (const id of want) {
     if (have.has(id)) continue;
@@ -2136,6 +2165,8 @@ async function gdSave(request, env, id) {
   if (ban) throw new HttpError(403, 'banned');
   const coverId = body.cover_id ? String(body.cover_id) : '';
   if (coverId && !/^[a-f0-9]{32}$/.test(coverId)) throw new HttpError(400, 'bad_image');
+  const projectId = body.project ? pgScratchIdFromUrl(body.project) || (/^\d{1,12}$/.test(String(body.project).trim()) ? Number(String(body.project).trim()) : -1) : 0;
+  if (projectId < 0) throw new HttpError(400, 'bad_project');
   const now = Date.now();
   const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM guides WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 86400000).first();
   let g = null;
@@ -2157,8 +2188,8 @@ async function gdSave(request, env, id) {
   try { await gdSyncImages(env, user, gid, c.text, coverId); }
   catch (e) { if (!g) await env.DB.prepare('DELETE FROM guides WHERE id = ?').bind(gid).run(); throw e; }
   const pubAt = publish ? (g && g.published_at ? g.published_at : now) : (g ? g.published_at : 0);
-  await env.DB.prepare('UPDATE guides SET title = ?, body = ?, excerpt = ?, tags = ?, cover_id = ?, published = ?, updated_at = ?, published_at = ? WHERE id = ?')
-    .bind(c.title, c.text, gdExcerpt(c.text), c.tags.join(','), coverId || null, publish ? 1 : 0, now, pubAt, gid).run();
+  await env.DB.prepare('UPDATE guides SET title = ?, body = ?, excerpt = ?, tags = ?, cover_id = ?, published = ?, updated_at = ?, published_at = ?, project_id = ? WHERE id = ?')
+    .bind(c.title, c.text, gdExcerpt(c.text), c.tags.join(','), coverId || null, publish ? 1 : 0, now, pubAt, projectId, gid).run();
   const row = await env.DB.prepare('SELECT * FROM guides WHERE id = ?').bind(gid).first();
   return json({ guide: await gdRow(env, row, user, { full: true }) }, id ? 200 : 201);
 }
@@ -2222,6 +2253,15 @@ async function gdCommentDelete(request, env, cid) {
   await env.DB.prepare('UPDATE guides SET comments = ? WHERE id = ?').bind(n.n, c.guide_id).run();
   return json({ deleted: true });
 }
+async function gdBookmarkSet(request, env, id, on) {
+  await ensureGuideTables(env);
+  const user = await requireUser(request, env);
+  const g = await env.DB.prepare('SELECT id FROM guides WHERE id = ? AND deleted = 0 AND published = 1').bind(id).first();
+  if (!g) throw new HttpError(404, 'not_found');
+  if (on) await env.DB.prepare('INSERT OR IGNORE INTO guide_bookmarks (guide_id, user_id, created_at) VALUES (?, ?, ?)').bind(id, user.uid, Date.now()).run();
+  else await env.DB.prepare('DELETE FROM guide_bookmarks WHERE guide_id = ? AND user_id = ?').bind(id, user.uid).run();
+  return json({ bookmarked: on });
+}
 function gdRoute(request, env, url, path, method) {
   if (path === '/api/chat/guides' && method === 'GET') return gdList(request, env, url);
   if (path === '/api/chat/guides' && method === 'POST') return gdSave(request, env, 0);
@@ -2235,6 +2275,9 @@ function gdRoute(request, env, url, path, method) {
   m = path.match(/^\/api\/chat\/guides\/(\d{1,9})\/like$/);
   if (m && method === 'PUT') return gdLikeSet(request, env, Number(m[1]), true);
   if (m && method === 'DELETE') return gdLikeSet(request, env, Number(m[1]), false);
+  m = path.match(/^\/api\/chat\/guides\/(\d{1,9})\/bookmark$/);
+  if (m && method === 'PUT') return gdBookmarkSet(request, env, Number(m[1]), true);
+  if (m && method === 'DELETE') return gdBookmarkSet(request, env, Number(m[1]), false);
   m = path.match(/^\/api\/chat\/guides\/(\d{1,9})\/comments$/);
   if (m && method === 'GET') return gdComments(request, env, Number(m[1]));
   if (m && method === 'POST') return gdCommentPost(request, env, Number(m[1]));

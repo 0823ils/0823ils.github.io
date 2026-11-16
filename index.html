@@ -1167,6 +1167,51 @@
         .gd-md blockquote { margin: 0 0 1em; padding: 6px 14px; border-left: 4px solid #cfdcf5; background: #f5f8fd; color: #53607a; border-radius: 0 8px 8px 0; }
         .gd-md code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; background: #eef2f9; padding: 1px 6px; border-radius: 5px; }
         .gd-md pre { margin: 0 0 1em; padding: 12px 14px; background: #1e2433; color: #e6ebf5; border-radius: 10px; overflow-x: auto; line-height: 1.6; }
+        .dg-view { margin: 0 0 1em; border: 1px solid #dfe3ee; border-radius: 12px; overflow: hidden; background: #fff; }
+        .dg-svg { display: block; width: 100%; aspect-ratio: 3 / 2; touch-action: none; user-select: none; background: #fff; }
+        .dg-h { cursor: grab; }
+        .dg-ctl { padding: 8px 12px; border-top: 1px solid #eef0f6; background: #f7f8fc; display: flex; flex-direction: column; gap: 6px; }
+        .dg-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .dg-row span { min-width: 5em; font-weight: 600; }
+        .dg-row input[type=range] { flex: 1; min-width: 0; }
+        .dg-play { border: 0; background: #4c97ff; color: #fff; border-radius: 8px; padding: 3px 12px; cursor: pointer; }
+        #dg-ed { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.55); display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .dge-box { width: min(1060px, 100%); max-height: 100%; background: #fff; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; color: #222; }
+        .dge-top { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #e6e8f0; flex-wrap: wrap; }
+        .dge-sp { flex: 1; }
+        .dge-modes { display: flex; gap: 4px; }
+        .dge-main { display: flex; gap: 10px; padding: 10px; overflow: auto; min-height: 0; }
+        .dge-tools { display: flex; flex-direction: column; gap: 4px; }
+        .dge-tools hr { width: 100%; border: 0; border-top: 1px solid #e6e8f0; margin: 2px 0; }
+        .dge-tool { width: 38px; height: 38px; border: 1px solid #d5d9e6; border-radius: 8px; background: #fff; font-size: 17px; cursor: pointer; }
+        .dge-tool.on { background: #e5edff; border-color: #4c97ff; }
+        .dge-stage { flex: 1; min-width: 0; }
+        .dge-stage .dg-svg { border: 1px solid #d5d9e6; border-radius: 8px; }
+        .dge-hint { font-size: 12px; color: #667; margin: 6px 0; }
+        .dge-tl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; margin: 4px 0; }
+        .dge-tl input[type=range] { flex: 1; min-width: 120px; }
+        .dge-tl input[type=number] { width: 4.5em; }
+        .dge-kf { color: #667; font-size: 12px; }
+        .dge-side { width: 250px; flex: none; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+        .dge-f { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .dge-f input[type=number], .dge-f input[type=text] { width: 120px; }
+        .dge-n { font-size: 12px; display: flex; gap: 3px; align-items: center; }
+        .dge-sec { border-top: 1px solid #e6e8f0; padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+        #dg-ed input, #dg-ed select { width: auto; height: auto; min-height: 0; margin: 0; padding: 4px 6px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccd1e0; border-radius: 6px; background: #fff; color: #222; }
+        #dg-ed input[type=color] { width: 44px; height: 28px; padding: 1px; }
+        #dg-ed input[type=checkbox], #dg-ed input[type=range] { padding: 0; border: 0; width: auto; }
+        #dg-ed .dge-f input[type=number], #dg-ed .dge-f input[type=text] { width: 110px; }
+        .dge-sl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        #dg-ed .dge-sl input, #dg-ed .dge-sl select { width: 100%; min-width: 0; }
+        .dge-sl button { grid-column: 1 / -1; }
+        @media (max-width: 720px) { .dge-main { flex-direction: column; } .dge-tools { flex-direction: row; flex-wrap: wrap; } .dge-side { width: auto; } }
+        .gd-code { position: relative; margin: 0 0 1em; }
+        .gd-code pre { margin: 0; }
+        .gd-copy { position: absolute; top: 6px; right: 6px; padding: 3px 9px; font-size: 12px; border: 0; border-radius: 6px; background: rgba(255,255,255,.16); color: #e6ebf5; cursor: pointer; }
+        .gd-copy:hover { background: rgba(255,255,255,.28); }
+        .gd-md .sb3-card { margin: 0 0 1em; }
+        .gd-proj { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px; padding: 6px 12px; border-radius: 999px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; font-size: 13px; text-decoration: none; cursor: pointer; }
+        .gd-btn.bk.on { background: #fff3c4; border-color: #f0c64a; color: #7a5a00; }
         .gd-md pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
         .gd-md hr { border: none; border-top: 2px solid #e3ebf7; margin: 1.6em 0; }
         .gd-img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: .4em auto; cursor: zoom-in; }
@@ -3432,9 +3477,11 @@ var GT = {
         hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated'
     }
 };
+Object.assign(GT.ja, { bDiagram: '図解', bSb3: 'sb3', bk: 'ブックマーク', bkOn: '保存済み', bkList: 'ブックマーク', bkEmpty: 'ブックマークした記事はありません。', copy: 'コピー', copied: 'コピーしました', eProj: '関連するScratch作品（任意）', eProjPh: 'ScratchのURL 例: https://scratch.mit.edu/projects/123456789', projOpen: '関連する作品を開く', e_too_many_files: 'sb3は5つまでです。', e_bad_project: '作品のURLが正しくありません。', sb3Ask: 'sb3を選ぶと、記事の中で実行できます' });
+Object.assign(GT.en, { bDiagram: 'Diagram', bSb3: 'sb3', bk: 'Bookmark', bkOn: 'Saved', bkList: 'Bookmarks', bkEmpty: 'No bookmarked articles.', copy: 'Copy', copied: 'Copied', eProj: 'Related Scratch project (optional)', eProjPh: 'Scratch URL e.g. https://scratch.mit.edu/projects/123456789', projOpen: 'Open related project', e_too_many_files: 'Up to 5 sb3 files.', e_bad_project: 'Invalid project URL.', sb3Ask: 'Pick an sb3 to run it inside the article' });
 function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
 function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
-var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, edit: null, keep: false };
+var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, bm: false, project: 0, author: '', edit: null, keep: false };
 var GD_ICO = {
     heart: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     hearto: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -3468,15 +3515,22 @@ function gdInline(s, imgs) {
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>').replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
     return s.replace(/\u0001(\d+)\u0001/g, function(_, n) { return toks[Number(n)]; });
 }
-function gdMd(src, imgs) {
+function gdMd(src, imgs, files) {
     var lines = String(src || '').split('\n'), out = [], i = 0, para = [];
     var flush = function() { if (para.length) { out.push('<p>' + para.map(function(l) { return gdInline(l, imgs); }).join('<br>') + '</p>'); para = []; } };
     while (i < lines.length) {
         var l = lines[i], m;
         if (/^```/.test(l)) {
-            flush(); var code = []; i++;
+            flush(); var code = [], lang = (/^```\s*(\w*)/.exec(l) || [])[1]; i++;
             while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
-            i++; out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); continue;
+            i++;
+            if (lang === 'diagram') { out.push('<div class="dg-view" data-spec="' + esc(code.join('')) + '"></div>'); continue; }
+            out.push('<div class="gd-code"><button type="button" class="gd-copy" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button><pre><code>' + esc(code.join('\n')) + '</code></pre></div>'); continue;
+        }
+        if ((m = /^\s*\[([^\]]*)\]\(sb3:([a-f0-9]{32})\)\s*$/.exec(l))) {
+            flush(); var sf = files && files[m[2]];
+            if (sf) out.push(chatSb3CardHTML({ url: sf.url, name: sf.name || m[1] || 'project.sb3', size: sf.size || 0 }, chatFmtSize(sf.size || 0)));
+            i++; continue;
         }
         if (!l.trim()) { flush(); i++; continue; }
         if ((m = /^(#{1,3})\s+(.+)$/.exec(l))) { flush(); out.push('<h' + (m[1].length + 1) + '>' + gdInline(m[2], imgs) + '</h' + (m[1].length + 1) + '>'); i++; continue; }
@@ -3500,6 +3554,16 @@ function gdMd(src, imgs) {
     return out.join('') || '<p class="gd-none">' + esc(gt('empty2')) + '</p>';
 }
 function gdOpenScratch(id) { openProject(id); return false; }
+function gdCopyCode(btn) {
+    var c = btn.parentNode.querySelector('code'), txt = c ? c.textContent : '';
+    var done = function() { btn.textContent = gt('copied'); setTimeout(function() { btn.textContent = gt('copy'); }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function() { gdCopyFallback(txt); done(); });
+    else { gdCopyFallback(txt); done(); }
+}
+function gdCopyFallback(txt) {
+    var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (x) {} ta.remove();
+}
 function gdZoom(src) {
     var o = document.createElement('div'); o.className = 'gd-zoom'; o.onclick = function() { o.remove(); };
     var im = document.createElement('img'); im.src = src; o.appendChild(im); document.body.appendChild(o);
@@ -3519,15 +3583,15 @@ function gdPaint() {
     else if (gd.view === 'edit') gdEditPaint();
     else gdListPaint();
 }
-function gdList() { gd.mine = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
+function gdList() { gd.mine = false; gd.bm = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
 
 // ---- 一覧 ----
 function gdListPaint() {
     var box = gdBox();
     var h = '<div class="gd-head"><h2>' + esc(gt('title')) + '</h2><div class="gd-head-btns">' +
-        (loginUser ? '<button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
+        (loginUser ? '<button class="gd-btn" onclick="gdBm()">' + esc(gt('bkList')) + '</button><button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
         '<button class="gd-btn primary" onclick="gdNew()">' + esc(gt('write')) + '</button></div></div>';
-    if (gd.mine) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>';
+    if (gd.mine || gd.bm) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>';
     else {
         h += '<div class="gd-bar"><div class="gd-tabs"><button class="' + (gd.sort === 'new' ? 'on' : '') + '" onclick="gdSetSort(\'new\')">' + esc(gt('sNew')) + '</button><button class="' + (gd.sort === 'hot' ? 'on' : '') + '" onclick="gdSetSort(\'hot\')">' + esc(gt('sHot')) + '</button></div>' +
             '<input type="search" id="gd-q" class="gd-q" maxlength="60" placeholder="' + esc(gt('search')) + '" value="' + esc(gd.q) + '" enterkeyhint="search" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)gdSearch()"></div>';
@@ -3553,7 +3617,7 @@ function gdGridPaint() {
     var f = '';
     if (gd.state === 'load') f = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
     else if (gd.state === 'err') f = '<div class="gd-note">' + esc(gt('e_other')) + '</div>';
-    else if (!gd.items.length) f = '<div class="gd-note">' + esc(gd.q || gd.tag ? gt('emptyQ') : gt('empty')) + '</div>';
+    else if (!gd.items.length) f = '<div class="gd-note">' + esc(gd.bm ? gt('bkEmpty') : gd.q || gd.tag ? gt('emptyQ') : gt('empty')) + '</div>';
     else if (gd.more) f = '<button class="gd-btn" onclick="gdLoad(false)">' + esc(gt('more')) + '</button>';
     foot.innerHTML = f;
 }
@@ -3565,8 +3629,8 @@ async function gdLoad(reset) {
         var d;
         if (gd.mine) d = await apiCall('GET', '/api/chat/guides/mine');
         else {
-            var qs = '?sort=' + gd.sort + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
-            if (gd.items.length) qs += gd.sort === 'hot' ? '&offset=' + gd.items.length : '&before=' + gd.items[gd.items.length - 1].id;
+            var qs = '?sort=' + (gd.bm ? 'new' : gd.sort) + (gd.bm ? '&bookmarked=1' : '') + (gd.project ? '&project=' + gd.project : '') + (gd.author ? '&author=' + encodeURIComponent(gd.author) : '') + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
+            if (gd.items.length) qs += (gd.sort === 'hot' && !gd.bm) ? '&offset=' + gd.items.length : '&before=' + gd.items[gd.items.length - 1].id;
             d = await apiCall('GET', '/api/chat/guides' + qs);
         }
         if (seq !== gd.seq) return;
@@ -3577,7 +3641,8 @@ async function gdLoad(reset) {
 function gdSetSort(s) { gd.sort = s; gdListPaint(); gdLoad(true); updateUrl(); }
 function gdSetTag(t) { var was = gd.view !== 'list'; gd.view = 'list'; gd.mine = false; gd.tag = t; gdListPaint(); gdLoad(true); updateUrl(was); }
 function gdSearch() { var i = document.getElementById('gd-q'); gd.q = i ? i.value.trim() : ''; gdListPaint(); gdLoad(true); updateUrl(); }
-function gdMine() { gd.mine = true; gd.view = 'list'; gdPaint(); gdLoad(true); }
+function gdBm() { gd.bm = true; gd.mine = false; gd.view = 'list'; gdPaint(); gdLoad(true); }
+function gdMine() { gd.bm = false; gd.mine = true; gd.view = 'list'; gdPaint(); gdLoad(true); }
 function gdCardClick(e, id) { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return true; gdOpen(id); return false; }
 
 // ---- 読む ----
@@ -3606,16 +3671,26 @@ function gdReadPaint() {
     h += '<div class="gd-meta"><a class="gd-by" href="?m=u&u=' + encodeURIComponent(g.username) + '" onclick="return gdUser(event,\'' + esc(g.username).replace(/'/g, '') + '\')">' + avatarImg(g.user_id, 28) + '<b>' + esc(g.username) + '</b></a><span>' + gdDate(g.published ? g.published_at : g.created_at) + '</span>' +
         (g.updated_at - (g.published_at || g.created_at) > 60000 ? '<span>' + esc(gt('upd')) + ' ' + gdDate(g.updated_at) + '</span>' : '') + '</div>';
     if (g.tags.length) h += '<div class="gd-tags">' + g.tags.map(function(x) { return '<button class="gd-tag" onclick="gdSetTag(\'' + esc(x).replace(/'/g, '') + '\')">#' + esc(x) + '</button>'; }).join('') + '</div>';
-    h += '<div class="gd-md">' + gdMd(g.body, g.images) + '</div>';
+    if (g.project_id) h += '<a class="gd-proj" href="#" onclick="openProject(' + Number(g.project_id) + ');return false">🧩 ' + esc(gt('projOpen')) + ' #' + Number(g.project_id) + '</a>';
+    h += '<div class="gd-md">' + gdMd(g.body, g.images, g.files) + '</div>';
     h += '<div class="gd-actions">' + (g.published ? '<button class="gd-like' + (g.liked ? ' on' : '') + '" id="gd-like" onclick="gdLike()">' + (g.liked ? GD_ICO.heart : GD_ICO.hearto) + '<span>' + g.likes + '</span></button>' : '') +
+        (g.published ? '<button class="gd-btn bk' + (g.bookmarked ? ' on' : '') + '" id="gd-bk" onclick="gdBookmark()">' + esc(gt(g.bookmarked ? 'bkOn' : 'bk')) + '</button>' : '') +
         '<button class="gd-btn" onclick="copyShareLink()">' + esc(gt('share')) + '</button>' +
         (gd.can.edit ? '<button class="gd-btn" onclick="gdEditOpen(' + g.id + ')">' + esc(gt('edit')) + '</button>' : '') +
         (gd.can.del ? '<button class="gd-btn danger" onclick="gdDelete()">' + esc(gt('del')) + '</button>' : '') + '</div></article>';
     if (g.published) h += '<section class="gd-cms"><h3>' + esc(gt('cm')) + ' <span>' + gd.comments.length + '</span></h3><div id="gd-cm-list"></div><div id="gd-cm-form"></div></section>';
-    box.innerHTML = h;
+    box.innerHTML = h; dgMountAll(box);
     if (g.published) { gdCommentsPaint(); gdCommentForm(); }
 }
 function gdUser(e, name) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; openProfile(name); return false; }
+async function gdBookmark() {
+    var g = gd.cur; if (!g) return;
+    if (!loginUser) { openLogin(); return; }
+    var on = !g.bookmarked;
+    try { await apiCall(on ? 'PUT' : 'DELETE', '/api/chat/guides/' + g.id + '/bookmark'); g.bookmarked = on; }
+    catch (e) { showToast(gdErr(e)); return; }
+    var b = document.getElementById('gd-bk'); if (b) { b.classList.toggle('on', on); b.textContent = gt(on ? 'bkOn' : 'bk'); }
+}
 async function gdLike() {
     var g = gd.cur; if (!g) return;
     if (!loginUser) { openLogin(); return; }
@@ -3673,7 +3748,7 @@ function gdDraftSave() {
 function gdDraftClear(key) { try { localStorage.removeItem(key); } catch (x) {} }
 function gdNew() {
     if (!loginUser) { openLogin(); showToast(gt('loginNeed')); return; }
-    gd.edit = { id: 0, title: '', body: '', tags: '', cover: null, published: false, imgs: {}, preview: false, busy: false, err: '', note: '' };
+    gd.edit = { id: 0, title: '', body: '', tags: '', cover: null, published: false, imgs: {}, files: {}, project: '', preview: false, busy: false, err: '', note: '' };
     try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + 'new') || 'null'); if (r && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
     if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
     gdGo('edit');
@@ -3683,7 +3758,7 @@ async function gdEditOpen(id) {
     try {
         var d = (gd.cur && gd.cur.id === id) ? { guide: gd.cur } : await apiCall('GET', '/api/chat/guides/' + id);
         var g = d.guide;
-        gd.edit = { id: g.id, title: g.title, body: g.body, tags: g.tags.join(' '), cover: g.cover ? { id: g.cover_id, url: g.cover } : null, published: g.published, imgs: Object.assign({}, g.images || {}), preview: false, busy: false, err: '', note: '' };
+        gd.edit = { id: g.id, title: g.title, body: g.body, tags: g.tags.join(' '), cover: g.cover ? { id: g.cover_id, url: g.cover } : null, published: g.published, imgs: Object.assign({}, g.images || {}), files: Object.assign({}, g.files || {}), project: g.project_id ? 'https://scratch.mit.edu/projects/' + g.project_id : '', preview: false, busy: false, err: '', note: '' };
         try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + g.id) || 'null'); if (r && (r.title !== g.title || r.body !== g.body) && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
         if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
         gdGo('edit');
@@ -3691,10 +3766,11 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['scratch', '', 'bScratch'], ['sb3', '', 'bSb3'], ['diagram', '', 'bDiagram']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
+        '<input id="gd-e-proj" class="gd-e-tags" maxlength="120" placeholder="' + esc(gt('eProj')) + '：' + esc(gt('eProjPh')) + '" value="' + esc(e.project || '') + '" oninput="gd.edit.project=this.value">' +
         '<input id="gd-e-tags" class="gd-e-tags" maxlength="120" placeholder="' + esc(gt('eTags')) + '" value="' + esc(e.tags) + '" oninput="gd.edit.tags=this.value;gdDraftSave()">' +
         '<div class="gd-pv"><button type="button" class="gd-tbb tab on" id="gd-t-w" onclick="gdEditTab(false)">' + esc(gt('eWrite')) + '</button><button type="button" class="gd-tbb tab" id="gd-t-p" onclick="gdEditTab(true)">' + esc(gt('ePrev')) + '</button></div>' +
         '<div class="gd-tb">' + tb.map(function(b) { return '<button type="button" class="gd-tbb" title="' + esc(gt(b[2])) + '" onmousedown="event.preventDefault()" onclick="gdFmt(\'' + b[0] + '\')">' + (b[1] || esc(gt(b[2]))) + '</button>'; }).join('') +
@@ -3703,7 +3779,7 @@ function gdEditPaint() {
         '<div id="gd-e-prev" class="gd-md gd-e-prev" style="display:none"></div>' +
         '<div class="gd-e-info"><span id="gd-e-count"></span><span>' + esc(gt('hint')) + '</span></div>' +
         '<div class="gd-err" id="gd-e-err"></div><div class="gd-e-acts" id="gd-e-acts"></div>' +
-        '<input type="file" id="gd-e-file" accept="image/*" style="display:none" onchange="gdImgPick(this)"><input type="file" id="gd-e-cfile" accept="image/*" style="display:none" onchange="gdCoverPick(this)"></div>';
+        '<input type="file" id="gd-e-file" accept="image/*" style="display:none" onchange="gdImgPick(this)"><input type="file" id="gd-e-sfile" accept=".sb3" style="display:none" onchange="gdSb3Pick(this)"><input type="file" id="gd-e-cfile" accept="image/*" style="display:none" onchange="gdCoverPick(this)"></div>';
     box.innerHTML = h;
     gdEditSync();
 }
@@ -3727,7 +3803,7 @@ function gdEditTab(p) {
     e.preview = p;
     document.getElementById('gd-e-body').style.display = p ? 'none' : '';
     var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
-    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.imgs);
+    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.imgs, e.files); dgMountAll(pv);
     document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
 }
 function gdEditBack() {
@@ -3739,6 +3815,8 @@ function gdFmt(kind) {
     var e = gd.edit, ta = document.getElementById('gd-e-body'); if (!e || !ta) return;
     if (e.preview) gdEditTab(false);
     if (kind === 'img') { document.getElementById('gd-e-file').click(); return; }
+    if (kind === 'diagram') { dgDiagramOpen(); return; }
+    if (kind === 'sb3') { document.getElementById('gd-e-sfile').click(); return; }
     var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
     var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
     if (wrap[kind]) { var w = wrap[kind], t = sel || '…'; ins = w + t + w; ns = s + w.length; ne = ns + t.length; }
@@ -3772,6 +3850,21 @@ async function gdImgPick(inp) {
     } catch (x) { e.note = ''; e.err = chatErr(x); }
     gdEditSync();
 }
+async function gdSb3Pick(inp) {
+    var f = inp.files && inp.files[0]; inp.value = '';
+    var e = gd.edit; if (!f || !e) return;
+    if (!/\.sb3$/i.test(f.name)) { e.err = gt('sb3Ask'); gdEditSync(); return; }
+    e.err = ''; e.note = gt('upl'); gdEditSync();
+    try {
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: f.size, type: 'application/x.scratch.sb3', name: f.name });
+        await chatPutFile(st.upload_url, st.headers, f, function() {});
+        await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+        e.files[st.id] = { url: '', name: f.name, size: f.size }; e.note = '';
+        var ta = document.getElementById('gd-e-body'), s = ta.selectionStart, v = ta.value, nm = f.name.replace(/[\[\]()]/g, ''), ins = '\n\n[' + nm + '](sb3:' + st.id + ')\n\n';
+        ta.value = v.slice(0, s) + ins + v.slice(ta.selectionEnd); ta.focus(); ta.setSelectionRange(s + ins.length, s + ins.length); gdBodyInput(ta);
+    } catch (x) { e.note = ''; e.err = chatErr(x); }
+    gdEditSync();
+}
 async function gdCoverPick(inp) {
     var f = inp.files && inp.files[0]; inp.value = '';
     var e = gd.edit; if (!f || !e || !/^image\//.test(f.type)) return;
@@ -3786,10 +3879,10 @@ async function gdSave(publish) {
     e.err = ''; e.note = ''; e.busy = true; gdEditSync();
     var key = gdDraftKey();
     try {
-        var payload = { title: e.title, body: e.body, tags: e.tags, cover_id: e.cover ? e.cover.id : '', published: !!publish };
+        var payload = { title: e.title, body: e.body, tags: e.tags, cover_id: e.cover ? e.cover.id : '', project: (e.project || '').trim(), published: !!publish };
         var d = e.id ? await apiCall('PUT', '/api/chat/guides/' + e.id, payload) : await apiCall('POST', '/api/chat/guides', payload);
         gdDraftClear(key); gdDraftClear(GD_DRAFT + d.guide.id);
-        e.id = d.guide.id; e.published = d.guide.published; e.cover = d.guide.cover ? { id: d.guide.cover_id, url: d.guide.cover } : null; e.imgs = Object.assign(e.imgs, d.guide.images || {});
+        e.id = d.guide.id; e.published = d.guide.published; e.cover = d.guide.cover ? { id: d.guide.cover_id, url: d.guide.cover } : null; e.imgs = Object.assign(e.imgs, d.guide.images || {}); e.files = Object.assign(e.files, d.guide.files || {});
         gd.items = []; e.busy = false;
         if (publish) { showToast(gt('published')); gdOpen(d.guide.id); return; }
         e.note = gt('saved'); gdEditSync(); return;
@@ -3801,6 +3894,354 @@ function gdFromUrl(st) {
     gd.sort = st.sort === 'hot' ? 'hot' : 'new'; gd.tag = st.tag || ''; gd.q = st.q || ''; gd.items = []; gd.mine = false;
     if (st.id) { gdOpen(st.id); return; }
     gd.view = 'list'; setMode('guide');
+}
+
+// ===== 図解（図形とアニメーション。記事に ```diagram で埋め込む） =====
+var DG_W = 480, DG_H = 320, DG_MAX = 40;
+var DGT = {
+    ja: { title: '図解エディタ', shape: '形', motion: '動き', ins: '記事に入れる', upd: '更新する', close: '閉じる', ex: '例から始める', ex1: '三角形（頂点をドラッグ）', ex2: 'ボールの動き', ex3: '回る四角形',
+        tSel: '選択', tRect: '四角形', tEll: '円', tTri: '三角形', tLine: '線', tArrow: '矢印', tText: '文字', del: '削除', dup: '複製', up: '前へ', down: '後ろへ',
+        fill: '塗り', stroke: '線', sw: '線の太さ', op: '不透明度', rot: '回転', sc: '拡大', text: '文字', fs: '文字の大きさ', drag: '見る人がドラッグできる', none: 'なし', bg: '背景',
+        hintShape: '図形を選んで、ドラッグで描きます。頂点の丸をドラッグすると形を変えられます。', hintMotion: '時間を動かして図形を動かすと、その時間に「キーフレーム」が記録されます。',
+        play: '再生', pause: '停止', dur: '長さ(秒)', loop: 'くり返す', kf: 'キーフレーム', kfDel: 'この時間のキーフレームを消す', sl: 'スライダー（見る人が動かせる）', slAdd: 'スライダーを追加', slLabel: '名前', slTarget: '対象', slProp: '動かすもの', min: '最小', max: '最大',
+        pText: '文字を入力', empty: '左のツールで図形を描いてみましょう。', err: '図解を読み込めません', pdx: '横', pdy: '縦' },
+    en: { title: 'Diagram editor', shape: 'Shape', motion: 'Motion', ins: 'Insert', upd: 'Update', close: 'Close', ex: 'Start from example', ex1: 'Triangle (drag corners)', ex2: 'Bouncing ball', ex3: 'Spinning square',
+        tSel: 'Select', tRect: 'Rectangle', tEll: 'Ellipse', tTri: 'Triangle', tLine: 'Line', tArrow: 'Arrow', tText: 'Text', del: 'Delete', dup: 'Duplicate', up: 'Forward', down: 'Backward',
+        fill: 'Fill', stroke: 'Stroke', sw: 'Stroke width', op: 'Opacity', rot: 'Rotation', sc: 'Scale', text: 'Text', fs: 'Font size', drag: 'Viewers can drag', none: 'None', bg: 'Background',
+        hintShape: 'Pick a tool and drag to draw. Drag the dots to reshape.', hintMotion: 'Move the time slider, then move a shape: a keyframe is recorded at that time.',
+        play: 'Play', pause: 'Pause', dur: 'Length (s)', loop: 'Loop', kf: 'Keyframes', kfDel: 'Delete keyframe at this time', sl: 'Sliders (viewers can move)', slAdd: 'Add slider', slLabel: 'Label', slTarget: 'Target', slProp: 'Property', min: 'Min', max: 'Max',
+        pText: 'Enter text', empty: 'Draw a shape with the tools on the left.', err: 'Cannot load diagram', pdx: 'X', pdy: 'Y' }
+};
+function dgt(k) { return (DGT[currentLang] || DGT.ja)[k] || DGT.ja[k] || k; }
+var DG_COL = /^#[0-9a-fA-F]{3,8}$/, DG_KINDS = ['rect', 'ellipse', 'tri', 'poly', 'line', 'arrow', 'text'], DG_PROPS = ['op', 'rot', 's', 'dx', 'dy'];
+function dgN(v, d, lo, hi) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
+function dgC(v, d) { return v === 'none' ? 'none' : (typeof v === 'string' && DG_COL.test(v)) ? v : d; }
+// 記事の本文は他人が書けるので、数値と色だけを通す（SVGの属性に入れるのはこの値だけ）
+function dgClean(sp) {
+    sp = sp && typeof sp === 'object' ? sp : {};
+    var out = { dur: dgN(sp.dur, 3, 0.5, 60), loop: sp.loop !== false, bg: dgC(sp.bg, '#ffffff'), objs: [], sl: [] };
+    (Array.isArray(sp.objs) ? sp.objs : []).slice(0, DG_MAX).forEach(function(o, i) {
+        if (!o || DG_KINDS.indexOf(o.k) < 0) return;
+        var n = { k: o.k, id: /^[a-z0-9]{1,8}$/.test(o.id) ? o.id : 'o' + i, fill: dgC(o.fill, '#4c97ff'), stroke: dgC(o.stroke, '#2b5fb8'), sw: dgN(o.sw, 2, 0, 30), op: dgN(o.op, 1, 0, 1),
+            dx: dgN(o.dx, 0, -2000, 2000), dy: dgN(o.dy, 0, -2000, 2000), rot: dgN(o.rot, 0, -3600, 3600), s: dgN(o.s, 1, 0.05, 20), drag: !!o.drag };
+        if (o.k === 'tri' || o.k === 'poly' || o.k === 'line' || o.k === 'arrow') {
+            n.pts = (Array.isArray(o.pts) ? o.pts : []).slice(0, 24).map(function(p) { return [dgN(p && p[0], 0, -2000, 2000), dgN(p && p[1], 0, -2000, 2000)]; });
+            if (n.pts.length < (o.k === 'line' || o.k === 'arrow' ? 2 : 3)) return;
+        } else { n.x = dgN(o.x, 0, -2000, 2000); n.y = dgN(o.y, 0, -2000, 2000); n.w = dgN(o.w, 60, 1, 4000); n.h = dgN(o.h, 40, 1, 4000); }
+        if (o.k === 'text') { n.text = String(o.text == null ? '' : o.text).slice(0, 200); n.fs = dgN(o.fs, 24, 6, 160); }
+        if (Array.isArray(o.kf)) n.kf = o.kf.slice(0, 30).map(function(k) { return { t: dgN(k && k.t, 0, 0, 60), dx: dgN(k && k.dx, 0, -2000, 2000), dy: dgN(k && k.dy, 0, -2000, 2000), rot: dgN(k && k.rot, 0, -3600, 3600), s: dgN(k && k.s, 1, 0.05, 20), op: dgN(k && k.op, 1, 0, 1) }; }).sort(function(a, b) { return a.t - b.t; });
+        out.objs.push(n);
+    });
+    (Array.isArray(sp.sl) ? sp.sl : []).slice(0, 6).forEach(function(s) {
+        if (!s || DG_PROPS.indexOf(s.p) < 0 || !out.objs.some(function(o) { return o.id === s.o; })) return;
+        var lo = dgN(s.min, 0, -5000, 5000), hi = dgN(s.max, 1, -5000, 5000);
+        out.sl.push({ label: String(s.label == null ? '' : s.label).slice(0, 30), o: s.o, p: s.p, min: Math.min(lo, hi), max: Math.max(lo, hi), v: dgN(s.v, lo, -5000, 5000) });
+    });
+    return out;
+}
+function dgSt(sp, o, t, raw, par) {
+    var st = { dx: o.dx, dy: o.dy, rot: o.rot, s: o.s, op: o.op }, k = o.kf;
+    if (!raw && k && k.length) {
+        var a = k[0], b = k[k.length - 1], P = ['dx', 'dy', 'rot', 's', 'op'];
+        if (t <= a.t) { st = { dx: a.dx, dy: a.dy, rot: a.rot, s: a.s, op: a.op }; }
+        else if (t >= b.t) { st = { dx: b.dx, dy: b.dy, rot: b.rot, s: b.s, op: b.op }; }
+        else for (var i = 0; i < k.length - 1; i++) if (t >= k[i].t && t <= k[i + 1].t) {
+            var f = (t - k[i].t) / ((k[i + 1].t - k[i].t) || 1);
+            P.forEach(function(p) { st[p] = k[i][p] + (k[i + 1][p] - k[i][p]) * f; }); break;
+        }
+    }
+    if (!raw && par) sp.sl.forEach(function(s, j) { if (s.o === o.id && par[j] != null) st[s.p] = par[j]; });
+    return st;
+}
+function dgCen(o) {
+    if (o.pts) { var xs = o.pts.map(function(p) { return p[0]; }), ys = o.pts.map(function(p) { return p[1]; }); return [(Math.min.apply(0, xs) + Math.max.apply(0, xs)) / 2, (Math.min.apply(0, ys) + Math.max.apply(0, ys)) / 2]; }
+    return [o.x + o.w / 2, o.y + o.h / 2];
+}
+function dgTp(o, st, p) {
+    var c = dgCen(o), r = st.rot * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), x = (p[0] - c[0]) * st.s, y = (p[1] - c[1]) * st.s;
+    return [c[0] + st.dx + x * cs - y * sn, c[1] + st.dy + x * sn + y * cs];
+}
+function dgInv(o, st, q) {
+    var c = dgCen(o), r = -st.rot * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), x = q[0] - c[0] - st.dx, y = q[1] - c[1] - st.dy;
+    return [c[0] + (x * cs - y * sn) / st.s, c[1] + (x * sn + y * cs) / st.s];
+}
+var dgR = function(n) { return Math.round(n * 100) / 100; };
+function dgObjSVG(sp, o, i, t, raw, par, hand, ov, sel) {
+    var st = dgSt(sp, o, t, raw, par), a = ' data-o="' + i + '"', fill = (o.k === 'line' || o.k === 'arrow') ? 'none' : o.fill, h = '';
+    if (ov && ov[i]) { st.dx += ov[i][0]; st.dy += ov[i][1]; }
+    var style = ' fill="' + fill + '" stroke="' + o.stroke + '" stroke-width="' + o.sw + '" opacity="' + dgR(st.op) + '" stroke-linejoin="round" stroke-linecap="round"';
+    if (o.pts) {
+        var P = o.pts.map(function(p) { return dgTp(o, st, p); }), ps = P.map(function(p) { return dgR(p[0]) + ',' + dgR(p[1]); }).join(' ');
+        if (o.k === 'line' || o.k === 'arrow') h = '<polyline' + a + style + ' points="' + ps + '"/>' + '<polyline' + a + ' fill="none" stroke="transparent" stroke-width="' + Math.max(14, o.sw + 8) + '" points="' + ps + '"/>';
+        else h = '<polygon' + a + style + ' points="' + ps + '"/>';
+        if (o.k === 'arrow') {
+            var q = P[P.length - 1], p0 = P[P.length - 2], an = Math.atan2(q[1] - p0[1], q[0] - p0[0]), L = 8 + o.sw * 2.5;
+            h += '<polygon' + a + ' fill="' + (o.stroke === 'none' ? '#000' : o.stroke) + '" opacity="' + dgR(st.op) + '" points="' + dgR(q[0]) + ',' + dgR(q[1]) + ' ' + dgR(q[0] - L * Math.cos(an - 0.45)) + ',' + dgR(q[1] - L * Math.sin(an - 0.45)) + ' ' + dgR(q[0] - L * Math.cos(an + 0.45)) + ',' + dgR(q[1] - L * Math.sin(an + 0.45)) + '"/>';
+        }
+        if (hand && (o.drag || sel)) h += P.map(function(p, j) { return '<circle class="dg-h" data-v="' + i + ':' + j + '" cx="' + dgR(p[0]) + '" cy="' + dgR(p[1]) + '" r="9" fill="#b794f6" fill-opacity=".75" stroke="#4b3a7a" stroke-width="2.5"/>'; }).join('');
+        return h;
+    }
+    var c = dgCen(o), tr = ' transform="translate(' + dgR(st.dx) + ' ' + dgR(st.dy) + ') translate(' + dgR(c[0]) + ' ' + dgR(c[1]) + ') rotate(' + dgR(st.rot) + ') scale(' + dgR(st.s) + ') translate(' + -dgR(c[0]) + ' ' + -dgR(c[1]) + ')"';
+    if (o.k === 'rect') h = '<rect' + a + tr + style + ' x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" rx="3"/>';
+    else if (o.k === 'ellipse') h = '<ellipse' + a + tr + style + ' cx="' + dgR(c[0]) + '" cy="' + dgR(c[1]) + '" rx="' + dgR(o.w / 2) + '" ry="' + dgR(o.h / 2) + '"/>';
+    else h = '<text' + a + tr + ' x="' + dgR(c[0]) + '" y="' + dgR(c[1]) + '" font-size="' + o.fs + '" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="' + (o.fill === 'none' ? '#000' : o.fill) + '" opacity="' + dgR(st.op) + '" font-family="sans-serif">' + esc(o.text) + '</text>';
+    return h;
+}
+function dgSceneSVG(sp, t, raw, par, hand, ov, selIdx) {
+    var h = '<rect width="' + DG_W + '" height="' + DG_H + '" fill="' + (sp.bg === 'none' ? '#ffffff' : sp.bg) + '"/>', over = '';
+    sp.objs.forEach(function(o, i) { h += dgObjSVG(sp, o, i, t, raw, par, hand, ov, i === selIdx); });
+    return h;
+}
+function dgPt(svg, ev) { var r = svg.getBoundingClientRect(); return [(ev.clientX - r.left) * DG_W / r.width, (ev.clientY - r.top) * DG_H / r.height]; }
+
+// ---- 見る側（記事の中） ----
+function dgMountAll(root) {
+    [].forEach.call((root || document).querySelectorAll('.dg-view[data-spec]:not([data-m])'), dgMount);
+}
+function dgMount(el) {
+    el.setAttribute('data-m', '1');
+    var sp;
+    try { sp = dgClean(JSON.parse(el.getAttribute('data-spec'))); } catch (e) { el.textContent = dgt('err'); return; }
+    var anim = sp.objs.some(function(o) { return o.kf && o.kf.length > 1; });
+    var S = { t: 0, play: anim, par: sp.sl.map(function(s) { return s.v; }), t0: 0, ov: {} };
+    var ctl = '';
+    if (anim) ctl += '<div class="dg-row"><button type="button" class="dg-play">⏸</button><input type="range" class="dg-t" min="0" max="' + sp.dur + '" step="0.01" value="0"></div>';
+    sp.sl.forEach(function(s, j) { ctl += '<label class="dg-row"><span>' + esc(s.label) + '</span><input type="range" class="dg-sl" data-j="' + j + '" min="' + s.min + '" max="' + s.max + '" step="' + (s.max - s.min) / 200 + '" value="' + s.v + '"><output>' + dgR(s.v) + '</output></label>'; });
+    el.innerHTML = '<svg class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg>' + (ctl ? '<div class="dg-ctl">' + ctl + '</div>' : '');
+    var svg = el.querySelector('svg'), btn = el.querySelector('.dg-play'), rng = el.querySelector('.dg-t');
+    var draw = function() { svg.innerHTML = dgSceneSVG(sp, S.t, false, S.par, true, S.ov, -1); };
+    draw();
+    if (btn) btn.onclick = function() { S.play = !S.play; S.t0 = 0; btn.textContent = S.play ? '⏸' : '▶'; };
+    if (rng) rng.oninput = function() { S.play = false; S.t = Number(rng.value); if (btn) btn.textContent = '▶'; draw(); };
+    [].forEach.call(el.querySelectorAll('.dg-sl'), function(r) { r.oninput = function() { S.par[Number(r.dataset.j)] = Number(r.value); r.nextSibling.textContent = dgR(Number(r.value)); draw(); }; });
+    var drag = null;
+    svg.onpointerdown = function(ev) {
+        var v = ev.target.closest && ev.target.closest('[data-v]'), o = ev.target.closest && ev.target.closest('[data-o]'), p = dgPt(svg, ev);
+        if (v) { var a = v.dataset.v.split(':'); drag = { k: 'v', i: Number(a[0]), j: Number(a[1]) }; }
+        else if (o && sp.objs[Number(o.dataset.o)] && sp.objs[Number(o.dataset.o)].drag && !sp.objs[Number(o.dataset.o)].pts) { var i = Number(o.dataset.o); drag = { k: 'm', i: i, p: p, o: (S.ov[i] || [0, 0]).slice() }; }
+        if (!drag) return;
+        try { svg.setPointerCapture(ev.pointerId); } catch (x) {}
+        ev.preventDefault();
+    };
+    svg.onpointermove = function(ev) {
+        if (!drag) return;
+        var p = dgPt(svg, ev), o = sp.objs[drag.i];
+        if (drag.k === 'v') { var st = dgSt(sp, o, S.t, false, S.par); o.pts[drag.j] = dgInv(o, st, p).map(function(n) { return Math.max(-500, Math.min(1000, n)); }); }
+        else S.ov[drag.i] = [drag.o[0] + p[0] - drag.p[0], drag.o[1] + p[1] - drag.p[1]];
+        draw();
+    };
+    svg.onpointerup = svg.onpointercancel = function() { drag = null; };
+    if (anim) {
+        var tick = function(ts) {
+            if (!document.body.contains(el)) return;
+            if (S.play) {
+                if (!S.t0) S.t0 = ts - S.t * 1000;
+                var t = (ts - S.t0) / 1000;
+                if (t > sp.dur) { if (sp.loop) { S.t0 = ts; t = 0; } else { t = sp.dur; S.play = false; if (btn) btn.textContent = '▶'; } }
+                S.t = t; if (rng) rng.value = t; draw();
+            }
+            requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    }
+}
+
+// ---- 描く側（エディタ） ----
+var dge = null;
+var DG_EXAMPLES = {
+    ex1: function() { return { dur: 3, loop: true, bg: '#ffffff', objs: [
+        { k: 'tri', id: 'tri', pts: [[240, 40], [380, 120], [150, 270]], fill: '#4c6bff99', stroke: '#6a3fd0', sw: 2, drag: true },
+        { k: 'line', id: 'ln', pts: [[0, 165], [480, 165]], fill: 'none', stroke: '#000000', sw: 3 },
+        { k: 'text', id: 'tx', x: 340, y: 178, w: 100, h: 30, text: 'z=0', fs: 24, fill: '#000000', stroke: 'none', sw: 0 }
+    ], sl: [{ label: '面の透明度', o: 'tri', p: 'op', min: 0.1, max: 1, v: 0.7 }] }; },
+    ex2: function() { return { dur: 3, loop: true, bg: '#ffffff', objs: [
+        { k: 'line', id: 'gr', pts: [[20, 290], [460, 290]], fill: 'none', stroke: '#888888', sw: 3 },
+        { k: 'ellipse', id: 'ball', x: 40, y: 230, w: 60, h: 60, fill: '#ff6b3d', stroke: '#b23a12', sw: 2, kf: [
+            { t: 0, dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, { t: 0.75, dx: 120, dy: -170, rot: 0, s: 1, op: 1 }, { t: 1.5, dx: 240, dy: 0, rot: 0, s: 1, op: 1 }, { t: 2.25, dx: 330, dy: -90, rot: 0, s: 1, op: 1 }, { t: 3, dx: 380, dy: 0, rot: 0, s: 1, op: 1 }] }
+    ], sl: [] }; },
+    ex3: function() { return { dur: 2, loop: true, bg: '#ffffff', objs: [
+        { k: 'rect', id: 'sq', x: 190, y: 110, w: 100, h: 100, fill: '#4c97ff', stroke: '#2b5fb8', sw: 3, kf: [
+            { t: 0, dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, { t: 1, dx: 0, dy: 0, rot: 180, s: 1.5, op: 0.6 }, { t: 2, dx: 0, dy: 0, rot: 360, s: 1, op: 1 }] }
+    ], sl: [] }; }
+};
+var dgCnt = 0;
+function dgNewId() { dgCnt++; return 'o' + Date.now().toString(36).slice(-4) + dgCnt; }
+function dgOpen(spec, done) {
+    var sp = dgClean(spec && spec.objs ? spec : { objs: [] });
+    dge = { sp: sp, sel: -1, tool: 'select', mode: 'shape', t: 0, play: false, t0: 0, drag: null, done: done, edit: !!(spec && spec.objs && spec.objs.length) };
+    var d = document.getElementById('dg-ed'); if (d) d.remove();
+    d = document.createElement('div'); d.id = 'dg-ed';
+    d.innerHTML = '<div class="dge-box"><div class="dge-top"><b>' + esc(dgt('title')) + '</b><div class="dge-modes" id="dge-modes"></div><div class="dge-sp"></div>' +
+        '<select id="dge-ex" onchange="dgExample(this.value);this.value=\'\'"><option value="">' + esc(dgt('ex')) + '</option><option value="ex1">' + esc(dgt('ex1')) + '</option><option value="ex2">' + esc(dgt('ex2')) + '</option><option value="ex3">' + esc(dgt('ex3')) + '</option></select>' +
+        '<button class="gd-btn primary" onclick="dgFinish()">' + esc(dgt(dge.edit ? 'upd' : 'ins')) + '</button><button class="gd-btn" onclick="dgClose()">' + esc(dgt('close')) + '</button></div>' +
+        '<div class="dge-main"><div class="dge-tools" id="dge-tools"></div><div class="dge-stage"><svg id="dge-svg" class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg><div class="dge-hint" id="dge-hint"></div><div id="dge-tl"></div></div><div class="dge-side" id="dge-side"></div></div></div>';
+    document.body.appendChild(d);
+    var svg = document.getElementById('dge-svg');
+    svg.onpointerdown = dgDown; svg.onpointermove = dgMove; svg.onpointerup = svg.onpointercancel = dgUp;
+    dgPaintAll();
+    requestAnimationFrame(dgTick);
+}
+function dgClose() { dge = null; var d = document.getElementById('dg-ed'); if (d) d.remove(); }
+function dgFinish() {
+    if (!dge) return;
+    var sp = dgClean(dge.sp), cb = dge.done;
+    if (!sp.objs.length) { showToast(dgt('empty')); return; }
+    dgClose(); if (cb) cb(sp);
+}
+function dgExample(k) { if (!dge || !DG_EXAMPLES[k]) return; dge.sp = dgClean(DG_EXAMPLES[k]()); dge.sel = -1; dge.t = 0; dge.mode = k === 'ex1' ? 'shape' : 'motion'; dge.play = k !== 'ex1'; dge.t0 = 0; dgPaintAll(); }
+function dgSelObj() { return dge && dge.sel >= 0 ? dge.sp.objs[dge.sel] : null; }
+function dgPaintAll() { dgPaintTop(); dgPaintTools(); dgPaintSide(); dgPaintTl(); dgDraw(); }
+function dgPaintTop() {
+    document.getElementById('dge-modes').innerHTML = ['shape', 'motion'].map(function(m) { return '<button class="gd-tbb tab' + (dge.mode === m ? ' on' : '') + '" onclick="dgSetMode(\'' + m + '\')">' + esc(dgt(m)) + '</button>'; }).join('');
+    document.getElementById('dge-hint').textContent = dge.sp.objs.length ? dgt(dge.mode === 'shape' ? 'hintShape' : 'hintMotion') : dgt('empty');
+}
+function dgSetMode(m) { dge.mode = m; dge.play = false; dgPaintAll(); }
+function dgPaintTools() {
+    var T = [['select', '↖', 'tSel'], ['rect', '▭', 'tRect'], ['ellipse', '◯', 'tEll'], ['tri', '△', 'tTri'], ['line', '／', 'tLine'], ['arrow', '→', 'tArrow'], ['text', 'T', 'tText']];
+    document.getElementById('dge-tools').innerHTML = T.map(function(x) { return '<button title="' + esc(dgt(x[2])) + '" class="dge-tool' + (dge.tool === x[0] ? ' on' : '') + '" onclick="dge.tool=\'' + x[0] + '\';dgPaintTools()">' + x[1] + '</button>'; }).join('') +
+        '<hr><button title="' + esc(dgt('dup')) + '" class="dge-tool" onclick="dgDup()">⧉</button><button title="' + esc(dgt('up')) + '" class="dge-tool" onclick="dgOrder(1)">↑</button><button title="' + esc(dgt('down')) + '" class="dge-tool" onclick="dgOrder(-1)">↓</button><button title="' + esc(dgt('del')) + '" class="dge-tool" onclick="dgDel()">🗑</button>';
+}
+function dgDup() { var o = dgSelObj(); if (!o || dge.sp.objs.length >= DG_MAX) return; var c = JSON.parse(JSON.stringify(o)); c.id = dgNewId(); if (c.pts) c.pts = c.pts.map(function(p) { return [p[0] + 16, p[1] + 16]; }); else { c.x += 16; c.y += 16; } dge.sp.objs.push(c); dge.sel = dge.sp.objs.length - 1; dgPaintAll(); }
+function dgDel() { var o = dgSelObj(); if (!o) return; dge.sp.objs.splice(dge.sel, 1); dge.sp.sl = dge.sp.sl.filter(function(s) { return s.o !== o.id; }); dge.sel = -1; dgPaintAll(); }
+function dgOrder(d) { var i = dge.sel, a = dge.sp.objs, j = i + d; if (i < 0 || j < 0 || j >= a.length) return; var t = a[i]; a[i] = a[j]; a[j] = t; dge.sel = j; dgPaintAll(); }
+function dgCol(label, key, o) {
+    var v = o[key], on = v !== 'none';
+    return '<label class="dge-f"><span>' + esc(dgt(label)) + '</span><input type="color" value="' + (on && /^#[0-9a-f]{6}/i.test(v) ? v.slice(0, 7) : '#888888') + '" oninput="dgProp(\'' + key + '\',this.value)"><label class="dge-n"><input type="checkbox"' + (on ? '' : ' checked') + ' onchange="dgProp(\'' + key + '\',this.checked?\'none\':\'#888888\');dgPaintSide()">' + esc(dgt('none')) + '</label></label>';
+}
+function dgNumF(label, key, v, min, max, step) { return '<label class="dge-f"><span>' + esc(dgt(label)) + '</span><input type="number" value="' + dgR(v) + '" min="' + min + '" max="' + max + '" step="' + step + '" oninput="dgProp(\'' + key + '\',this.value)"></label>'; }
+function dgPaintSide() {
+    var o = dgSelObj(), h = '';
+    if (o) {
+        var st = dgSt(dge.sp, o, dge.t, dge.mode === 'shape', null);
+        if (o.k !== 'line' && o.k !== 'arrow') h += dgCol('fill', 'fill', o);
+        if (o.k !== 'text') h += dgCol('stroke', 'stroke', o) + dgNumF('sw', 'sw', o.sw, 0, 30, 1);
+        if (o.k === 'text') h += '<label class="dge-f"><span>' + esc(dgt('text')) + '</span><input type="text" maxlength="200" value="' + esc(o.text) + '" oninput="dgProp(\'text\',this.value)"></label>' + dgNumF('fs', 'fs', o.fs, 6, 160, 1);
+        h += dgNumF('op', 'op', st.op, 0, 1, 0.05) + dgNumF('rot', 'rot', st.rot, -3600, 3600, 5) + dgNumF('sc', 's', st.s, 0.05, 20, 0.1);
+        h += '<label class="dge-f"><span>' + esc(dgt('drag')) + '</span><input type="checkbox"' + (o.drag ? ' checked' : '') + ' onchange="dgProp(\'drag\',this.checked)"></label>';
+    }
+    h += '<div class="dge-sec"><b>' + esc(dgt('sl')) + '</b>' + dge.sp.sl.map(function(s, j) {
+        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value">' +
+            '<select onchange="dge.sp.sl[' + j + '].o=this.value">' + dge.sp.objs.map(function(q, i) { return '<option value="' + q.id + '"' + (q.id === s.o ? ' selected' : '') + '>#' + (i + 1) + ' ' + q.k + '</option>'; }).join('') + '</select>' +
+            '<select onchange="dgSlProp(' + j + ',this.value)">' + DG_PROPS.map(function(p) { return '<option value="' + p + '"' + (p === s.p ? ' selected' : '') + '>' + (p === 'op' ? dgt('op') : p === 'rot' ? dgt('rot') : p === 's' ? dgt('sc') : p === 'dx' ? dgt('pdx') : dgt('pdy')) + '</option>'; }).join('') + '</select>' +
+            '<input type="number" title="' + esc(dgt('min')) + '" value="' + s.min + '" onchange="dge.sp.sl[' + j + '].min=Number(this.value)"><input type="number" title="' + esc(dgt('max')) + '" value="' + s.max + '" onchange="dge.sp.sl[' + j + '].max=Number(this.value)">' +
+            '<button class="gd-btn" onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">×</button></div>';
+    }).join('') + (dge.sp.objs.length && dge.sp.sl.length < 6 ? '<button class="gd-btn" onclick="dgSlAdd()">+ ' + esc(dgt('slAdd')) + '</button>' : '') + '</div>';
+    document.getElementById('dge-side').innerHTML = h;
+}
+function dgSlAdd() { var o = dgSelObj() || dge.sp.objs[0]; if (!o) return; dge.sp.sl.push({ label: '', o: o.id, p: 'op', min: 0, max: 1, v: 1 }); dgPaintSide(); }
+function dgSlProp(j, p) { var s = dge.sp.sl[j], r = { op: [0, 1, 1], rot: [0, 360, 0], s: [0.2, 3, 1], dx: [-200, 200, 0], dy: [-200, 200, 0] }[p]; s.p = p; s.min = r[0]; s.max = r[1]; s.v = r[2]; dgPaintSide(); }
+function dgSetKF(o, t, patch) {
+    t = Math.round(t * 20) / 20;
+    if (!o.kf || !o.kf.length) { var b = dgSt(dge.sp, o, 0, true, null); o.kf = [{ t: 0, dx: b.dx, dy: b.dy, rot: b.rot, s: b.s, op: b.op }]; }
+    var k = o.kf.filter(function(x) { return Math.abs(x.t - t) < 0.001; })[0];
+    if (!k) { if (o.kf.length >= 30) return; var c = dgSt(dge.sp, o, t, false, null); k = { t: t, dx: c.dx, dy: c.dy, rot: c.rot, s: c.s, op: c.op }; o.kf.push(k); o.kf.sort(function(a, b) { return a.t - b.t; }); }
+    Object.keys(patch).forEach(function(p) { k[p] = patch[p]; });
+}
+function dgProp(key, v) {
+    var o = dgSelObj(); if (!o) return;
+    if (key === 'op' || key === 'rot' || key === 's') {
+        v = Number(v); if (!isFinite(v)) return;
+        v = key === 'op' ? Math.min(1, Math.max(0, v)) : key === 's' ? Math.min(20, Math.max(0.05, v)) : v;
+        if (dge.mode === 'motion') dgSetKF(o, dge.t, (function() { var p = {}; p[key] = v; return p; })()); else o[key] = v;
+    } else if (key === 'sw') o.sw = dgN(v, 2, 0, 30);
+    else if (key === 'fs') o.fs = dgN(v, 24, 6, 160);
+    else if (key === 'text') o.text = String(v).slice(0, 200);
+    else if (key === 'drag') o.drag = !!v;
+    else o[key] = v;
+    dgDraw(); if (dge.mode === 'motion') dgPaintTl();
+}
+function dgPaintTl() {
+    var el = document.getElementById('dge-tl'); if (!el) return;
+    if (dge.mode !== 'motion') { el.innerHTML = ''; return; }
+    var o = dgSelObj(), kf = o && o.kf ? o.kf.map(function(k) { return dgR(k.t) + 's'; }).join(' ・ ') : '';
+    el.innerHTML = '<div class="dge-tl"><button class="gd-btn" id="dge-play" onclick="dgPlay()">' + (dge.play ? '⏸ ' + esc(dgt('pause')) : '▶ ' + esc(dgt('play'))) + '</button>' +
+        '<input type="range" id="dge-t" min="0" max="' + dge.sp.dur + '" step="0.05" value="' + dge.t + '" oninput="dge.play=false;dge.t=Number(this.value);dgTimeLabel();dgPaintSide();dgDraw()"><span id="dge-tt"></span></div>' +
+        '<div class="dge-tl"><label>' + esc(dgt('dur')) + ' <input type="number" min="0.5" max="60" step="0.5" value="' + dge.sp.dur + '" onchange="dge.sp.dur=dgN(this.value,3,0.5,60);dgPaintTl()"></label><label><input type="checkbox"' + (dge.sp.loop ? ' checked' : '') + ' onchange="dge.sp.loop=this.checked"> ' + esc(dgt('loop')) + '</label>' +
+        (o && o.kf && o.kf.length ? '<span class="dge-kf">' + esc(dgt('kf')) + ': ' + kf + '</span><button class="gd-btn" onclick="dgKfDel()">' + esc(dgt('kfDel')) + '</button>' : '') + '</div>';
+    dgTimeLabel();
+}
+function dgTimeLabel() { var e = document.getElementById('dge-tt'); if (e) e.textContent = dgR(dge.t) + ' / ' + dge.sp.dur + 's'; }
+function dgKfDel() { var o = dgSelObj(); if (!o || !o.kf) return; var t = Math.round(dge.t * 20) / 20; o.kf = o.kf.filter(function(k) { return Math.abs(k.t - t) > 0.001; }); if (o.kf.length < 1) delete o.kf; dgPaintTl(); dgDraw(); }
+function dgPlay() { dge.play = !dge.play; dge.t0 = 0; dgPaintTl(); }
+function dgTick(ts) {
+    if (!dge) return;
+    if (dge.play) {
+        if (!dge.t0) dge.t0 = ts - dge.t * 1000;
+        var t = (ts - dge.t0) / 1000;
+        if (t > dge.sp.dur) { if (dge.sp.loop) { dge.t0 = ts; t = 0; } else { t = dge.sp.dur; dge.play = false; dgPaintTl(); } }
+        dge.t = t; var r = document.getElementById('dge-t'); if (r) r.value = t; dgTimeLabel(); dgDraw();
+    }
+    requestAnimationFrame(dgTick);
+}
+function dgDraw() {
+    var svg = document.getElementById('dge-svg'); if (!svg || !dge) return;
+    var raw = dge.mode === 'shape', sel = dge.sel, h = dgSceneSVG(dge.sp, dge.mode === 'shape' ? 0 : dge.t, raw, raw ? null : dge.sp.sl.map(function(s) { return s.v; }), true, null, sel), o = dgSelObj();
+    if (o && !o.pts && dge.mode === 'shape') h += '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" fill="none" stroke="#6a3fd0" stroke-dasharray="5 4" pointer-events="none"/><rect class="dg-h" data-r="1" x="' + (o.x + o.w - 6) + '" y="' + (o.y + o.h - 6) + '" width="12" height="12" fill="#b794f6" stroke="#4b3a7a" stroke-width="2"/>';
+    else if (o && !o.pts) { var c = dgCen(o), st = dgSt(dge.sp, o, dge.t, false, null); h += '<circle cx="' + dgR(c[0] + st.dx) + '" cy="' + dgR(c[1] + st.dy) + '" r="5" fill="#6a3fd0" pointer-events="none"/>'; }
+    svg.innerHTML = h;
+}
+function dgDown(ev) {
+    if (!dge) return; var svg = ev.currentTarget, p = dgPt(svg, ev), T = dge.tool;
+    if (T === 'text') {
+        var s = prompt(dgt('pText'), ''); dge.tool = 'select';
+        if (s) { dge.sp.objs.push({ k: 'text', id: dgNewId(), x: p[0] - 60, y: p[1] - 16, w: 120, h: 32, text: s.slice(0, 200), fs: 24, fill: '#222222', stroke: 'none', sw: 0, op: 1, dx: 0, dy: 0, rot: 0, s: 1 }); dge.sel = dge.sp.objs.length - 1; }
+        dgPaintAll(); return;
+    }
+    if (T !== 'select') {
+        if (dge.sp.objs.length >= DG_MAX) return;
+        var o = { k: T, id: dgNewId(), fill: T === 'line' || T === 'arrow' ? 'none' : '#4c97ff', stroke: T === 'line' || T === 'arrow' ? '#333333' : '#2b5fb8', sw: T === 'line' || T === 'arrow' ? 4 : 2, op: 1, dx: 0, dy: 0, rot: 0, s: 1 };
+        if (T === 'tri' || T === 'line' || T === 'arrow') o.pts = T === 'tri' ? [[p[0], p[1]], [p[0], p[1]], [p[0], p[1]]] : [[p[0], p[1]], [p[0], p[1]]]; else { o.x = p[0]; o.y = p[1]; o.w = 1; o.h = 1; }
+        dge.sp.objs.push(o); dge.sel = dge.sp.objs.length - 1; dge.drag = { k: 'new', p: p }; dge.mode = 'shape';
+        try { svg.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); dgPaintTop(); dgPaintTl(); return;
+    }
+    var v = ev.target.closest && ev.target.closest('[data-v]'), r = ev.target.closest && ev.target.closest('[data-r]'), ob = ev.target.closest && ev.target.closest('[data-o]');
+    if (v && dge.mode === 'shape') { var a = v.dataset.v.split(':'); dge.sel = Number(a[0]); dge.drag = { k: 'v', j: Number(a[1]) }; }
+    else if (r && dge.mode === 'shape') dge.drag = { k: 'r' };
+    else if (ob) {
+        dge.sel = Number(ob.dataset.o); var o2 = dge.sp.objs[dge.sel], st = dgSt(dge.sp, o2, dge.t, dge.mode === 'shape', null);
+        dge.drag = { k: 'm', p: p, pts: o2.pts ? JSON.parse(JSON.stringify(o2.pts)) : null, x: o2.x, y: o2.y, dx: st.dx, dy: st.dy };
+    } else { dge.sel = -1; dgPaintSide(); dgPaintTl(); dgDraw(); return; }
+    try { svg.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); dgPaintSide(); dgPaintTl(); dgDraw();
+}
+function dgMove(ev) {
+    if (!dge || !dge.drag) return; var d = dge.drag, o = dgSelObj(), p = dgPt(ev.currentTarget, ev); if (!o) return;
+    var cl = function(n) { return Math.max(-200, Math.min(DG_W + 200, n)); };
+    if (d.k === 'new') {
+        if (o.k === 'tri') { var x0 = Math.min(d.p[0], p[0]), x1 = Math.max(d.p[0], p[0]), y0 = Math.min(d.p[1], p[1]), y1 = Math.max(d.p[1], p[1]); o.pts = [[(x0 + x1) / 2, y0], [x1, y1], [x0, y1]]; }
+        else if (o.pts) o.pts = [d.p, [cl(p[0]), cl(p[1])]];
+        else { o.x = Math.min(d.p[0], p[0]); o.y = Math.min(d.p[1], p[1]); o.w = Math.max(1, Math.abs(p[0] - d.p[0])); o.h = Math.max(1, Math.abs(p[1] - d.p[1])); }
+    } else if (d.k === 'v') o.pts[d.j] = [cl(p[0]), cl(p[1])];
+    else if (d.k === 'r') { o.w = Math.max(4, p[0] - o.x); o.h = Math.max(4, p[1] - o.y); }
+    else if (d.k === 'm') {
+        var mx = p[0] - d.p[0], my = p[1] - d.p[1];
+        if (dge.mode === 'motion') dgSetKF(o, dge.t, { dx: d.dx + mx, dy: d.dy + my });
+        else if (d.pts) o.pts = d.pts.map(function(q) { return [q[0] + mx, q[1] + my]; });
+        else { o.x = d.x + mx; o.y = d.y + my; }
+    }
+    dgDraw();
+}
+function dgUp() {
+    if (!dge || !dge.drag) return; var d = dge.drag, o = dgSelObj(); dge.drag = null;
+    if (d.k === 'new' && o) {
+        if (o.pts) { var c = dgCen(o), w = Math.max.apply(0, o.pts.map(function(q) { return q[0]; })) - Math.min.apply(0, o.pts.map(function(q) { return q[0]; })), hh = Math.max.apply(0, o.pts.map(function(q) { return q[1]; })) - Math.min.apply(0, o.pts.map(function(q) { return q[1]; }));
+            if (w < 6 && hh < 6) { var p0 = o.pts[0]; o.pts = o.k === 'tri' ? [[p0[0], p0[1] - 45], [p0[0] + 50, p0[1] + 35], [p0[0] - 50, p0[1] + 35]] : [[p0[0] - 50, p0[1]], [p0[0] + 50, p0[1]]]; } }
+        else if (o.w < 6 && o.h < 6) { o.x -= 45; o.y -= 35; o.w = 90; o.h = 70; }
+        dge.tool = 'select'; dgPaintAll(); return;
+    }
+    dgPaintSide(); dgPaintTl();
+}
+function dgDiagramOpen() {
+    var ta = document.getElementById('gd-e-body'), e = gd.edit; if (!ta || !e) return;
+    if (e.preview) gdEditTab(false);
+    var v = ta.value, s = ta.selectionStart, re = /```diagram\n([\s\S]*?)\n```/g, m, hit = null, spec = null;
+    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
+    if (hit) { try { spec = JSON.parse(hit[1]); } catch (x) { hit = null; } }
+    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
+    dgOpen(spec, function(sp) {
+        var ins = (hit ? '' : '\n\n') + '```diagram\n' + JSON.stringify(sp) + '\n```' + (hit ? '' : '\n\n'), cur = document.getElementById('gd-e-body');
+        if (!cur || !gd.edit) return;
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur);
+    });
 }
 
 // ===== ホーム =====

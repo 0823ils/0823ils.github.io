@@ -1764,7 +1764,7 @@ async function videoDiscard(request, env, id) {
 
 // ---------- 進捗スレッド（#進捗） ----------
 //   GET    /api/chat/progress/threads                -> { threads: [...], video_enabled }     （公開。進捗の新しい順 → 新着メッセージ順）
-//   POST   /api/chat/progress/threads { title, description, scratch?, image_id? }   -> { thread }   （要ログイン）
+//   POST   /api/chat/progress/threads { title, description, link_url?, image_id? } -> { thread }   （要ログイン。旧 scratch? も互換）
 //   GET    /api/chat/progress/threads/:id            -> { thread, updates: [...] }
 //   DELETE /api/chat/progress/threads/:id            -> { deleted }                           （作った本人 or 管理者）
 //   POST   /api/chat/progress/threads/:id/updates { content, file_ids?: [最大2] }  -> { update }   （スレッドを作った本人だけ。画像 / .sb3）

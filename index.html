@@ -5949,11 +5949,11 @@ function chatRoomOK(r) { return CHAT_ROOMS.indexOf(r) >= 0 || pgIsRoom(r); }
 function pgLinkText(value) {
     // URLを安全にリンク化。Scratch専用リンクと進捗本文内の外部リンクを併用できる。
     var safe = esc(value || '');
-    return safe.replace(/https?:\\/\\/[^\\s<>"']+/gi, function(raw) {
-        var href = raw.replace(/&amp;/g, '&'), tail = '';
-        while (/[。、．，.!?;:）)】』]$/.test(raw)) { tail = raw.slice(-1) + tail; raw = raw.slice(0, -1); href = href.slice(0, -1); }
+    return safe.replace(/https?:\/\/[^\s<>"']+/gi, function(raw) {
+        var tail = '';
+        while (/[。、．，.!?;:）)】』]$/.test(raw)) { tail = raw.slice(-1) + tail; raw = raw.slice(0, -1); }
         return '<a href="' + raw + '" target="_blank" rel="noopener noreferrer">' + raw + '</a>' + tail;
-    }).replace(/\\n/g, '<br>');
+    }).replace(/\n/g, '<br>');
 }
 function pgAgo(ts) {
     var s = Math.max(0, (Date.now() - ts) / 1000);

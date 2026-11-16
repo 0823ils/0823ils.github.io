@@ -1179,38 +1179,69 @@
         .dg-row span { min-width: 5em; font-weight: 600; }
         .dg-row input[type=range] { flex: 1; min-width: 0; }
         .dg-play { border: 0; background: #4c97ff; color: #fff; border-radius: 8px; padding: 3px 12px; cursor: pointer; }
-        #dg-ed { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.55); display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .dge-box { width: min(1060px, 100%); max-height: 100%; background: #fff; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; color: #222; }
-        .dge-top { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #e6e8f0; flex-wrap: wrap; }
+        #dg-ed { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.6); display: flex; align-items: center; justify-content: center; padding: 12px; }
+        .dge-box { width: min(1140px, 100%); max-height: 100%; background: #f4f6fb; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; color: #2b3a55; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+        .dge-top { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e3e7f1; flex-wrap: wrap; }
+        .dge-title { font-size: 16px; }
         .dge-sp { flex: 1; }
-        .dge-modes { display: flex; gap: 4px; }
-        .dge-main { display: flex; gap: 10px; padding: 10px; overflow: auto; min-height: 0; }
-        .dge-tools { display: flex; flex-direction: column; gap: 4px; }
-        .dge-tools hr { width: 100%; border: 0; border-top: 1px solid #e6e8f0; margin: 2px 0; }
-        .dge-tool { width: 38px; height: 38px; border: 1px solid #d5d9e6; border-radius: 8px; background: #fff; font-size: 17px; cursor: pointer; }
-        .dge-tool.on { background: #e5edff; border-color: #4c97ff; }
+        .dge-steps { display: flex; gap: 4px; background: #eef1f8; padding: 3px; border-radius: 999px; }
+        .dge-step { border: 0; background: none; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #6b7794; cursor: pointer; }
+        .dge-step.on { background: #4c97ff; color: #fff; }
+        .dge-b { border: 0; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .dge-b.main { background: #4c97ff; color: #fff; }
+        .dge-b.ghost { background: #eef1f8; color: #4a5878; }
+        .dge-main { display: flex; gap: 12px; padding: 12px; overflow: auto; min-height: 0; align-items: flex-start; }
+        .dge-tools { display: grid; grid-template-columns: 1fr; gap: 6px; width: 64px; flex: none; }
+        .dge-tool { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 5px; border: 2px solid transparent; border-radius: 12px; background: #fff; cursor: pointer; color: #2b3a55; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+        .dge-tool span { font-size: 20px; line-height: 1.2; }
+        .dge-tool small { font-size: 10px; font-weight: 700; color: #6b7794; }
+        .dge-tool.on { border-color: #4c97ff; background: #e8f1ff; }
         .dge-stage { flex: 1; min-width: 0; }
-        .dge-stage .dg-svg { border: 1px solid #d5d9e6; border-radius: 8px; }
-        .dge-hint { font-size: 12px; color: #667; margin: 6px 0; }
-        .dge-tl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; margin: 4px 0; }
-        .dge-tl input[type=range] { flex: 1; min-width: 120px; }
-        .dge-tl input[type=number] { width: 4.5em; }
-        .dge-kf { color: #667; font-size: 12px; }
-        .dge-side { width: 250px; flex: none; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
-        .dge-f { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .dge-f input[type=number], .dge-f input[type=text] { width: 120px; }
-        .dge-n { font-size: 12px; display: flex; gap: 3px; align-items: center; }
-        .dge-sec { border-top: 1px solid #e6e8f0; padding-top: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .dge-sl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        .dge-sl input[type=number] { width: 100%; }
-        @media (max-width: 720px) { .dge-main { flex-direction: column; } .dge-tools { flex-direction: row; flex-wrap: wrap; } .dge-side { width: auto; } }
-        #dg-ed input, #dg-ed select { width: auto; height: auto; min-height: 0; margin: 0; padding: 4px 6px; font-size: 13px; box-sizing: border-box; border: 1px solid #ccd1e0; border-radius: 6px; background: #fff; color: #222; }
-        #dg-ed input[type=color] { width: 44px; height: 28px; padding: 1px; }
-        #dg-ed input[type=checkbox], #dg-ed input[type=range] { padding: 0; border: 0; width: auto; }
-        #dg-ed .dge-f input[type=number], #dg-ed .dge-f input[type=text] { width: 110px; }
-        .dge-sl { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        #dg-ed .dge-sl input, #dg-ed .dge-sl select { width: 100%; min-width: 0; }
-        .dge-sl button { grid-column: 1 / -1; }
+        .dge-cv { position: relative; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(30,40,80,.15); background: #fff; }
+        .dge-cv .dg-svg { cursor: crosshair; }
+        .dge-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 16px; background: rgba(255,255,255,.88); pointer-events: none; }
+        .dge-em-t { font-size: 20px; font-weight: 800; }
+        .dge-em-s { font-size: 13px; color: #6b7794; }
+        .dge-ex { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; pointer-events: auto; }
+        .dge-ex button { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 128px; padding: 12px 8px; border: 2px solid #dfe5f3; border-radius: 14px; background: #fff; font-size: 13px; font-weight: 700; color: #2b3a55; cursor: pointer; }
+        .dge-ex button span { font-size: 30px; }
+        .dge-ex button:hover { border-color: #4c97ff; background: #f0f6ff; }
+        .dge-tlb { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 12px; flex-wrap: wrap; font-size: 13px; }
+        .dge-tlb input[type=range] { flex: 1; min-width: 120px; }
+        .dge-play { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #4c97ff; color: #fff; font-size: 16px; cursor: pointer; }
+        .dge-d { display: flex; align-items: center; gap: 4px; color: #6b7794; }
+        .dge-d input[type=number] { width: 58px; }
+        .dge-kf { font-size: 12px; color: #6b7794; margin-top: 6px; min-height: 18px; }
+        .dge-kf button { border: 0; background: none; color: #d33; cursor: pointer; font-size: 12px; text-decoration: underline; }
+        .dge-side { width: 264px; flex: none; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+        .dge-note { color: #6b7794; font-size: 12px; line-height: 1.6; }
+        .dge-sec { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+        .dge-h { font-size: 11px; font-weight: 800; color: #8a93ab; letter-spacing: .04em; margin-bottom: 6px; }
+        .dge-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .dge-acts button, .dge-pre button { border: 0; border-radius: 10px; padding: 8px 6px; background: #fff; font-size: 12px; font-weight: 700; color: #2b3a55; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); }
+        .dge-acts .del { color: #d33; }
+        .dge-acts button:hover, .dge-pre button:hover { background: #e8f1ff; }
+        .dge-pre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .dge-pre button { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #f4f6fb; }
+        .dge-pre button span { font-size: 20px; }
+        .dge-pre.sm { grid-template-columns: 1fr; margin-top: 8px; }
+        .dge-pre.sm button { flex-direction: row; justify-content: center; padding: 7px; }
+        .dge-sw { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .dge-sw button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #d6dbe8; cursor: pointer; padding: 0; }
+        .dge-sw button.on { border-color: #2b3a55; box-shadow: 0 0 0 2px #fff inset; }
+        .dge-sw button.none { background: #fff; color: #888; font-size: 14px; line-height: 1; }
+        .dge-sw input[type=color] { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; }
+        .dge-rg { display: flex; align-items: center; gap: 8px; }
+        .dge-rg input { flex: 1; min-width: 0; }
+        .dge-rg output { width: 40px; text-align: right; font-weight: 700; }
+        .dge-tx { width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: 14px; border: 1px solid #d6dbe8; border-radius: 8px; }
+        .dge-chk { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .dge-sl { display: flex; gap: 6px; margin-bottom: 6px; }
+        .dge-sl input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid #d6dbe8; border-radius: 8px; font-size: 13px; }
+        .dge-sl button { border: 0; background: #eef1f8; border-radius: 8px; width: 32px; cursor: pointer; }
+        #dg-ed input[type=range], #dg-ed input[type=checkbox] { width: auto; height: auto; padding: 0; margin: 0; border: 0; background: none; }
+        #dg-ed input[type=number] { width: 58px; padding: 4px 6px; font-size: 13px; border: 1px solid #d6dbe8; border-radius: 6px; height: auto; }
+        @media (max-width: 760px) { .dge-main { flex-direction: column; } .dge-tools { width: auto; grid-template-columns: repeat(7, 1fr); } .dge-side { width: auto; } .dge-tool small { display: none; } }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }
@@ -4244,6 +4275,10 @@ var DGT = {
         play: 'Play', pause: 'Pause', dur: 'Length (s)', loop: 'Loop', kf: 'Keyframes', kfDel: 'Delete keyframe at this time', sl: 'Sliders (viewers can move)', slAdd: 'Add slider', slLabel: 'Label', slTarget: 'Target', slProp: 'Property', min: 'Min', max: 'Max',
         pText: 'Enter text', empty: 'Draw a shape with the tools on the left.', err: 'Cannot load diagram', pdx: 'X', pdy: 'Y' }
 };
+Object.assign(DGT.ja, { emptyT: 'はじめに、例から選んでみよう', emptyS: 'または、左の道具をえらんで、ここをドラッグすると図形が描けます。', pick: '図形をクリックで選ぶと、色や動きを変えられます。', preset: 'ワンクリックで動かす', p_spin: '回る', p_pulse: '脈打つ', p_bounce: '跳ねる', p_slide: '左右', p_blink: '点滅', p_none: '止める',
+    touch: '見る人が触れるようにする', dragV: '頂点をドラッグできる', dragO: 'ドラッグで動かせる', slOp: '透明度スライダー', slRot: '回転スライダー', slSc: '大きさスライダー', custom: 'ほかの色', shape: '描く', motion: '動かす', hintMotion: '時間バーを動かして図形をドラッグすると、細かい動きも作れます。', hintShape: '左の道具を選んで、ドラッグで図形を描きます。' });
+Object.assign(DGT.en, { emptyT: 'Start with an example', emptyS: 'Or pick a tool on the left and drag here to draw.', pick: 'Click a shape to change its color and motion.', preset: 'One-click motion', p_spin: 'Spin', p_pulse: 'Pulse', p_bounce: 'Bounce', p_slide: 'Slide', p_blink: 'Blink', p_none: 'Stop',
+    touch: 'Let viewers interact', dragV: 'Corners draggable', dragO: 'Draggable', slOp: 'Opacity slider', slRot: 'Rotation slider', slSc: 'Size slider', custom: 'Other color', shape: 'Draw', motion: 'Animate', hintMotion: 'Move the time bar and drag a shape to make detailed motion.', hintShape: 'Pick a tool on the left and drag to draw.' });
 function dgt(k) { return (DGT[currentLang] || DGT.ja)[k] || DGT.ja[k] || k; }
 var DG_COL = /^#[0-9a-fA-F]{3,8}$/, DG_KINDS = ['rect', 'ellipse', 'tri', 'poly', 'line', 'arrow', 'text'], DG_PROPS = ['op', 'rot', 's', 'dx', 'dy'];
 function dgN(v, d, lo, hi) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
@@ -4403,10 +4438,9 @@ function dgOpen(spec, done) {
     dge = { sp: sp, sel: -1, tool: 'select', mode: 'shape', t: 0, play: false, t0: 0, drag: null, done: done, edit: !!(spec && spec.objs && spec.objs.length) };
     var d = document.getElementById('dg-ed'); if (d) d.remove();
     d = document.createElement('div'); d.id = 'dg-ed';
-    d.innerHTML = '<div class="dge-box"><div class="dge-top"><b>' + esc(dgt('title')) + '</b><div class="dge-modes" id="dge-modes"></div><div class="dge-sp"></div>' +
-        '<select id="dge-ex" onchange="dgExample(this.value);this.value=\'\'"><option value="">' + esc(dgt('ex')) + '</option><option value="ex1">' + esc(dgt('ex1')) + '</option><option value="ex2">' + esc(dgt('ex2')) + '</option><option value="ex3">' + esc(dgt('ex3')) + '</option></select>' +
-        '<button class="gd-btn primary" onclick="dgFinish()">' + esc(dgt(dge.edit ? 'upd' : 'ins')) + '</button><button class="gd-btn" onclick="dgClose()">' + esc(dgt('close')) + '</button></div>' +
-        '<div class="dge-main"><div class="dge-tools" id="dge-tools"></div><div class="dge-stage"><svg id="dge-svg" class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg><div class="dge-hint" id="dge-hint"></div><div id="dge-tl"></div></div><div class="dge-side" id="dge-side"></div></div></div>';
+    d.innerHTML = '<div class="dge-box"><div class="dge-top"><b class="dge-title">' + esc(dgt('title')) + '</b><div class="dge-steps" id="dge-modes"></div><div class="dge-sp"></div>' +
+        '<button class="dge-b ghost" onclick="dgClose()">' + esc(dgt('close')) + '</button><button class="dge-b main" onclick="dgFinish()">' + esc(dgt(dge.edit ? 'upd' : 'ins')) + '</button></div>' +
+        '<div class="dge-main"><div class="dge-tools" id="dge-tools"></div><div class="dge-stage"><div class="dge-cv"><svg id="dge-svg" class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg><div class="dge-empty" id="dge-empty"></div></div><div id="dge-tl"></div></div><div class="dge-side" id="dge-side"></div></div></div>';
     document.body.appendChild(d);
     var svg = document.getElementById('dge-svg');
     svg.onpointerdown = dgDown; svg.onpointermove = dgMove; svg.onpointerup = svg.onpointercancel = dgUp;
@@ -4424,44 +4458,66 @@ function dgExample(k) { if (!dge || !DG_EXAMPLES[k]) return; dge.sp = dgClean(DG
 function dgSelObj() { return dge && dge.sel >= 0 ? dge.sp.objs[dge.sel] : null; }
 function dgPaintAll() { dgPaintTop(); dgPaintTools(); dgPaintSide(); dgPaintTl(); dgDraw(); }
 function dgPaintTop() {
-    document.getElementById('dge-modes').innerHTML = ['shape', 'motion'].map(function(m) { return '<button class="gd-tbb tab' + (dge.mode === m ? ' on' : '') + '" onclick="dgSetMode(\'' + m + '\')">' + esc(dgt(m)) + '</button>'; }).join('');
-    document.getElementById('dge-hint').textContent = dge.sp.objs.length ? dgt(dge.mode === 'shape' ? 'hintShape' : 'hintMotion') : dgt('empty');
+    document.getElementById('dge-modes').innerHTML = [['shape', '① ' + dgt('shape')], ['motion', '② ' + dgt('motion')]].map(function(m) { return '<button class="dge-step' + (dge.mode === m[0] ? ' on' : '') + '" onclick="dgSetMode(\'' + m[0] + '\')">' + esc(m[1]) + '</button>'; }).join('');
+    var em = document.getElementById('dge-empty');
+    em.style.display = dge.sp.objs.length ? 'none' : '';
+    em.innerHTML = dge.sp.objs.length ? '' : '<div class="dge-em-t">' + esc(dgt('emptyT')) + '</div><div class="dge-em-s">' + esc(dgt('emptyS')) + '</div><div class="dge-ex">' +
+        [['ex1', '🔺', 'ex1'], ['ex2', '🏀', 'ex2'], ['ex3', '🔄', 'ex3']].map(function(x) { return '<button onclick="dgExample(\'' + x[0] + '\')"><span>' + x[1] + '</span>' + esc(dgt(x[2])) + '</button>'; }).join('') + '</div>';
 }
 function dgSetMode(m) { dge.mode = m; dge.play = false; dgPaintAll(); }
 function dgPaintTools() {
-    var T = [['select', '↖', 'tSel'], ['rect', '▭', 'tRect'], ['ellipse', '◯', 'tEll'], ['tri', '△', 'tTri'], ['line', '／', 'tLine'], ['arrow', '→', 'tArrow'], ['text', 'T', 'tText']];
-    document.getElementById('dge-tools').innerHTML = T.map(function(x) { return '<button title="' + esc(dgt(x[2])) + '" class="dge-tool' + (dge.tool === x[0] ? ' on' : '') + '" onclick="dge.tool=\'' + x[0] + '\';dgPaintTools()">' + x[1] + '</button>'; }).join('') +
-        '<hr><button title="' + esc(dgt('dup')) + '" class="dge-tool" onclick="dgDup()">⧉</button><button title="' + esc(dgt('up')) + '" class="dge-tool" onclick="dgOrder(1)">↑</button><button title="' + esc(dgt('down')) + '" class="dge-tool" onclick="dgOrder(-1)">↓</button><button title="' + esc(dgt('del')) + '" class="dge-tool" onclick="dgDel()">🗑</button>';
+    var T = [['select', '↖', 'tSel'], ['rect', '▭', 'tRect'], ['ellipse', '◯', 'tEll'], ['tri', '△', 'tTri'], ['line', '／', 'tLine'], ['arrow', '➜', 'tArrow'], ['text', 'T', 'tText']];
+    document.getElementById('dge-tools').innerHTML = T.map(function(x) { return '<button class="dge-tool' + (dge.tool === x[0] ? ' on' : '') + '" onclick="dge.tool=\'' + x[0] + '\';dgPaintTools()"><span>' + x[1] + '</span><small>' + esc(dgt(x[2])) + '</small></button>'; }).join('');
 }
 function dgDup() { var o = dgSelObj(); if (!o || dge.sp.objs.length >= DG_MAX) return; var c = JSON.parse(JSON.stringify(o)); c.id = dgNewId(); if (c.pts) c.pts = c.pts.map(function(p) { return [p[0] + 16, p[1] + 16]; }); else { c.x += 16; c.y += 16; } dge.sp.objs.push(c); dge.sel = dge.sp.objs.length - 1; dgPaintAll(); }
 function dgDel() { var o = dgSelObj(); if (!o) return; dge.sp.objs.splice(dge.sel, 1); dge.sp.sl = dge.sp.sl.filter(function(s) { return s.o !== o.id; }); dge.sel = -1; dgPaintAll(); }
 function dgOrder(d) { var i = dge.sel, a = dge.sp.objs, j = i + d; if (i < 0 || j < 0 || j >= a.length) return; var t = a[i]; a[i] = a[j]; a[j] = t; dge.sel = j; dgPaintAll(); }
 function dgCol(label, key, o) {
-    var v = o[key], on = v !== 'none';
-    return '<label class="dge-f"><span>' + esc(dgt(label)) + '</span><input type="color" value="' + (on && /^#[0-9a-f]{6}/i.test(v) ? v.slice(0, 7) : '#888888') + '" oninput="dgProp(\'' + key + '\',this.value)"><label class="dge-n"><input type="checkbox"' + (on ? '' : ' checked') + ' onchange="dgProp(\'' + key + '\',this.checked?\'none\':\'#888888\');dgPaintSide()">' + esc(dgt('none')) + '</label></label>';
+    var v = o[key], P = ['#ff6680', '#ffab19', '#ffd500', '#59c059', '#4c97ff', '#9966ff', '#2b3a55', '#ffffff', '#222222'];
+    return '<div class="dge-sec"><div class="dge-h">' + esc(dgt(label)) + '</div><div class="dge-sw">' + P.map(function(c) { return '<button class="' + (v === c ? 'on' : '') + '" style="background:' + c + '" onclick="dgProp(\'' + key + '\',\'' + c + '\');dgPaintSide()"></button>'; }).join('') +
+        '<button class="none' + (v === 'none' ? ' on' : '') + '" title="' + esc(dgt('none')) + '" onclick="dgProp(\'' + key + '\',\'none\');dgPaintSide()">∅</button>' +
+        '<input type="color" value="' + (/^#[0-9a-f]{6}/i.test(v) ? v.slice(0, 7) : '#888888') + '" oninput="dgProp(\'' + key + '\',this.value)" title="' + esc(dgt('custom')) + '"></div></div>';
 }
-function dgNumF(label, key, v, min, max, step) { return '<label class="dge-f"><span>' + esc(dgt(label)) + '</span><input type="number" value="' + dgR(v) + '" min="' + min + '" max="' + max + '" step="' + step + '" oninput="dgProp(\'' + key + '\',this.value)"></label>'; }
+function dgNumF(label, key, v, min, max, step) { return '<div class="dge-sec"><div class="dge-h">' + esc(dgt(label)) + '</div><div class="dge-rg"><input type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" oninput="dgProp(\'' + key + '\',this.value);this.nextSibling.textContent=dgR(Number(this.value))"><output>' + dgR(v) + '</output></div></div>'; }
 function dgPaintSide() {
-    var o = dgSelObj(), h = '';
-    if (o) {
-        var st = dgSt(dge.sp, o, dge.t, dge.mode === 'shape', null);
-        if (o.k !== 'line' && o.k !== 'arrow') h += dgCol('fill', 'fill', o);
-        if (o.k !== 'text') h += dgCol('stroke', 'stroke', o) + dgNumF('sw', 'sw', o.sw, 0, 30, 1);
-        if (o.k === 'text') h += '<label class="dge-f"><span>' + esc(dgt('text')) + '</span><input type="text" maxlength="200" value="' + esc(o.text) + '" oninput="dgProp(\'text\',this.value)"></label>' + dgNumF('fs', 'fs', o.fs, 6, 160, 1);
-        h += dgNumF('op', 'op', st.op, 0, 1, 0.05) + dgNumF('rot', 'rot', st.rot, -3600, 3600, 5) + dgNumF('sc', 's', st.s, 0.05, 20, 0.1);
-        h += '<label class="dge-f"><span>' + esc(dgt('drag')) + '</span><input type="checkbox"' + (o.drag ? ' checked' : '') + ' onchange="dgProp(\'drag\',this.checked)"></label>';
+    var o = dgSelObj(), h = '', mo = dge.mode === 'motion';
+    if (!o) h += '<div class="dge-note">' + esc(dgt(dge.sp.objs.length ? 'pick' : 'hintShape')) + '</div>';
+    else {
+        var st = dgSt(dge.sp, o, dge.t, !mo, null);
+        h += '<div class="dge-acts"><button onclick="dgDup()">⧉ ' + esc(dgt('dup')) + '</button><button onclick="dgOrder(1)">↑ ' + esc(dgt('up')) + '</button><button onclick="dgOrder(-1)">↓ ' + esc(dgt('down')) + '</button><button class="del" onclick="dgDel()">🗑 ' + esc(dgt('del')) + '</button></div>';
+        if (mo) {
+            h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('preset')) + '</div><div class="dge-pre">' + [['spin', '🔄'], ['pulse', '💓'], ['bounce', '⬆'], ['slide', '↔'], ['blink', '✨'], ['none', '⏹']].map(function(x) { return '<button onclick="dgPreset(\'' + x[0] + '\')"><span>' + x[1] + '</span>' + esc(dgt('p_' + x[0])) + '</button>'; }).join('') + '</div><div class="dge-note">' + esc(dgt('hintMotion')) + '</div></div>';
+            h += dgNumF('rot', 'rot', st.rot, -360, 720, 5) + dgNumF('sc', 's', st.s, 0.1, 4, 0.05) + dgNumF('op', 'op', st.op, 0, 1, 0.05);
+        } else {
+            if (o.k !== 'line' && o.k !== 'arrow') h += dgCol('fill', 'fill', o);
+            if (o.k !== 'text') h += dgCol('stroke', 'stroke', o) + dgNumF('sw', 'sw', o.sw, 0, 20, 1);
+            if (o.k === 'text') h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('text')) + '</div><input type="text" class="dge-tx" maxlength="200" value="' + esc(o.text) + '" oninput="dgProp(\'text\',this.value)"></div>' + dgNumF('fs', 'fs', o.fs, 8, 120, 1);
+            h += dgNumF('op', 'op', o.op, 0, 1, 0.05) + dgNumF('rot', 'rot', o.rot, -180, 180, 5);
+        }
+        h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('touch')) + '</div><label class="dge-chk"><input type="checkbox"' + (o.drag ? ' checked' : '') + ' onchange="dgProp(\'drag\',this.checked)"> ' + esc(dgt(o.pts ? 'dragV' : 'dragO')) + '</label>' +
+            '<div class="dge-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc']].map(function(x) { return '<button onclick="dgSlAdd(\'' + x[0] + '\')">＋ ' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div></div>';
     }
-    h += '<div class="dge-sec"><b>' + esc(dgt('sl')) + '</b>' + dge.sp.sl.map(function(s, j) {
-        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value">' +
-            '<select onchange="dge.sp.sl[' + j + '].o=this.value">' + dge.sp.objs.map(function(q, i) { return '<option value="' + q.id + '"' + (q.id === s.o ? ' selected' : '') + '>#' + (i + 1) + ' ' + q.k + '</option>'; }).join('') + '</select>' +
-            '<select onchange="dgSlProp(' + j + ',this.value)">' + DG_PROPS.map(function(p) { return '<option value="' + p + '"' + (p === s.p ? ' selected' : '') + '>' + (p === 'op' ? dgt('op') : p === 'rot' ? dgt('rot') : p === 's' ? dgt('sc') : p === 'dx' ? dgt('pdx') : dgt('pdy')) + '</option>'; }).join('') + '</select>' +
-            '<input type="number" title="' + esc(dgt('min')) + '" value="' + s.min + '" onchange="dge.sp.sl[' + j + '].min=Number(this.value)"><input type="number" title="' + esc(dgt('max')) + '" value="' + s.max + '" onchange="dge.sp.sl[' + j + '].max=Number(this.value)">' +
-            '<button class="gd-btn" onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">×</button></div>';
-    }).join('') + (dge.sp.objs.length && dge.sp.sl.length < 6 ? '<button class="gd-btn" onclick="dgSlAdd()">+ ' + esc(dgt('slAdd')) + '</button>' : '') + '</div>';
+    if (dge.sp.sl.length) h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('sl')) + '</div>' + dge.sp.sl.map(function(s, j) {
+        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value"><button onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">✕</button></div>';
+    }).join('') + '</div>';
     document.getElementById('dge-side').innerHTML = h;
 }
-function dgSlAdd() { var o = dgSelObj() || dge.sp.objs[0]; if (!o) return; dge.sp.sl.push({ label: '', o: o.id, p: 'op', min: 0, max: 1, v: 1 }); dgPaintSide(); }
-function dgSlProp(j, p) { var s = dge.sp.sl[j], r = { op: [0, 1, 1], rot: [0, 360, 0], s: [0.2, 3, 1], dx: [-200, 200, 0], dy: [-200, 200, 0] }[p]; s.p = p; s.min = r[0]; s.max = r[1]; s.v = r[2]; dgPaintSide(); }
+function dgSlAdd(p) {
+    var o = dgSelObj(); if (!o || dge.sp.sl.length >= 6) return;
+    var R = { op: [0, 1, 1, dgt('slOp')], rot: [0, 360, 0, dgt('slRot')], s: [0.3, 2.5, 1, dgt('slSc')] }[p];
+    dge.sp.sl.push({ label: R[3], o: o.id, p: p, min: R[0], max: R[1], v: R[2] }); dgPaintSide();
+}
+function dgPreset(name) {
+    var o = dgSelObj(); if (!o) return;
+    if (name === 'none') delete o.kf;
+    else {
+        var D = dge.sp.dur, b = { dx: o.dx, dy: o.dy, rot: o.rot, s: o.s, op: o.op }, K = function(t, q) { return Object.assign({ t: t }, b, q); };
+        o.kf = { spin: [K(0), K(D, { rot: b.rot + 360 })], pulse: [K(0), K(D / 2, { s: b.s * 1.3 }), K(D)], bounce: [K(0), K(D * 0.25, { dy: b.dy - 70 }), K(D * 0.5), K(D * 0.75, { dy: b.dy - 35 }), K(D)],
+            slide: [K(0), K(D / 2, { dx: b.dx + 90 }), K(D)], blink: [K(0), K(D / 2, { op: 0.15 }), K(D)] }[name];
+    }
+    dge.play = true; dge.t0 = 0; dgPaintAll();
+}
+
 function dgSetKF(o, t, patch) {
     t = Math.round(t * 20) / 20;
     if (!o.kf || !o.kf.length) { var b = dgSt(dge.sp, o, 0, true, null); o.kf = [{ t: 0, dx: b.dx, dy: b.dy, rot: b.rot, s: b.s, op: b.op }]; }
@@ -4486,12 +4542,14 @@ function dgPaintTl() {
     var el = document.getElementById('dge-tl'); if (!el) return;
     if (dge.mode !== 'motion') { el.innerHTML = ''; return; }
     var o = dgSelObj(), kf = o && o.kf ? o.kf.map(function(k) { return dgR(k.t) + 's'; }).join(' ・ ') : '';
-    el.innerHTML = '<div class="dge-tl"><button class="gd-btn" id="dge-play" onclick="dgPlay()">' + (dge.play ? '⏸ ' + esc(dgt('pause')) : '▶ ' + esc(dgt('play'))) + '</button>' +
-        '<input type="range" id="dge-t" min="0" max="' + dge.sp.dur + '" step="0.05" value="' + dge.t + '" oninput="dge.play=false;dge.t=Number(this.value);dgTimeLabel();dgPaintSide();dgDraw()"><span id="dge-tt"></span></div>' +
-        '<div class="dge-tl"><label>' + esc(dgt('dur')) + ' <input type="number" min="0.5" max="60" step="0.5" value="' + dge.sp.dur + '" onchange="dge.sp.dur=dgN(this.value,3,0.5,60);dgPaintTl()"></label><label><input type="checkbox"' + (dge.sp.loop ? ' checked' : '') + ' onchange="dge.sp.loop=this.checked"> ' + esc(dgt('loop')) + '</label>' +
-        (o && o.kf && o.kf.length ? '<span class="dge-kf">' + esc(dgt('kf')) + ': ' + kf + '</span><button class="gd-btn" onclick="dgKfDel()">' + esc(dgt('kfDel')) + '</button>' : '') + '</div>';
+    el.innerHTML = '<div class="dge-tlb"><button class="dge-play" onclick="dgPlay()">' + (dge.play ? '⏸' : '▶') + '</button>' +
+        '<input type="range" id="dge-t" min="0" max="' + dge.sp.dur + '" step="0.05" value="' + dge.t + '" oninput="dge.play=false;dge.t=Number(this.value);dgTimeLabel();dgPaintSide();dgDraw();dgPaintTl2()"><span id="dge-tt"></span>' +
+        '<label class="dge-d">' + esc(dgt('dur')) + ' <input type="number" min="0.5" max="60" step="0.5" value="' + dge.sp.dur + '" onchange="dge.sp.dur=dgN(this.value,3,0.5,60);dgPaintTl()"></label>' +
+        '<label class="dge-d"><input type="checkbox"' + (dge.sp.loop ? ' checked' : '') + ' onchange="dge.sp.loop=this.checked"> ' + esc(dgt('loop')) + '</label></div>' +
+        '<div class="dge-kf" id="dge-kf">' + (kf ? esc(dgt('kf')) + ': ' + kf + ' <button onclick="dgKfDel()">' + esc(dgt('kfDel')) + '</button>' : '') + '</div>';
     dgTimeLabel();
 }
+function dgPaintTl2() { var e = document.getElementById('dge-play'); }
 function dgTimeLabel() { var e = document.getElementById('dge-tt'); if (e) e.textContent = dgR(dge.t) + ' / ' + dge.sp.dur + 's'; }
 function dgKfDel() { var o = dgSelObj(); if (!o || !o.kf) return; var t = Math.round(dge.t * 20) / 20; o.kf = o.kf.filter(function(k) { return Math.abs(k.t - t) > 0.001; }); if (o.kf.length < 1) delete o.kf; dgPaintTl(); dgDraw(); }
 function dgPlay() { dge.play = !dge.play; dge.t0 = 0; dgPaintTl(); }
@@ -4507,8 +4565,11 @@ function dgTick(ts) {
 }
 function dgDraw() {
     var svg = document.getElementById('dge-svg'); if (!svg || !dge) return;
-    var raw = dge.mode === 'shape', sel = dge.sel, h = dgSceneSVG(dge.sp, dge.mode === 'shape' ? 0 : dge.t, raw, raw ? null : dge.sp.sl.map(function(s) { return s.v; }), true, null, sel), o = dgSelObj();
-    if (o && !o.pts && dge.mode === 'shape') h += '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" fill="none" stroke="#6a3fd0" stroke-dasharray="5 4" pointer-events="none"/><rect class="dg-h" data-r="1" x="' + (o.x + o.w - 6) + '" y="' + (o.y + o.h - 6) + '" width="12" height="12" fill="#b794f6" stroke="#4b3a7a" stroke-width="2"/>';
+    var raw = dge.mode === 'shape', sel = dge.sel, h = dgSceneSVG(dge.sp, raw ? 0 : dge.t, raw, raw ? null : dge.sp.sl.map(function(s) { return s.v; }), true, null, sel), o = dgSelObj(), g = '<g stroke="#eceff7" stroke-width="1" pointer-events="none">';
+    for (var x = 40; x < DG_W; x += 40) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + DG_H + '"/>';
+    for (var y = 40; y < DG_H; y += 40) g += '<line x1="0" y1="' + y + '" x2="' + DG_W + '" y2="' + y + '"/>';
+    h = h.replace('/>', '/>' + g + '</g>');
+    if (o && !o.pts && raw) h += '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" fill="none" stroke="#6a3fd0" stroke-width="1.5" stroke-dasharray="5 4" pointer-events="none"/><rect class="dg-h" data-r="1" x="' + (o.x + o.w - 7) + '" y="' + (o.y + o.h - 7) + '" width="14" height="14" rx="3" fill="#fff" stroke="#6a3fd0" stroke-width="2.5"/>';
     else if (o && !o.pts) { var c = dgCen(o), st = dgSt(dge.sp, o, dge.t, false, null); h += '<circle cx="' + dgR(c[0] + st.dx) + '" cy="' + dgR(c[1] + st.dy) + '" r="5" fill="#6a3fd0" pointer-events="none"/>'; }
     svg.innerHTML = h;
 }

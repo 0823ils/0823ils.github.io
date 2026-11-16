@@ -5999,7 +5999,7 @@ function pgListPaint() {
     var el = document.getElementById('pg-main');
     if (!el || chatRoom !== 'progress') return;
     var h = '<div class="pg-bar"><span class="pg-hint">' + esc(ct('pg_sort')) + '</span>' +
-        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\\'thread\\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
+        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\'thread\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
     if (!pgList || !pgList.length) h += '<div class="chat-time">' + esc(ct('pg_empty')) + '</div>';
     else h += '<div class="pg-cards">' + pgList.map(function(t) {
         var th = pgThumbOf(t), files = t.last && t.last.files ? t.last.files : [];

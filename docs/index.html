@@ -258,6 +258,15 @@
         .chat-search-more { align-self: center; background: #fff; border: 1px solid #cfdcf5; border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 13px; color: #4D97FF; }
         a.chat-tab { display: block; text-decoration: none; }
         #chat-list { flex: 1; overflow-y: auto; border-radius: 8px; padding: 6px 4px; margin: 8px 0; font-size: 14px; }
+        @media (max-width: 760px) {
+        .pg-card { gap:8px; padding:8px; }
+        .pg-thumb { flex-basis:120px; width:120px; height:100px; }
+        .pg-thumb:not(:has(img)) { flex-basis:72px; width:72px; height:72px; }
+        .pg-info { flex-direction:column; gap:8px; }
+        .pg-cover { flex:0 0 auto; width:100%; max-width:360px; height:auto; aspect-ratio:16/9; }
+        #chat-section.pg-thread #pg-view { padding:8px 0; }
+        #chat-section.pg-thread #pg-detail-switch button { padding:10px 6px; font-size:13px; }
+        }
         @media (max-width: 640px) {
             .chat-layout { flex-direction: column; gap: 8px; height: calc(100vh - 220px); }
             .chat-rooms { width: auto; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
@@ -493,6 +502,7 @@
         .pg-card:hover { background: #f6f9ff; }
         .pg-thumb { flex: 0 0 260px; height: 160px; border-radius: 8px; background: #eef3fb; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; }
         .pg-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .pg-thumb:not(:has(img)) { flex: 0 0 96px; width:96px; height:96px; font-size:24px; }
         .pg-body { flex: 1; min-width: 0; }
         .pg-title { font-size: 15px; font-weight: 800; color: #2b3a55; overflow-wrap: anywhere; }
         .pg-by { font-size: 12px; color: #8a94a6; margin: 1px 0 3px; }

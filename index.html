@@ -805,7 +805,14 @@
         .chat-embed.scratch { aspect-ratio: 4 / 3; max-width: 360px; }
         /* Scratch URL / .sb3 添付カード。影や発光を使わず、フラットな表示にする */
         .sb3-card { width: min(100%, 380px); margin-top: 6px; padding: 12px; box-sizing: border-box; border: 1px solid #dfe5ef; border-radius: 14px; background: #f6f8fc; transition: width .2s; }
-        .sb3-card.open { width: min(100%, 560px); }
+        .sb3-card.open { width: min(100%, 720px); }
+        .sb3-card.open.size-compact { width: min(100%, 560px); }
+        .sb3-card.open.size-normal { width: min(100%, 640px); }
+        .sb3-card.open.size-large { width: min(100%, 800px); }
+        .sb3-card .sc-size { display: none; align-items: center; gap: 4px; margin-left: auto; }
+        .sb3-card.open .sc-size { display: inline-flex; }
+        .sb3-card .sc-size button { border: 1px solid #dfe5ef; border-radius: 7px; padding: 5px 8px; background: #fff; color: #5b6b85; font: inherit; font-size: 11px; cursor: pointer; }
+        .sb3-card .sc-size button[aria-pressed="true"] { background: #e8f1ff; border-color: #9fc4ff; color: #2868bd; }
         .sb3-card .sc-head { display: flex; align-items: center; gap: 12px; }
         .sb3-card .sc-ico { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 11px; background: #ff9d24; color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .3px; display: flex; align-items: center; justify-content: center; box-shadow: none; }
         .sb3-card .sc-body { min-width: 0; display: flex; flex-direction: column; }
@@ -5454,6 +5461,7 @@ function chatEmbedsHTML(content) {
                 '<div class="sc-thumb" onclick="chatCardToggle(this)"><img loading="lazy" alt="" referrerpolicy="no-referrer" src="https://cdn2.scratch.mit.edu/get_image/project/' + sid + '_480x360.png" onerror="this.style.display=\'none\'"><span class="sc-play">▶</span></div>' +
                 '<div class="sc-meta">' + esc(ct('scTitle')) + '<small>#' + esc(e.id) + '</small></div>' +
                 '<div class="sc-actions"><button type="button" class="sc-run" onclick="chatCardToggle(this)">▶ ' + esc(ct('sb3Run')) + '</button>' +
+                '<span class="sc-size" aria-label="プレイヤーサイズ"><button type="button" onclick="chatCardResize(this,560)" aria-pressed="false">小</button><button type="button" onclick="chatCardResize(this,640)" aria-pressed="false">中</button><button type="button" onclick="chatCardResize(this,800)" aria-pressed="true">大</button></span>' +
                 (e.site ? '<a class="sc-sub" href="' + esc(projectUrl(sid)) + '">' + esc(ct('scSite')) + '</a>' : '') +
                 '<a class="sc-sub" target="_blank" rel="noopener" href="https://scratch.mit.edu/projects/' + sid + '/">' + esc(ct('scOpen')) + ' ↗</a></div>' +
                 '<div class="sc-stage"></div></div>';
@@ -5625,12 +5633,23 @@ function chatSb3CardHTML(f, mb) {
     return '<div class="sb3-card" data-src="' + esc('https://turbowarp.org/embed?autoplay&project_url=' + encodeURIComponent(f.url)) + '">' +
         '<div class="sc-head"><span class="sc-ico">sb3</span><span class="sc-body"><b>' + esc(f.name) + '</b><small>' + mb + '</small></span></div>' +
         '<div class="sc-actions"><button type="button" class="sc-run" onclick="chatCardToggle(this)">▶ ' + esc(ct('sb3Run')) + '</button>' +
+        '<span class="sc-size" aria-label="プレイヤーサイズ"><button type="button" onclick="chatCardResize(this,560)" aria-pressed="false">小</button><button type="button" onclick="chatCardResize(this,640)" aria-pressed="false">中</button><button type="button" onclick="chatCardResize(this,800)" aria-pressed="true">大</button></span>' +
         '<a class="sc-sub" href="' + esc(f.url) + '" download="' + esc(f.name) + '" target="_blank" rel="noopener">' + esc(ct('sb3Save')) + '</a>' +
         '<a class="sc-sub" target="_blank" rel="noopener" href="https://turbowarp.org/?project_url=' + encodeURIComponent(f.url) + '">' + esc(ct('sb3Open')) + ' ↗</a></div>' +
         '<div class="sc-stage"></div></div>';
 }
 
 // Scratchリンクカードと.sb3添付カードで共通の実行・停止処理
+function chatCardResize(el, width) {
+    var card = el.closest('.sb3-card');
+    if (!card || !card.classList.contains('open')) return;
+    card.classList.remove('size-compact', 'size-normal', 'size-large');
+    card.classList.add(width <= 560 ? 'size-compact' : width <= 640 ? 'size-normal' : 'size-large');
+    Array.prototype.forEach.call(card.querySelectorAll('.sc-size button'), function(b) {
+        b.setAttribute('aria-pressed', String(Number(b.getAttribute('onclick').match(/\\d+/)[0]) === width));
+    });
+}
+
 function chatCardToggle(el) {
     var card = el.closest('.sb3-card');
     if (!card) return;

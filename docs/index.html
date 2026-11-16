@@ -1208,7 +1208,7 @@
         .dge-ex button:hover { border-color: #4c97ff; background: #f0f6ff; }
         .dge-tlb { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 12px; flex-wrap: wrap; font-size: 13px; }
         .dge-tlb input[type=range] { flex: 1; min-width: 120px; }
-        .dge-play { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #4c97ff; color: #fff; font-size: 16px; cursor: pointer; }
+        .dge-play { min-width: 64px; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: #4c97ff; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
         .dge-d { display: flex; align-items: center; gap: 4px; color: #6b7794; }
         .dge-d input[type=number] { width: 58px; }
         .dge-kf { font-size: 12px; color: #6b7794; margin-top: 6px; min-height: 18px; }
@@ -4372,14 +4372,14 @@ function dgMount(el) {
     var anim = sp.objs.some(function(o) { return o.kf && o.kf.length > 1; });
     var S = { t: 0, play: anim, par: sp.sl.map(function(s) { return s.v; }), t0: 0, ov: {} };
     var ctl = '';
-    if (anim) ctl += '<div class="dg-row"><button type="button" class="dg-play">⏸</button><input type="range" class="dg-t" min="0" max="' + sp.dur + '" step="0.01" value="0"></div>';
+    if (anim) ctl += '<div class="dg-row"><button type="button" class="dg-play">' + esc(dgt('pause')) + '</button><input type="range" class="dg-t" min="0" max="' + sp.dur + '" step="0.01" value="0"></div>';
     sp.sl.forEach(function(s, j) { ctl += '<label class="dg-row"><span>' + esc(s.label) + '</span><input type="range" class="dg-sl" data-j="' + j + '" min="' + s.min + '" max="' + s.max + '" step="' + (s.max - s.min) / 200 + '" value="' + s.v + '"><output>' + dgR(s.v) + '</output></label>'; });
     el.innerHTML = '<svg class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg>' + (ctl ? '<div class="dg-ctl">' + ctl + '</div>' : '');
     var svg = el.querySelector('svg'), btn = el.querySelector('.dg-play'), rng = el.querySelector('.dg-t');
     var draw = function() { svg.innerHTML = dgSceneSVG(sp, S.t, false, S.par, true, S.ov, -1); };
     draw();
-    if (btn) btn.onclick = function() { S.play = !S.play; S.t0 = 0; btn.textContent = S.play ? '⏸' : '▶'; };
-    if (rng) rng.oninput = function() { S.play = false; S.t = Number(rng.value); if (btn) btn.textContent = '▶'; draw(); };
+    if (btn) btn.onclick = function() { S.play = !S.play; S.t0 = 0; btn.textContent = dgt(S.play ? 'pause' : 'play'); };
+    if (rng) rng.oninput = function() { S.play = false; S.t = Number(rng.value); if (btn) btn.textContent = dgt('play'); draw(); };
     [].forEach.call(el.querySelectorAll('.dg-sl'), function(r) { r.oninput = function() { S.par[Number(r.dataset.j)] = Number(r.value); r.nextSibling.textContent = dgR(Number(r.value)); draw(); }; });
     var drag = null;
     svg.onpointerdown = function(ev) {
@@ -4404,7 +4404,7 @@ function dgMount(el) {
             if (S.play) {
                 if (!S.t0) S.t0 = ts - S.t * 1000;
                 var t = (ts - S.t0) / 1000;
-                if (t > sp.dur) { if (sp.loop) { S.t0 = ts; t = 0; } else { t = sp.dur; S.play = false; if (btn) btn.textContent = '▶'; } }
+                if (t > sp.dur) { if (sp.loop) { S.t0 = ts; t = 0; } else { t = sp.dur; S.play = false; if (btn) btn.textContent = dgt('play'); } }
                 S.t = t; if (rng) rng.value = t; draw();
             }
             requestAnimationFrame(tick);
@@ -4462,7 +4462,7 @@ function dgPaintTop() {
     var em = document.getElementById('dge-empty');
     em.style.display = dge.sp.objs.length ? 'none' : '';
     em.innerHTML = dge.sp.objs.length ? '' : '<div class="dge-em-t">' + esc(dgt('emptyT')) + '</div><div class="dge-em-s">' + esc(dgt('emptyS')) + '</div><div class="dge-ex">' +
-        [['ex1', '🔺', 'ex1'], ['ex2', '🏀', 'ex2'], ['ex3', '🔄', 'ex3']].map(function(x) { return '<button onclick="dgExample(\'' + x[0] + '\')"><span>' + x[1] + '</span>' + esc(dgt(x[2])) + '</button>'; }).join('') + '</div>';
+        [['ex1', 'ex1'], ['ex2', 'ex2'], ['ex3', 'ex3']].map(function(x) { return '<button onclick="dgExample(\'' + x[0] + '\')">' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div>';
 }
 function dgSetMode(m) { dge.mode = m; dge.play = false; dgPaintAll(); }
 function dgPaintTools() {
@@ -4484,9 +4484,9 @@ function dgPaintSide() {
     if (!o) h += '<div class="dge-note">' + esc(dgt(dge.sp.objs.length ? 'pick' : 'hintShape')) + '</div>';
     else {
         var st = dgSt(dge.sp, o, dge.t, !mo, null);
-        h += '<div class="dge-acts"><button onclick="dgDup()">⧉ ' + esc(dgt('dup')) + '</button><button onclick="dgOrder(1)">↑ ' + esc(dgt('up')) + '</button><button onclick="dgOrder(-1)">↓ ' + esc(dgt('down')) + '</button><button class="del" onclick="dgDel()">🗑 ' + esc(dgt('del')) + '</button></div>';
+        h += '<div class="dge-acts"><button onclick="dgDup()">' + esc(dgt('dup')) + '</button><button onclick="dgOrder(1)">' + esc(dgt('up')) + '</button><button onclick="dgOrder(-1)">' + esc(dgt('down')) + '</button><button class="del" onclick="dgDel()">' + esc(dgt('del')) + '</button></div>';
         if (mo) {
-            h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('preset')) + '</div><div class="dge-pre">' + [['spin', '🔄'], ['pulse', '💓'], ['bounce', '⬆'], ['slide', '↔'], ['blink', '✨'], ['none', '⏹']].map(function(x) { return '<button onclick="dgPreset(\'' + x[0] + '\')"><span>' + x[1] + '</span>' + esc(dgt('p_' + x[0])) + '</button>'; }).join('') + '</div><div class="dge-note">' + esc(dgt('hintMotion')) + '</div></div>';
+            h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('preset')) + '</div><div class="dge-pre">' + ['spin', 'pulse', 'bounce', 'slide', 'blink', 'none'].map(function(x) { return '<button onclick="dgPreset(\'' + x + '\')">' + esc(dgt('p_' + x)) + '</button>'; }).join('') + '</div><div class="dge-note">' + esc(dgt('hintMotion')) + '</div></div>';
             h += dgNumF('rot', 'rot', st.rot, -360, 720, 5) + dgNumF('sc', 's', st.s, 0.1, 4, 0.05) + dgNumF('op', 'op', st.op, 0, 1, 0.05);
         } else {
             if (o.k !== 'line' && o.k !== 'arrow') h += dgCol('fill', 'fill', o);
@@ -4495,10 +4495,10 @@ function dgPaintSide() {
             h += dgNumF('op', 'op', o.op, 0, 1, 0.05) + dgNumF('rot', 'rot', o.rot, -180, 180, 5);
         }
         h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('touch')) + '</div><label class="dge-chk"><input type="checkbox"' + (o.drag ? ' checked' : '') + ' onchange="dgProp(\'drag\',this.checked)"> ' + esc(dgt(o.pts ? 'dragV' : 'dragO')) + '</label>' +
-            '<div class="dge-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc']].map(function(x) { return '<button onclick="dgSlAdd(\'' + x[0] + '\')">＋ ' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div></div>';
+            '<div class="dge-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc']].map(function(x) { return '<button onclick="dgSlAdd(\'' + x[0] + '\')">+ ' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div></div>';
     }
     if (dge.sp.sl.length) h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('sl')) + '</div>' + dge.sp.sl.map(function(s, j) {
-        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value"><button onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">✕</button></div>';
+        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value"><button onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">x</button></div>';
     }).join('') + '</div>';
     document.getElementById('dge-side').innerHTML = h;
 }
@@ -4542,7 +4542,7 @@ function dgPaintTl() {
     var el = document.getElementById('dge-tl'); if (!el) return;
     if (dge.mode !== 'motion') { el.innerHTML = ''; return; }
     var o = dgSelObj(), kf = o && o.kf ? o.kf.map(function(k) { return dgR(k.t) + 's'; }).join(' ・ ') : '';
-    el.innerHTML = '<div class="dge-tlb"><button class="dge-play" onclick="dgPlay()">' + (dge.play ? '⏸' : '▶') + '</button>' +
+    el.innerHTML = '<div class="dge-tlb"><button class="dge-play" onclick="dgPlay()">' + esc(dgt(dge.play ? 'pause' : 'play')) + '</button>' +
         '<input type="range" id="dge-t" min="0" max="' + dge.sp.dur + '" step="0.05" value="' + dge.t + '" oninput="dge.play=false;dge.t=Number(this.value);dgTimeLabel();dgPaintSide();dgDraw();dgPaintTl2()"><span id="dge-tt"></span>' +
         '<label class="dge-d">' + esc(dgt('dur')) + ' <input type="number" min="0.5" max="60" step="0.5" value="' + dge.sp.dur + '" onchange="dge.sp.dur=dgN(this.value,3,0.5,60);dgPaintTl()"></label>' +
         '<label class="dge-d"><input type="checkbox"' + (dge.sp.loop ? ' checked' : '') + ' onchange="dge.sp.loop=this.checked"> ' + esc(dgt('loop')) + '</label></div>' +
@@ -7174,7 +7174,7 @@ function pgFormPaint() {
         var icon = x.preview ? '<img alt="" src="' + esc(x.preview) + '">' : '<span class="pg-sb3">' + (x.video ? '▶' : x.sb3 ? 'SB3' : '📎') + '</span>';
         return '<div class="pg-file">' + icon + '<span class="pg-fn">' + esc(x.name) + '</span>' +
             (x.status === 'uploading' ? '<span class="pg-prog"><i data-i="' + i + '" style="width:' + Math.round(x.progress * 100) + '%"></i></span>' : '') +
-            '<button class="pg-x" onclick="pgFileRemove(' + i + ')">✕</button></div>';
+            '<button class="pg-x" onclick="pgFileRemove(' + i + ')">x</button></div>';
     }).join('') + '</div>';
     if (chatVideoEnabled && used < max) h += '<label class="pg-btn pg-addfile">' + esc(ct(thread ? 'pg_cover' : 'pg_add_file').replace('{n}', used).replace('{m}', max)) +
         '<input type="file" accept="' + (thread ? 'image/*' : 'image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.sb3') + '" style="display:none" onchange="pgPick(this)"></label>';

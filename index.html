@@ -468,7 +468,19 @@
         #chat-section.pg-list .chat-main > #chat-typing, #chat-section.pg-list .chat-main > #chat-input-wrap, #chat-section.pg-list .chat-main > #chat-search, #chat-section.pg-list .chat-head .chat-head-link { display: none !important; }
         #pg-view { margin-top: 8px; font-size: 14px; }
         #chat-section.pg-list #pg-view { flex: 1; overflow-y: auto; }
-        #chat-section.pg-thread #pg-view { max-height: 55%; overflow-y: auto; flex-shrink: 0; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        #chat-section.pg-thread #pg-detail-switch { display:flex; gap:8px; padding:6px 0 10px; border-bottom:1px solid #e8edf6; }
+        #chat-section.pg-thread #pg-detail-switch button { flex:1; border:1px solid #dbe5f5; background:#fff; color:#52627e; border-radius:10px; padding:9px 12px; font-weight:700; cursor:pointer; }
+        #chat-section.pg-thread #pg-detail-switch button.active { background:#4d97ff; border-color:#4d97ff; color:#fff; }
+        #chat-section.pg-thread #pg-view { display:none !important; max-height:none; min-height:0; flex:1; overflow-y:auto; border:0; padding:12px 2px; }
+        #chat-section.pg-thread.pg-info-mode #pg-view { display:block !important; }
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-list,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-msg,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-reply-bar,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-attach-bar,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-typing,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-input-wrap,
+        #chat-section.pg-thread.pg-info-mode .chat-main > #chat-search { display:none !important; }
+        #chat-section.pg-thread.pg-info-mode #pg-detail-switch { border-bottom:0; }
         .pg-bar, .pg-top, .pg-uhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
         .pg-sp { flex: 1; }
         .pg-hint { font-size: 12px; color: #8a94a6; flex: 1; }
@@ -1358,6 +1370,7 @@
                     <div class="chat-head" id="chat-title"></div>
                     <div id="chat-search" class="chat-search" style="display:none"></div>
                     <div id="call-panel" class="call-panel" style="display:none"></div>
+                    <div id="pg-detail-switch" style="display:none"></div>
                     <div id="pg-view"><div id="pg-main"></div></div>
                     <div id="pg-form"></div>
                     <div id="chat-list"></div>
@@ -5917,12 +5930,25 @@ function pgSync() {
     if (!sec || !v) return;
     var list = chatRoom === 'progress', th = pgIsRoom(chatRoom);
     sec.classList.toggle('pg-list', list); sec.classList.toggle('pg-thread', th);
-    v.style.display = (list || th) ? 'block' : 'none';
+    sec.classList.toggle('pg-info-mode', th && pgDetailMode === 'info');
+    var sw = document.getElementById('pg-detail-switch');
+    if (sw) {
+        sw.style.display = th ? 'flex' : 'none';
+        sw.innerHTML = th ? '<button type="button" class="'+(pgDetailMode==='chat'?'active':'')+'" onclick="pgSetDetailMode(\'chat\')">💬 チャット</button><button type="button" class="'+(pgDetailMode==='info'?'active':'')+'" onclick="pgSetDetailMode(\'info\')">📌 説明・進捗</button>' : '';
+    }
+    v.style.display = list ? 'block' : (th && pgDetailMode === 'info' ? 'block' : 'none');
     if (pgForm && ((pgForm.kind === 'thread') !== list || (pgForm.kind === 'update' && pgForm.tid !== pgRoomId(chatRoom)))) pgForm = null;
     pgFormPaint();
     if (list) { pgThread = null; pgThreadId = 0; v.classList.remove('is-thread'); if (pgList) pgListPaint(); else document.getElementById('pg-main').innerHTML = ''; pgLoadList(true); }
     else if (th) { var id = pgRoomId(chatRoom); if (id !== pgThreadId) { pgThread = null; pgThreadId = id; pgAll = false; } v.classList.add('is-thread'); pgThreadPaint(); pgLoadThread(true); }
     else { document.getElementById('pg-main').innerHTML = ''; }
+}
+function pgSetDetailMode(mode) {
+    if (!pgIsRoom(chatRoom) || (mode !== 'chat' && mode !== 'info')) return;
+    pgDetailMode = mode;
+    pgSync();
+    if (mode === 'chat') loadChat(true);
+    else pgThreadPaint();
 }
 function pgTitleSync() {
     var el = document.getElementById('chat-title-t');

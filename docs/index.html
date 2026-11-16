@@ -68,7 +68,7 @@
         .header-menu-row + .header-menu-row { border-top: 1px solid #f0f0f0; }
         .header-tw-label { white-space: nowrap; }
         .header-lang-switch { display: flex; gap: 2px; background: #eef4ff; border-radius: 16px; padding: 3px; }
-        body.mode-chat .about-section { display: none; }
+        body.mode-chat .about-section, body.mode-guide .about-section { display: none; }
         html[lang="en"] .about-ja { display: none; }
         .header-lang-btn { white-space: nowrap; padding: 3px 10px; border-radius: 12px; border: none; background: transparent; cursor: pointer; font-size: 11px; font-weight: bold; color: #7aa7e8; transition: all 0.2s; }
         .header-lang-btn.active { background: #4D97FF; color: white; }
@@ -1010,6 +1010,98 @@
         a.project-author:hover { text-decoration: underline; }
         a.ava-link { display: inline-flex; vertical-align: middle; }
         a.notif-item { display: block; color: inherit; text-decoration: none; }
+        /* ===== 作り方・解説 ===== */
+        #guide-section { min-height: 40vh; }
+        .gd-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 2px 0 12px; }
+        .gd-head h2 { margin: 0; font-size: 20px; color: #2b3a55; }
+        .gd-head-btns { display: flex; gap: 8px; }
+        .gd-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid #cfdcf5; background: #fff; color: #3a5a99; cursor: pointer; }
+        .gd-btn:hover { background: #eef4ff; }
+        .gd-btn.primary { background: #4d97ff; border-color: #4d97ff; color: #fff; }
+        .gd-btn.primary:hover { background: #3b86ee; }
+        .gd-btn.danger { color: #d23b3b; border-color: #f1c4c4; }
+        .gd-btn:disabled { opacity: .55; cursor: default; }
+        .gd-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .gd-tabs { display: flex; background: #eef2f9; border-radius: 999px; padding: 3px; }
+        .gd-tabs button { font: inherit; font-size: 13px; font-weight: 600; border: none; background: none; padding: 6px 16px; border-radius: 999px; color: #667085; cursor: pointer; }
+        .gd-tabs button.on { background: #fff; color: #2b6be0; box-shadow: 0 1px 3px rgba(40,60,100,.15); }
+        .gd-q { flex: 1 1 180px; min-width: 0; font: inherit; font-size: 14px; padding: 8px 14px; border: 1px solid #d6e0f2; border-radius: 999px; background: #fff; }
+        .gd-tagbar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .gd-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+        .gd-tag { font: inherit; font-size: 12px; padding: 2px 9px; border-radius: 999px; background: #eaf2ff; color: #3b6fd0; border: none; }
+        button.gd-tag { cursor: pointer; } button.gd-tag:hover { background: #d9e8ff; }
+        .gd-tag.on { background: #4d97ff; color: #fff; }
+        .gd-x { font: inherit; font-size: 12px; background: none; border: none; color: #8a94a8; cursor: pointer; padding: 2px 6px; }
+        .gd-x:hover { color: #d23b3b; }
+        .gd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+        .gd-card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e3ebf7; border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .12s, box-shadow .12s; }
+        .gd-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(50,80,140,.14); }
+        .gd-cover { aspect-ratio: 16 / 9; background: #dfe9fb center / cover no-repeat; }
+        .gd-cover.ph { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #9cc4ff, #4d97ff); }
+        .gd-cover.ph span { font-size: 40px; font-weight: 800; color: rgba(255,255,255,.9); }
+        .gd-cbody { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .gd-ct { font-weight: 700; font-size: 15px; line-height: 1.4; color: #1f2d4a; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+        .gd-cx { font-size: 12.5px; color: #667085; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+        .gd-cm { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #8a94a8; margin-top: auto; padding-top: 6px; flex-wrap: wrap; }
+        .gd-by { display: inline-flex; align-items: center; gap: 5px; color: #4a5a78; text-decoration: none; min-width: 0; }
+        .gd-by img { border-radius: 50%; }
+        .gd-n { display: inline-flex; align-items: center; gap: 3px; }
+        .gd-draft { align-self: flex-start; font-size: 11px; font-weight: 700; color: #b26a00; background: #fff1d6; padding: 1px 8px; border-radius: 999px; }
+        .gd-note { text-align: center; color: #8a94a8; font-size: 14px; padding: 22px 8px; }
+        .gd-foot { text-align: center; margin: 16px 0 4px; }
+        .gd-back { font: inherit; font-size: 13px; font-weight: 600; background: none; border: none; color: #4d6fa8; cursor: pointer; padding: 4px 2px; margin-bottom: 8px; }
+        .gd-art { max-width: 720px; margin: 0 auto; }
+        .gd-hero { aspect-ratio: 16 / 9; background: #dfe9fb center / cover no-repeat; border-radius: 14px; margin-bottom: 14px; }
+        .gd-h1 { font-size: 26px; line-height: 1.35; margin: 6px 0 10px; color: #1f2d4a; word-break: break-word; }
+        .gd-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #8a94a8; margin-bottom: 6px; }
+        .gd-meta .gd-by b { color: #2b3a55; }
+        .gd-md { font-size: 16px; line-height: 1.9; color: #2a3347; word-break: break-word; overflow-wrap: anywhere; }
+        .gd-md h2 { font-size: 21px; margin: 1.6em 0 .5em; padding-bottom: 4px; border-bottom: 2px solid #e3ebf7; color: #1f2d4a; }
+        .gd-md h3 { font-size: 18px; margin: 1.4em 0 .4em; color: #1f2d4a; }
+        .gd-md h4 { font-size: 16px; margin: 1.2em 0 .3em; color: #1f2d4a; }
+        .gd-md p { margin: 0 0 1em; }
+        .gd-md ul, .gd-md ol { margin: 0 0 1em; padding-left: 1.5em; }
+        .gd-md blockquote { margin: 0 0 1em; padding: 6px 14px; border-left: 4px solid #cfdcf5; background: #f5f8fd; color: #53607a; border-radius: 0 8px 8px 0; }
+        .gd-md code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; background: #eef2f9; padding: 1px 6px; border-radius: 5px; }
+        .gd-md pre { margin: 0 0 1em; padding: 12px 14px; background: #1e2433; color: #e6ebf5; border-radius: 10px; overflow-x: auto; line-height: 1.6; }
+        .gd-md pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+        .gd-md hr { border: none; border-top: 2px solid #e3ebf7; margin: 1.6em 0; }
+        .gd-img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: .4em auto; cursor: zoom-in; }
+        .gd-a { color: #2b6be0; }
+        .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
+        .gd-scratch span { font-size: 13px; }
+        .gd-none { color: #8a94a8; }
+        .gd-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 20px 0 10px; padding-top: 14px; border-top: 1px solid #eef1f6; }
+        .gd-like { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; font-weight: 700; padding: 7px 16px; border-radius: 999px; border: 1px solid #f3c1cb; background: #fff; color: #e0455f; cursor: pointer; }
+        .gd-like.on { background: #ffe9ee; }
+        .gd-cms { max-width: 720px; margin: 18px auto 0; }
+        .gd-cms h3 { font-size: 16px; margin: 0 0 8px; color: #2b3a55; } .gd-cms h3 span { color: #8a94a8; font-weight: 400; }
+        .gd-cmt { padding: 9px 0; border-bottom: 1px solid #f0f3f9; }
+        .gd-cmt-h { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #8a94a8; }
+        .gd-cmt-h img { border-radius: 50%; } .gd-cmt-h b { color: #2b3a55; } .gd-cmt-h .gd-x { margin-left: auto; }
+        .gd-cmt-b { white-space: pre-wrap; word-break: break-word; font-size: 14.5px; line-height: 1.65; margin-top: 3px; color: #2a3347; }
+        #gd-cm-form textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 14px; padding: 9px 12px; border: 1px solid #d6e0f2; border-radius: 12px; resize: vertical; margin-top: 10px; }
+        .gd-cm-row { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+        .gd-err { color: #d23b3b; font-size: 13px; min-height: 1.2em; }
+        .gd-edit { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+        .gd-e-title { font: inherit; font-size: 22px; font-weight: 700; padding: 10px 4px; border: none; border-bottom: 2px solid #e3ebf7; background: none; outline: none; color: #1f2d4a; }
+        .gd-e-title:focus { border-bottom-color: #4d97ff; }
+        .gd-e-cover { display: flex; align-items: center; gap: 10px; }
+        .gd-e-thumb { width: 120px; aspect-ratio: 16 / 9; border-radius: 8px; background: #dfe9fb center / cover no-repeat; }
+        .gd-e-tags { font: inherit; font-size: 14px; padding: 8px 12px; border: 1px solid #d6e0f2; border-radius: 10px; }
+        .gd-tb { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; position: sticky; top: 0; z-index: 3; background: #fff; padding: 6px 0; border-bottom: 1px solid #eef1f6; }
+        .gd-tbb { font: inherit; font-size: 13px; font-weight: 700; min-width: 32px; height: 32px; padding: 0 9px; border: 1px solid #e0e8f5; border-radius: 8px; background: #fff; color: #4a5a78; cursor: pointer; }
+        .gd-tbb:hover { background: #eef4ff; }
+        .gd-tbb.tab.on { background: #4d97ff; border-color: #4d97ff; color: #fff; }
+        .gd-pv { display: flex; gap: 6px; }
+        .gd-e-body { font: inherit; font-size: 16px; line-height: 1.8; padding: 12px 14px; min-height: 55vh; border: 1px solid #d6e0f2; border-radius: 12px; resize: vertical; box-sizing: border-box; width: 100%; }
+        .gd-e-prev { min-height: 55vh; padding: 12px 14px; border: 1px dashed #cfdcf5; border-radius: 12px; }
+        .gd-e-info { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #8a94a8; }
+        .gd-e-acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .gd-zoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
+        .gd-zoom img { max-width: 96vw; max-height: 94vh; border-radius: 6px; }
+        @media (max-width: 640px) { .gd-grid { grid-template-columns: 1fr; } .gd-h1 { font-size: 22px; } .gd-md { font-size: 15.5px; } .gd-e-body { min-height: 45vh; } .home-tiles .home-tile:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+        @media (min-width: 641px) { .home-tiles { grid-template-columns: repeat(5, 1fr); } }
 </style>
 </head>
 <body>
@@ -1079,6 +1171,7 @@
             <button class="header-mode-tab" id="mode-rank-btn" onclick="setMode('rank')" data-i18n="modeRank">ランキング</button>
             <button class="header-mode-tab" id="mode-short-btn" onclick="setMode('short')" data-i18n="modeShort">ショート</button>
             <button class="header-mode-tab" id="mode-chat-btn" onclick="setMode('chat')" style="display:none" data-i18n="chatBtn">チャット</button>
+            <button class="header-mode-tab" id="mode-guide-btn" onclick="setMode('guide')" style="display:none" data-i18n="modeGuide">解説</button>
             <button class="header-mode-tab" id="mode-saved-btn" onclick="setMode('saved')" style="display:none" data-i18n="modeSaved">保存</button>
             <button class="header-mode-tab" id="mode-admin-btn" onclick="setMode('admin')" style="display:none" data-i18n="modeAdmin">管理</button>
         </div>
@@ -1291,6 +1384,9 @@
         <div id="short-section" style="display:none">
             <div class="sh-feed" id="short-feed"></div></div>
 
+        <!-- 作り方・解説 -->
+        <div id="guide-section" style="display:none"><div id="gd-body"></div></div>
+
         <!-- 作品ページ -->
         <div id="project-section" style="display:none">
             <button class="back-btn" id="pp-back" onclick="closeProjectPage()"></button>
@@ -1341,7 +1437,7 @@ const LANG = {
         modeSearch: '検索',
         modeHome: 'ホーム', homeTitle: 'Technical Works Collection', homeSub: 'スクラッチ技術作品集',
         homeRated: '技術力が高い作品', homeLoved: 'いいねの多い作品', homeNew: '新しい作品', homeRandom: 'ランダムおすすめ', homeShuffle: '🔄 入れ替え', homeMore: 'もっと見る ›',
-        homeTileBrowse: '全作品', homeTileRank: 'ランキング', homeTileShort: 'ショート', homeTileChat: 'チャット',
+        homeTileBrowse: '全作品', homeTileRank: 'ランキング', homeTileShort: 'ショート', homeTileChat: 'チャット', homeTileGuide: '解説',
         modeBrowse: '全作品',
         searchPlaceholder: '検索したいものを入力...',
         tabTitle: 'プロジェクト名',
@@ -1417,7 +1513,7 @@ const LANG = {
         rateRemoved: '評価を取り消しました',
         rateErr: '保存できませんでした。時間をおいてやり直してください。',
         modeSaved: '保存',
-        modeShort: 'ショート',
+        modeShort: 'ショート', modeGuide: '解説',
         saveTitle: '保存する',
         unsaveTitle: '保存を解除',
         savedEmpty: 'まだ保存した作品がありません。作品カード右上のしおりを押すと保存できます。',
@@ -1465,7 +1561,7 @@ const LANG = {
         modeSearch: 'Search',
         modeHome: 'Home', homeTitle: 'Technical Works Collection', homeSub: 'A collection of technical Scratch projects',
         homeRated: 'Top-rated for skill', homeLoved: 'Most loved', homeNew: 'Newest', homeRandom: 'Random picks', homeShuffle: '🔄 Shuffle', homeMore: 'See more ›',
-        homeTileBrowse: 'All Projects', homeTileRank: 'Ranking', homeTileShort: 'Shorts', homeTileChat: 'Chat',
+        homeTileBrowse: 'All Projects', homeTileRank: 'Ranking', homeTileShort: 'Shorts', homeTileChat: 'Chat', homeTileGuide: 'Guides',
         modeBrowse: 'All Projects',
         searchPlaceholder: 'Search...',
         tabTitle: 'Project name',
@@ -1541,7 +1637,7 @@ const LANG = {
         rateRemoved: 'Rating removed',
         rateErr: "Couldn't save. Please try again later.",
         modeSaved: 'Saved',
-        modeShort: 'Shorts',
+        modeShort: 'Shorts', modeGuide: 'Guides',
         saveTitle: 'Save',
         unsaveTitle: 'Remove from saved',
         savedEmpty: 'Nothing saved yet. Tap the bookmark on a project card to save it.',
@@ -2202,8 +2298,8 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
-var MODE_SECTIONS = { home: 'home-section', search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', short: 'short-section', admin: 'admin-section' };
-var MODE_TABS = { home: 'mode-home-btn', search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
+var MODE_SECTIONS = { home: 'home-section', search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', guide: 'guide-section', short: 'short-section', admin: 'admin-section' };
+var MODE_TABS = { home: 'mode-home-btn', search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', guide: 'mode-guide-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
 function setMode(mode, forcePush) {
@@ -2213,10 +2309,12 @@ function setMode(mode, forcePush) {
     Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
     Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
     document.body.classList.toggle('mode-chat', mode === 'chat');
+    document.body.classList.toggle('mode-guide', mode === 'guide');
     document.body.classList.toggle('mode-project', mode === 'project');
     document.body.classList.toggle('mode-short', mode === 'short');
     if (mode === 'short') enterShort(); else leaveShort();
     if (mode === 'chat') enterChat(); else leaveChat();
+    if (mode === 'guide') enterGuide();
     if (mode === 'home') renderHome();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
@@ -3194,6 +3292,399 @@ function capBarPaint(st, view, now) {
 }
 setInterval(function() { if (call && call.capLines && call.capLines.length) capPaint(); }, 2000);
 
+// ===== 作り方・解説（note風。だれでも記事を書ける） =====
+var GT = {
+    ja: {
+        title: '作り方・解説', write: '記事を書く', mine: '自分の記事', all: 'みんなの記事', sNew: '新着', sHot: '人気', search: '記事を探す…', empty: 'まだ記事がありません。最初の1本を書いてみませんか？', emptyQ: '見つかりませんでした。', more: 'もっと見る', loading: '読み込み中…',
+        back: '← 一覧へ', byTag: 'タグ', draft: '下書き', edit: '編集', del: '削除', delAsk: 'この記事を削除しますか？（元に戻せません）', share: 'リンクをコピー', like: 'いいね', liked: 'いいね済み',
+        cm: 'コメント', cmPh: '感想やひとことを書く（500字まで）', cmSend: '送信', cmLogin: 'ログインするとコメントできます。', cmNone: 'まだコメントはありません。', cmDel: '消す', loginNeed: '記事を書くには、ログインが必要です。', login: 'ログイン',
+        eTitle: '題名（80字まで）', eTags: 'タグ（空白かカンマで区切る・5つまで）　例: 3d 物理 初心者', eBody: 'ここに本文を書きます。\n\n# 見出し\n**太字**  *斜体*  `コード`\n- 箇条書き\n![説明](img:…) は「画像」ボタンで入ります。', eCover: 'カバー画像', eCoverDel: '外す', eWrite: '書く', ePrev: 'プレビュー',
+        bH2: '大見出し', bH3: '小見出し', bB: '太字', bI: '斜体', bLink: 'リンク', bQuote: '引用', bUl: '箇条書き', bOl: '番号', bCode: 'コード', bHr: '区切り線', bImg: '画像', bScratch: 'Scratch作品',
+        saveDraft: '下書きを保存', publish: '公開する', update: '更新する', unpublish: '下書きに戻す', saved: '保存しました', published: '公開しました', restored: '前回の書きかけを復元しました。', scratchAsk: 'ScratchのURL（例: https://scratch.mit.edu/projects/123456789）', openScratch: 'Scratch作品を開く', upl: '画像を上げています…',
+        e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
+        hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新'
+    },
+    en: {
+        title: 'Guides', write: 'Write', mine: 'My articles', all: 'All articles', sNew: 'New', sHot: 'Popular', search: 'Search articles…', empty: 'No articles yet. Be the first to write one!', emptyQ: 'Nothing found.', more: 'Show more', loading: 'Loading…',
+        back: '← Back', byTag: 'Tag', draft: 'Draft', edit: 'Edit', del: 'Delete', delAsk: 'Delete this article? This cannot be undone.', share: 'Copy link', like: 'Like', liked: 'Liked',
+        cm: 'Comments', cmPh: 'Write a comment (500 chars max)', cmSend: 'Send', cmLogin: 'Log in to comment.', cmNone: 'No comments yet.', cmDel: 'Delete', loginNeed: 'Please log in to write an article.', login: 'Log in',
+        eTitle: 'Title (80 chars max)', eTags: 'Tags (separated by spaces or commas, up to 5)  e.g. 3d physics beginner', eBody: 'Write here.\n\n# Heading\n**bold**  *italic*  `code`\n- list\nUse the Image button to add pictures.', eCover: 'Cover image', eCoverDel: 'Remove', eWrite: 'Write', ePrev: 'Preview',
+        bH2: 'Heading', bH3: 'Subheading', bB: 'Bold', bI: 'Italic', bLink: 'Link', bQuote: 'Quote', bUl: 'List', bOl: 'Numbered', bCode: 'Code', bHr: 'Divider', bImg: 'Image', bScratch: 'Scratch project',
+        saveDraft: 'Save draft', publish: 'Publish', update: 'Update', unpublish: 'Back to draft', saved: 'Saved', published: 'Published', restored: 'Restored your unsaved draft.', scratchAsk: 'Scratch URL (e.g. https://scratch.mit.edu/projects/123456789)', openScratch: 'Open Scratch project', upl: 'Uploading image…',
+        e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
+        hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated'
+    }
+};
+function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
+function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
+var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, edit: null, keep: false };
+var GD_ICO = {
+    heart: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    hearto: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    cm: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.3l1.2-4.4A8 8 0 1 1 21 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>'
+};
+function gdSync() {
+    var tab = document.getElementById('mode-guide-btn'), tile = document.getElementById('home-tile-guide');
+    if (tab) tab.style.display = apiEnabled() ? '' : 'none';
+    if (tile) tile.style.display = apiEnabled() ? '' : 'none';
+}
+function gdDate(ts) { var d = new Date(ts); return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate(); }
+function gdBox() { return document.getElementById('gd-body'); }
+
+// ---- Markdown（安全な部分だけ変換する。HTMLはそのまま通さない） ----
+function gdInline(s, imgs) {
+    var toks = [];
+    var put = function(h) { toks.push(h); return '\u0001' + (toks.length - 1) + '\u0001'; };
+    s = String(s).replace(/`([^`\n]+)`/g, function(_, c) { return put('<code>' + esc(c) + '</code>'); });
+    s = s.replace(/!\[([^\]\n]*)\]\(img:([a-f0-9]{32})\)/g, function(_, alt, id) {
+        return imgs && imgs[id] ? put('<img class="gd-img" loading="lazy" src="' + esc(imgs[id]) + '" alt="' + esc(alt) + '" onclick="gdZoom(this.src)">') : '';
+    });
+    var link = function(text, url) {
+        var m = /^https?:\/\/(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(url);
+        if (m) return put('<a href="#" class="gd-a" onclick="return gdOpenScratch(' + Number(m[1]) + ')">' + esc(text) + '</a>');
+        return put('<a class="gd-a" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer nofollow">' + esc(text) + '</a>');
+    };
+    s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, function(_, t, u) { return link(t, u); });
+    s = s.replace(/(^|[\s(（])(https?:\/\/[^\s<>()（）「」]+)/g, function(_, pre, u) { return pre + link(u, u); });
+    s = esc(s);
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>').replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
+    return s.replace(/\u0001(\d+)\u0001/g, function(_, n) { return toks[Number(n)]; });
+}
+function gdMd(src, imgs) {
+    var lines = String(src || '').split('\n'), out = [], i = 0, para = [];
+    var flush = function() { if (para.length) { out.push('<p>' + para.map(function(l) { return gdInline(l, imgs); }).join('<br>') + '</p>'); para = []; } };
+    while (i < lines.length) {
+        var l = lines[i], m;
+        if (/^```/.test(l)) {
+            flush(); var code = []; i++;
+            while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
+            i++; out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); continue;
+        }
+        if (!l.trim()) { flush(); i++; continue; }
+        if ((m = /^(#{1,3})\s+(.+)$/.exec(l))) { flush(); out.push('<h' + (m[1].length + 1) + '>' + gdInline(m[2], imgs) + '</h' + (m[1].length + 1) + '>'); i++; continue; }
+        if (/^(-{3,}|\*{3,})\s*$/.test(l)) { flush(); out.push('<hr>'); i++; continue; }
+        if (/^>\s?/.test(l)) {
+            flush(); var q = [];
+            while (i < lines.length && /^>\s?/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ''));
+            out.push('<blockquote>' + q.map(function(x) { return gdInline(x, imgs); }).join('<br>') + '</blockquote>'); continue;
+        }
+        if (/^[-*+]\s+/.test(l) || /^\d+[.)]\s+/.test(l)) {
+            flush(); var ol = /^\d/.test(l), re = ol ? /^\d+[.)]\s+/ : /^[-*+]\s+/, li = [];
+            while (i < lines.length && re.test(lines[i])) li.push('<li>' + gdInline(lines[i++].replace(re, ''), imgs) + '</li>');
+            out.push((ol ? '<ol>' : '<ul>') + li.join('') + (ol ? '</ol>' : '</ul>')); continue;
+        }
+        if ((m = /^\s*https?:\/\/(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})\/?\s*$/i.exec(l))) {
+            flush(); out.push('<a href="#" class="gd-scratch" onclick="return gdOpenScratch(' + Number(m[1]) + ')"><b>Scratch #' + Number(m[1]) + '</b><span>' + esc(gt('openScratch')) + ' →</span></a>'); i++; continue;
+        }
+        para.push(l); i++;
+    }
+    flush();
+    return out.join('') || '<p class="gd-none">' + esc(gt('empty2')) + '</p>';
+}
+function gdOpenScratch(id) { openProject(id); return false; }
+function gdZoom(src) {
+    var o = document.createElement('div'); o.className = 'gd-zoom'; o.onclick = function() { o.remove(); };
+    var im = document.createElement('img'); im.src = src; o.appendChild(im); document.body.appendChild(o);
+}
+
+// ---- 画面の切り替え ----
+function enterGuide() {
+    gdSync();
+    if (gd.keep) gd.keep = false; else { gd.view = 'list'; gd.cur = null; gd.edit = null; }
+    gdPaint();
+    if (gd.view === 'list' && !gd.items.length) gdLoad(true);
+}
+function gdGo(view) { gd.view = view; gdPaint(); updateUrl(true); window.scrollTo(0, 0); }
+function gdPaint() {
+    var box = gdBox(); if (!box) return;
+    if (gd.view === 'read') gdReadPaint();
+    else if (gd.view === 'edit') gdEditPaint();
+    else gdListPaint();
+}
+function gdList() { gd.mine = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
+
+// ---- 一覧 ----
+function gdListPaint() {
+    var box = gdBox();
+    var h = '<div class="gd-head"><h2>' + esc(gt('title')) + '</h2><div class="gd-head-btns">' +
+        (loginUser ? '<button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
+        '<button class="gd-btn primary" onclick="gdNew()">' + esc(gt('write')) + '</button></div></div>';
+    if (gd.mine) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>';
+    else {
+        h += '<div class="gd-bar"><div class="gd-tabs"><button class="' + (gd.sort === 'new' ? 'on' : '') + '" onclick="gdSetSort(\'new\')">' + esc(gt('sNew')) + '</button><button class="' + (gd.sort === 'hot' ? 'on' : '') + '" onclick="gdSetSort(\'hot\')">' + esc(gt('sHot')) + '</button></div>' +
+            '<input type="search" id="gd-q" class="gd-q" maxlength="60" placeholder="' + esc(gt('search')) + '" value="' + esc(gd.q) + '" enterkeyhint="search" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)gdSearch()"></div>';
+        if (gd.tag) h += '<div class="gd-tagbar"><span class="gd-tag on">#' + esc(gd.tag) + '</span><button class="gd-x" onclick="gdSetTag(\'\')" aria-label="clear">×</button></div>';
+    }
+    h += '<div class="gd-grid" id="gd-grid"></div><div class="gd-foot" id="gd-foot"></div>';
+    box.innerHTML = h;
+    gdGridPaint();
+}
+function gdCardHTML(g) {
+    var cover = g.cover ? '<div class="gd-cover" style="background-image:url(\'' + esc(g.cover).replace(/'/g, '%27') + '\')"></div>' : '<div class="gd-cover ph"><span>' + esc(Array.from(g.title)[0] || '?') + '</span></div>';
+    return '<a class="gd-card" href="?m=g&id=' + g.id + '" onclick="return gdCardClick(event,' + g.id + ')">' + cover + '<div class="gd-cbody">' +
+        (g.published ? '' : '<span class="gd-draft">' + esc(gt('draft')) + '</span>') +
+        '<div class="gd-ct">' + esc(g.title) + '</div><div class="gd-cx">' + esc(g.excerpt || '') + '</div>' +
+        (g.tags.length ? '<div class="gd-tags">' + g.tags.map(function(x) { return '<span class="gd-tag">#' + esc(x) + '</span>'; }).join('') + '</div>' : '') +
+        '<div class="gd-cm"><span class="gd-by">' + avatarImg(g.user_id, 20) + esc(g.username) + '</span><span>' + gdDate(g.published ? g.published_at : g.updated_at) + '</span>' +
+        '<span class="gd-n">' + GD_ICO.heart + g.likes + '</span><span class="gd-n">' + GD_ICO.cm + g.comments + '</span></div></div></a>';
+}
+function gdGridPaint() {
+    var grid = document.getElementById('gd-grid'), foot = document.getElementById('gd-foot');
+    if (!grid) return;
+    grid.innerHTML = gd.items.map(gdCardHTML).join('');
+    var f = '';
+    if (gd.state === 'load') f = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
+    else if (gd.state === 'err') f = '<div class="gd-note">' + esc(gt('e_other')) + '</div>';
+    else if (!gd.items.length) f = '<div class="gd-note">' + esc(gd.q || gd.tag ? gt('emptyQ') : gt('empty')) + '</div>';
+    else if (gd.more) f = '<button class="gd-btn" onclick="gdLoad(false)">' + esc(gt('more')) + '</button>';
+    foot.innerHTML = f;
+}
+async function gdLoad(reset) {
+    var seq = ++gd.seq;
+    if (reset) { gd.items = []; gd.more = false; }
+    gd.state = 'load'; gdGridPaint();
+    try {
+        var d;
+        if (gd.mine) d = await apiCall('GET', '/api/chat/guides/mine');
+        else {
+            var qs = '?sort=' + gd.sort + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
+            if (gd.items.length) qs += gd.sort === 'hot' ? '&offset=' + gd.items.length : '&before=' + gd.items[gd.items.length - 1].id;
+            d = await apiCall('GET', '/api/chat/guides' + qs);
+        }
+        if (seq !== gd.seq) return;
+        gd.items = gd.items.concat(d.items || []); gd.more = !!d.has_more; gd.state = 'done';
+    } catch (e) { if (seq !== gd.seq) return; gd.state = 'err'; }
+    gdGridPaint();
+}
+function gdSetSort(s) { gd.sort = s; gdListPaint(); gdLoad(true); updateUrl(); }
+function gdSetTag(t) { var was = gd.view !== 'list'; gd.view = 'list'; gd.mine = false; gd.tag = t; gdListPaint(); gdLoad(true); updateUrl(was); }
+function gdSearch() { var i = document.getElementById('gd-q'); gd.q = i ? i.value.trim() : ''; gdListPaint(); gdLoad(true); updateUrl(); }
+function gdMine() { gd.mine = true; gd.view = 'list'; gdPaint(); gdLoad(true); }
+function gdCardClick(e, id) { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return true; gdOpen(id); return false; }
+
+// ---- 読む ----
+async function gdOpen(id) {
+    gd.view = 'read'; gd.cur = null; gd.comments = []; gd.keep = true; gd.openId = id;
+    if (currentMode !== 'guide') setMode('guide', true);
+    gd.keep = false;
+    gdBox().innerHTML = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
+    updateUrl(true);
+    try {
+        var d = await apiCall('GET', '/api/chat/guides/' + id);
+        gd.cur = d.guide; gd.can = { edit: !!d.can_edit, del: !!d.can_delete };
+        var c = await apiCall('GET', '/api/chat/guides/' + id + '/comments').catch(function() { return { comments: [] }; });
+        gd.comments = c.comments || [];
+    } catch (e) { gdBox().innerHTML = '<button class="gd-back" onclick="gdList()">' + esc(gt('back')) + '</button><div class="gd-note">' + esc(gdErr(e)) + '</div>'; return; }
+    updateUrl(); gdReadPaint(); window.scrollTo(0, 0);
+    try { document.title = gd.cur.title + ' - scratch-TWC'; } catch (e) {}
+}
+function gdReadPaint() {
+    var g = gd.cur, box = gdBox();
+    if (!g) return;
+    var h = '<button class="gd-back" onclick="gdList()">' + esc(gt('back')) + '</button><article class="gd-art">';
+    if (g.cover) h += '<div class="gd-hero" style="background-image:url(\'' + esc(g.cover).replace(/'/g, '%27') + '\')"></div>';
+    if (!g.published) h += '<span class="gd-draft">' + esc(gt('draft')) + '</span>';
+    h += '<h1 class="gd-h1">' + esc(g.title) + '</h1>';
+    h += '<div class="gd-meta"><a class="gd-by" href="?m=u&u=' + encodeURIComponent(g.username) + '" onclick="return gdUser(event,\'' + esc(g.username).replace(/'/g, '') + '\')">' + avatarImg(g.user_id, 28) + '<b>' + esc(g.username) + '</b></a><span>' + gdDate(g.published ? g.published_at : g.created_at) + '</span>' +
+        (g.updated_at - (g.published_at || g.created_at) > 60000 ? '<span>' + esc(gt('upd')) + ' ' + gdDate(g.updated_at) + '</span>' : '') + '</div>';
+    if (g.tags.length) h += '<div class="gd-tags">' + g.tags.map(function(x) { return '<button class="gd-tag" onclick="gdSetTag(\'' + esc(x).replace(/'/g, '') + '\')">#' + esc(x) + '</button>'; }).join('') + '</div>';
+    h += '<div class="gd-md">' + gdMd(g.body, g.images) + '</div>';
+    h += '<div class="gd-actions">' + (g.published ? '<button class="gd-like' + (g.liked ? ' on' : '') + '" id="gd-like" onclick="gdLike()">' + (g.liked ? GD_ICO.heart : GD_ICO.hearto) + '<span>' + g.likes + '</span></button>' : '') +
+        '<button class="gd-btn" onclick="copyShareLink()">' + esc(gt('share')) + '</button>' +
+        (gd.can.edit ? '<button class="gd-btn" onclick="gdEditOpen(' + g.id + ')">' + esc(gt('edit')) + '</button>' : '') +
+        (gd.can.del ? '<button class="gd-btn danger" onclick="gdDelete()">' + esc(gt('del')) + '</button>' : '') + '</div></article>';
+    if (g.published) h += '<section class="gd-cms"><h3>' + esc(gt('cm')) + ' <span>' + gd.comments.length + '</span></h3><div id="gd-cm-list"></div><div id="gd-cm-form"></div></section>';
+    box.innerHTML = h;
+    if (g.published) { gdCommentsPaint(); gdCommentForm(); }
+}
+function gdUser(e, name) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; openProfile(name); return false; }
+async function gdLike() {
+    var g = gd.cur; if (!g) return;
+    if (!loginUser) { openLogin(); return; }
+    var on = !g.liked;
+    g.liked = on; g.likes += on ? 1 : -1; gdReadLikePaint();
+    try { var d = await apiCall(on ? 'PUT' : 'DELETE', '/api/chat/guides/' + g.id + '/like'); g.liked = d.liked; g.likes = d.likes; }
+    catch (e) { g.liked = !on; g.likes += on ? -1 : 1; showToast(gdErr(e)); }
+    gdReadLikePaint();
+}
+function gdReadLikePaint() {
+    var b = document.getElementById('gd-like'), g = gd.cur; if (!b || !g) return;
+    b.classList.toggle('on', !!g.liked); b.innerHTML = (g.liked ? GD_ICO.heart : GD_ICO.hearto) + '<span>' + g.likes + '</span>';
+}
+async function gdDelete() {
+    var g = gd.cur; if (!g || !confirm(gt('delAsk'))) return;
+    try { await apiCall('DELETE', '/api/chat/guides/' + g.id); gd.items = []; gdList(); }
+    catch (e) { showToast(gdErr(e)); }
+}
+function gdCommentsPaint() {
+    var el = document.getElementById('gd-cm-list'); if (!el) return;
+    el.innerHTML = gd.comments.length ? gd.comments.map(function(c) {
+        var can = loginUser && (c.user_id === loginUser.id || (gd.cur && gd.cur.user_id === loginUser.id) || gd.can.del);
+        return '<div class="gd-cmt"><div class="gd-cmt-h">' + avatarImg(c.user_id, 22, c.username) + '<b>' + esc(c.username) + '</b><span>' + esc(pgAgo(c.created_at)) + '</span>' +
+            (can ? '<button class="gd-x" onclick="gdCommentDel(' + c.id + ')">' + esc(gt('cmDel')) + '</button>' : '') + '</div><div class="gd-cmt-b">' + esc(c.content) + '</div></div>';
+    }).join('') : '<div class="gd-note">' + esc(gt('cmNone')) + '</div>';
+    var n = document.querySelector('.gd-cms h3 span'); if (n) n.textContent = gd.comments.length;
+}
+function gdCommentForm() {
+    var el = document.getElementById('gd-cm-form'); if (!el) return;
+    el.innerHTML = loginUser ? '<textarea id="gd-cm-in" maxlength="500" rows="3" placeholder="' + esc(gt('cmPh')) + '"></textarea><div class="gd-cm-row"><span id="gd-cm-err" class="gd-err"></span><button class="gd-btn primary" id="gd-cm-go" onclick="gdCommentSend()">' + esc(gt('cmSend')) + '</button></div>'
+        : '<div class="gd-note">' + esc(gt('cmLogin')) + ' <button class="gd-btn" onclick="openLogin()">' + esc(gt('login')) + '</button></div>';
+}
+async function gdCommentSend() {
+    var inp = document.getElementById('gd-cm-in'), btn = document.getElementById('gd-cm-go'), err = document.getElementById('gd-cm-err');
+    if (!inp || !gd.cur || !inp.value.trim()) return;
+    btn.disabled = true; err.textContent = '';
+    try {
+        var d = await apiCall('POST', '/api/chat/guides/' + gd.cur.id + '/comments', { content: inp.value });
+        gd.comments.push(d.comment); inp.value = ''; gdCommentsPaint();
+    } catch (e) { err.textContent = gdErr(e); }
+    btn.disabled = false;
+}
+async function gdCommentDel(id) {
+    try { await apiCall('DELETE', '/api/chat/guides/comments/' + id); gd.comments = gd.comments.filter(function(c) { return c.id !== id; }); gdCommentsPaint(); }
+    catch (e) { showToast(gdErr(e)); }
+}
+
+// ---- 書く ----
+var GD_DRAFT = 'twc_gd_draft_';
+function gdDraftKey() { return GD_DRAFT + (gd.edit && gd.edit.id ? gd.edit.id : 'new'); }
+function gdDraftSave() {
+    var e = gd.edit; if (!e) return;
+    clearTimeout(e.t); e.t = setTimeout(function() { try { localStorage.setItem(gdDraftKey(), JSON.stringify({ title: e.title, body: e.body, tags: e.tags })); } catch (x) {} }, 600);
+}
+function gdDraftClear(key) { try { localStorage.removeItem(key); } catch (x) {} }
+function gdNew() {
+    if (!loginUser) { openLogin(); showToast(gt('loginNeed')); return; }
+    gd.edit = { id: 0, title: '', body: '', tags: '', cover: null, published: false, imgs: {}, preview: false, busy: false, err: '', note: '' };
+    try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + 'new') || 'null'); if (r && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
+    if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
+    gdGo('edit');
+}
+async function gdEditOpen(id) {
+    if (!loginUser) { openLogin(); return; }
+    try {
+        var d = (gd.cur && gd.cur.id === id) ? { guide: gd.cur } : await apiCall('GET', '/api/chat/guides/' + id);
+        var g = d.guide;
+        gd.edit = { id: g.id, title: g.title, body: g.body, tags: g.tags.join(' '), cover: g.cover ? { id: g.cover_id, url: g.cover } : null, published: g.published, imgs: Object.assign({}, g.images || {}), preview: false, busy: false, err: '', note: '' };
+        try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + g.id) || 'null'); if (r && (r.title !== g.title || r.body !== g.body) && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
+        if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
+        gdGo('edit');
+    } catch (e) { showToast(gdErr(e)); }
+}
+function gdEditPaint() {
+    var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['scratch', '', 'bScratch']];
+    var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
+        '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
+        '<div class="gd-e-cover" id="gd-e-cover"></div>' +
+        '<input id="gd-e-tags" class="gd-e-tags" maxlength="120" placeholder="' + esc(gt('eTags')) + '" value="' + esc(e.tags) + '" oninput="gd.edit.tags=this.value;gdDraftSave()">' +
+        '<div class="gd-pv"><button type="button" class="gd-tbb tab on" id="gd-t-w" onclick="gdEditTab(false)">' + esc(gt('eWrite')) + '</button><button type="button" class="gd-tbb tab" id="gd-t-p" onclick="gdEditTab(true)">' + esc(gt('ePrev')) + '</button></div>' +
+        '<div class="gd-tb">' + tb.map(function(b) { return '<button type="button" class="gd-tbb" title="' + esc(gt(b[2])) + '" onmousedown="event.preventDefault()" onclick="gdFmt(\'' + b[0] + '\')">' + (b[1] || esc(gt(b[2]))) + '</button>'; }).join('') +
+        '</div>' +
+        '<textarea id="gd-e-body" class="gd-e-body" placeholder="' + esc(gt('eBody')) + '" oninput="gdBodyInput(this)">' + esc(e.body) + '</textarea>' +
+        '<div id="gd-e-prev" class="gd-md gd-e-prev" style="display:none"></div>' +
+        '<div class="gd-e-info"><span id="gd-e-count"></span><span>' + esc(gt('hint')) + '</span></div>' +
+        '<div class="gd-err" id="gd-e-err"></div><div class="gd-e-acts" id="gd-e-acts"></div>' +
+        '<input type="file" id="gd-e-file" accept="image/*" style="display:none" onchange="gdImgPick(this)"><input type="file" id="gd-e-cfile" accept="image/*" style="display:none" onchange="gdCoverPick(this)"></div>';
+    box.innerHTML = h;
+    gdEditSync();
+}
+function gdEditSync() {
+    var e = gd.edit; if (!e) return;
+    var c = document.getElementById('gd-e-cover');
+    if (c) c.innerHTML = e.cover ? '<div class="gd-e-thumb" style="background-image:url(\'' + esc(e.cover.url).replace(/'/g, '%27') + '\')"></div><button type="button" class="gd-btn" onclick="gd.edit.cover=null;gdEditSync()">' + esc(gt('eCoverDel')) + '</button>' : '<button type="button" class="gd-btn" onclick="document.getElementById(\'gd-e-cfile\').click()">＋ ' + esc(gt('eCover')) + '</button>';
+    var n = document.getElementById('gd-e-count'); if (n) n.textContent = Array.from(e.body).length + ' / 30000 ' + gt('count');
+    var er = document.getElementById('gd-e-err'); if (er) er.textContent = e.err || e.note || '';
+    var a = document.getElementById('gd-e-acts');
+    if (a) {
+        var dis = e.busy ? ' disabled' : '';
+        a.innerHTML = e.published
+            ? '<button class="gd-btn primary"' + dis + ' onclick="gdSave(true)">' + esc(gt('update')) + '</button><button class="gd-btn"' + dis + ' onclick="gdSave(false)">' + esc(gt('unpublish')) + '</button>'
+            : '<button class="gd-btn"' + dis + ' onclick="gdSave(false)">' + esc(gt('saveDraft')) + '</button><button class="gd-btn primary"' + dis + ' onclick="gdSave(true)">' + esc(gt('publish')) + '</button>';
+    }
+}
+function gdBodyInput(ta) { gd.edit.body = ta.value; gd.edit.err = ''; gdDraftSave(); var n = document.getElementById('gd-e-count'); if (n) n.textContent = Array.from(ta.value).length + ' / 30000 ' + gt('count'); }
+function gdEditTab(p) {
+    var e = gd.edit; if (!e) return;
+    e.preview = p;
+    document.getElementById('gd-e-body').style.display = p ? 'none' : '';
+    var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
+    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.imgs);
+    document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
+}
+function gdEditBack() {
+    var e = gd.edit;
+    if (e && (e.title || e.body) && !e.id) { /* 書きかけは、端末に残してある（次に書くときに戻る） */ }
+    if (e && e.id) { gdOpen(e.id); } else gdList();
+}
+function gdFmt(kind) {
+    var e = gd.edit, ta = document.getElementById('gd-e-body'); if (!e || !ta) return;
+    if (e.preview) gdEditTab(false);
+    if (kind === 'img') { document.getElementById('gd-e-file').click(); return; }
+    var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
+    var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
+    if (wrap[kind]) { var w = wrap[kind], t = sel || '…'; ins = w + t + w; ns = s + w.length; ne = ns + t.length; }
+    else if (pre[kind]) {
+        var ls = v.lastIndexOf('\n', s - 1) + 1; var head = pre[kind];
+        ta.value = v.slice(0, ls) + head + v.slice(ls); ns = s + head.length; ne = en + head.length;
+        ta.focus(); ta.setSelectionRange(ns, ne); gdBodyInput(ta); return;
+    }
+    else if (kind === 'link') { var tx = sel || 'テキスト'; ins = '[' + tx + '](https://)'; ns = s + tx.length + 3; ne = ns + 8; }
+    else if (kind === 'hr') { ins = '\n\n---\n\n'; ns = ne = s + ins.length; }
+    else if (kind === 'scratch') { var u = prompt(gt('scratchAsk'), 'https://scratch.mit.edu/projects/'); if (!u) return; var m = /scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(u) || /^(\d{3,12})$/.exec(u.trim()); if (!m) return; ins = '\n\nhttps://scratch.mit.edu/projects/' + m[1] + '\n\n'; ns = ne = s + ins.length; }
+    ta.value = v.slice(0, s) + ins + v.slice(en); ta.focus(); ta.setSelectionRange(ns, ne); gdBodyInput(ta);
+}
+async function gdUploadImage(file) {
+    var blob = await chatCompressImage(file);
+    var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: 'image/jpeg' });
+    await chatPutFile(st.upload_url, st.headers, blob, function() {});
+    await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+    return { id: st.id, url: URL.createObjectURL(blob) };
+}
+async function gdImgPick(inp) {
+    var f = inp.files && inp.files[0]; inp.value = '';
+    var e = gd.edit; if (!f || !e) return;
+    if (!/^image\//.test(f.type)) { e.err = gt('e_other'); gdEditSync(); return; }
+    e.err = ''; e.note = gt('upl'); gdEditSync();
+    try {
+        var im = await gdUploadImage(f);
+        e.imgs[im.id] = im.url; e.note = '';
+        var ta = document.getElementById('gd-e-body'), s = ta.selectionStart, v = ta.value, ins = '\n\n![](img:' + im.id + ')\n\n';
+        ta.value = v.slice(0, s) + ins + v.slice(ta.selectionEnd); ta.focus(); ta.setSelectionRange(s + ins.length, s + ins.length); gdBodyInput(ta);
+    } catch (x) { e.note = ''; e.err = chatErr(x); }
+    gdEditSync();
+}
+async function gdCoverPick(inp) {
+    var f = inp.files && inp.files[0]; inp.value = '';
+    var e = gd.edit; if (!f || !e || !/^image\//.test(f.type)) return;
+    e.err = ''; e.note = gt('upl'); gdEditSync();
+    try { var im = await gdUploadImage(f); e.cover = { id: im.id, url: im.url }; e.note = ''; }
+    catch (x) { e.note = ''; e.err = chatErr(x); }
+    gdEditSync();
+}
+async function gdSave(publish) {
+    var e = gd.edit; if (!e || e.busy) return;
+    e.title = (document.getElementById('gd-e-title') || {}).value || e.title;
+    e.err = ''; e.note = ''; e.busy = true; gdEditSync();
+    var key = gdDraftKey();
+    try {
+        var payload = { title: e.title, body: e.body, tags: e.tags, cover_id: e.cover ? e.cover.id : '', published: !!publish };
+        var d = e.id ? await apiCall('PUT', '/api/chat/guides/' + e.id, payload) : await apiCall('POST', '/api/chat/guides', payload);
+        gdDraftClear(key); gdDraftClear(GD_DRAFT + d.guide.id);
+        e.id = d.guide.id; e.published = d.guide.published; e.cover = d.guide.cover ? { id: d.guide.cover_id, url: d.guide.cover } : null; e.imgs = Object.assign(e.imgs, d.guide.images || {});
+        gd.items = []; e.busy = false;
+        if (publish) { showToast(gt('published')); gdOpen(d.guide.id); return; }
+        e.note = gt('saved'); gdEditSync(); return;
+    } catch (x) { e.err = gdErr(x); }
+    e.busy = false; gdEditSync();
+}
+
+function gdFromUrl(st) {
+    gd.sort = st.sort === 'hot' ? 'hot' : 'new'; gd.tag = st.tag || ''; gd.q = st.q || ''; gd.items = []; gd.mine = false;
+    if (st.id) { gdOpen(st.id); return; }
+    gd.view = 'list'; setMode('guide');
+}
+
 // ===== ホーム =====
 // 開いて最初に見える画面。検索ボックス、各画面へのボタン、作品の一覧（技術力が高い・新しい・ランダム）を出す
 var HOME_N = 6;
@@ -3222,11 +3713,12 @@ function renderHome() {
         browse: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
         rank: '<path d="M6 20v-8M12 20V4M18 20v-12"/>',
         short: '<circle cx="12" cy="12" r="9"/><path d="M10.5 8.5l5 3.5-5 3.5z"/>',
-        chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.3l1.2-4.4A8 8 0 1 1 21 12z"/>'
+        chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.3l1.2-4.4A8 8 0 1 1 21 12z"/>',
+        guide: '<path d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 0 2 2h13v-4"/><path d="M9 8h6M9 12h4"/>'
     };
     var tile = function(mode, key, id) { return '<button class="home-tile"' + (id ? ' id="' + id + '"' : '') + ' onclick="setMode(\'' + mode + '\')"><svg viewBox="0 0 24 24" aria-hidden="true">' + ico[mode] + '</svg>' + esc(t(key)) + '</button>'; };
-    document.getElementById('home-tiles').innerHTML = tile('browse', 'homeTileBrowse') + tile('rank', 'homeTileRank') + tile('short', 'homeTileShort') + tile('chat', 'homeTileChat', 'home-tile-chat');
-    homeTilesSync();
+    document.getElementById('home-tiles').innerHTML = tile('browse', 'homeTileBrowse') + tile('rank', 'homeTileRank') + tile('short', 'homeTileShort') + tile('chat', 'homeTileChat', 'home-tile-chat') + tile('guide', 'homeTileGuide', 'home-tile-guide');
+    homeTilesSync(); gdSync();
     var tab = document.getElementById('mode-chat-btn');
     var ht = document.getElementById('home-tile-chat');
     if (ht && tab) ht.classList.toggle('has-unread', tab.classList.contains('has-unread'));
@@ -3538,6 +4030,7 @@ function updateLoginUI() {
     var chTab = document.getElementById('mode-chat-btn');
     if (chTab) chTab.style.display = apiEnabled() ? '' : 'none';
     if (typeof homeTilesSync === 'function') homeTilesSync();
+    if (typeof gdSync === 'function') gdSync();
     if (typeof currentMode !== 'undefined' && currentMode === 'chat') { chatSig = ''; renderChatInput(); loadChat(true); }
     var svTab = document.getElementById('mode-saved-btn');
     if (svTab) svTab.style.display = (apiEnabled() && loginUser) ? '' : 'none';
@@ -4104,6 +4597,7 @@ async function applyDefaultView() {
     if (st && st.m === 'u') { openProfile(st.u); return; }
     if (st && st.m === 'p') { prevMode = 'browse'; openProjectPage(st.id); return; }
     if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
+    if (st && st.m === 'g' && apiEnabled()) { gdFromUrl(st); return; }
     if (st && st.m === 'c' && apiEnabled()) {
         if (st.room) { chatRoom = st.room; try { localStorage.setItem('twc_chat_room', st.room); } catch (e) {} }
         if (st.msg) { chatJumpTo = st.msg; chatAround = st.msg; }
@@ -4176,6 +4670,10 @@ function shareParams() {
         p.set('m', 'p'); p.set('id', ppId);
     } else if (currentMode === 'rank') {
         p.set('m', 'r'); p.set('p', rankPeriod);
+    } else if (currentMode === 'guide') {
+        p.set('m', 'g');
+        if (gd.view === 'read' && gd.openId) p.set('id', gd.openId);
+        else if (gd.view === 'list') { if (gd.sort === 'hot') p.set('sort', 'hot'); put('tag', gd.tag); put('q', gd.q); }
     } else if (currentMode === 'chat') {
         p.set('m', 'c'); p.set('room', chatRoom);
     } else {
@@ -4216,6 +4714,7 @@ window.addEventListener('popstate', function() {
         else if (st && st.m === 'h') { if (st.id && shortIds[shortCur] !== st.id) shortStartAt(st.id); else setMode('short'); }
         else if (st && st.m === 'u') openProfile(st.u);
         else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
+        else if (st && st.m === 'g' && apiEnabled()) gdFromUrl(st);
         else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
         else if (st && st.m === 's') setMode('search');
         else if (st && st.m === 'b') setMode('browse');
@@ -4249,6 +4748,7 @@ function readUrlState() {
     if (m === 'u' && /^[A-Za-z0-9_-]{1,30}$/.test(p.get('u') || '')) return { m: 'u', u: p.get('u') };
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
+    if (m === 'g') return { m: 'g', id: /^\d{1,9}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0, sort: p.get('sort') === 'hot' ? 'hot' : 'new', tag: (p.get('tag') || '').slice(0, 20), q: (p.get('q') || '').slice(0, 60) };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
     if (m === 'c') return { m: 'c', room: chatRoomOK(p.get('room') || '') ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
     if (m !== 's' && m !== 'b') return null;

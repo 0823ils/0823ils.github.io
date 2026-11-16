@@ -258,15 +258,6 @@
         .chat-search-more { align-self: center; background: #fff; border: 1px solid #cfdcf5; border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 13px; color: #4D97FF; }
         a.chat-tab { display: block; text-decoration: none; }
         #chat-list { flex: 1; overflow-y: auto; border-radius: 8px; padding: 6px 4px; margin: 8px 0; font-size: 14px; }
-        @media (max-width: 760px) {
-        .pg-card { gap:8px; padding:8px; }
-        .pg-thumb { flex-basis:120px; width:120px; height:100px; }
-        .pg-thumb:not(:has(img)) { flex-basis:72px; width:72px; height:72px; }
-        .pg-info { flex-direction:column; gap:8px; }
-        .pg-cover { flex:0 0 auto; width:100%; max-width:360px; height:auto; aspect-ratio:16/9; }
-        #chat-section.pg-thread #pg-view { padding:8px 0; }
-        #chat-section.pg-thread #pg-detail-switch button { padding:10px 6px; font-size:13px; }
-        }
         @media (max-width: 640px) {
             .chat-layout { flex-direction: column; gap: 8px; height: calc(100vh - 220px); }
             .chat-rooms { width: auto; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
@@ -545,7 +536,7 @@
         .pg-card-link { color: inherit; text-decoration: none; }
         .pg-card-link:hover .pg-title { color: #3577db; }
         .pg-list-video, .pg-video { display: block; width: 100%; max-width: 100%; max-height: 340px; margin-top: 8px; border-radius: 10px; background: #101522; }
-        .pg-list-video { max-height: 240px; }
+        .pg-list-video { max-height: none; }
         .pg-upd-media { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; min-width: 0; }
         .pg-sb3-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #f0d49b; border-radius: 10px; background: #fffaf0; }
         .pg-sb3-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 26px; border-radius: 6px; background: #ffab19; color: #fff; font-size: 11px; font-weight: 900; }
@@ -557,6 +548,30 @@
         .pg-existing-file { background: #f5f8fd; }
         .pg-file-kind { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: #e7eefb; font-size: 11px; font-weight: 800; color: #526786; }
         .pg-file-kept { color: #8190a6; font-size: 11px; }
+        /* 作品一覧：情報とメディアを分け、動画・SB3はカード幅いっぱいに表示 */
+        #chat-section.pg-list .pg-card { display:block; min-width:0; }
+        #chat-section.pg-list .pg-card-main { display:flex; align-items:flex-start; gap:14px; min-width:0; }
+        #chat-section.pg-list .pg-thumb { flex:0 0 220px; width:220px; height:138px; }
+        #chat-section.pg-list .pg-thumb-empty { font-size:12px; color:#8b98ae; }
+        #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
+        #chat-section.pg-list .pg-card-media { display:flex; flex-direction:column; gap:12px; width:100%; min-width:0; margin-top:12px; }
+        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; max-height:520px; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:12px; background:#101522; }
+        #chat-section.pg-list .pg-list-sb3 { width:100%; min-width:0; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-box { width:100%; min-height:58px; box-sizing:border-box; padding:12px 14px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-tag { min-width:46px; height:30px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-name { font-size:13px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { display:block; width:100%; max-width:100%; min-height:clamp(260px, 52vw, 560px); aspect-ratio:16/9; }
+        #chat-section.pg-list .pg-chip { margin-right:4px; }
+        @media (max-width:760px) {
+            #chat-section.pg-list .pg-card-main { gap:10px; }
+            #chat-section.pg-list .pg-thumb { flex-basis:160px; width:160px; height:108px; }
+            #chat-section.pg-list .pg-list-video { max-height:420px; }
+        }
+        @media (max-width:640px) {
+            #chat-section.pg-list .pg-card-main { flex-direction:column; }
+            #chat-section.pg-list .pg-thumb { flex:none; width:100%; height:auto; aspect-ratio:16/9; }
+            #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { min-height:clamp(220px, 58vw, 420px); }
+        }
         @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-card { flex-direction: column; } .pg-thumb { flex: none; width: 100%; height: auto; aspect-ratio: 16 / 9; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 240px; flex: none; } }
         .call-panel.zoom { container-type: inline-size; }
         .call-panel.zoom .call-ctl { flex-wrap: nowrap; gap: clamp(2px, 1cqw, 8px); padding: clamp(4px, 1.4cqw, 10px); }
@@ -5048,7 +5063,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { room_progress: '私の作品・進捗', pg_sort: '進捗が新しい順 → 新しいメッセージ順', pg_new: '＋ 作品を追加', pg_empty: 'まだ作品がありません。最初の作品を追加してみましょう', pg_login: 'ログインすると作品を追加できます', pg_no_update: 'まだ進捗はありません', pg_upd_n: '進捗 {n}件', pg_files_only: '（画像・ファイル）', pg_update_btn: '進捗を更新', pg_back: '← 作品一覧', pg_title_ph: '作品名（必須・60字まで）', pg_desc_ph: '作品の説明（任意）', pg_scratch_ph: 'Scratchの作品のリンク（任意）', pg_cover: '画像を追加（任意）', pg_create: '作品を追加する', pg_post: '進捗を投稿', pg_cancel: 'キャンセル', pg_add_file: '画像・動画・sb3を追加（{n}/{m}）', pg_upd_ph: '今回の進捗（どこまでできた？）', pg_del_thread: '作品を削除', pg_confirm_thread: 'この作品を削除しますか？（進捗とチャットも消えます）', pg_del_upd: '削除', pg_edit_upd: '編集', pg_video: '動画', pg_run_sb3: '▶ SB3を実行', pg_close_player: 'プレイヤーを閉じる', pg_editing: '進捗を編集', pg_confirm_upd: 'この進捗を削除しますか？', pg_open_scratch: 'Scratchの作品を見る', pg_collapse: 'たたむ', pg_expand: 'ひらく', pg_uploading: '送信中…', pg_gone: 'この作品は見つかりません', pg_more: 'ほか{n}件を見る', pg_less: '閉じる', pg_e_type: '画像・動画（MP4/WebM/MOV）または .sb3 を選んでください（表紙は画像のみ）', pg_now: 'たった今', pg_min: '{n}分前', pg_hour: '{n}時間前', pg_day: '{n}日前', e_empty_title: '作品名を入れてください', e_bad_scratch: 'Scratchの作品のリンクの形が正しくありません', e_too_many_files: '添付は最大2つまでです', e_thread_not_found: 'この作品は見つかりません', e_forbidden: 'この操作はできません', e_not_found: '見つかりません', e_video_not_found: '添付が見つかりません。もう一度選んでください', call_chat: 'チャット', call_watch: '画面共有を見る', call_unwatch: '見ない', call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
+    ja: { room_progress: '私の作品・進捗', pg_sort: '進捗が新しい順 → 新しいメッセージ順', pg_new: '＋ 作品を追加', pg_empty: 'まだ作品がありません。最初の作品を追加してみましょう', pg_login: 'ログインすると作品を追加できます', pg_no_update: 'まだ進捗はありません', pg_upd_n: '進捗 {n}件', pg_files_only: '（画像・ファイル）', pg_update_btn: '進捗を更新', pg_back: '← 作品一覧', pg_title_ph: '作品名（必須・60字まで）', pg_desc_ph: '作品の説明（任意）', pg_scratch_ph: 'Scratchの作品のリンク（任意）', pg_cover: '画像を追加（任意）', pg_create: '作品を追加する', pg_post: '進捗を投稿', pg_cancel: 'キャンセル', pg_add_file: '画像・動画・sb3を追加（{n}/{m}）', pg_upd_ph: '今回の進捗（どこまでできた？）', pg_del_thread: '作品を削除', pg_confirm_thread: 'この作品を削除しますか？（進捗とチャットも消えます）', pg_del_upd: '削除', pg_edit_upd: '編集', pg_video: '動画', pg_run_sb3: 'SB3を実行', pg_close_player: 'プレイヤーを閉じる', pg_editing: '進捗を編集', pg_confirm_upd: 'この進捗を削除しますか？', pg_open_scratch: 'Scratchの作品を見る', pg_collapse: 'たたむ', pg_expand: 'ひらく', pg_uploading: '送信中…', pg_gone: 'この作品は見つかりません', pg_more: 'ほか{n}件を見る', pg_less: '閉じる', pg_e_type: '画像・動画（MP4/WebM/MOV）または .sb3 を選んでください（表紙は画像のみ）', pg_now: 'たった今', pg_min: '{n}分前', pg_hour: '{n}時間前', pg_day: '{n}日前', e_empty_title: '作品名を入れてください', e_bad_scratch: 'Scratchの作品のリンクの形が正しくありません', e_too_many_files: '添付は最大2つまでです', e_thread_not_found: 'この作品は見つかりません', e_forbidden: 'この操作はできません', e_not_found: '見つかりません', e_video_not_found: '添付が見つかりません。もう一度選んでください', call_chat: 'チャット', call_watch: '画面共有を見る', call_unwatch: '見ない', call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
           call_share: '画面を共有', call_share_cam: 'カメラを共有', call_tts_note: '通話ルームのチャットに書かれた文字を、読み上げます（自分の発言は読みません）', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
           call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: '同時に共有できるのは{n}人までです', call_e_share: '画面共有を始められませんでした',
@@ -5076,7 +5091,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { room_progress: 'My Projects & Progress', pg_sort: 'Newest progress first → newest message', pg_new: '+ Add project', pg_empty: 'No projects yet. Add the first one!', pg_login: 'Log in to add a project', pg_no_update: 'No progress yet', pg_upd_n: '{n} updates', pg_files_only: '(image / file)', pg_update_btn: 'Post progress', pg_back: '← All projects', pg_title_ph: 'Project name (required, max 60)', pg_desc_ph: 'Description (optional)', pg_scratch_ph: 'Scratch project link (optional)', pg_cover: 'Add an image (optional)', pg_create: 'Add project', pg_post: 'Post update', pg_cancel: 'Cancel', pg_add_file: 'Add image / video / sb3 ({n}/{m})', pg_upd_ph: 'What did you get done?', pg_del_thread: 'Delete project', pg_confirm_thread: 'Delete this project? (Its progress and chat will be removed)', pg_del_upd: 'Delete', pg_edit_upd: 'Edit', pg_video: 'Video', pg_run_sb3: '▶ Run SB3', pg_close_player: 'Close player', pg_editing: 'Edit progress', pg_confirm_upd: 'Delete this update?', pg_open_scratch: 'View on Scratch', pg_collapse: 'Collapse', pg_expand: 'Expand', pg_uploading: 'Sending…', pg_gone: 'This project was not found', pg_more: 'Show {n} more', pg_less: 'Show less', pg_e_type: 'Choose an image, video (MP4/WebM/MOV), or .sb3 (the cover must be an image)', pg_now: 'just now', pg_min: '{n}m ago', pg_hour: '{n}h ago', pg_day: '{n}d ago', e_empty_title: 'Please enter a project name', e_bad_scratch: 'That does not look like a Scratch project link', e_too_many_files: 'Up to 2 attachments', e_thread_not_found: 'Project not found', e_forbidden: 'You cannot do that', e_not_found: 'Not found', e_video_not_found: 'Attachment not found. Please choose it again', call_chat: 'Chat', call_watch: 'Watch screen share', call_unwatch: 'Hide', call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
+    en: { room_progress: 'My Projects & Progress', pg_sort: 'Newest progress first → newest message', pg_new: '+ Add project', pg_empty: 'No projects yet. Add the first one!', pg_login: 'Log in to add a project', pg_no_update: 'No progress yet', pg_upd_n: '{n} updates', pg_files_only: '(image / file)', pg_update_btn: 'Post progress', pg_back: '← All projects', pg_title_ph: 'Project name (required, max 60)', pg_desc_ph: 'Description (optional)', pg_scratch_ph: 'Scratch project link (optional)', pg_cover: 'Add an image (optional)', pg_create: 'Add project', pg_post: 'Post update', pg_cancel: 'Cancel', pg_add_file: 'Add image / video / sb3 ({n}/{m})', pg_upd_ph: 'What did you get done?', pg_del_thread: 'Delete project', pg_confirm_thread: 'Delete this project? (Its progress and chat will be removed)', pg_del_upd: 'Delete', pg_edit_upd: 'Edit', pg_video: 'Video', pg_run_sb3: 'Run SB3', pg_close_player: 'Close player', pg_editing: 'Edit progress', pg_confirm_upd: 'Delete this update?', pg_open_scratch: 'View on Scratch', pg_collapse: 'Collapse', pg_expand: 'Expand', pg_uploading: 'Sending…', pg_gone: 'This project was not found', pg_more: 'Show {n} more', pg_less: 'Show less', pg_e_type: 'Choose an image, video (MP4/WebM/MOV), or .sb3 (the cover must be an image)', pg_now: 'just now', pg_min: '{n}m ago', pg_hour: '{n}h ago', pg_day: '{n}d ago', e_empty_title: 'Please enter a project name', e_bad_scratch: 'That does not look like a Scratch project link', e_too_many_files: 'Up to 2 attachments', e_thread_not_found: 'Project not found', e_forbidden: 'You cannot do that', e_not_found: 'Not found', e_video_not_found: 'Attachment not found. Please choose it again', call_chat: 'Chat', call_watch: 'Watch screen share', call_unwatch: 'Hide', call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
           call_share: 'Share screen', call_share_cam: 'Share camera', call_tts_note: 'Messages in the call room chat are read aloud (your own are not).', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
           call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Up to {n} people can share at once', call_e_share: 'Could not start screen sharing',
@@ -5933,7 +5948,10 @@ function pgThumbOf(t) {
     return t.cover || '';
 }
 function pgFilesChips(files) {
-    return (files || []).map(function(f) { return '<span class="pg-chip">' + (f.kind === 'image' ? '🖼' : f.kind === 'video' ? '▶ ' + esc(ct('pg_video')) : f.kind === 'sb3' ? 'SB3' : '📎') + '</span>'; }).join('');
+    return (files || []).map(function(f) {
+        var label = f.kind === 'image' ? '画像' : f.kind === 'video' ? esc(ct('pg_video')) : f.kind === 'sb3' ? 'SB3' : 'ファイル';
+        return '<span class="pg-chip">' + label + '</span>';
+    }).join('');
 }
 function pgSync() {
     var sec = document.getElementById('chat-section'), v = document.getElementById('pg-view');
@@ -5981,26 +5999,42 @@ function pgListPaint() {
     var el = document.getElementById('pg-main');
     if (!el || chatRoom !== 'progress') return;
     var h = '<div class="pg-bar"><span class="pg-hint">' + esc(ct('pg_sort')) + '</span>' +
-        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\'thread\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
+        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\\'thread\\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
     if (!pgList || !pgList.length) h += '<div class="chat-time">' + esc(ct('pg_empty')) + '</div>';
     else h += '<div class="pg-cards">' + pgList.map(function(t) {
         var th = pgThumbOf(t), files = t.last && t.last.files ? t.last.files : [];
-        var video = files.find(function(x) { return x.kind === 'video'; });
-        var sb3 = files.find(function(x) { return x.kind === 'sb3'; });
         var href = esc(chatLinkUrl('pg' + t.id));
         return '<article class="pg-card">' +
-            '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')">' + (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span>📈</span>') + '</a>' +
-            '<div class="pg-body"><a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
-            '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
-            (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
-            (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>'
-                       : '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
-            (video ? '<video class="pg-list-video" controls playsinline preload="none" src="' + esc(video.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>' : '') +
-            (sb3 ? pgSb3Embed(sb3, 'list-' + t.id) : '') +
-            '</div></article>';
+            '<div class="pg-card-main">' +
+                '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')">' +
+                    (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span class="pg-thumb-empty">画像なし</span>') +
+                '</a>' +
+                '<div class="pg-body">' +
+                    '<a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
+                    '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
+                    (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
+                    (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>' :
+                        '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
+                '</div>' +
+            '</div>' +
+            pgListMediaHTML(files, t.id) +
+        '</article>';
     }).join('') + '</div>';
     el.innerHTML = h;
-}function pgSb3Embed(file, key) {
+}
+function pgListMediaHTML(files, threadId) {
+    var media = (files || []).map(function(file, i) {
+        if (file.kind === 'video') {
+            return '<video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>';
+        }
+        if (file.kind === 'sb3') {
+            return '<div class="pg-list-sb3">' + pgSb3Embed(file, 'list-' + threadId + '-' + i) + '</div>';
+        }
+        return '';
+    }).filter(Boolean).join('');
+    return media ? '<div class="pg-card-media">' + media + '</div>' : '';
+}
+function pgSb3Embed(file, key) {
     return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '" data-name="' + esc(file.name || 'project.sb3') + '">' +
         '<span class="pg-sb3-tag">SB3</span><span class="pg-sb3-name">' + esc(file.name || 'project.sb3') + '</span>' +
         '<button class="pg-btn primary" type="button" onclick="pgSb3Open(\'' + esc(key) + '\')">' + esc(ct('pg_run_sb3')) + '</button></div>';

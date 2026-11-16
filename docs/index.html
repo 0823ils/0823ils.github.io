@@ -5944,7 +5944,7 @@ function pgSync() {
     var sw = document.getElementById('pg-detail-switch');
     if (sw) {
         sw.style.display = th ? 'flex' : 'none';
-        sw.innerHTML = th ? '<button type="button" class="'+(pgDetailMode==='chat'?'active':'')+'" onclick="pgSetDetailMode(\'chat\')">💬 チャット</button><button type="button" class="'+(pgDetailMode==='info'?'active':'')+'" onclick="pgSetDetailMode(\'info\')">📌 説明・進捗</button>' : '';
+        sw.innerHTML = th ? '<button type="button" class="'+(pgDetailMode==='chat'?'active':'')+'" onclick="pgSetDetailMode(\'chat\')">チャット</button><button type="button" class="'+(pgDetailMode==='info'?'active':'')+'" onclick="pgSetDetailMode(\'info\')">説明・進捗</button>' : '';
     }
     v.style.display = list ? 'block' : (th && pgDetailMode === 'info' ? 'block' : 'none');
     if (pgForm && ((pgForm.kind === 'thread') !== list || (pgForm.kind === 'update' && pgForm.tid !== pgRoomId(chatRoom)))) pgForm = null;
@@ -6066,15 +6066,14 @@ function pgThreadPaint() {
     var t = pgThread.thread, ups = pgThread.updates, own = pgOwner(t);
     var h = '<div class="pg-top">' + back + '<span class="pg-sp"></span>' +
         (own || chatIsAdmin ? '<button class="pg-btn danger" onclick="pgDeleteThread()">' + esc(ct('pg_del_thread')) + '</button>' : '') +
-        (pgCollapsed && own ? '<button class="pg-btn primary" onclick="pgFormOpen(\'update\')">' + esc(ct('pg_update_btn')) + '</button>' : '') +
+        (own ? '<button class="pg-btn primary" onclick="pgFormOpen(\'update\')">' + esc(ct('pg_update_btn')) + '</button>' : '') +
         '<button class="pg-btn" onclick="pgToggleCollapse()">' + esc(pgCollapsed ? ct('pg_expand') + ' (' + ups.length + ')' : ct('pg_collapse')) + '</button></div>';
     if (!pgCollapsed) {
         h += '<div class="pg-info">' + (t.cover ? '<img class="pg-cover" alt="" src="' + esc(t.cover) + '" onclick="chatImageOpen(this.src)">' : '') +
             '<div class="pg-info-b"><div class="pg-title">' + esc(t.title) + '</div><div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
             (t.description ? '<div class="pg-desc full">' + esc(t.description) + '</div>' : '') +
             (t.scratch_id ? '<a class="pg-btn" href="' + esc(projectUrl(t.scratch_id)) + '" onclick="return pgOpenScratch(event,' + t.scratch_id + ')">' + esc(ct('pg_open_scratch')) + '</a>' : '') + '</div></div>';
-        h += '<div class="pg-uhead"><b>' + esc(ct('pg_upd_n').replace('{n}', ups.length)) + '</b>' +
-            (own ? '<button class="pg-btn primary" onclick="pgFormOpen(\'update\')">' + esc(ct('pg_update_btn')) + '</button>' : '') + '</div>';
+        h += '<div class="pg-uhead"><b>' + esc(ct('pg_upd_n').replace('{n}', ups.length)) + '</b></div>';
         var shown = pgAll ? ups : ups.slice(0, 3);
         h += shown.length ? shown.map(function(u) {
             return '<div class="pg-upd"><div class="pg-upd-h"><span>' + esc(pgAgo(u.created_at)) + '</span><span class="pg-upd-actions">' +

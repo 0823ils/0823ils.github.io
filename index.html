@@ -4943,7 +4943,7 @@ function selectDrawerCategory(category) {
     if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
     closeHeaderMenus();
     if (category === 'explore') {
-        setHeaderCategory('explore');
+        setMode('browse', true);
         return;
     }
     if (category === 'talk') {

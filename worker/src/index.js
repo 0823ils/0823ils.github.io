@@ -1809,6 +1809,8 @@ function pgScratchIdFromUrl(value) {
   const m = /^(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})(?:[\/?#].*)?$/i.exec(String(value || '').trim());
   return m ? Number(m[1]) : 0;
 }
+const pgIsVideo = (ty) => /^video\/(mp4|webm|quicktime)$/.test(String(ty || ''));   // 進捗の更新に付けられる動画
+const pgUpdateFileOk = (ty) => isImageType(ty) || isSb3Type(ty) || pgIsVideo(ty);
 async function pgFilesOf(env, ids) {
   const out = {};
   if (!ids.length) return out;
@@ -1822,11 +1824,18 @@ async function pgFilesOf(env, ids) {
   for (const r of rows.results) {
     const o = { _uid: r.uid };
     const info = { id: r.id, type: r.content_type, _key: r.object_key };
-    if (isImageType(r.content_type)) o.image = info; else o.file = Object.assign(info, { name: r.name || 'project.sb3', size: r.size || 0 });
+    if (isImageType(r.content_type)) o.image = info;
+    else if (pgIsVideo(r.content_type)) o.video = info;
+    else o.file = Object.assign(info, { name: r.name || 'project.sb3', size: r.size || 0 });
     items.push(o);
   }
   await attachMediaUrls(env, items);
-  for (const o of items) (out[o._uid] = out[o._uid] || []).push(o.image ? { kind: 'image', url: o.image.url } : { kind: 'file', url: o.file.url, name: o.file.name, size: o.file.size });
+  for (const o of items) {
+    const f = o.image ? { kind: 'image', id: o.image.id, url: o.image.url }
+      : o.video ? { kind: 'video', id: o.video.id, url: o.video.url }
+      : { kind: isSb3Type(o.file.type) ? 'sb3' : 'file', id: o.file.id, url: o.file.url, name: o.file.name, size: o.file.size };
+    (out[o._uid] = out[o._uid] || []).push(f);
+  }
   return out;
 }
 async function pgImageOf(env, imageId) {
@@ -1938,7 +1947,7 @@ async function pgPostUpdate(request, env, id) {
   const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, PG_UPDATE_MAX);
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
-  const files = await pgTakeFiles(env, user, body.file_ids == null ? [] : body.file_ids, (ty) => isImageType(ty) || isSb3Type(ty));
+  const files = await pgTakeFiles(env, user, body.file_ids == null ? [] : body.file_ids, pgUpdateFileOk);
   if (!content && !files.length) throw new HttpError(400, 'empty');
   const now = Date.now();
   const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM progress_updates WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 3600000).first();
@@ -1953,6 +1962,35 @@ async function pgPostUpdate(request, env, id) {
   await env.DB.prepare('UPDATE progress_threads SET last_update_at = ? WHERE id = ?').bind(now, id).run();
   const fl = (await pgFilesOf(env, [uid]))[uid] || [];
   return json({ update: { id: uid, user_id: user.uid, username: user.u, content, created_at: now, files: fl } }, 201);
+}
+// 進捗の更新を直す（本人だけ）。file_ids は、残すもの＋新しく付けるもの（順番どおり）。外したファイルは消す
+async function pgEditUpdate(request, env, id) {
+  const user = await requireUser(request, env);
+  const u = await env.DB.prepare('SELECT * FROM progress_updates WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!u) throw new HttpError(404, 'not_found');
+  if (u.user_id !== user.uid) throw new HttpError(403, 'forbidden');
+  const body = await readJson(request);
+  const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, PG_UPDATE_MAX);
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+  const want = body.file_ids == null ? [] : body.file_ids;
+  if (!Array.isArray(want)) throw new HttpError(400, 'bad_files');
+  const ids = [...new Set(want.map(String))];
+  if (ids.length > PG_FILES_MAX) throw new HttpError(400, 'too_many_files');
+  const cur = (await env.DB.prepare('SELECT video_id FROM progress_files WHERE update_id = ?').bind(id).all()).results.map(r => r.video_id);
+  const added = await pgTakeFiles(env, user, ids.filter(x => !cur.includes(x)), pgUpdateFileOk);
+  const keep = ids.filter(x => cur.includes(x));
+  if (!content && !keep.length && !added.length) throw new HttpError(400, 'empty');
+  for (const x of cur) if (!ids.includes(x)) await pgDeleteFilesWhere(env, 'id = ?', [x]);
+  await env.DB.prepare('DELETE FROM progress_files WHERE update_id = ?').bind(id).run();
+  let pos = 0;
+  for (const f of ids.filter(x => keep.includes(x) || added.includes(x))) {
+    await env.DB.prepare('INSERT INTO progress_files (update_id, video_id, pos) VALUES (?, ?, ?)').bind(id, f, pos++).run();
+    if (added.includes(f)) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(pgClaim('update', id), f).run();
+  }
+  await env.DB.prepare('UPDATE progress_updates SET content = ? WHERE id = ?').bind(content, id).run();
+  const fl = (await pgFilesOf(env, [id]))[id] || [];
+  return json({ update: { id, user_id: u.user_id, username: u.username, content, created_at: u.created_at, files: fl } });
 }
 async function pgDeleteUpdate(request, env, id) {
   const user = await requireUser(request, env);
@@ -1975,6 +2013,7 @@ function pgRoute(request, env, path, method) {
   if (m && method === 'POST') return pgPostUpdate(request, env, Number(m[1]));
   m = path.match(/^\/api\/chat\/progress\/updates\/(\d{1,9})$/);
   if (m && method === 'DELETE') return pgDeleteUpdate(request, env, Number(m[1]));
+  if (m && method === 'PUT') return pgEditUpdate(request, env, Number(m[1]));
   return null;
 }
 

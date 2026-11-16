@@ -479,7 +479,7 @@
         .pg-cards { display: flex; flex-direction: column; gap: 8px; }
         .pg-card { display: flex; gap: 10px; padding: 10px; border: 1px solid #dbe8ff; border-radius: 12px; background: #fff; color: inherit; text-decoration: none; }
         .pg-card:hover { background: #f6f9ff; }
-        .pg-thumb { flex: 0 0 84px; height: 84px; border-radius: 8px; background: #eef3fb; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; }
+        .pg-thumb { flex: 0 0 260px; height: 160px; border-radius: 8px; background: #eef3fb; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; }
         .pg-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .pg-body { flex: 1; min-width: 0; }
         .pg-title { font-size: 15px; font-weight: 800; color: #2b3a55; overflow-wrap: anywhere; }
@@ -491,13 +491,13 @@
         .pg-last-t { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
         .pg-chip { display: inline-block; padding: 0 5px; margin-left: 2px; font-size: 10px; font-weight: 800; border-radius: 4px; background: #dbe8ff; color: #3b6fc4; }
         .pg-info { display: flex; gap: 12px; margin-bottom: 8px; }
-        .pg-cover { flex: 0 0 120px; width: 120px; height: 90px; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+        .pg-cover { flex: 0 0 280px; width: 280px; height: 175px; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
         .pg-info-b { flex: 1; min-width: 0; }
         .pg-upd { padding: 8px 10px; margin-bottom: 6px; border-left: 3px solid #4d97ff; border-radius: 0 8px 8px 0; background: #f6f9ff; }
         .pg-upd-h { display: flex; justify-content: space-between; font-size: 12px; color: #8a94a6; }
         .pg-upd-t { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 4px; }
         .pg-imgs { display: flex; flex-wrap: wrap; gap: 6px; }
-        .pg-imgs .chat-image { max-width: 220px; max-height: 160px; }
+        .pg-imgs .chat-image { max-width: 100%; max-height: 360px; }
         .pg-x { border: 0; background: transparent; color: #8a94a6; cursor: pointer; font-size: 14px; }
         .pg-formbox { margin: 8px 0; padding: 12px; border: 1px solid #cfdcf5; border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
         #pg-form { display: none; }
@@ -517,7 +517,7 @@
         .pg-prog i { display: block; height: 100%; background: #4d97ff; }
         .pg-err { color: #e5484d; font-size: 12px; }
         .pg-f-act { display: flex; justify-content: flex-end; gap: 8px; }
-        @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-thumb { flex-basis: 64px; height: 64px; } .pg-cover { flex-basis: 84px; width: 84px; height: 64px; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 160px; flex-basis: auto; } }
+        @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-card { flex-direction: column; } .pg-thumb { flex: none; width: 100%; height: auto; aspect-ratio: 16 / 9; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 240px; flex: none; } }
         .call-panel.zoom { container-type: inline-size; }
         .call-panel.zoom .call-ctl { flex-wrap: nowrap; gap: clamp(2px, 1cqw, 8px); padding: clamp(4px, 1.4cqw, 10px); }
         .call-panel.zoom .call-ctl .call-btn { flex: 1 1 0; min-width: 0; max-width: 120px; padding: clamp(5px, 1.4cqw, 9px) 2px clamp(4px, 1.2cqw, 8px); font-size: clamp(7.5px, 1.8cqw, 11px); white-space: nowrap; }

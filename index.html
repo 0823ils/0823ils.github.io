@@ -6161,8 +6161,9 @@ function pgThreadLinkHTML(t) {
     try { parsed = new URL(url); } catch (e) { return ''; }
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
     url = parsed.href;
-    var m = /^https?:\\/\\/(?:www\\.)?scratch\\.mit\\.edu\\/projects\\/(\\d{1,12})(?:[\\/?#].*)?$/i.exec(url);
-    if (m) {
+    var host = parsed.hostname.toLowerCase();
+    var m = parsed.pathname.match(/^\/projects\/(\d{1,12})(?:\/|$)/i);
+    if ((host === 'scratch.mit.edu' || host === 'www.scratch.mit.edu') && m) {
         var id = Number(m[1]);
         return '<a class="pg-btn" href="' + esc(projectUrl(id)) + '" onclick="return pgOpenScratch(event,' + id + ')">' + esc(ct('pg_open_scratch')) + '</a>';
     }

@@ -43,7 +43,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-                body { font-family: sans-serif; background: #f0f2f5; padding-top: 106px; display: flex; justify-content: center; }
+                body { font-family: sans-serif; background: #f0f2f5; padding-top: 140px; display: flex; justify-content: center; }
         .header-category-nav { max-width: 940px; margin: 0 auto; height: 38px; padding: 0 12px; display: flex; align-items: stretch; gap: 4px; border-top: 1px solid rgba(255,255,255,.18); }
         .header-category-btn { padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: rgba(255,255,255,.78); font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
         .header-category-btn.active { color: #fff; border-bottom-color: #fff; }
@@ -58,7 +58,7 @@
         .drawer-category-btn.active { color: #2677e5; background: #edf4ff; }
         .drawer-category-btn:hover { background: #f4f7fb; }
         @media (max-width: 480px) {
-            body { padding-top: 106px; }
+            body { padding-top: 140px; }
             .header-category-nav { padding: 0 6px; gap: 0; }
             .header-category-btn { flex: 1; padding: 0 5px; font-size: 12px; }
             .header-mode-nav .header-mode-tab { padding-left: 11px; padding-right: 11px; }
@@ -1092,7 +1092,7 @@
         .set-notif .notif-mode + .notif-push { border-top: 1px solid #f6f6f6; }
         .set-notif .notif-mode:empty, .set-notif .notif-push:empty { display: none; }
         /* サイトを開いてすぐ出す「通知をオンにしますか？」 */
-        .push-banner { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+        .push-banner { position: fixed; top: 128px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
         .push-banner .pb-text { flex: 1 1 220px; min-width: 0; }
         .push-banner button { border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .push-banner .pb-yes { background: #4D97FF; color: #fff; }

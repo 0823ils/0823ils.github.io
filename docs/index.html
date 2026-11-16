@@ -6081,7 +6081,7 @@ function pgEditUpdate(id) {
 }
 async function pgFormClose() {
     var f = pgForm; pgForm = null; pgFormPaint();
-    if (f) f.files.forEach(function(x) { if (x.id) apiCall('DELETE', '/api/chat/videos/' + x.id).catch(function() {}); if (x.preview) URL.revokeObjectURL(x.preview); });
+    if (f) f.files.forEach(function(x) { x.removed = true; if (x.id) apiCall('DELETE', '/api/chat/videos/' + x.id).catch(function() {}); if (x.preview) URL.revokeObjectURL(x.preview); });
 }
 function pgFormPaint() {
     var el = document.getElementById('pg-form');
@@ -6155,6 +6155,10 @@ async function pgPick(inp) {
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
         item.status = 'ready';
+        if (item.removed || pgForm !== form || form.files.indexOf(item) < 0) {
+            item.removed = true;
+            apiCall('DELETE', '/api/chat/videos/' + st.id).catch(function() {});
+        }
     } catch (e) {
         var k = form.files.indexOf(item); if (k >= 0) form.files.splice(k, 1);
         if (item.id) apiCall('DELETE', '/api/chat/videos/' + item.id).catch(function() {});

@@ -578,7 +578,9 @@
         .pg-card-link:hover .pg-title { color: #3577db; }
         .pg-list-video, .pg-video { display: block; width: 100%; max-width: 100%; max-height: 340px; margin-top: 8px; border-radius: 10px; background: #101522; }
         .pg-list-video { max-height: none; }
-        .pg-upd-media { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; min-width: 0; }
+        .pg-upd-media { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; min-width: 0; width: 100%; max-width: 420px; }
+        .pg-upd-media .pg-update-media-frame { aspect-ratio: 16 / 10; }
+        .pg-upd-media .pg-update-media-video .pg-video { aspect-ratio: 16 / 10; }
         .pg-update-media-frame { display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:4/3; min-width:0; overflow:hidden; border-radius:10px; background:#000; }
         .pg-update-media-image { display:flex; align-items:center; justify-content:center; }
         .pg-update-media-image .chat-image { display:block; width:100%; height:100%; max-width:100%; max-height:none; object-fit:contain; object-position:center center; margin:0; border-radius:0; background:#000; }
@@ -1209,14 +1211,14 @@
 <!-- ===== サイトヘッダー ===== -->
 <header class="site-header">
     <div class="header-inner">
-        <h1 class="header-logo" style="cursor:pointer" onclick="setMode('home')">scratch-TWC</h1>
-        <div class="header-spacer"></div>
         <div class="header-menu-wrap" id="navigation-wrap">
             <button class="header-icon-btn" id="nav-btn" onclick="toggleNavigationMenu(event)" aria-label="Menu" title="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-menu">
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
 
         </div>
+        <h1 class="header-logo" style="cursor:pointer" onclick="setMode('home')">scratch-TWC</h1>
+        <div class="header-spacer"></div>
         <div class="header-menu-wrap" id="notif-wrap" style="display:none">
             <button class="header-icon-btn" id="notif-btn" onclick="toggleNotifMenu(event)" aria-label="Notifications" title="Notifications" style="position:relative">
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>

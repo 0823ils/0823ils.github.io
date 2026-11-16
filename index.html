@@ -5903,7 +5903,7 @@ async function loadChat(forceScroll, partialOk) {
 // 一覧（chatRoom === 'progress'）→ スレッド（chatRoom === 'pg<ID>'。中は、ふつうのチャット）。
 // 進捗の更新は、スレッドを作った本人だけ。画像・sb3 は最大2つ。
 var PG_ROOM_RE = /^pg(\d{1,9})$/;
-var pgList = null, pgListSig = '', pgThread = null, pgThreadId = 0, pgThreadAt = 0, pgListAt = 0, pgCollapsed = (window.innerWidth <= 640), pgAll = false;
+var pgList = null, pgListSig = '', pgThread = null, pgThreadId = 0, pgThreadAt = 0, pgListAt = 0, pgCollapsed = (window.innerWidth <= 640), pgAll = false, pgDetailMode = 'chat';
 var pgForm = null;        // { kind: 'thread'|'update', title, desc, scratch, text, files: [{name,size,status,progress,id,preview,sb3}], busy, err }
 function pgIsRoom(r) { return PG_ROOM_RE.test(r); }
 function pgRoomId(r) { var m = PG_ROOM_RE.exec(r); return m ? Number(m[1]) : 0; }

@@ -548,32 +548,32 @@
         .pg-existing-file { background: #f5f8fd; }
         .pg-file-kind { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: #e7eefb; font-size: 11px; font-weight: 800; color: #526786; }
         .pg-file-kept { color: #8190a6; font-size: 11px; }
-        /* 作品一覧：情報とメディアを分け、動画・SB3はカード幅いっぱいに表示 */
+        /* 作品一覧：メディアを単体なら大きく、2つなら同じ大きさで横並び */
         #chat-section.pg-list .pg-card { display:block; min-width:0; }
         #chat-section.pg-list .pg-card-main { display:flex; align-items:flex-start; gap:14px; min-width:0; }
         #chat-section.pg-list .pg-thumb { flex:0 0 220px; width:220px; height:138px; }
         #chat-section.pg-list .pg-thumb-empty { font-size:12px; color:#8b98ae; }
         #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
-        #chat-section.pg-list .pg-card-media { display:flex; flex-direction:column; gap:12px; width:100%; min-width:0; margin-top:12px; }
-        #chat-section.pg-list .pg-list-image { display:flex; align-items:flex-start; width:100%; min-width:0; overflow:hidden; border-radius:12px; background:#f4f6fa; }
-        #chat-section.pg-list .pg-list-image .chat-image { display:block; width:auto; max-width:100%; max-height:560px; height:auto; object-fit:contain; margin:0 auto; border-radius:12px; cursor:zoom-in; }
+        #chat-section.pg-list .pg-card-media { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; width:100%; min-width:0; margin-top:14px; }
+        #chat-section.pg-list .pg-card-media.has-two { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        #chat-section.pg-list .pg-media-item { min-width:0; overflow:hidden; border:1px solid #e3eaf4; border-radius:12px; background:#101522; }
+        #chat-section.pg-list .pg-media-image { background:#f4f6fa; }
+        #chat-section.pg-list .pg-list-image { display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:16/9; min-width:0; overflow:hidden; }
+        #chat-section.pg-list .pg-list-image .chat-image { display:block; width:100%; height:100%; max-width:100%; max-height:none; object-fit:contain; margin:0; border-radius:0; cursor:zoom-in; }
         #chat-section.pg-list .pg-list-image .chat-video-gone { padding:12px; color:#8792a5; font-size:13px; }
-        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; max-height:520px; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:12px; background:#101522; }
-        #chat-section.pg-list .pg-list-sb3 { width:100%; min-width:0; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-box { width:100%; min-height:58px; box-sizing:border-box; padding:12px 14px; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-tag { min-width:46px; height:30px; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-name { font-size:13px; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { display:block; width:100%; max-width:100%; min-height:clamp(260px, 52vw, 560px); aspect-ratio:16/9; }
+        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; height:auto; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:0; background:#101522; }
+        #chat-section.pg-list .pg-list-sb3-player { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#101522; }
+        #chat-section.pg-list .pg-list-sb3-frame { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; background:#101522; }
+        #chat-section.pg-list .pg-list-sb3-error { padding:12px; color:#8792a5; font-size:13px; background:#f7f9fc; }
         #chat-section.pg-list .pg-chip { margin-right:4px; }
         @media (max-width:760px) {
             #chat-section.pg-list .pg-card-main { gap:10px; }
             #chat-section.pg-list .pg-thumb { flex-basis:160px; width:160px; height:108px; }
-            #chat-section.pg-list .pg-list-video { max-height:420px; }
         }
         @media (max-width:640px) {
             #chat-section.pg-list .pg-card-main { flex-direction:column; }
             #chat-section.pg-list .pg-thumb { flex:none; width:100%; height:auto; aspect-ratio:16/9; }
-            #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { min-height:clamp(220px, 58vw, 420px); }
+            #chat-section.pg-list .pg-card-media.has-two { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
         }
         @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-card { flex-direction: column; } .pg-thumb { flex: none; width: 100%; height: auto; aspect-ratio: 16 / 9; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 240px; flex: none; } }
         .call-panel.zoom { container-type: inline-size; }
@@ -6024,19 +6024,25 @@ function pgListPaint() {
     el.innerHTML = h;
 }
 function pgListMediaHTML(files, threadId) {
-    var media = (files || []).map(function(file, i) {
+    var media = [];
+    (files || []).forEach(function(file, i) {
         if (file.kind === 'image') {
-            return '<div class="pg-list-image">' + chatImageHTML(file) + '</div>';
+            media.push('<div class="pg-media-item pg-media-image"><div class="pg-list-image">' + chatImageHTML(file) + '</div></div>');
+        } else if (file.kind === 'video') {
+            media.push('<div class="pg-media-item pg-media-video"><video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video></div>');
+        } else if (file.kind === 'sb3') {
+            media.push('<div class="pg-media-item pg-media-sb3">' + pgListSB3Embed(file) + '</div>');
         }
-        if (file.kind === 'video') {
-            return '<video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>';
-        }
-        if (file.kind === 'sb3') {
-            return '<div class="pg-list-sb3">' + pgSb3Embed(file, 'list-' + threadId + '-' + i) + '</div>';
-        }
-        return '';
-    }).filter(Boolean).join('');
-    return media ? '<div class="pg-card-media">' + media + '</div>' : '';
+    });
+    if (!media.length) return '';
+    return '<div class="pg-card-media' + (media.length === 2 ? ' has-two' : '') + '">' + media.join('') + '</div>';
+}
+function pgListSB3Embed(file) {
+    var url;
+    try { url = new URL(file.url, location.href); } catch (e) { return '<div class="pg-list-sb3-error">SB3を読み込めません</div>'; }
+    if (url.protocol !== 'https:' && url.origin !== location.origin) return '<div class="pg-list-sb3-error">SB3を読み込めません</div>';
+    var src = 'https://turbowarp.org/embed?project_url=' + encodeURIComponent(url.href);
+    return '<div class="pg-list-sb3-player"><iframe class="pg-list-sb3-frame" src="' + esc(src) + '" title="' + esc(file.name || 'TurboWarp project') + '" loading="lazy" allow="fullscreen; autoplay" allowfullscreen referrerpolicy="no-referrer"></iframe></div>';
 }
 function pgSb3Embed(file, key) {
     return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '" data-name="' + esc(file.name || 'project.sb3') + '">' +

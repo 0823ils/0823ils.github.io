@@ -5458,11 +5458,11 @@ function chatTabClick(e, r) {
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
         return '<a class="header-mode-tab chat-tab' + (r === chatRoom || (r === 'progress' && pgIsRoom(chatRoom)) ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
-            '" onclick="return chatTabClick(event, this.dataset.r)">' + (r === CALL_ROOM ? '<svg class="call-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' : '<i>#</i>') + esc(ct('room_' + r)) + (r === CALL_ROOM ? '<i class="call-count"></i>' : '') + '</a>';
+            '" onclick="return chatTabClick(event, this.dataset.r)">' + esc(ct('room_' + r)) + (r === CALL_ROOM ? '<i class="call-count"></i>' : '') + '</a>';
     }).join('');
     var act = document.querySelector('#chat-tabs .chat-tab.active');
     if (act && act.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) act.scrollIntoView({ inline: 'center', block: 'nearest' });
-    document.getElementById('chat-title').innerHTML = '<span>#</span><span id="chat-title-t">' + esc(pgIsRoom(chatRoom) ? ((pgThread && pgThread.thread && pgThread.thread.title) || ct('room_progress')) : ct('room_' + chatRoom)) + '</span>' +
+    document.getElementById('chat-title').innerHTML = '<span id="chat-title-t">' + esc(pgIsRoom(chatRoom) ? ((pgThread && pgThread.thread && pgThread.thread.title) || ct('room_progress')) : ct('room_' + chatRoom)) + '</span>' +
         '<button class="chat-head-link" onclick="chatSearchToggle()" title="' + esc(ct('search')) + '">' + SEARCH_SVG + '</button>' +
         '<button class="chat-head-link" onclick="copyShareLink()" title="' + esc(ct('copyLink')) + '">' + LINK_SVG + '</button>';
     renderCallPanel(); callBadgeSync(); chatSearchRender(); pgSync();

@@ -1207,6 +1207,9 @@
         .gd-code-b { font: inherit; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; border: 1px solid #44507a; background: #353f5c; color: #e6ebf5; cursor: pointer; }
         .gd-code-b:hover { background: #44507a; }
         .gd-md .gd-code pre { margin: 0; border-radius: 0; }
+        .gd-live { background: #fff; border: 1px solid #dbe4f3; }
+        .gd-live-view iframe { display: block; width: 100%; height: 120px; border: 0; background: #fff; }
+        .gd-live .gd-code-h { border-top: 1px solid #dbe4f3; }
         .gd-run { background: #fff; border-top: 2px solid #4d97ff; }
         .gd-run iframe { display: block; width: 100%; height: 320px; border: 0; resize: vertical; overflow: auto; }
         .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
@@ -3458,7 +3461,7 @@ var GT = {
         saveDraft: '下書きを保存', publish: '公開する', update: '更新する', unpublish: '下書きに戻す', saved: '保存しました', published: '公開しました', restored: '前回の書きかけを復元しました。', scratchAsk: 'ScratchのURL（例: https://scratch.mit.edu/projects/123456789）', openScratch: 'Scratch作品を開く', upl: '画像を上げています…',
         e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
         hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新',
-        run: '実行', stop: '閉じる', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
+        run: '実行', stop: '閉じる', showCode: 'コード', hideCode: 'コードを隠す', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
         bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bShape: '図形', bVid: '動画・アニメ', bSb3: 'sb3',
         sTitle: '図形をつくる', sHint: '上のボタンで図形を足して、ドラッグで動かします。右下の□で大きさを変えられます。', sRect: '四角', sRound: '角丸', sCircle: '丸', sEllipse: '楕円', sTri: '三角', sDiamond: 'ひし形', sStar: '星', sArrow: '矢印', sLine: '線', sBubble: '吹き出し', sText: '文字', sFill: '塗り', sNoFill: 'なし', sStroke: '枠線', sSize: '文字の大きさ', sRot: '回転', sAnim: '動き', aNone: 'なし', aSpin: 'くるくる', aPulse: 'ドクドク', aBounce: 'はねる', aBlink: 'ぴかぴか', aSlide: '左右', aWobble: 'ゆらゆら', sDup: '複製', sFront: '前へ', sBack: '後ろへ', sDel: '削除', sBg: '背景', sBgW: '白', sBgT: '透明', sBgB: '薄い青', sBgD: '黒', sInsImg: '画像として入れる', sInsVid: '動く動画として入れる', sNoRec: 'このブラウザは、動画の書き出しに対応していません。', sAlt: '図'
     },
@@ -3471,7 +3474,7 @@ var GT = {
         saveDraft: 'Save draft', publish: 'Publish', update: 'Update', unpublish: 'Back to draft', saved: 'Saved', published: 'Published', restored: 'Restored your unsaved draft.', scratchAsk: 'Scratch URL (e.g. https://scratch.mit.edu/projects/123456789)', openScratch: 'Open Scratch project', upl: 'Uploading image…',
         e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
         hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated',
-        run: 'Run', stop: 'Close', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
+        run: 'Run', stop: 'Close', showCode: 'Code', hideCode: 'Hide code', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
         bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bShape: 'Shapes', bVid: 'Video / animation', bSb3: 'sb3',
         sTitle: 'Make a shape', sHint: 'Add shapes with the buttons above and drag them. Resize with the corner square.', sRect: 'Box', sRound: 'Rounded', sCircle: 'Circle', sEllipse: 'Ellipse', sTri: 'Triangle', sDiamond: 'Diamond', sStar: 'Star', sArrow: 'Arrow', sLine: 'Line', sBubble: 'Bubble', sText: 'Text', sFill: 'Fill', sNoFill: 'None', sStroke: 'Outline', sSize: 'Text size', sRot: 'Rotate', sAnim: 'Motion', aNone: 'None', aSpin: 'Spin', aPulse: 'Pulse', aBounce: 'Bounce', aBlink: 'Blink', aSlide: 'Slide', aWobble: 'Wobble', sDup: 'Copy', sFront: 'Forward', sBack: 'Backward', sDel: 'Delete', sBg: 'Background', sBgW: 'White', sBgT: 'Transparent', sBgB: 'Light blue', sBgD: 'Dark', sInsImg: 'Insert as image', sInsVid: 'Insert as animation', sNoRec: 'This browser cannot export video.', sAlt: 'Figure'
     }
@@ -3525,7 +3528,14 @@ function gdFileHTML(f, alt) {
 }
 function gdCodeHTML(lang, code) {
     var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
-    var run = l === 'html' ? '<button type="button" class="gd-code-b" onclick="gdRunHtml(this)">▶ ' + esc(gt('run')) + '</button>' : '';
+    if (l === 'html') {
+        // HTMLは、そのまま記事に表示する（別の安全な箱の中）。コードは「コード」ボタンで見る・コピーする
+        var doc = String(code) + '<scr' + 'ipt>(function(){function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},"*")}addEventListener("load",r);if(window.ResizeObserver)new ResizeObserver(r).observe(document.documentElement);setTimeout(r,300)})()</scr' + 'ipt>';
+        return '<div class="gd-code gd-live" data-lang="html"><div class="gd-live-view"><iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="HTML" srcdoc="' + esc(doc) + '"></iframe></div>' +
+            '<div class="gd-code-h"><span class="gd-code-l">HTML</span><span class="gd-code-sp"></span><button type="button" class="gd-code-b" onclick="gdToggleCode(this)">&lt;/&gt; ' + esc(gt('showCode')) + '</button><button type="button" class="gd-code-b" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button></div>' +
+            '<pre style="display:none"><code>' + esc(code) + '</code></pre></div>';
+    }
+    var run = '';
     var body = (l === 'scratch' || l === 'scratchblocks') ? '<pre class="gd-blocks"><code>' + esc(code) + '</code></pre>' : '<pre><code>' + esc(code) + '</code></pre>';
     return '<div class="gd-code" data-lang="' + esc(l) + '"><div class="gd-code-h"><span class="gd-code-l">' + esc(pretty) + '</span><span class="gd-code-sp"></span>' + run +
         '<button type="button" class="gd-code-b" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button></div>' + body + '</div>';
@@ -3577,7 +3587,16 @@ function gdCopyText(text, btn) {
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function() { done(true); }, fallback); else fallback();
 }
 function gdCopyCode(btn) { var c = btn.closest('.gd-code'); gdCopyText(c.querySelector('code').textContent, btn); }
-// HTMLのコードを、その場で実行（別の安全な箱の中。このサイトの情報には触れない）
+function gdToggleCode(btn) {
+    var box = btn.closest('.gd-code'), pre = box.querySelector('pre'), on = pre.style.display === 'none';
+    pre.style.display = on ? '' : 'none'; btn.innerHTML = '&lt;/&gt; ' + esc(on ? gt('hideCode') : gt('showCode'));
+}
+// 表示したHTMLの高さを、中身に合わせる（箱の中から、高さだけを教えてもらう）
+window.addEventListener('message', function(ev) {
+    var d = ev.data; if (!d || typeof d.gdh !== 'number') return;
+    var fs = document.querySelectorAll('.gd-live iframe');
+    for (var i = 0; i < fs.length; i++) if (fs[i].contentWindow === ev.source) { fs[i].style.height = Math.max(40, Math.min(1200, d.gdh)) + 'px'; return; }
+});
 function gdRunHtml(btn) {
     var box = btn.closest('.gd-code'), cur = box.querySelector('.gd-run');
     if (cur) { cur.remove(); btn.textContent = '▶ ' + gt('run'); return; }

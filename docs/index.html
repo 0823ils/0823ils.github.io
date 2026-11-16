@@ -1201,6 +1201,44 @@
         .gd-e-prev { min-height: 55vh; padding: 12px 14px; border: 1px dashed #cfdcf5; border-radius: 12px; }
         .gd-e-info { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; color: #8a94a8; }
         .gd-e-acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+        .gd-code { margin: 0 0 1em; border-radius: 10px; overflow: hidden; background: #1e2433; color: #e6ebf5; }
+        .gd-code-h { display: flex; align-items: center; gap: 6px; padding: 5px 8px 5px 12px; background: #2a3247; font-size: 12px; color: #aab6d3; }
+        .gd-code-sp { flex: 1; }
+        .gd-code-b { font: inherit; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; border: 1px solid #44507a; background: #353f5c; color: #e6ebf5; cursor: pointer; }
+        .gd-code-b:hover { background: #44507a; }
+        .gd-md .gd-code pre { margin: 0; border-radius: 0; }
+        .gd-run { background: #fff; border-top: 2px solid #4d97ff; }
+        .gd-run iframe { display: block; width: 100%; height: 320px; border: 0; resize: vertical; overflow: auto; }
+        .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
+        .gd-fig { margin: 0 0 1em; text-align: center; }
+        .gd-fig figcaption { font-size: 13px; color: #8a94a8; margin-top: 4px; }
+        .gd-vid { display: block; max-width: 100%; border-radius: 10px; margin: 0 auto; background: #000; }
+        .gd-sb3 { margin: 0 0 1em; } .gd-sb3 .sb3-card { width: min(100%, 560px); }
+        .gd-tbl { overflow-x: auto; margin: 0 0 1em; }
+        .gd-md table { border-collapse: collapse; font-size: 14.5px; min-width: 50%; }
+        .gd-md th, .gd-md td { border: 1px solid #dbe4f3; padding: 6px 12px; text-align: left; }
+        .gd-md th { background: #f1f5fc; }
+        .gd-bm { display: inline-flex; align-items: center; gap: 5px; } .gd-bm.on { background: #fff3d6; border-color: #f0cf85; color: #a56a00; }
+        .gd-sub { font-size: 15px; font-weight: 700; color: #2b3a55; margin: 0 0 10px; }
+        .gd-e-body.drop { outline: 3px dashed #4d97ff; background: #f3f8ff; }
+        .gs-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,28,45,.6); display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .gs-box { background: #fff; border-radius: 14px; width: min(940px, 100%); max-height: 100%; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+        .gs-head { display: flex; align-items: center; justify-content: space-between; font-size: 16px; color: #2b3a55; }
+        .gs-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+        .gs-k { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 56px; padding: 4px 6px; font: inherit; border: 1px solid #dbe4f3; border-radius: 10px; background: #fff; cursor: pointer; color: #2b3a55; }
+        .gs-k span { font-size: 18px; line-height: 1.2; } .gs-k small { font-size: 10px; color: #667085; } .gs-k:hover { background: #eef4ff; }
+        .gs-main { display: flex; gap: 12px; align-items: flex-start; }
+        #gs-cv { flex: 1 1 auto; min-width: 0; width: 640px; max-width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dbe4f3; border-radius: 10px; touch-action: none; cursor: crosshair; background: #fff; }
+        .gs-panel { flex: 0 0 230px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #2b3a55; }
+        .gs-row { display: flex; align-items: center; gap: 6px; } .gs-row > span { flex: 0 0 64px; color: #667085; font-size: 12px; }
+        .gs-row input[type=text], .gs-row select { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid #d6e0f2; border-radius: 6px; }
+        .gs-row input[type=range] { flex: 1; min-width: 0; } .gs-row input[type=color] { width: 32px; height: 26px; padding: 0; border: 1px solid #d6e0f2; border-radius: 6px; background: none; }
+        .gs-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+        .gs-mini { font: inherit; font-size: 12px; padding: 3px 9px; border: 1px solid #d6e0f2; border-radius: 6px; background: #fff; color: #3a5a99; cursor: pointer; } .gs-mini.danger { color: #d23b3b; border-color: #f1c4c4; }
+        .gs-hint { color: #8a94a8; font-size: 12.5px; line-height: 1.6; }
+        .gs-err { color: #d23b3b; font-size: 13px; min-height: 1.2em; }
+        .gs-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; } .gs-sp { flex: 1; } .gs-bg { font-size: 13px; color: #667085; } .gs-bg select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid #d6e0f2; border-radius: 6px; }
+        @media (max-width: 720px) { .gs-main { flex-direction: column; } .gs-panel { flex: none; width: 100%; } }
         .gd-zoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
         .gd-zoom img { max-width: 96vw; max-height: 94vh; border-radius: 6px; }
         @media (max-width: 640px) { .gd-grid { grid-template-columns: 1fr; } .gd-h1 { font-size: 22px; } .gd-md { font-size: 15.5px; } .gd-e-body { min-height: 45vh; } .home-tiles .home-tile:last-child:nth-child(odd) { grid-column: 1 / -1; } }
@@ -3419,7 +3457,10 @@ var GT = {
         bH2: '大見出し', bH3: '小見出し', bB: '太字', bI: '斜体', bLink: 'リンク', bQuote: '引用', bUl: '箇条書き', bOl: '番号', bCode: 'コード', bHr: '区切り線', bImg: '画像', bScratch: 'Scratch作品',
         saveDraft: '下書きを保存', publish: '公開する', update: '更新する', unpublish: '下書きに戻す', saved: '保存しました', published: '公開しました', restored: '前回の書きかけを復元しました。', scratchAsk: 'ScratchのURL（例: https://scratch.mit.edu/projects/123456789）', openScratch: 'Scratch作品を開く', upl: '画像を上げています…',
         e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
-        hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新'
+        hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新',
+        run: '実行', stop: '閉じる', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
+        bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bShape: '図形', bVid: '動画・アニメ', bSb3: 'sb3',
+        sTitle: '図形をつくる', sHint: '上のボタンで図形を足して、ドラッグで動かします。右下の□で大きさを変えられます。', sRect: '四角', sRound: '角丸', sCircle: '丸', sEllipse: '楕円', sTri: '三角', sDiamond: 'ひし形', sStar: '星', sArrow: '矢印', sLine: '線', sBubble: '吹き出し', sText: '文字', sFill: '塗り', sNoFill: 'なし', sStroke: '枠線', sSize: '文字の大きさ', sRot: '回転', sAnim: '動き', aNone: 'なし', aSpin: 'くるくる', aPulse: 'ドクドク', aBounce: 'はねる', aBlink: 'ぴかぴか', aSlide: '左右', aWobble: 'ゆらゆら', sDup: '複製', sFront: '前へ', sBack: '後ろへ', sDel: '削除', sBg: '背景', sBgW: '白', sBgT: '透明', sBgB: '薄い青', sBgD: '黒', sInsImg: '画像として入れる', sInsVid: '動く動画として入れる', sNoRec: 'このブラウザは、動画の書き出しに対応していません。', sAlt: '図'
     },
     en: {
         title: 'Guides', write: 'Write', mine: 'My articles', all: 'All articles', sNew: 'New', sHot: 'Popular', search: 'Search articles…', empty: 'No articles yet. Be the first to write one!', emptyQ: 'Nothing found.', more: 'Show more', loading: 'Loading…',
@@ -3429,12 +3470,15 @@ var GT = {
         bH2: 'Heading', bH3: 'Subheading', bB: 'Bold', bI: 'Italic', bLink: 'Link', bQuote: 'Quote', bUl: 'List', bOl: 'Numbered', bCode: 'Code', bHr: 'Divider', bImg: 'Image', bScratch: 'Scratch project',
         saveDraft: 'Save draft', publish: 'Publish', update: 'Update', unpublish: 'Back to draft', saved: 'Saved', published: 'Published', restored: 'Restored your unsaved draft.', scratchAsk: 'Scratch URL (e.g. https://scratch.mit.edu/projects/123456789)', openScratch: 'Open Scratch project', upl: 'Uploading image…',
         e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
-        hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated'
+        hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated',
+        run: 'Run', stop: 'Close', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
+        bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bShape: 'Shapes', bVid: 'Video / animation', bSb3: 'sb3',
+        sTitle: 'Make a shape', sHint: 'Add shapes with the buttons above and drag them. Resize with the corner square.', sRect: 'Box', sRound: 'Rounded', sCircle: 'Circle', sEllipse: 'Ellipse', sTri: 'Triangle', sDiamond: 'Diamond', sStar: 'Star', sArrow: 'Arrow', sLine: 'Line', sBubble: 'Bubble', sText: 'Text', sFill: 'Fill', sNoFill: 'None', sStroke: 'Outline', sSize: 'Text size', sRot: 'Rotate', sAnim: 'Motion', aNone: 'None', aSpin: 'Spin', aPulse: 'Pulse', aBounce: 'Bounce', aBlink: 'Blink', aSlide: 'Slide', aWobble: 'Wobble', sDup: 'Copy', sFront: 'Forward', sBack: 'Backward', sDel: 'Delete', sBg: 'Background', sBgW: 'White', sBgT: 'Transparent', sBgB: 'Light blue', sBgD: 'Dark', sInsImg: 'Insert as image', sInsVid: 'Insert as animation', sNoRec: 'This browser cannot export video.', sAlt: 'Figure'
     }
 };
 function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
 function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
-var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, edit: null, keep: false };
+var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, saved: false, edit: null, keep: false };
 var GD_ICO = {
     heart: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
     hearto: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -3454,8 +3498,10 @@ function gdInline(s, imgs) {
     var toks = [];
     var put = function(h) { toks.push(h); return '\u0001' + (toks.length - 1) + '\u0001'; };
     s = String(s).replace(/`([^`\n]+)`/g, function(_, c) { return put('<code>' + esc(c) + '</code>'); });
-    s = s.replace(/!\[([^\]\n]*)\]\(img:([a-f0-9]{32})\)/g, function(_, alt, id) {
-        return imgs && imgs[id] ? put('<img class="gd-img" loading="lazy" src="' + esc(imgs[id]) + '" alt="' + esc(alt) + '" onclick="gdZoom(this.src)">') : '';
+    s = s.replace(/!\[([^\]\n]*)\]\((?:img|vid|sb3):([a-f0-9]{32})\)/g, function(_, alt, id) {
+        var f = imgs && imgs[id];
+        if (!f) return '';
+        return f.kind === 'image' ? put('<img class="gd-img" loading="lazy" src="' + esc(f.url) + '" alt="' + esc(alt) + '" onclick="gdZoom(this.src)">') : put(esc(alt || f.name || f.kind));
     });
     var link = function(text, url) {
         var m = /^https?:\/\/(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(url);
@@ -3468,19 +3514,44 @@ function gdInline(s, imgs) {
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>').replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
     return s.replace(/\u0001(\d+)\u0001/g, function(_, n) { return toks[Number(n)]; });
 }
+// 添付（画像・動画・sb3）を、1行ぶんの「ブロック」として出す
+function gdFileHTML(f, alt) {
+    if (!f) return '';
+    var cap = alt ? '<figcaption>' + esc(alt) + '</figcaption>' : '';
+    if (f.kind === 'image') return '<figure class="gd-fig"><img class="gd-img" loading="lazy" src="' + esc(f.url) + '" alt="' + esc(alt) + '" onclick="gdZoom(this.src)">' + cap + '</figure>';
+    if (f.kind === 'video') return '<figure class="gd-fig"><video class="gd-vid" src="' + esc(String(f.url).replace(/#.*$/, '')) + '" autoplay muted loop playsinline controls preload="metadata"></video>' + cap + '</figure>';
+    if (f.kind === 'sb3') return '<div class="gd-sb3">' + chatSb3CardHTML({ url: f.url, name: alt || f.name || 'project.sb3', size: f.size || 0 }, chatFmtSize(f.size || 0)) + '</div>';
+    return '';
+}
+function gdCodeHTML(lang, code) {
+    var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
+    var run = l === 'html' ? '<button type="button" class="gd-code-b" onclick="gdRunHtml(this)">▶ ' + esc(gt('run')) + '</button>' : '';
+    var body = (l === 'scratch' || l === 'scratchblocks') ? '<pre class="gd-blocks"><code>' + esc(code) + '</code></pre>' : '<pre><code>' + esc(code) + '</code></pre>';
+    return '<div class="gd-code" data-lang="' + esc(l) + '"><div class="gd-code-h"><span class="gd-code-l">' + esc(pretty) + '</span><span class="gd-code-sp"></span>' + run +
+        '<button type="button" class="gd-code-b" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button></div>' + body + '</div>';
+}
 function gdMd(src, imgs) {
     var lines = String(src || '').split('\n'), out = [], i = 0, para = [];
     var flush = function() { if (para.length) { out.push('<p>' + para.map(function(l) { return gdInline(l, imgs); }).join('<br>') + '</p>'); para = []; } };
+    var cells = function(l) { return l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function(c) { return c.trim(); }); };
     while (i < lines.length) {
         var l = lines[i], m;
-        if (/^```/.test(l)) {
-            flush(); var code = []; i++;
-            while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]);
-            i++; out.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); continue;
+        if ((m = /^```\s*([A-Za-z0-9_+#.-]*)\s*$/.exec(l))) {
+            flush(); var code = [], lang = m[1]; i++;
+            while (i < lines.length && !/^```\s*$/.test(lines[i])) code.push(lines[i++]);
+            i++; out.push(gdCodeHTML(lang, code.join('\n'))); continue;
         }
         if (!l.trim()) { flush(); i++; continue; }
+        if ((m = /^\s*!\[([^\]\n]*)\]\((?:img|vid|sb3):([a-f0-9]{32})\)\s*$/.exec(l)) && imgs && imgs[m[2]]) { flush(); out.push(gdFileHTML(imgs[m[2]], m[1])); i++; continue; }
         if ((m = /^(#{1,3})\s+(.+)$/.exec(l))) { flush(); out.push('<h' + (m[1].length + 1) + '>' + gdInline(m[2], imgs) + '</h' + (m[1].length + 1) + '>'); i++; continue; }
         if (/^(-{3,}|\*{3,})\s*$/.test(l)) { flush(); out.push('<hr>'); i++; continue; }
+        if (/^\s*\|.*\|\s*$/.test(l) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(lines[i + 1]) && lines[i + 1].indexOf('|') >= 0) {
+            flush(); var head = cells(l), rows = []; i += 2;
+            while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(cells(lines[i++]));
+            out.push('<div class="gd-tbl"><table><thead><tr>' + head.map(function(c) { return '<th>' + gdInline(c, imgs) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+                rows.map(function(r) { return '<tr>' + head.map(function(_, k) { return '<td>' + gdInline(r[k] || '', imgs) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>');
+            continue;
+        }
         if (/^>\s?/.test(l)) {
             flush(); var q = [];
             while (i < lines.length && /^>\s?/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ''));
@@ -3498,6 +3569,29 @@ function gdMd(src, imgs) {
     }
     flush();
     return out.join('') || '<p class="gd-none">' + esc(gt('empty2')) + '</p>';
+}
+// コードのコピー
+function gdCopyText(text, btn) {
+    var done = function(ok) { if (!btn) return; var o = btn.getAttribute('data-t') || btn.textContent; btn.setAttribute('data-t', o); btn.textContent = ok ? gt('copied') : gt('copyFail'); clearTimeout(btn._t); btn._t = setTimeout(function() { btn.textContent = o; }, 1400); };
+    var fallback = function() { try { var ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;left:-999px;top:0'; document.body.appendChild(ta); ta.select(); var r = document.execCommand('copy'); ta.remove(); done(r); } catch (e) { done(false); } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function() { done(true); }, fallback); else fallback();
+}
+function gdCopyCode(btn) { var c = btn.closest('.gd-code'); gdCopyText(c.querySelector('code').textContent, btn); }
+// HTMLのコードを、その場で実行（別の安全な箱の中。このサイトの情報には触れない）
+function gdRunHtml(btn) {
+    var box = btn.closest('.gd-code'), cur = box.querySelector('.gd-run');
+    if (cur) { cur.remove(); btn.textContent = '▶ ' + gt('run'); return; }
+    var w = document.createElement('div'); w.className = 'gd-run';
+    var f = document.createElement('iframe'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer'); f.setAttribute('loading', 'lazy');
+    f.srcdoc = box.querySelector('code').textContent;
+    w.appendChild(f); box.appendChild(w); btn.textContent = '■ ' + gt('stop');
+}
+// Scratchのブロック表記（```scratch）を、ブロックの絵にする。読み込めないときは、文字のまま
+var gdSbLoad = null;
+function gdScratchBlocks(root) {
+    var els = root.querySelectorAll('pre.gd-blocks'); if (!els.length) return;
+    if (!gdSbLoad) gdSbLoad = new Promise(function(res, rej) { var sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/scratchblocks@3.6.4/build/scratchblocks.min.js'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); });
+    gdSbLoad.then(function() { try { window.scratchblocks.renderMatching('pre.gd-blocks', { style: 'scratch3', languages: ['en', 'ja'], scale: 0.8 }); } catch (e) {} }, function() { gdSbLoad = null; });
 }
 function gdOpenScratch(id) { openProject(id); return false; }
 function gdZoom(src) {
@@ -3519,15 +3613,15 @@ function gdPaint() {
     else if (gd.view === 'edit') gdEditPaint();
     else gdListPaint();
 }
-function gdList() { gd.mine = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
+function gdList() { gd.mine = false; gd.saved = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
 
 // ---- 一覧 ----
 function gdListPaint() {
     var box = gdBox();
     var h = '<div class="gd-head"><h2>' + esc(gt('title')) + '</h2><div class="gd-head-btns">' +
-        (loginUser ? '<button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
+        (loginUser ? '<button class="gd-btn" onclick="gdSavedList()">' + esc(gt('savedList')) + '</button><button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
         '<button class="gd-btn primary" onclick="gdNew()">' + esc(gt('write')) + '</button></div></div>';
-    if (gd.mine) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>';
+    if (gd.mine || gd.saved) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>' + (gd.saved ? '<div class="gd-sub">' + esc(gt('savedList')) + '</div>' : '');
     else {
         h += '<div class="gd-bar"><div class="gd-tabs"><button class="' + (gd.sort === 'new' ? 'on' : '') + '" onclick="gdSetSort(\'new\')">' + esc(gt('sNew')) + '</button><button class="' + (gd.sort === 'hot' ? 'on' : '') + '" onclick="gdSetSort(\'hot\')">' + esc(gt('sHot')) + '</button></div>' +
             '<input type="search" id="gd-q" class="gd-q" maxlength="60" placeholder="' + esc(gt('search')) + '" value="' + esc(gd.q) + '" enterkeyhint="search" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)gdSearch()"></div>';
@@ -3553,7 +3647,7 @@ function gdGridPaint() {
     var f = '';
     if (gd.state === 'load') f = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
     else if (gd.state === 'err') f = '<div class="gd-note">' + esc(gt('e_other')) + '</div>';
-    else if (!gd.items.length) f = '<div class="gd-note">' + esc(gd.q || gd.tag ? gt('emptyQ') : gt('empty')) + '</div>';
+    else if (!gd.items.length) f = '<div class="gd-note">' + esc(gd.saved ? gt('savedNone') : gd.q || gd.tag ? gt('emptyQ') : gt('empty')) + '</div>';
     else if (gd.more) f = '<button class="gd-btn" onclick="gdLoad(false)">' + esc(gt('more')) + '</button>';
     foot.innerHTML = f;
 }
@@ -3564,6 +3658,7 @@ async function gdLoad(reset) {
     try {
         var d;
         if (gd.mine) d = await apiCall('GET', '/api/chat/guides/mine');
+        else if (gd.saved) d = await apiCall('GET', '/api/chat/guides/saved' + (gd.items.length ? '?offset=' + gd.items.length : ''));
         else {
             var qs = '?sort=' + gd.sort + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
             if (gd.items.length) qs += gd.sort === 'hot' ? '&offset=' + gd.items.length : '&before=' + gd.items[gd.items.length - 1].id;
@@ -3577,7 +3672,8 @@ async function gdLoad(reset) {
 function gdSetSort(s) { gd.sort = s; gdListPaint(); gdLoad(true); updateUrl(); }
 function gdSetTag(t) { var was = gd.view !== 'list'; gd.view = 'list'; gd.mine = false; gd.tag = t; gdListPaint(); gdLoad(true); updateUrl(was); }
 function gdSearch() { var i = document.getElementById('gd-q'); gd.q = i ? i.value.trim() : ''; gdListPaint(); gdLoad(true); updateUrl(); }
-function gdMine() { gd.mine = true; gd.view = 'list'; gdPaint(); gdLoad(true); }
+function gdMine() { gd.mine = true; gd.saved = false; gd.view = 'list'; gdPaint(); gdLoad(true); }
+function gdSavedList() { gd.saved = true; gd.mine = false; gd.view = 'list'; gdPaint(); gdLoad(true); }
 function gdCardClick(e, id) { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return true; gdOpen(id); return false; }
 
 // ---- 読む ----
@@ -3606,14 +3702,16 @@ function gdReadPaint() {
     h += '<div class="gd-meta"><a class="gd-by" href="?m=u&u=' + encodeURIComponent(g.username) + '" onclick="return gdUser(event,\'' + esc(g.username).replace(/'/g, '') + '\')">' + avatarImg(g.user_id, 28) + '<b>' + esc(g.username) + '</b></a><span>' + gdDate(g.published ? g.published_at : g.created_at) + '</span>' +
         (g.updated_at - (g.published_at || g.created_at) > 60000 ? '<span>' + esc(gt('upd')) + ' ' + gdDate(g.updated_at) + '</span>' : '') + '</div>';
     if (g.tags.length) h += '<div class="gd-tags">' + g.tags.map(function(x) { return '<button class="gd-tag" onclick="gdSetTag(\'' + esc(x).replace(/'/g, '') + '\')">#' + esc(x) + '</button>'; }).join('') + '</div>';
-    h += '<div class="gd-md">' + gdMd(g.body, g.images) + '</div>';
+    h += '<div class="gd-md">' + gdMd(g.body, g.files || {}) + '</div>';
     h += '<div class="gd-actions">' + (g.published ? '<button class="gd-like' + (g.liked ? ' on' : '') + '" id="gd-like" onclick="gdLike()">' + (g.liked ? GD_ICO.heart : GD_ICO.hearto) + '<span>' + g.likes + '</span></button>' : '') +
+        (g.published ? '<button class="gd-btn gd-bm' + (g.bookmarked ? ' on' : '') + '" id="gd-bm" onclick="gdBookmark()">' + gdBmLabel(g.bookmarked) + '</button>' : '') +
         '<button class="gd-btn" onclick="copyShareLink()">' + esc(gt('share')) + '</button>' +
         (gd.can.edit ? '<button class="gd-btn" onclick="gdEditOpen(' + g.id + ')">' + esc(gt('edit')) + '</button>' : '') +
         (gd.can.del ? '<button class="gd-btn danger" onclick="gdDelete()">' + esc(gt('del')) + '</button>' : '') + '</div></article>';
     if (g.published) h += '<section class="gd-cms"><h3>' + esc(gt('cm')) + ' <span>' + gd.comments.length + '</span></h3><div id="gd-cm-list"></div><div id="gd-cm-form"></div></section>';
     box.innerHTML = h;
     if (g.published) { gdCommentsPaint(); gdCommentForm(); }
+    gdScratchBlocks(box);
 }
 function gdUser(e, name) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; openProfile(name); return false; }
 async function gdLike() {
@@ -3628,6 +3726,16 @@ async function gdLike() {
 function gdReadLikePaint() {
     var b = document.getElementById('gd-like'), g = gd.cur; if (!b || !g) return;
     b.classList.toggle('on', !!g.liked); b.innerHTML = (g.liked ? GD_ICO.heart : GD_ICO.hearto) + '<span>' + g.likes + '</span>';
+}
+var GD_BM = { off: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>', on: '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" fill="currentColor" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>' };
+function gdBmLabel(on) { return (on ? GD_BM.on : GD_BM.off) + '<span>' + esc(on ? gt('saved2') : gt('save')) + '</span>'; }
+async function gdBookmark() {
+    var g = gd.cur; if (!g) return;
+    if (!loginUser) { showToast(gt('saveLogin')); openLogin(); return; }
+    var on = !g.bookmarked, b = document.getElementById('gd-bm');
+    g.bookmarked = on; if (b) { b.classList.toggle('on', on); b.innerHTML = gdBmLabel(on); }
+    try { await apiCall(on ? 'PUT' : 'DELETE', '/api/chat/guides/' + g.id + '/bookmark'); }
+    catch (e) { g.bookmarked = !on; if (b) { b.classList.toggle('on', !on); b.innerHTML = gdBmLabel(!on); } showToast(gdErr(e)); }
 }
 async function gdDelete() {
     var g = gd.cur; if (!g || !confirm(gt('delAsk'))) return;
@@ -3673,7 +3781,7 @@ function gdDraftSave() {
 function gdDraftClear(key) { try { localStorage.removeItem(key); } catch (x) {} }
 function gdNew() {
     if (!loginUser) { openLogin(); showToast(gt('loginNeed')); return; }
-    gd.edit = { id: 0, title: '', body: '', tags: '', cover: null, published: false, imgs: {}, preview: false, busy: false, err: '', note: '' };
+    gd.edit = { id: 0, title: '', body: '', tags: '', cover: null, published: false, files: {}, preview: false, busy: false, err: '', note: '' };
     try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + 'new') || 'null'); if (r && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
     if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
     gdGo('edit');
@@ -3683,7 +3791,7 @@ async function gdEditOpen(id) {
     try {
         var d = (gd.cur && gd.cur.id === id) ? { guide: gd.cur } : await apiCall('GET', '/api/chat/guides/' + id);
         var g = d.guide;
-        gd.edit = { id: g.id, title: g.title, body: g.body, tags: g.tags.join(' '), cover: g.cover ? { id: g.cover_id, url: g.cover } : null, published: g.published, imgs: Object.assign({}, g.images || {}), preview: false, busy: false, err: '', note: '' };
+        gd.edit = { id: g.id, title: g.title, body: g.body, tags: g.tags.join(' '), cover: g.cover ? { id: g.cover_id, url: g.cover } : null, published: g.published, files: Object.assign({}, g.files || {}), preview: false, busy: false, err: '', note: '' };
         try { var r = JSON.parse(localStorage.getItem(GD_DRAFT + g.id) || 'null'); if (r && (r.title !== g.title || r.body !== g.body) && (r.title || r.body)) { gd.edit.title = r.title || ''; gd.edit.body = r.body || ''; gd.edit.tags = r.tags || ''; gd.edit.note = gt('restored'); } } catch (x) {}
         if (currentMode !== 'guide') { gd.keep = true; setMode('guide', true); }
         gdGo('edit');
@@ -3691,7 +3799,7 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['shape', '', 'bShape'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
@@ -3703,9 +3811,9 @@ function gdEditPaint() {
         '<div id="gd-e-prev" class="gd-md gd-e-prev" style="display:none"></div>' +
         '<div class="gd-e-info"><span id="gd-e-count"></span><span>' + esc(gt('hint')) + '</span></div>' +
         '<div class="gd-err" id="gd-e-err"></div><div class="gd-e-acts" id="gd-e-acts"></div>' +
-        '<input type="file" id="gd-e-file" accept="image/*" style="display:none" onchange="gdImgPick(this)"><input type="file" id="gd-e-cfile" accept="image/*" style="display:none" onchange="gdCoverPick(this)"></div>';
+        '<input type="file" id="gd-e-file" accept="image/*" multiple style="display:none" onchange="gdFilesPick(this)"><input type="file" id="gd-e-vfile" accept="video/mp4,video/webm,video/quicktime,.mov" style="display:none" onchange="gdFilesPick(this)"><input type="file" id="gd-e-sfile" accept=".sb3" style="display:none" onchange="gdFilesPick(this)"><input type="file" id="gd-e-cfile" accept="image/*" style="display:none" onchange="gdCoverPick(this)"></div>';
     box.innerHTML = h;
-    gdEditSync();
+    gdEditSync(); gdEditorWire();
 }
 function gdEditSync() {
     var e = gd.edit; if (!e) return;
@@ -3727,7 +3835,7 @@ function gdEditTab(p) {
     e.preview = p;
     document.getElementById('gd-e-body').style.display = p ? 'none' : '';
     var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
-    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.imgs);
+    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files);
     document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
 }
 function gdEditBack() {
@@ -3739,6 +3847,9 @@ function gdFmt(kind) {
     var e = gd.edit, ta = document.getElementById('gd-e-body'); if (!e || !ta) return;
     if (e.preview) gdEditTab(false);
     if (kind === 'img') { document.getElementById('gd-e-file').click(); return; }
+    if (kind === 'vid') { document.getElementById('gd-e-vfile').click(); return; }
+    if (kind === 'sb3file') { document.getElementById('gd-e-sfile').click(); return; }
+    if (kind === 'shape') { gdShapeOpen(); return; }
     var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
     var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
     if (wrap[kind]) { var w = wrap[kind], t = sel || '…'; ins = w + t + w; ns = s + w.length; ne = ns + t.length; }
@@ -3749,6 +3860,9 @@ function gdFmt(kind) {
     }
     else if (kind === 'link') { var tx = sel || 'テキスト'; ins = '[' + tx + '](https://)'; ns = s + tx.length + 3; ne = ns + 8; }
     else if (kind === 'hr') { ins = '\n\n---\n\n'; ns = ne = s + ins.length; }
+    else if (kind === 'block') { ins = '\n```\n' + sel + '\n```\n'; ns = s + 5; ne = ns + sel.length; }
+    else if (kind === 'html') { var ex = sel || '<button onclick="this.textContent = \'押した！\'">押してね</button>'; ins = '\n```html\n' + ex + '\n```\n'; ns = s + 9; ne = ns + ex.length; }
+    else if (kind === 'table') { ins = '\n| 見出し1 | 見出し2 |\n|---|---|\n| セル | セル |\n| セル | セル |\n'; ns = ne = s + ins.length; }
     else if (kind === 'scratch') { var u = prompt(gt('scratchAsk'), 'https://scratch.mit.edu/projects/'); if (!u) return; var m = /scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(u) || /^(\d{3,12})$/.exec(u.trim()); if (!m) return; ins = '\n\nhttps://scratch.mit.edu/projects/' + m[1] + '\n\n'; ns = ne = s + ins.length; }
     ta.value = v.slice(0, s) + ins + v.slice(en); ta.focus(); ta.setSelectionRange(ns, ne); gdBodyInput(ta);
 }
@@ -3766,7 +3880,7 @@ async function gdImgPick(inp) {
     e.err = ''; e.note = gt('upl'); gdEditSync();
     try {
         var im = await gdUploadImage(f);
-        e.imgs[im.id] = im.url; e.note = '';
+        e.files[im.id] = { kind: 'image', url: im.url }; e.note = '';
         var ta = document.getElementById('gd-e-body'), s = ta.selectionStart, v = ta.value, ins = '\n\n![](img:' + im.id + ')\n\n';
         ta.value = v.slice(0, s) + ins + v.slice(ta.selectionEnd); ta.focus(); ta.setSelectionRange(s + ins.length, s + ins.length); gdBodyInput(ta);
     } catch (x) { e.note = ''; e.err = chatErr(x); }
@@ -3789,12 +3903,247 @@ async function gdSave(publish) {
         var payload = { title: e.title, body: e.body, tags: e.tags, cover_id: e.cover ? e.cover.id : '', published: !!publish };
         var d = e.id ? await apiCall('PUT', '/api/chat/guides/' + e.id, payload) : await apiCall('POST', '/api/chat/guides', payload);
         gdDraftClear(key); gdDraftClear(GD_DRAFT + d.guide.id);
-        e.id = d.guide.id; e.published = d.guide.published; e.cover = d.guide.cover ? { id: d.guide.cover_id, url: d.guide.cover } : null; e.imgs = Object.assign(e.imgs, d.guide.images || {});
+        e.id = d.guide.id; e.published = d.guide.published; e.cover = d.guide.cover ? { id: d.guide.cover_id, url: d.guide.cover } : null; e.files = Object.assign(e.files, d.guide.files || {});
         gd.items = []; e.busy = false;
         if (publish) { showToast(gt('published')); gdOpen(d.guide.id); return; }
         e.note = gt('saved'); gdEditSync(); return;
     } catch (x) { e.err = gdErr(x); }
     e.busy = false; gdEditSync();
+}
+
+// ===== 記事を書くときの道具: 貼り付け・ドロップ・動画・sb3・図形（アニメ付き） =====
+// ファイルを上げて、{ id, url }（プレビュー用の仮のURL）を返す
+async function gdUploadBlob(blob, type, name) {
+    var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: name });
+    await chatPutFile(st.upload_url, st.headers, blob, function() {});
+    await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+    return { id: st.id, url: URL.createObjectURL(blob) };
+}
+// 本文のカーソル位置に、1行ぶんの添付を入れる
+function gdInsertToken(tok) {
+    var ta = document.getElementById('gd-e-body'); if (!ta) return;
+    var s = ta.selectionStart, v = ta.value, ins = '\n\n' + tok + '\n\n';
+    ta.value = v.slice(0, s) + ins + v.slice(ta.selectionEnd); ta.focus(); ta.setSelectionRange(s + ins.length, s + ins.length); gdBodyInput(ta);
+}
+// 写真・動画・sb3 を、種類に応じて入れる（ボタン・貼り付け・ドロップ 共通）
+async function gdAddFile(f) {
+    var e = gd.edit; if (!e) return false;
+    var isSb3 = /\.sb3$/i.test(f.name), isImage = !isSb3 && /^image\//.test(f.type);
+    var isMov = !isSb3 && !isImage && (f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name)));
+    var isVid = !isSb3 && !isImage && (isMov || f.type === 'video/mp4' || f.type === 'video/webm');
+    if (!isSb3 && !isImage && !isVid) { e.err = gt('e_bad_file'); gdEditSync(); return false; }
+    if ((isSb3 || isVid) && f.size > CHAT_VIDEO_MAX) { e.err = ct(isSb3 ? 'e_sb3_too_big' : 'e_video_too_big'); gdEditSync(); return false; }
+    e.err = ''; e.note = gt('upl'); gdEditSync();
+    try {
+        if (isImage) {
+            var im = await gdUploadImage(f);
+            e.files[im.id] = { kind: 'image', url: im.url }; gdInsertToken('![](img:' + im.id + ')');
+        } else {
+            var up = await gdUploadBlob(f, isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type), isSb3 ? f.name : undefined);
+            var nm = isSb3 ? f.name.replace(/[\[\]\n]/g, '') : '';
+            e.files[up.id] = { kind: isSb3 ? 'sb3' : 'video', url: up.url, name: nm, size: f.size };
+            gdInsertToken('![' + nm + '](' + (isSb3 ? 'sb3' : 'vid') + ':' + up.id + ')');
+        }
+        e.note = '';
+    } catch (x) { e.note = ''; e.err = chatErr(x); }
+    gdEditSync();
+    return true;
+}
+async function gdFilesPick(inp) { var fs = Array.prototype.slice.call(inp.files || []); inp.value = ''; for (var i = 0; i < fs.length; i++) await gdAddFile(fs[i]); }
+// 貼り付け（コピーした写真・スクショ）と、ドラッグ＆ドロップ
+function gdEditorWire() {
+    var ta = document.getElementById('gd-e-body'); if (!ta) return;
+    ta.addEventListener('paste', function(ev) {
+        var items = (ev.clipboardData && ev.clipboardData.items) || [], fs = [];
+        for (var i = 0; i < items.length; i++) if (items[i].kind === 'file') { var f = items[i].getAsFile(); if (f) fs.push(f); }
+        if (!fs.length) return;
+        ev.preventDefault();
+        (async function() { for (var k = 0; k < fs.length; k++) { var f = fs[k]; if (!f.name || f.name === 'image.png') { try { f = new File([f], 'paste-' + Date.now() + '.' + ((f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')), { type: f.type }); } catch (x) {} } await gdAddFile(f); } })();
+    });
+    ta.addEventListener('dragover', function(ev) { if (ev.dataTransfer && Array.prototype.indexOf.call(ev.dataTransfer.types || [], 'Files') >= 0) { ev.preventDefault(); ta.classList.add('drop'); } });
+    ta.addEventListener('dragleave', function() { ta.classList.remove('drop'); });
+    ta.addEventListener('drop', function(ev) {
+        ta.classList.remove('drop');
+        var fs = ev.dataTransfer && ev.dataTransfer.files ? Array.prototype.slice.call(ev.dataTransfer.files) : [];
+        if (!fs.length) return;
+        ev.preventDefault();
+        (async function() { for (var k = 0; k < fs.length; k++) await gdAddFile(fs[k]); })();
+    });
+}
+
+// ---- 図形ツール（キャンバスで描く。画像にも、動く動画にもできる） ----
+var GS_W = 640, GS_H = 360;
+var GS_KINDS = [['rect', '■', 'sRect'], ['round', '▢', 'sRound'], ['circle', '●', 'sCircle'], ['ellipse', '⬬', 'sEllipse'], ['tri', '▲', 'sTri'], ['diamond', '◆', 'sDiamond'], ['star', '★', 'sStar'], ['arrow', '➡', 'sArrow'], ['line', '／', 'sLine'], ['bubble', '💬', 'sBubble'], ['text', 'T', 'sText']];
+var GS_ANIMS = [['none', 'aNone'], ['spin', 'aSpin'], ['pulse', 'aPulse'], ['bounce', 'aBounce'], ['blink', 'aBlink'], ['slide', 'aSlide'], ['wobble', 'aWobble']];
+var GS_COLORS = ['#4d97ff', '#ff6680', '#ffab19', '#59c059', '#9966ff', '#ff8c1a', '#2b3a55', '#ffffff'];
+var gs = null;
+function gsNew(kind, n) {
+    var d = { rect: [160, 90], round: [160, 90], circle: [110, 110], ellipse: [170, 100], tri: [120, 110], diamond: [120, 120], star: [120, 120], arrow: [170, 80], line: [180, 8], bubble: [180, 100], text: [200, 50] }[kind] || [120, 80];
+    var o = (n % 6) * 18;
+    return { t: kind, x: 150 + o, y: 90 + o, w: d[0], h: d[1], fill: kind === 'text' ? 'transparent' : GS_COLORS[n % 6], stroke: '#2b3a55', sw: kind === 'line' ? 6 : 0, text: kind === 'text' ? 'テキスト' : '', tc: kind === 'text' ? '#2b3a55' : '#ffffff', fs: kind === 'text' ? 32 : 20, rot: 0, anim: 'none' };
+}
+function gdShapeOpen() {
+    if (gs) return;
+    var e = gd.edit; if (!e) return;
+    if (e.preview) gdEditTab(false);
+    gs = { shapes: [], sel: -1, bg: '#ffffff', drag: null, raf: 0, t0: performance.now(), busy: false, err: '' };
+    var o = document.createElement('div'); o.className = 'gs-ov'; o.id = 'gs-ov';
+    o.innerHTML = '<div class="gs-box" role="dialog" aria-label="' + esc(gt('sTitle')) + '">' +
+        '<div class="gs-head"><b>' + esc(gt('sTitle')) + '</b><button type="button" class="gd-x" onclick="gdShapeClose()">✕</button></div>' +
+        '<div class="gs-kinds">' + GS_KINDS.map(function(k) { return '<button type="button" class="gs-k" title="' + esc(gt(k[2])) + '" onclick="gsAdd(\'' + k[0] + '\')"><span>' + k[1] + '</span><small>' + esc(gt(k[2])) + '</small></button>'; }).join('') + '</div>' +
+        '<div class="gs-main"><canvas id="gs-cv" width="' + GS_W + '" height="' + GS_H + '"></canvas><div class="gs-panel" id="gs-panel"></div></div>' +
+        '<div class="gs-err" id="gs-err"></div>' +
+        '<div class="gs-acts"><label class="gs-bg">' + esc(gt('sBg')) + ' <select id="gs-bg" onchange="gs.bg=this.value"><option value="#ffffff">' + esc(gt('sBgW')) + '</option><option value="transparent">' + esc(gt('sBgT')) + '</option><option value="#eef4ff">' + esc(gt('sBgB')) + '</option><option value="#1e2433">' + esc(gt('sBgD')) + '</option></select></label><span class="gs-sp"></span>' +
+        '<button type="button" class="gd-btn" onclick="gdShapeClose()">' + esc(gt('cancel')) + '</button>' +
+        '<button type="button" class="gd-btn primary" id="gs-png" onclick="gsInsert(false)">' + esc(gt('sInsImg')) + '</button>' +
+        '<button type="button" class="gd-btn primary" id="gs-vid" onclick="gsInsert(true)">' + esc(gt('sInsVid')) + '</button></div></div>';
+    document.body.appendChild(o);
+    var cv = document.getElementById('gs-cv');
+    cv.addEventListener('pointerdown', gsDown); cv.addEventListener('pointermove', gsMove); cv.addEventListener('pointerup', gsUp); cv.addEventListener('pointercancel', gsUp);
+    o.addEventListener('keydown', function(ev) { if (ev.key === 'Escape') gdShapeClose(); else if ((ev.key === 'Delete' || ev.key === 'Backspace') && ev.target.tagName !== 'INPUT' && ev.target.tagName !== 'SELECT') { gsDelete(); ev.preventDefault(); } });
+    gsAdd('circle'); gsPanel(); gsLoop();
+}
+function gdShapeClose() {
+    if (!gs) return;
+    cancelAnimationFrame(gs.raf); var o = document.getElementById('gs-ov'); if (o) o.remove(); gs = null;
+}
+function gsAdd(kind) { if (!gs) return; gs.shapes.push(gsNew(kind, gs.shapes.length)); gs.sel = gs.shapes.length - 1; gsPanel(); }
+function gsDelete() { if (!gs || gs.sel < 0) return; gs.shapes.splice(gs.sel, 1); gs.sel = gs.shapes.length - 1; gsPanel(); }
+function gsCopy() { if (!gs || gs.sel < 0) return; var c = JSON.parse(JSON.stringify(gs.shapes[gs.sel])); c.x += 20; c.y += 20; gs.shapes.push(c); gs.sel = gs.shapes.length - 1; gsPanel(); }
+function gsOrder(d) {
+    if (!gs || gs.sel < 0) return; var j = gs.sel + d; if (j < 0 || j >= gs.shapes.length) return;
+    var t = gs.shapes[gs.sel]; gs.shapes[gs.sel] = gs.shapes[j]; gs.shapes[j] = t; gs.sel = j;
+}
+function gsSet(k, v) { if (!gs || gs.sel < 0) return; gs.shapes[gs.sel][k] = v; }
+function gsPanel() {
+    var el = document.getElementById('gs-panel'); if (!el) return;
+    var s = gs.shapes[gs.sel];
+    if (!s) { el.innerHTML = '<div class="gs-hint">' + esc(gt('sHint')) + '</div>'; gsButtons(); return; }
+    var row = function(label, inner) { return '<label class="gs-row"><span>' + esc(label) + '</span>' + inner + '</label>'; };
+    var col = function(k) { return '<input type="color" value="' + (/^#[0-9a-f]{6}$/i.test(s[k]) ? s[k] : '#4d97ff') + '" oninput="gsSet(\'' + k + '\',this.value)">'; };
+    el.innerHTML =
+        (s.t === 'line' ? '' : row(gt('sFill'), col('fill') + '<button type="button" class="gs-mini" onclick="gsSet(\'fill\',\'transparent\');gsPanel()">' + esc(gt('sNoFill')) + '</button>')) +
+        row(gt('sStroke'), col('stroke') + '<input type="range" min="0" max="14" value="' + s.sw + '" oninput="gsSet(\'sw\',+this.value)">') +
+        (s.t === 'line' ? '' : row(gt('sText'), '<input type="text" maxlength="40" value="' + esc(s.text) + '" oninput="gsSet(\'text\',this.value)">' + col('tc'))) +
+        (s.t === 'line' ? '' : row(gt('sSize'), '<input type="range" min="10" max="90" value="' + s.fs + '" oninput="gsSet(\'fs\',+this.value)">')) +
+        row(gt('sRot'), '<input type="range" min="-180" max="180" value="' + s.rot + '" oninput="gsSet(\'rot\',+this.value)">') +
+        row(gt('sAnim'), '<select onchange="gsSet(\'anim\',this.value);gsButtons()">' + GS_ANIMS.map(function(a) { return '<option value="' + a[0] + '"' + (s.anim === a[0] ? ' selected' : '') + '>' + esc(gt(a[1])) + '</option>'; }).join('') + '</select>') +
+        '<div class="gs-btns"><button type="button" class="gs-mini" onclick="gsCopy()">' + esc(gt('sDup')) + '</button><button type="button" class="gs-mini" onclick="gsOrder(1)">' + esc(gt('sFront')) + '</button><button type="button" class="gs-mini" onclick="gsOrder(-1)">' + esc(gt('sBack')) + '</button><button type="button" class="gs-mini danger" onclick="gsDelete()">' + esc(gt('sDel')) + '</button></div>';
+    gsButtons();
+}
+function gsButtons() {
+    var v = document.getElementById('gs-vid'), p = document.getElementById('gs-png'); if (!v || !gs) return;
+    var any = gs.shapes.some(function(s) { return s.anim !== 'none'; }), can = !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream);
+    v.style.display = any && can ? '' : 'none'; p.style.display = gs.shapes.length ? '' : 'none';
+    var er = document.getElementById('gs-err'); if (er) er.textContent = gs.err || (any && !can ? gt('sNoRec') : '');
+}
+// 動き（時間 t 秒での、位置・回転・大きさ・透明度の変化）
+function gsAnimOf(s, t) {
+    var a = { dx: 0, dy: 0, rot: 0, sc: 1, al: 1 };
+    if (s.anim === 'spin') a.rot = (t * 120) % 360;
+    else if (s.anim === 'pulse') a.sc = 1 + 0.18 * Math.sin(t * 2 * Math.PI * 0.8);
+    else if (s.anim === 'bounce') a.dy = -Math.abs(Math.sin(t * Math.PI * 1.2)) * 40;
+    else if (s.anim === 'blink') a.al = 0.55 + 0.45 * Math.cos(t * 2 * Math.PI * 0.8);
+    else if (s.anim === 'slide') a.dx = Math.sin(t * 2 * Math.PI * 0.5) * 60;
+    else if (s.anim === 'wobble') a.rot = Math.sin(t * 2 * Math.PI * 1.2) * 14;
+    return a;
+}
+function gsPath(c, s) {
+    var w = s.w, h = s.h, x = -w / 2, y = -h / 2;
+    c.beginPath();
+    if (s.t === 'rect') c.rect(x, y, w, h);
+    else if (s.t === 'round' || s.t === 'bubble') { var r = Math.min(18, w / 4, h / 4), hh = s.t === 'bubble' ? h * 0.82 : h, yy = y;
+        c.moveTo(x + r, yy); c.arcTo(x + w, yy, x + w, yy + hh, r); c.arcTo(x + w, yy + hh, x, yy + hh, r);
+        if (s.t === 'bubble') { c.lineTo(x + w * 0.3, yy + hh); c.lineTo(x + w * 0.18, y + h); c.lineTo(x + w * 0.18, yy + hh); }
+        c.arcTo(x, yy + hh, x, yy, r); c.arcTo(x, yy, x + w, yy, r); c.closePath(); }
+    else if (s.t === 'circle' || s.t === 'ellipse') c.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
+    else if (s.t === 'tri') { c.moveTo(0, y); c.lineTo(x + w, y + h); c.lineTo(x, y + h); c.closePath(); }
+    else if (s.t === 'diamond') { c.moveTo(0, y); c.lineTo(x + w, 0); c.lineTo(0, y + h); c.lineTo(x, 0); c.closePath(); }
+    else if (s.t === 'star') { for (var i = 0; i < 10; i++) { var ang = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 0.42 : 1; var px = Math.cos(ang) * rr * w / 2, py = Math.sin(ang) * rr * h / 2; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); }
+    else if (s.t === 'arrow') { var hd = Math.min(w * 0.4, h * 0.9), bh = h * 0.36; c.moveTo(x, -bh / 2); c.lineTo(x + w - hd, -bh / 2); c.lineTo(x + w - hd, y); c.lineTo(x + w, 0); c.lineTo(x + w - hd, y + h); c.lineTo(x + w - hd, bh / 2); c.lineTo(x, bh / 2); c.closePath(); }
+    else if (s.t === 'line') { c.moveTo(x, 0); c.lineTo(x + w, 0); }
+}
+function gsDraw(c, s, t) {
+    var a = gsAnimOf(s, t);
+    c.save(); c.globalAlpha = a.al; c.translate(s.x + s.w / 2 + a.dx, s.y + s.h / 2 + a.dy); c.rotate((s.rot + a.rot) * Math.PI / 180); c.scale(a.sc, a.sc);
+    if (s.t !== 'text') {
+        gsPath(c, s);
+        if (s.t !== 'line' && s.fill && s.fill !== 'transparent') { c.fillStyle = s.fill; c.fill(); }
+        if (s.sw > 0) { c.lineWidth = s.sw; c.strokeStyle = s.stroke; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); }
+    }
+    if (s.text && s.t !== 'line') { c.fillStyle = s.tc; c.font = '700 ' + s.fs + 'px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s.text, 0, s.t === 'bubble' ? -s.h * 0.09 : 0, Math.max(20, s.w - 8)); }
+    c.restore();
+}
+function gsRender(c, t, withSel) {
+    c.clearRect(0, 0, GS_W, GS_H);
+    if (gs.bg !== 'transparent') { c.fillStyle = gs.bg; c.fillRect(0, 0, GS_W, GS_H); }
+    else if (withSel) { c.fillStyle = '#fff'; c.fillRect(0, 0, GS_W, GS_H); c.fillStyle = '#eef1f6'; for (var yy = 0; yy < GS_H; yy += 20) for (var xx = (yy / 20) % 2 ? 20 : 0; xx < GS_W; xx += 40) c.fillRect(xx, yy, 20, 20); }
+    gs.shapes.forEach(function(s) { gsDraw(c, s, t); });
+    if (withSel && gs.sel >= 0) {
+        var s = gs.shapes[gs.sel]; if (!s) return;
+        c.save(); c.translate(s.x + s.w / 2, s.y + s.h / 2); c.rotate(s.rot * Math.PI / 180); c.setLineDash([5, 4]); c.lineWidth = 1.5; c.strokeStyle = '#2b6be0'; c.strokeRect(-s.w / 2 - 3, -s.h / 2 - 3, s.w + 6, s.h + 6);
+        c.setLineDash([]); c.fillStyle = '#fff'; c.fillRect(s.w / 2 - 4, s.h / 2 - 4, 12, 12); c.strokeRect(s.w / 2 - 4, s.h / 2 - 4, 12, 12); c.restore();
+    }
+}
+function gsLoop() {
+    if (!gs) return;
+    var cv = document.getElementById('gs-cv'); if (!cv) return;
+    if (!gs.rec) gsRender(cv.getContext('2d'), (performance.now() - gs.t0) / 1000, !gs.rec);
+    gs.raf = requestAnimationFrame(gsLoop);
+}
+// マウス/タッチ
+function gsPt(ev) { var cv = document.getElementById('gs-cv'), r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) * GS_W / r.width, y: (ev.clientY - r.top) * GS_H / r.height }; }
+function gsInv(s, p) { var cx = s.x + s.w / 2, cy = s.y + s.h / 2, a = -s.rot * Math.PI / 180, dx = p.x - cx, dy = p.y - cy; return { x: dx * Math.cos(a) - dy * Math.sin(a), y: dx * Math.sin(a) + dy * Math.cos(a) }; }
+function gsDown(ev) {
+    if (!gs) return; var p = gsPt(ev); ev.preventDefault();
+    var cur = gs.shapes[gs.sel];
+    if (cur) { var q = gsInv(cur, p); if (Math.abs(q.x - cur.w / 2 - 2) < 12 && Math.abs(q.y - cur.h / 2 - 2) < 12) { gs.drag = { mode: 'size', sx: p.x, sy: p.y, w: cur.w, h: cur.h }; ev.target.setPointerCapture(ev.pointerId); return; } }
+    for (var i = gs.shapes.length - 1; i >= 0; i--) {
+        var s = gs.shapes[i], q2 = gsInv(s, p), pad = s.t === 'line' ? 10 : 0;
+        if (Math.abs(q2.x) <= s.w / 2 + pad && Math.abs(q2.y) <= s.h / 2 + pad) { gs.sel = i; gs.drag = { mode: 'move', ox: p.x - s.x, oy: p.y - s.y }; ev.target.setPointerCapture(ev.pointerId); gsPanel(); return; }
+    }
+    gs.sel = -1; gsPanel();
+}
+function gsMove(ev) {
+    if (!gs || !gs.drag) return; var s = gs.shapes[gs.sel]; if (!s) return; var p = gsPt(ev);
+    if (gs.drag.mode === 'move') { s.x = Math.round(p.x - gs.drag.ox); s.y = Math.round(p.y - gs.drag.oy); }
+    else { s.w = Math.max(s.t === 'line' ? 20 : 16, Math.round(gs.drag.w + (p.x - gs.drag.sx) * 2)); s.h = Math.max(s.t === 'line' ? 4 : 16, Math.round(gs.drag.h + (p.y - gs.drag.sy) * 2)); if (s.t === 'line') s.h = gs.drag.h; }
+}
+function gsUp() { if (gs) gs.drag = null; }
+// 画像（PNG）か、動く動画（WebM）にして、本文に入れる
+async function gsInsert(asVideo) {
+    if (!gs || gs.busy || !gs.shapes.length) return;
+    gs.busy = true; gs.err = ''; gs.sel = -1; var e = gd.edit;
+    var btns = document.querySelectorAll('.gs-acts .gd-btn'); btns.forEach(function(b) { b.disabled = true; });
+    try {
+        var out = document.createElement('canvas'); out.width = GS_W * 2; out.height = GS_H * 2; var oc = out.getContext('2d');
+        var draw = function(t) { oc.setTransform(1, 0, 0, 1, 0, 0); oc.clearRect(0, 0, out.width, out.height); oc.scale(2, 2);
+            var main = document.getElementById('gs-cv'); var tmp = document.createElement('canvas'); tmp.width = GS_W; tmp.height = GS_H; var tc = tmp.getContext('2d');
+            var bgBak = gs.bg; if (asVideo && gs.bg === 'transparent') gs.bg = '#ffffff';
+            gsRender(tc, t, false); gs.bg = bgBak; oc.drawImage(tmp, 0, 0); };
+        if (!asVideo) {
+            draw(0);
+            var blob = await new Promise(function(r) { out.toBlob(r, 'image/png'); });
+            if (!blob) throw new Error('other');
+            var up = await gdUploadBlob(blob, 'image/png');
+            e.files[up.id] = { kind: 'image', url: up.url }; gdInsertToken('![' + gt('sAlt') + '](img:' + up.id + ')');
+        } else {
+            var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].filter(function(m) { return MediaRecorder.isTypeSupported(m); })[0];
+            if (!mime) throw new Error('other');
+            var stream = out.captureStream(30), rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 }), chunks = [];
+            rec.ondataavailable = function(ev) { if (ev.data && ev.data.size) chunks.push(ev.data); };
+            var done = new Promise(function(r) { rec.onstop = r; });
+            gs.rec = true; var t0 = performance.now(); rec.start(200);
+            await new Promise(function(res) { var tick = function() { var t = (performance.now() - t0) / 1000; draw(t); if (t >= 3.2) res(); else requestAnimationFrame(tick); }; tick(); });
+            rec.stop(); await done; gs.rec = false;
+            var vb = new Blob(chunks, { type: 'video/webm' });
+            if (vb.size < 500) throw new Error('other');
+            var vu = await gdUploadBlob(vb, 'video/webm');
+            e.files[vu.id] = { kind: 'video', url: vu.url, name: '', size: vb.size }; gdInsertToken('![' + gt('sAlt') + '](vid:' + vu.id + ')');
+        }
+        gdShapeClose(); gdEditSync(); return;
+    } catch (x) { gs.rec = false; gs.err = chatErr(x); }
+    gs.busy = false; btns.forEach(function(b) { b.disabled = false; }); gsButtons();
 }
 
 function gdFromUrl(st) {

@@ -555,6 +555,9 @@
         #chat-section.pg-list .pg-thumb-empty { font-size:12px; color:#8b98ae; }
         #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
         #chat-section.pg-list .pg-card-media { display:flex; flex-direction:column; gap:12px; width:100%; min-width:0; margin-top:12px; }
+        #chat-section.pg-list .pg-list-image { display:flex; align-items:flex-start; width:100%; min-width:0; overflow:hidden; border-radius:12px; background:#f4f6fa; }
+        #chat-section.pg-list .pg-list-image .chat-image { display:block; width:auto; max-width:100%; max-height:560px; height:auto; object-fit:contain; margin:0 auto; border-radius:12px; cursor:zoom-in; }
+        #chat-section.pg-list .pg-list-image .chat-video-gone { padding:12px; color:#8792a5; font-size:13px; }
         #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; max-height:520px; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:12px; background:#101522; }
         #chat-section.pg-list .pg-list-sb3 { width:100%; min-width:0; }
         #chat-section.pg-list .pg-list-sb3 .pg-sb3-box { width:100%; min-height:58px; box-sizing:border-box; padding:12px 14px; }
@@ -5943,8 +5946,6 @@ function pgAgo(ts) {
 }
 function pgOwner(t) { return !!(loginUser && t && t.user_id === loginUser.id); }
 function pgThumbOf(t) {
-    var last = t.last;
-    if (last) { for (var i = 0; i < last.files.length; i++) if (last.files[i].kind === 'image') return last.files[i].url; }
     return t.cover || '';
 }
 function pgFilesChips(files) {
@@ -6024,6 +6025,9 @@ function pgListPaint() {
 }
 function pgListMediaHTML(files, threadId) {
     var media = (files || []).map(function(file, i) {
+        if (file.kind === 'image') {
+            return '<div class="pg-list-image">' + chatImageHTML(file) + '</div>';
+        }
         if (file.kind === 'video') {
             return '<video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>';
         }

@@ -5965,7 +5965,7 @@ function pgListPaint() {
     }).join('') + '</div>';
     el.innerHTML = h;
 }function pgSb3Embed(file, key) {
-    return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '">' +
+    return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '" data-name="' + esc(file.name || 'project.sb3') + '">' +
         '<span class="pg-sb3-tag">SB3</span><span class="pg-sb3-name">' + esc(file.name || 'project.sb3') + '</span>' +
         '<button class="pg-btn primary" type="button" onclick="pgSb3Open(\'' + esc(key) + '\')">' + esc(ct('pg_run_sb3')) + '</button></div>';
 }
@@ -5975,7 +5975,7 @@ function pgSb3Close(key) {
     var raw = box.getAttribute('data-url') || '';
     box.innerHTML = '';
     var tag = document.createElement('span'); tag.className = 'pg-sb3-tag'; tag.textContent = 'SB3'; box.appendChild(tag);
-    var name = document.createElement('span'); name.className = 'pg-sb3-name'; name.textContent = 'project.sb3'; box.appendChild(name);
+    var name = document.createElement('span'); name.className = 'pg-sb3-name'; name.textContent = box.getAttribute('data-name') || 'project.sb3'; box.appendChild(name);
     var run = document.createElement('button'); run.type = 'button'; run.className = 'pg-btn primary'; run.textContent = ct('pg_run_sb3');
     run.onclick = function() { pgSb3Open(key); }; box.appendChild(run);
 }
@@ -6099,7 +6099,7 @@ function pgFormPaint() {
     else h += '<textarea id="pg-f-text" class="pg-in" rows="4" maxlength="1000" placeholder="' + esc(ct('pg_upd_ph')) + '" oninput="pgForm.text=this.value">' + esc(f.text) + '</textarea>';
     h += '<div class="pg-files">' + (f.existingFiles || []).map(function(x, i) {
         return '<div class="pg-file pg-existing-file"><span class="pg-file-kind">' + esc(x.kind === 'video' ? '▶' : x.kind === 'sb3' ? 'SB3' : x.kind === 'image' ? '🖼' : '📎') + '</span>' +
-            '<span class="pg-fn">' + esc(x.name || (x.kind === 'sb3' ? 'project.sb3' : ct('pg_video'))) + '</span><span class="pg-file-kept">保持</span>' +
+            '<span class="pg-fn">' + esc(x.name || (x.kind === 'sb3' ? 'project.sb3' : x.kind === 'image' ? '画像' : x.kind === 'video' ? ct('pg_video') : 'file')) + '</span><span class="pg-file-kept">保持</span>' +
             '<button class="pg-x" onclick="pgExistingFileRemove(' + i + ')">✕</button></div>';
     }).join('') + f.files.map(function(x, i) {
         var icon = x.preview ? '<img alt="" src="' + esc(x.preview) + '">' : '<span class="pg-sb3">' + (x.video ? '▶' : x.sb3 ? 'SB3' : '📎') + '</span>';

@@ -805,7 +805,7 @@
         .chat-embed.scratch { aspect-ratio: 4 / 3; max-width: 360px; }
         /* Scratch URL / .sb3 添付カード。影や発光を使わず、フラットな表示にする */
         .sb3-card { width: min(100%, 380px); margin-top: 6px; padding: 12px; box-sizing: border-box; border: 1px solid #dfe5ef; border-radius: 14px; background: #f6f8fc; transition: width .2s; }
-        .sb3-card.open { width: min(100%, 720px); }
+        .sb3-card.open { width: min(100%, 800px); }
         .sb3-card.open.size-compact { width: min(100%, 560px); }
         .sb3-card.open.size-normal { width: min(100%, 640px); }
         .sb3-card.open.size-large { width: min(100%, 800px); }
@@ -5646,7 +5646,7 @@ function chatCardResize(el, width) {
     card.classList.remove('size-compact', 'size-normal', 'size-large');
     card.classList.add(width <= 560 ? 'size-compact' : width <= 640 ? 'size-normal' : 'size-large');
     Array.prototype.forEach.call(card.querySelectorAll('.sc-size button'), function(b) {
-        b.setAttribute('aria-pressed', String(Number(b.getAttribute('onclick').match(/\\d+/)[0]) === width));
+        b.setAttribute('aria-pressed', String((b.textContent === '小' ? 560 : b.textContent === '中' ? 640 : 800) === width));
     });
 }
 

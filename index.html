@@ -5946,6 +5946,15 @@ var pgForm = null;        // { kind: 'thread'|'update', title, desc, scratch, te
 function pgIsRoom(r) { return PG_ROOM_RE.test(r); }
 function pgRoomId(r) { var m = PG_ROOM_RE.exec(r); return m ? Number(m[1]) : 0; }
 function chatRoomOK(r) { return CHAT_ROOMS.indexOf(r) >= 0 || pgIsRoom(r); }
+function pgLinkText(value) {
+    // URLを安全にリンク化。Scratch専用リンクと進捗本文内の外部リンクを併用できる。
+    var safe = esc(value || '');
+    return safe.replace(/https?:\\/\\/[^\\s<>"']+/gi, function(raw) {
+        var href = raw.replace(/&amp;/g, '&'), tail = '';
+        while (/[。、．，.!?;:）)】』]$/.test(raw)) { tail = raw.slice(-1) + tail; raw = raw.slice(0, -1); href = href.slice(0, -1); }
+        return '<a href="' + raw + '" target="_blank" rel="noopener noreferrer">' + raw + '</a>' + tail;
+    }).replace(/\\n/g, '<br>');
+}
 function pgAgo(ts) {
     var s = Math.max(0, (Date.now() - ts) / 1000);
     if (s < 60) return ct('pg_now');
@@ -6024,7 +6033,7 @@ function pgListPaint() {
                     '<a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
                     '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
                     (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
-                    (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>' :
+                    (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + pgLinkText(t.last.content || ct('pg_files_only')) + '</div></div>' :
                         '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
                 '</div>' +
             '</div>' +
@@ -6136,7 +6145,7 @@ function pgThreadPaint() {
             return '<div class="pg-upd"><div class="pg-upd-h"><span>' + esc(pgAgo(u.created_at)) + '</span><span class="pg-upd-actions">' +
                 (own ? '<button class="pg-x" title="' + esc(ct('pg_edit_upd')) + '" onclick="pgEditUpdate(' + u.id + ')">✎ ' + esc(ct('pg_edit_upd')) + '</button>' : '') +
                 (own || chatIsAdmin ? '<button class="pg-x" title="' + esc(ct('pg_del_upd')) + '" onclick="pgDeleteUpdate(' + u.id + ')">✕</button>' : '') + '</span></div>' +
-                (u.content ? '<div class="pg-upd-t">' + esc(u.content) + '</div>' : '') +
+                (u.content ? '<div class="pg-upd-t">' + pgLinkText(u.content) + '</div>' : '') +
                 '<div class="pg-upd-media">' + pgMediaHTML(u.files, 'update-' + u.id) + '</div></div>';
         }).join('') : '<div class="chat-time">' + esc(ct('pg_no_update')) + '</div>';
         if (ups.length > 3) h += '<button class="pg-btn" onclick="pgAll=!pgAll;pgThreadPaint()">' + esc(pgAll ? ct('pg_less') : ct('pg_more').replace('{n}', ups.length - 3)) + '</button>';

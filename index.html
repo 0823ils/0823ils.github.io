@@ -554,7 +554,7 @@
         .pg-existing-file { background: #f5f8fd; }
         .pg-file-kind { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: #e7eefb; font-size: 11px; font-weight: 800; color: #526786; }
         .pg-file-kept { color: #8190a6; font-size: 11px; }
-        /* 作品一覧：メディアを単体なら大きく、2つなら同じ大きさで横並び */
+        /* 作品一覧：単体メディアは幅を抑え、2つなら同じ大きさで横並び */
         #chat-section.pg-list .pg-card { display:block; min-width:0; }
         #chat-section.pg-list .pg-card-main { display:flex; align-items:flex-start; gap:14px; min-width:0; }
         #chat-section.pg-list .pg-thumb { flex:0 0 220px; width:220px; height:138px; }
@@ -562,6 +562,7 @@
         #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
         #chat-section.pg-list .pg-card-media { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; width:100%; min-width:0; margin-top:14px; }
         #chat-section.pg-list .pg-card-media.has-two { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        #chat-section.pg-list .pg-card-media:not(.has-two) { max-width:420px; }
         #chat-section.pg-list .pg-media-item { container-type:inline-size; min-width:0; aspect-ratio:4/3; overflow:hidden; border:1px solid #252525; border-radius:12px; background:#000; }
         #chat-section.pg-list .pg-media-image { background:#000; }
         #chat-section.pg-list .pg-list-image { display:flex; align-items:center; justify-content:center; width:100%; height:100%; aspect-ratio:4/3; min-width:0; overflow:hidden; background:#000; }

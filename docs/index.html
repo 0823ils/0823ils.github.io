@@ -1207,9 +1207,8 @@
         .gd-code-b { font: inherit; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; border: 1px solid #44507a; background: #353f5c; color: #e6ebf5; cursor: pointer; }
         .gd-code-b:hover { background: #44507a; }
         .gd-md .gd-code pre { margin: 0; border-radius: 0; }
-        .gd-live { background: #fff; border: 1px solid #dbe4f3; }
-        .gd-live-view iframe { display: block; width: 100%; height: 120px; border: 0; background: #fff; }
-        .gd-live .gd-code-h { border-top: 1px solid #dbe4f3; }
+        .gd-live { margin: 0 0 1em; }
+        .gd-live iframe { display: block; width: 100%; height: 60px; border: 0; background: transparent; }
         .gd-run { background: #fff; border-top: 2px solid #4d97ff; }
         .gd-run iframe { display: block; width: 100%; height: 320px; border: 0; resize: vertical; overflow: auto; }
         .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
@@ -3531,9 +3530,7 @@ function gdCodeHTML(lang, code) {
     if (l === 'html') {
         // HTMLは、そのまま記事に表示する（別の安全な箱の中）。コードは「コード」ボタンで見る・コピーする
         var doc = String(code) + '<scr' + 'ipt>(function(){function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},"*")}addEventListener("load",r);if(window.ResizeObserver)new ResizeObserver(r).observe(document.documentElement);setTimeout(r,300)})()</scr' + 'ipt>';
-        return '<div class="gd-code gd-live" data-lang="html"><div class="gd-live-view"><iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="HTML" srcdoc="' + esc(doc) + '"></iframe></div>' +
-            '<div class="gd-code-h"><span class="gd-code-l">HTML</span><span class="gd-code-sp"></span><button type="button" class="gd-code-b" onclick="gdToggleCode(this)">&lt;/&gt; ' + esc(gt('showCode')) + '</button><button type="button" class="gd-code-b" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button></div>' +
-            '<pre style="display:none"><code>' + esc(code) + '</code></pre></div>';
+        return '<div class="gd-live"><iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="HTML" srcdoc="' + esc(doc) + '"></iframe></div>';
     }
     var run = '';
     var body = (l === 'scratch' || l === 'scratchblocks') ? '<pre class="gd-blocks"><code>' + esc(code) + '</code></pre>' : '<pre><code>' + esc(code) + '</code></pre>';

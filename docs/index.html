@@ -43,12 +43,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-                body { font-family: sans-serif; background: #f0f2f5; padding-top: 140px; display: flex; justify-content: center; }
-        .header-category-nav { max-width: 940px; margin: 0 auto; height: 38px; padding: 0 12px; display: flex; align-items: stretch; gap: 4px; border-top: 1px solid rgba(255,255,255,.18); }
-        .header-category-btn { padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: rgba(255,255,255,.78); font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer; }
-        .header-category-btn.active { color: #fff; border-bottom-color: #fff; }
-        .header-category-btn:hover { color: #fff; background: rgba(255,255,255,.1); }
-        .header-mode-nav { border-top: 1px solid rgba(255,255,255,.13); }
+        body { font-family: sans-serif; background: #f0f2f5; padding-top: 106px; display: flex; justify-content: center; }
+        .header-mode-nav { border-top: 1px solid rgba(255,255,255,.18); }
         .header-mode-nav .header-mode-tabs { min-height: 38px; }
         .header-mode-nav .header-mode-tab { padding: 8px 14px 7px; font-size: 13px; }
         .navigation-menu { position: fixed !important; inset: 0 auto 0 0; width: min(320px, 84vw); min-width: 0; height: 100vh; height: 100dvh; max-height: none; overflow-y: auto; padding: 22px 14px; border-radius: 0 16px 16px 0; background: #fff; box-shadow: 8px 0 32px rgba(0,0,0,.18); z-index: 1201; display: block; visibility: hidden; transform: translateX(-105%); transition: transform .26s ease, visibility 0s linear .26s; }
@@ -58,9 +54,7 @@
         .drawer-category-btn.active { color: #2677e5; background: #edf4ff; }
         .drawer-category-btn:hover { background: #f4f7fb; }
         @media (max-width: 480px) {
-            body { padding-top: 140px; }
-            .header-category-nav { padding: 0 6px; gap: 0; }
-            .header-category-btn { flex: 1; padding: 0 5px; font-size: 12px; }
+            body { padding-top: 106px; }
             .header-mode-nav .header-mode-tab { padding-left: 11px; padding-right: 11px; }
         }
 
@@ -1092,7 +1086,7 @@
         .set-notif .notif-mode + .notif-push { border-top: 1px solid #f6f6f6; }
         .set-notif .notif-mode:empty, .set-notif .notif-push:empty { display: none; }
         /* サイトを開いてすぐ出す「通知をオンにしますか？」 */
-        .push-banner { position: fixed; top: 128px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+        .push-banner { position: fixed; top: 98px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
         .push-banner .pb-text { flex: 1 1 220px; min-width: 0; }
         .push-banner button { border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .push-banner .pb-yes { background: #4D97FF; color: #fff; }
@@ -1264,11 +1258,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="header-category-nav" role="tablist" aria-label="カテゴリ">
-        <button type="button" class="header-category-btn active" id="category-explore-btn" onclick="setHeaderCategory('explore')" data-i18n="navExploreGroup">見る・探す</button>
-        <button type="button" class="header-category-btn" id="category-talk-btn" onclick="setHeaderCategory('talk')" data-i18n="navTalkGroup">話す</button>
-        <button type="button" class="header-category-btn" id="category-guide-btn" onclick="setHeaderCategory('guide')" data-i18n="navGuideGroup">作り方・解説</button>
     </div>
     <nav class="header-mode-nav" id="header-mode-nav" aria-label="ページナビゲーション">
         <div class="header-mode-tabs" id="header-mode-tabs-explore"><button type="button" class="header-mode-tab active" id="mode-home-btn" onclick="setMode('home')" data-i18n="modeHome">ホーム</button>
@@ -4942,11 +4931,8 @@ function setHeaderCategory(category) {
     if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
     currentHeaderCategory = category;
     ['explore', 'talk', 'guide'].forEach(function(key) {
-        var active = key === category;
-        var btn = document.getElementById('category-' + key + '-btn');
         var tabs = document.getElementById('header-mode-tabs-' + key);
-        if (btn) btn.classList.toggle('active', active);
-        if (tabs) tabs.style.display = active ? '' : 'none';
+        if (tabs) tabs.style.display = key === category ? '' : 'none';
     });
     document.querySelectorAll('.drawer-category-btn').forEach(function(btn, i) {
         btn.classList.toggle('active', ['explore', 'talk', 'guide'][i] === category);

@@ -191,7 +191,8 @@ CREATE TABLE IF NOT EXISTS progress_threads (
   username TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
-  scratch_id INTEGER NOT NULL DEFAULT 0,   -- Scratch作品のID（なければ 0）
+  scratch_id INTEGER NOT NULL DEFAULT 0,   -- 旧データ互換用のScratch作品ID
+  link_url TEXT NOT NULL DEFAULT '',         -- Scratch / GitHub / YouTubeなど任意の作品リンク
   image_id TEXT,                           -- 表紙画像（chat_videos.id）
   created_at INTEGER NOT NULL,
   last_msg_at INTEGER NOT NULL DEFAULT 0,  -- 最後にチャットが来た時刻

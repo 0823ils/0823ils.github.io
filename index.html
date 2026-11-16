@@ -510,7 +510,7 @@
         #pg-view { margin-top: 8px; font-size: 14px; }
         #chat-section.pg-list #pg-view { flex: 1; overflow-y: auto; }
         #chat-section.pg-thread #pg-detail-switch { display:flex; gap:8px; padding:6px 0 10px; border-bottom:1px solid #e8edf6; }
-        #chat-section.pg-thread #pg-detail-switch button { flex:1; border:1px solid #dbe5f5; background:#fff; color:#52627e; border-radius:10px; padding:9px 12px; font-weight:700; cursor:pointer; }
+        #chat-section.pg-thread #pg-detail-switch button { flex:1; border:1px solid #dbe5f5; background:#fff; color:#52627e; border-radius:999px; padding:6px 12px; font-size:13px; font-weight:700; cursor:pointer; }
         #chat-section.pg-thread #pg-detail-switch button.active { background:#4d97ff; border-color:#4d97ff; color:#fff; }
         #chat-section.pg-thread #pg-view { display:none !important; max-height:none; min-height:0; flex:1; overflow-y:auto; border:0; padding:12px 2px; }
         #chat-section.pg-thread.pg-info-mode #pg-view { display:block !important; }
@@ -6146,9 +6146,7 @@ function pgListPaint() {
         var href = esc(chatLinkUrl('pg' + t.id));
         return '<article class="pg-card">' +
             '<div class="pg-card-main">' +
-                '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')">' +
-                    (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span class="pg-thumb-empty">画像なし</span>') +
-                '</a>' +
+                (th ? '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><img loading="lazy" alt="" src="' + esc(th) + '"></a>' : '') +
                 '<div class="pg-body">' +
                     '<a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
                     '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +

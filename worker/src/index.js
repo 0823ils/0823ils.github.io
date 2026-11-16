@@ -134,6 +134,7 @@ async function route(request, env) {
   const cam = path.match(/^\/api\/admin\/chat\/messages\/(\d{1,12})$/);
   if (cam && method === 'POST') return chatAdminAction(request, env, Number(cam[1]));
   if (path === '/api/admin/chat/bans' && method === 'POST') return chatAdminBan(request, env);
+  if (path.startsWith('/api/chat/progress/')) { const pr = pgRoute(request, env, path, method); if (pr) return pr; }
   if (path === '/api/chat/videos/start' && method === 'POST') return videoStart(request, env);
   const vm = path.match(/^\/api\/chat\/videos\/([a-f0-9]{32})(\/complete)?$/);
   if (vm && vm[2] && method === 'POST') return videoComplete(request, env, vm[1]);
@@ -797,11 +798,11 @@ const CHAT_PAGE = 50;
 const CHAT_REPORT_HIDE = 3;       // この件数の通報で自動的に非表示にする
 const CHAT_MIN_INTERVAL = 2000;   // 連投の最短間隔(ms)
 const CHAT_PER_MINUTE = 15;       // 1分あたりの投稿数の上限
-const CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback', 'voice'];  // 部屋（一般 / 3D / 数学 / 物理 / 三角形 / 意見 / 通話）
+const CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'progress', 'feedback', 'voice'];  // 部屋（一般 / 3D / 数学 / 物理 / 三角形 / 進捗 / 意見 / 通話）。progress は一覧の画面で、メッセージは pg<ID> の部屋に入る
 
 function chatRoom(v) {
   const r = String(v || '3d');
-  if (!CHAT_ROOMS.includes(r)) throw new HttpError(400, 'bad_room');
+  if (!CHAT_ROOMS.includes(r) && !/^pg\d{1,9}$/.test(r)) throw new HttpError(400, 'bad_room');   // pg<ID> は、進捗スレッドの部屋
   return r;
 }
 
@@ -1098,6 +1099,10 @@ async function chatPost(request, env) {
   const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
   if (ban) throw new HttpError(403, 'banned');
 
+  if (/^pg\d+$/.test(room)) {
+    const th = await env.DB.prepare('SELECT 1 AS x FROM progress_threads WHERE id = ? AND deleted = 0').bind(Number(room.slice(2))).first();
+    if (!th) throw new HttpError(404, 'thread_not_found');
+  }
   const now = Date.now();
   const recent = await env.DB.prepare(
     'SELECT COUNT(*) AS c, MAX(created_at) AS m FROM chat_messages WHERE user_id = ? AND created_at > ?'
@@ -1136,6 +1141,7 @@ async function chatPost(request, env) {
     ).bind(user.uid, user.u, content, now, room).run();
   }
   const id = res.meta.last_row_id;
+  if (/^pg\d+$/.test(room)) await env.DB.prepare('UPDATE progress_threads SET last_msg_at = ? WHERE id = ?').bind(now, Number(room.slice(2))).run();   // 一覧の並びに使う
   if (parent) await env.DB.prepare('INSERT INTO chat_replies (message_id, reply_to) VALUES (?, ?)').bind(id, parent.id).run();
   if (video) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(id, video.id).run();
 
@@ -1752,6 +1758,191 @@ async function videoDiscard(request, env, id) {
   if (videoEnabled(env)) await b2Delete(env, v.object_key);
   await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
   return json({ deleted: true });
+}
+
+
+// ---------- 進捗スレッド（#進捗） ----------
+//   GET    /api/chat/progress/threads                -> { threads: [...], video_enabled }     （公開。進捗の新しい順 → 新着メッセージ順）
+//   POST   /api/chat/progress/threads { title, description, scratch?, image_id? }   -> { thread }   （要ログイン）
+//   GET    /api/chat/progress/threads/:id            -> { thread, updates: [...] }
+//   DELETE /api/chat/progress/threads/:id            -> { deleted }                           （作った本人 or 管理者）
+//   POST   /api/chat/progress/threads/:id/updates { content, file_ids?: [最大2] }  -> { update }   （スレッドを作った本人だけ。画像 / .sb3）
+//   DELETE /api/chat/progress/updates/:id            -> { deleted }                           （本人 or 管理者）
+// スレッド内のチャットは、部屋 "pg<スレッドID>" の普通のチャット（/api/chat/messages?room=pg12）。
+// 添付のファイルは、チャットの添付と同じ手順（/api/chat/videos/start → PUT → complete）で先にアップロードして、そのIDを渡す。
+const PG_TITLE_MAX = 60, PG_DESC_MAX = 600, PG_UPDATE_MAX = 1000, PG_FILES_MAX = 2;
+const PG_THREADS_PER_DAY = 5, PG_UPDATES_PER_HOUR = 20, PG_LIST_MAX = 200;
+const PG_ROOM_RE = /^pg(\d{1,9})$/;
+const pgClaim = (kind, id) => kind === 'thread' ? -(1000000000 + id) : -id;   // 添付ファイルの持ち主の印（負の数にしておくと、期限切れの掃除から外れる）
+
+function pgScratchId(v) {
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return 0;
+  const m = /^(?:https?:\/\/)?(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})(?:[\/?#].*)?$/i.exec(s) || /^(\d{3,12})$/.exec(s);
+  if (!m) throw new HttpError(400, 'bad_scratch');
+  return Number(m[1]);
+}
+async function pgFilesOf(env, ids) {
+  const out = {};
+  if (!ids.length) return out;
+  const rows = await env.DB.prepare(
+    `SELECT f.update_id AS uid, f.pos, v.id, v.object_key, v.content_type, v.size, n.name
+       FROM progress_files f JOIN chat_videos v ON v.id = f.video_id AND v.state = 'ready'
+       LEFT JOIN chat_video_names n ON n.video_id = v.id
+      WHERE f.update_id IN (${ids.map(() => '?').join(',')}) ORDER BY f.update_id, f.pos`
+  ).bind(...ids).all();
+  const items = [];
+  for (const r of rows.results) {
+    const o = { _uid: r.uid };
+    const info = { id: r.id, type: r.content_type, _key: r.object_key };
+    if (isImageType(r.content_type)) o.image = info; else o.file = Object.assign(info, { name: r.name || 'project.sb3', size: r.size || 0 });
+    items.push(o);
+  }
+  await attachMediaUrls(env, items);
+  for (const o of items) (out[o._uid] = out[o._uid] || []).push(o.image ? { kind: 'image', url: o.image.url } : { kind: 'file', url: o.file.url, name: o.file.name, size: o.file.size });
+  return out;
+}
+async function pgImageOf(env, imageId) {
+  if (!imageId) return null;
+  const r = await env.DB.prepare("SELECT object_key, content_type FROM chat_videos WHERE id = ? AND state = 'ready'").bind(imageId).first();
+  if (!r || !isImageType(r.content_type)) return null;
+  const o = { image: { _key: r.object_key } };
+  await attachMediaUrls(env, [o]);
+  return o.image.url;
+}
+async function pgThreadRow(env, t, withLast) {
+  const o = { id: t.id, user_id: t.user_id, username: t.username, title: t.title, description: t.description,
+    scratch_id: t.scratch_id || 0, created_at: t.created_at, last_msg_at: t.last_msg_at, last_update_at: t.last_update_at,
+    cover: await pgImageOf(env, t.image_id) };
+  if (withLast) {
+    const c = await env.DB.prepare('SELECT COUNT(*) AS n FROM progress_updates WHERE thread_id = ? AND deleted = 0').bind(t.id).first();
+    o.update_count = c ? c.n : 0;
+    const u = await env.DB.prepare('SELECT id, content, created_at FROM progress_updates WHERE thread_id = ? AND deleted = 0 ORDER BY id DESC LIMIT 1').bind(t.id).first();
+    if (u) {
+      const f = (await pgFilesOf(env, [u.id]))[u.id] || [];
+      o.last = { id: u.id, content: String(u.content).slice(0, 200), created_at: u.created_at, files: f };
+    }
+  }
+  return o;
+}
+async function pgListThreads(request, env) {
+  const rows = await env.DB.prepare(
+    `SELECT * FROM progress_threads WHERE deleted = 0
+      ORDER BY (last_update_at > 0) DESC, last_update_at DESC, last_msg_at DESC, id DESC LIMIT ?`
+  ).bind(PG_LIST_MAX).all();
+  const threads = [];
+  for (const t of rows.results) threads.push(await pgThreadRow(env, t, true));
+  return json({ threads, video_enabled: videoEnabled(env) });
+}
+async function pgGetThread(request, env, id) {
+  const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!t) throw new HttpError(404, 'not_found');
+  const rows = await env.DB.prepare('SELECT id, user_id, username, content, created_at FROM progress_updates WHERE thread_id = ? AND deleted = 0 ORDER BY id DESC LIMIT 100').bind(id).all();
+  const files = await pgFilesOf(env, rows.results.map(r => r.id));
+  const updates = rows.results.map(r => ({ id: r.id, user_id: r.user_id, username: r.username, content: r.content, created_at: r.created_at, files: files[r.id] || [] }));
+  return json({ thread: await pgThreadRow(env, t, false), updates, video_enabled: videoEnabled(env) });
+}
+async function pgTakeFiles(env, user, ids, okType) {
+  if (!Array.isArray(ids)) throw new HttpError(400, 'bad_files');
+  const list = [...new Set(ids.map(String))];
+  if (list.length > PG_FILES_MAX) throw new HttpError(400, 'too_many_files');
+  const out = [];
+  for (const id of list) {
+    if (!/^[a-f0-9]{32}$/.test(id)) throw new HttpError(400, 'bad_video');
+    const v = await env.DB.prepare("SELECT id, content_type FROM chat_videos WHERE id = ? AND user_id = ? AND state = 'ready' AND message_id IS NULL").bind(id, user.uid).first();
+    if (!v) throw new HttpError(404, 'video_not_found');
+    if (!okType(v.content_type)) throw new HttpError(400, 'bad_video_type');
+    out.push(v.id);
+  }
+  return out;
+}
+async function pgCreateThread(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request);
+  const title = String(body.title || '').replace(/\s+/g, ' ').trim().slice(0, PG_TITLE_MAX);
+  const desc = String(body.description || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, PG_DESC_MAX);
+  if (!title) throw new HttpError(400, 'empty_title');
+  const scratch = pgScratchId(body.scratch);
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+  const now = Date.now();
+  const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM progress_threads WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 86400000).first();
+  if (n && n.c >= PG_THREADS_PER_DAY) throw new HttpError(429, 'too_fast');
+  const img = body.image_id ? await pgTakeFiles(env, user, [body.image_id], isImageType) : [];
+  const res = await env.DB.prepare(
+    'INSERT INTO progress_threads (user_id, username, title, description, scratch_id, image_id, created_at, last_msg_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(user.uid, user.u, title, desc, scratch, img[0] || null, now, now).run();
+  const id = res.meta.last_row_id;
+  if (img[0]) await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(pgClaim('thread', id), img[0]).run();
+  const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ?').bind(id).first();
+  return json({ thread: await pgThreadRow(env, t, true) }, 201);
+}
+async function pgDeleteFilesWhere(env, where, bind) {
+  const rows = await env.DB.prepare(`SELECT id, object_key FROM chat_videos WHERE state != 'deleted' AND ${where}`).bind(...bind).all();
+  for (const v of rows.results) {
+    if (videoEnabled(env)) await b2Delete(env, v.object_key);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(v.id).run();
+  }
+}
+async function pgDeleteThread(request, env, id) {
+  const user = await requireUser(request, env);
+  const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!t) throw new HttpError(404, 'not_found');
+  if (t.user_id !== user.uid && !isAdmin(user, env)) throw new HttpError(403, 'forbidden');
+  await env.DB.prepare('UPDATE progress_threads SET deleted = 1 WHERE id = ?').bind(id).run();
+  await env.DB.prepare('UPDATE progress_updates SET deleted = 1 WHERE thread_id = ?').bind(id).run();
+  await env.DB.prepare('UPDATE chat_messages SET deleted = 1 WHERE room = ?').bind('pg' + id).run();
+  await pgDeleteFilesWhere(env, 'message_id = ?', [pgClaim('thread', id)]);
+  await pgDeleteFilesWhere(env, 'id IN (SELECT f.video_id FROM progress_files f JOIN progress_updates u ON u.id = f.update_id WHERE u.thread_id = ?)', [id]);
+  return json({ deleted: true });
+}
+async function pgPostUpdate(request, env, id) {
+  const user = await requireUser(request, env);
+  const t = await env.DB.prepare('SELECT * FROM progress_threads WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!t) throw new HttpError(404, 'not_found');
+  if (t.user_id !== user.uid) throw new HttpError(403, 'forbidden');
+  const body = await readJson(request);
+  const content = String(body.content || '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, PG_UPDATE_MAX);
+  const ban = await env.DB.prepare('SELECT 1 AS x FROM chat_bans WHERE user_id = ?').bind(user.uid).first();
+  if (ban) throw new HttpError(403, 'banned');
+  const files = await pgTakeFiles(env, user, body.file_ids == null ? [] : body.file_ids, (ty) => isImageType(ty) || isSb3Type(ty));
+  if (!content && !files.length) throw new HttpError(400, 'empty');
+  const now = Date.now();
+  const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM progress_updates WHERE user_id = ? AND created_at > ?').bind(user.uid, now - 3600000).first();
+  if (n && n.c >= PG_UPDATES_PER_HOUR) throw new HttpError(429, 'too_fast');
+  const res = await env.DB.prepare('INSERT INTO progress_updates (thread_id, user_id, username, content, created_at) VALUES (?, ?, ?, ?, ?)').bind(id, user.uid, user.u, content, now).run();
+  const uid = res.meta.last_row_id;
+  let pos = 0;
+  for (const f of files) {
+    await env.DB.prepare('INSERT INTO progress_files (update_id, video_id, pos) VALUES (?, ?, ?)').bind(uid, f, pos++).run();
+    await env.DB.prepare('UPDATE chat_videos SET message_id = ? WHERE id = ?').bind(pgClaim('update', uid), f).run();
+  }
+  await env.DB.prepare('UPDATE progress_threads SET last_update_at = ? WHERE id = ?').bind(now, id).run();
+  const fl = (await pgFilesOf(env, [uid]))[uid] || [];
+  return json({ update: { id: uid, user_id: user.uid, username: user.u, content, created_at: now, files: fl } }, 201);
+}
+async function pgDeleteUpdate(request, env, id) {
+  const user = await requireUser(request, env);
+  const u = await env.DB.prepare('SELECT * FROM progress_updates WHERE id = ? AND deleted = 0').bind(id).first();
+  if (!u) throw new HttpError(404, 'not_found');
+  if (u.user_id !== user.uid && !isAdmin(user, env)) throw new HttpError(403, 'forbidden');
+  await env.DB.prepare('UPDATE progress_updates SET deleted = 1 WHERE id = ?').bind(id).run();
+  await pgDeleteFilesWhere(env, 'message_id = ?', [pgClaim('update', id)]);
+  const last = await env.DB.prepare('SELECT MAX(created_at) AS m FROM progress_updates WHERE thread_id = ? AND deleted = 0').bind(u.thread_id).first();
+  await env.DB.prepare('UPDATE progress_threads SET last_update_at = ? WHERE id = ?').bind((last && last.m) || 0, u.thread_id).run();
+  return json({ deleted: true });
+}
+function pgRoute(request, env, path, method) {
+  if (path === '/api/chat/progress/threads' && method === 'GET') return pgListThreads(request, env);
+  if (path === '/api/chat/progress/threads' && method === 'POST') return pgCreateThread(request, env);
+  let m = path.match(/^\/api\/chat\/progress\/threads\/(\d{1,9})$/);
+  if (m && method === 'GET') return pgGetThread(request, env, Number(m[1]));
+  if (m && method === 'DELETE') return pgDeleteThread(request, env, Number(m[1]));
+  m = path.match(/^\/api\/chat\/progress\/threads\/(\d{1,9})\/updates$/);
+  if (m && method === 'POST') return pgPostUpdate(request, env, Number(m[1]));
+  m = path.match(/^\/api\/chat\/progress\/updates\/(\d{1,9})$/);
+  if (m && method === 'DELETE') return pgDeleteUpdate(request, env, Number(m[1]));
+  return null;
 }
 
 

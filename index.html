@@ -462,6 +462,62 @@
             .call-stage.has-share .call-cell.share { flex: 1 0 100% !important; }
         }
         /* 画面（パネル）の幅に合わせて、文字・アイコン・余白を自動で調整する */
+        /* #進捗（スレッド） */
+        #pg-view { display: none; }
+        #chat-section.pg-list .chat-main > #chat-list, #chat-section.pg-list .chat-main > #chat-msg, #chat-section.pg-list .chat-main > #chat-reply-bar, #chat-section.pg-list .chat-main > #chat-attach-bar,
+        #chat-section.pg-list .chat-main > #chat-typing, #chat-section.pg-list .chat-main > #chat-input-wrap, #chat-section.pg-list .chat-main > #chat-search, #chat-section.pg-list .chat-head .chat-head-link { display: none !important; }
+        #pg-view { margin-top: 8px; font-size: 14px; }
+        #chat-section.pg-list #pg-view { flex: 1; overflow-y: auto; }
+        #chat-section.pg-thread #pg-view { max-height: 55%; overflow-y: auto; flex-shrink: 0; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .pg-bar, .pg-top, .pg-uhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .pg-sp { flex: 1; }
+        .pg-hint { font-size: 12px; color: #8a94a6; flex: 1; }
+        .pg-btn { display: inline-flex; align-items: center; padding: 6px 12px; font-size: 13px; font-weight: 700; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: #2b3a55; cursor: pointer; text-decoration: none; }
+        .pg-btn.primary { background: #4d97ff; border-color: #4d97ff; color: #fff; }
+        .pg-btn.danger { color: #e5484d; border-color: #f3c4c6; }
+        .pg-btn:disabled { opacity: .55; cursor: default; }
+        .pg-cards { display: flex; flex-direction: column; gap: 8px; }
+        .pg-card { display: flex; gap: 10px; padding: 10px; border: 1px solid #dbe8ff; border-radius: 12px; background: #fff; color: inherit; text-decoration: none; }
+        .pg-card:hover { background: #f6f9ff; }
+        .pg-thumb { flex: 0 0 84px; height: 84px; border-radius: 8px; background: #eef3fb; display: flex; align-items: center; justify-content: center; font-size: 28px; overflow: hidden; }
+        .pg-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .pg-body { flex: 1; min-width: 0; }
+        .pg-title { font-size: 15px; font-weight: 800; color: #2b3a55; overflow-wrap: anywhere; }
+        .pg-by { font-size: 12px; color: #8a94a6; margin: 1px 0 3px; }
+        .pg-desc { font-size: 13px; color: #55607a; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+        .pg-desc.full { display: block; white-space: pre-wrap; margin-bottom: 6px; }
+        .pg-last { margin-top: 5px; padding: 5px 8px; border-radius: 8px; background: #f0f6ff; font-size: 12px; color: #3a4a68; }
+        .pg-last.none { background: transparent; color: #aab2c2; padding-left: 0; }
+        .pg-last-t { margin-top: 1px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+        .pg-chip { display: inline-block; padding: 0 5px; margin-left: 2px; font-size: 10px; font-weight: 800; border-radius: 4px; background: #dbe8ff; color: #3b6fc4; }
+        .pg-info { display: flex; gap: 12px; margin-bottom: 8px; }
+        .pg-cover { flex: 0 0 120px; width: 120px; height: 90px; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+        .pg-info-b { flex: 1; min-width: 0; }
+        .pg-upd { padding: 8px 10px; margin-bottom: 6px; border-left: 3px solid #4d97ff; border-radius: 0 8px 8px 0; background: #f6f9ff; }
+        .pg-upd-h { display: flex; justify-content: space-between; font-size: 12px; color: #8a94a6; }
+        .pg-upd-t { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 4px; }
+        .pg-imgs { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pg-imgs .chat-image { max-width: 220px; max-height: 160px; }
+        .pg-x { border: 0; background: transparent; color: #8a94a6; cursor: pointer; font-size: 14px; }
+        .pg-formbox { margin: 8px 0; padding: 12px; border: 1px solid #cfdcf5; border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+        #pg-form { display: none; }
+        #chat-section.pg-forming .chat-main > #chat-list, #chat-section.pg-forming .chat-main > #chat-msg, #chat-section.pg-forming .chat-main > #chat-reply-bar, #chat-section.pg-forming .chat-main > #chat-attach-bar,
+        #chat-section.pg-forming .chat-main > #chat-typing, #chat-section.pg-forming .chat-main > #chat-input-wrap { display: none !important; }
+        #chat-section.pg-forming #pg-form { flex: 1; max-height: none; overflow-y: auto; }
+        #chat-section.pg-forming #pg-view { max-height: none; flex-shrink: 0; border-bottom: 0; }
+        #chat-section.pg-thread #pg-form { max-height: 55vh; overflow-y: auto; }
+        .pg-f-title { font-weight: 800; color: #2b3a55; }
+        .pg-in { width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid #cfdcf5; border-radius: 8px; resize: vertical; }
+        .pg-files { display: flex; flex-direction: column; gap: 6px; }
+        .pg-file { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid #e3ebf8; border-radius: 8px; font-size: 12px; }
+        .pg-file img { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; }
+        .pg-sb3 { width: 36px; height: 36px; border-radius: 4px; background: #ffab19; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        .pg-fn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pg-prog { width: 60px; height: 6px; border-radius: 3px; background: #e3ebf8; overflow: hidden; }
+        .pg-prog i { display: block; height: 100%; background: #4d97ff; }
+        .pg-err { color: #e5484d; font-size: 12px; }
+        .pg-f-act { display: flex; justify-content: flex-end; gap: 8px; }
+        @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-thumb { flex-basis: 64px; height: 64px; } .pg-cover { flex-basis: 84px; width: 84px; height: 64px; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 160px; flex-basis: auto; } }
         .call-panel.zoom { container-type: inline-size; }
         .call-panel.zoom .call-ctl { flex-wrap: nowrap; gap: clamp(2px, 1cqw, 8px); padding: clamp(4px, 1.4cqw, 10px); }
         .call-panel.zoom .call-ctl .call-btn { flex: 1 1 0; min-width: 0; max-width: 120px; padding: clamp(5px, 1.4cqw, 9px) 2px clamp(4px, 1.2cqw, 8px); font-size: clamp(7.5px, 1.8cqw, 11px); white-space: nowrap; }
@@ -1191,6 +1247,8 @@
                     <div class="chat-head" id="chat-title"></div>
                     <div id="chat-search" class="chat-search" style="display:none"></div>
                     <div id="call-panel" class="call-panel" style="display:none"></div>
+                    <div id="pg-view"><div id="pg-main"></div></div>
+                    <div id="pg-form"></div>
                     <div id="chat-list"></div>
                     <div class="login-msg" id="chat-msg"></div>
                     <div id="chat-reply-bar"></div>
@@ -2238,7 +2296,7 @@ async function chatSearchGo(more) {
     chatSearchPaint();
 }
 function chatSearchOpen(room, id) {
-    if (CHAT_ROOMS.indexOf(room) < 0 || !id) return;
+    if (!chatRoomOK(room) || !id) return;
     chatSearchOn = false; chatSearchRender();
     if (room !== chatRoom) { chatRoom = room; try { localStorage.setItem('twc_chat_room', room); } catch (e) {} updateUrl(); }
     chatMsgs = []; chatLoadedFor = ''; chatSig = ''; chatReplyTo = null; renderReplyBar();
@@ -4192,7 +4250,7 @@ function readUrlState() {
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
-    if (m === 'c') return { m: 'c', room: CHAT_ROOMS.indexOf(p.get('room')) >= 0 ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
+    if (m === 'c') return { m: 'c', room: chatRoomOK(p.get('room') || '') ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
     if (m !== 's' && m !== 'b') return null;
     var sort = p.get('sort');
     if (['random', 'loves', 'newest', 'oldest', 'skill', 'fewest', 'relevance'].indexOf(sort) === -1) sort = null;
@@ -4427,7 +4485,7 @@ async function openNotif(el) {
     // 「すべてのメッセージ」の発言は、そのメッセージまでを既読にする。返信・メンションは、その通知だけ既読にする
     var readBody = el.dataset.kind === 'message' ? { upto: mid } : { id: id };
     apiCall('POST', '/api/notifications/read', readBody).then(function(d) { setNotifBadge(d.unread); }).catch(function() {});
-    if (CHAT_ROOMS.indexOf(room) >= 0) {
+    if (chatRoomOK(room)) {
         chatRoom = room;
         try { localStorage.setItem('twc_chat_room', room); } catch (e) {}
     }
@@ -4449,7 +4507,7 @@ async function notifReadAll() {
 
 // ===== チャット =====
 var CHAT_T = {
-    ja: { call_chat: 'チャット', call_watch: '画面共有を見る', call_unwatch: '見ない', call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
+    ja: { room_progress: '進捗', pg_sort: '進捗が新しい順 → 新しいメッセージ順', pg_new: '＋ 新しいスレッド', pg_empty: 'まだスレッドがありません。最初のスレッドを作ってみましょう', pg_login: 'ログインするとスレッドを作れます', pg_no_update: 'まだ進捗はありません', pg_upd_n: '進捗 {n}件', pg_files_only: '（画像・ファイル）', pg_update_btn: '進捗を更新', pg_back: '← 進捗一覧', pg_title_ph: '作品名（必須・60字まで）', pg_desc_ph: '作品の説明（任意）', pg_scratch_ph: 'Scratchの作品のリンク（任意）', pg_cover: '画像を追加（任意）', pg_create: 'スレッドを作る', pg_post: '進捗を投稿', pg_cancel: 'キャンセル', pg_add_file: '画像・sb3を追加（{n}/{m}）', pg_upd_ph: '今回の進捗（どこまでできた？）', pg_del_thread: 'スレッドを削除', pg_confirm_thread: 'このスレッドを削除しますか？（進捗とチャットも消えます）', pg_del_upd: '削除', pg_confirm_upd: 'この進捗を削除しますか？', pg_open_scratch: 'Scratchの作品を見る', pg_collapse: 'たたむ', pg_expand: 'ひらく', pg_uploading: '送信中…', pg_gone: 'このスレッドは見つかりません', pg_more: 'ほか{n}件を見る', pg_less: '閉じる', pg_e_type: '画像か .sb3 を選んでください（スレッドの表紙は画像のみ）', pg_now: 'たった今', pg_min: '{n}分前', pg_hour: '{n}時間前', pg_day: '{n}日前', e_empty_title: '作品名を入れてください', e_bad_scratch: 'Scratchの作品のリンクの形が正しくありません', e_too_many_files: '添付は最大2つまでです', e_thread_not_found: 'このスレッドは見つかりません', e_forbidden: 'この操作はできません', e_not_found: '見つかりません', e_video_not_found: '添付が見つかりません。もう一度選んでください', call_chat: 'チャット', call_watch: '画面共有を見る', call_unwatch: '見ない', call_cam: 'ビデオ開始', call_cam_off: 'ビデオ停止', call_e_cam: 'カメラを使えませんでした（許可を確認してください）', cap_head: '字幕', call_tts_head: '読み上げ', call_react: 'リアクション', call_more: '字幕・設定', call_hand: '手を挙げる', call_hand_down: '手を下ろす', call_hand_up: '{name} さんが手を挙げています', cap_view: '字幕を見る', cap_send: '自分の声を字幕にする', cap_lang: '話す言葉', cap_tr: '{lang}に訳す', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'このブラウザは、声の字幕に対応していません（Chrome・Edgeで使えます）', cap_note: 'ブラウザの音声認識で文字にして、通話の人に送ります（音声は、ブラウザの提供元に送られることがあります）', cap_err: '字幕を始められませんでした（マイクの許可を確認してください）', cap_you: 'あなた', search: '投稿を検索', search_ph: '探したい言葉（2文字以上）', search_room: 'この部屋', search_all: 'すべての部屋', search_go: '検索', search_none: '見つかりませんでした', search_more: 'もっと見る', search_short: '2文字以上で入力してください', search_err: '検索できませんでした。しばらくしてからもう一度', search_close: '閉じる', room_voice: '通話', call_title: '通話ルーム', call_unsupported: 'このブラウザ（または、この画面）では、通話を使えません', call_now: 'いま {n}人が通話中', call_nobody: 'いまは誰もいません。入って話しましょう',
           call_join: '通話に参加', call_joining: '接続中…', call_full: '満員です（最大{n}人）', call_login: 'ログインすると、通話に参加できます', call_talking: '{n}人で通話中', call_wait: 'ほかの人が入るのを待っています',
           call_share: '画面を共有', call_share_cam: 'カメラを共有', call_tts_note: '通話ルームのチャットに書かれた文字を、読み上げます（自分の発言は読みません）', call_unshare: '共有をやめる', call_sharing_you: 'あなたが画面を共有しています', call_sharing: '{name} さんが画面を共有中', call_share_full: '全画面',
           call_share_unsupported: 'このブラウザでは、画面共有を使えません（PCのChrome・Edgeなどで使えます）', call_share_busy: '同時に共有できるのは{n}人までです', call_e_share: '画面共有を始められませんでした',
@@ -4477,7 +4535,7 @@ var CHAT_T = {
           banned_done: ' さんを投稿禁止にしました',
           e_too_fast: '送信が速すぎます。少し待ってください', e_banned: '投稿が禁止されています', e_empty: 'メッセージを入力してください',
           e_own_message: '自分のメッセージは通報できません', e_other: 'エラーが発生しました' },
-    en: { call_chat: 'Chat', call_watch: 'Watch screen share', call_unwatch: 'Hide', call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
+    en: { room_progress: 'Progress', pg_sort: 'Newest progress first → newest message', pg_new: '+ New thread', pg_empty: 'No threads yet. Start the first one!', pg_login: 'Log in to create a thread', pg_no_update: 'No progress yet', pg_upd_n: '{n} updates', pg_files_only: '(image / file)', pg_update_btn: 'Post progress', pg_back: '← All threads', pg_title_ph: 'Project name (required, max 60)', pg_desc_ph: 'Description (optional)', pg_scratch_ph: 'Scratch project link (optional)', pg_cover: 'Add an image (optional)', pg_create: 'Create thread', pg_post: 'Post update', pg_cancel: 'Cancel', pg_add_file: 'Add image / sb3 ({n}/{m})', pg_upd_ph: 'What did you get done?', pg_del_thread: 'Delete thread', pg_confirm_thread: 'Delete this thread? (Its progress and chat will be removed)', pg_del_upd: 'Delete', pg_confirm_upd: 'Delete this update?', pg_open_scratch: 'View on Scratch', pg_collapse: 'Collapse', pg_expand: 'Expand', pg_uploading: 'Sending…', pg_gone: 'This thread was not found', pg_more: 'Show {n} more', pg_less: 'Show less', pg_e_type: 'Choose an image or a .sb3 (the cover must be an image)', pg_now: 'just now', pg_min: '{n}m ago', pg_hour: '{n}h ago', pg_day: '{n}d ago', e_empty_title: 'Please enter a project name', e_bad_scratch: 'That does not look like a Scratch project link', e_too_many_files: 'Up to 2 attachments', e_thread_not_found: 'Thread not found', e_forbidden: 'You cannot do that', e_not_found: 'Not found', e_video_not_found: 'Attachment not found. Please choose it again', call_chat: 'Chat', call_watch: 'Watch screen share', call_unwatch: 'Hide', call_cam: 'Start video', call_cam_off: 'Stop video', call_e_cam: 'Could not use the camera (check permission)', cap_head: 'Captions', call_tts_head: 'Read aloud', call_react: 'Reactions', call_more: 'Captions', call_hand: 'Raise hand', call_hand_down: 'Lower hand', call_hand_up: '{name} raised a hand', cap_view: 'Show captions', cap_send: 'Caption my voice', cap_lang: 'I speak', cap_tr: 'Translate to {lang}', cap_ja: '日本語', cap_en: 'English', cap_nosup: 'This browser does not support voice captions (use Chrome or Edge)', cap_note: 'Captions are made by your browser\'s speech recognition and sent to people in the call (audio may be sent to the browser vendor).', cap_err: 'Could not start captions (check microphone permission)', cap_you: 'You', search: 'Search posts', search_ph: 'Words to find (2+ characters)', search_room: 'This room', search_all: 'All rooms', search_go: 'Search', search_none: 'No results', search_more: 'Show more', search_short: 'Enter at least 2 characters', search_err: 'Search failed. Please try again later', search_close: 'Close', room_voice: 'Voice', call_title: 'Voice room', call_unsupported: 'Voice calls are not available in this browser', call_now: '{n} in the call', call_nobody: 'Nobody here yet. Join and say hi!',
           call_join: 'Join call', call_joining: 'Connecting…', call_full: 'Full (max {n})', call_login: 'Log in to join the call', call_talking: '{n} in the call', call_wait: 'Waiting for others to join',
           call_share: 'Share screen', call_share_cam: 'Share camera', call_tts_note: 'Messages in the call room chat are read aloud (your own are not).', call_unshare: 'Stop sharing', call_sharing_you: 'You are sharing your screen', call_sharing: '{name} is sharing their screen', call_share_full: 'Fullscreen',
           call_share_unsupported: 'Screen sharing is not available in this browser (use Chrome or Edge on a computer)', call_share_busy: 'Up to {n} people can share at once', call_e_share: 'Could not start screen sharing',
@@ -4509,7 +4567,7 @@ var CHAT_T = {
 var chatTimer = null;
 var chatSig = '';
 var chatIsAdmin = false;
-var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'feedback', 'voice'];
+var CHAT_ROOMS = ['general', '3d', 'math', 'physics', 'triangle', 'progress', 'feedback', 'voice'];
 var chatRoom = 'general';
 var chatReplyTo = null;   // { id, username, content }
 var chatMsgs = [];        // 表示中のメッセージ
@@ -4522,9 +4580,9 @@ var chatVideoEnabled = false;
 var chatAttach = null;    // { name, size, status: 'uploading'|'ready', progress, id }
 var chatAround = 0;       // URLのリンクで開いたとき、このメッセージの前後を読む
 var chatJumpTo = 0;       // 通知から開いたときに表示したいメッセージID
-try { var savedRoom = localStorage.getItem('twc_chat_room'); if (CHAT_ROOMS.indexOf(savedRoom) >= 0) chatRoom = savedRoom; } catch (e) {}
+try { var savedRoom = localStorage.getItem('twc_chat_room'); if (chatRoomOK(savedRoom)) chatRoom = savedRoom; } catch (e) {}
 
-function ct(k) { return ((CHAT_T[currentLang] || CHAT_T.ja)[k] || CHAT_T.ja[k] || k).replace('{mb}', Math.round(CHAT_VIDEO_MAX / 1048576)); }
+function ct(k) { if (k.indexOf('room_pg') === 0 && /^room_pg\d+$/.test(k)) return ct('room_progress') + ' #' + k.slice(7); return ((CHAT_T[currentLang] || CHAT_T.ja)[k] || CHAT_T.ja[k] || k).replace('{mb}', Math.round(CHAT_VIDEO_MAX / 1048576)); }
 function chatErr(e) { return ct('e_' + e.message) === 'e_' + e.message ? ct('e_other') : ct('e_' + e.message); }
 function setChatMsg(s) { document.getElementById('chat-msg').innerText = s || ''; }
 
@@ -4712,15 +4770,15 @@ function chatTabClick(e, r) {
 
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
-        return '<a class="chat-tab' + (r === chatRoom ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
+        return '<a class="chat-tab' + (r === chatRoom || (r === 'progress' && pgIsRoom(chatRoom)) ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
             '" onclick="return chatTabClick(event, this.dataset.r)">' + (r === CALL_ROOM ? '<svg class="call-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' : '<i>#</i>') + esc(ct('room_' + r)) + (r === CALL_ROOM ? '<i class="call-count"></i>' : '') + '</a>';
     }).join('');
     var act = document.querySelector('#chat-tabs .chat-tab.active');
     if (act && act.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) act.scrollIntoView({ inline: 'center', block: 'nearest' });
-    document.getElementById('chat-title').innerHTML = '<span>#</span>' + esc(ct('room_' + chatRoom)) +
+    document.getElementById('chat-title').innerHTML = '<span>#</span><span id="chat-title-t">' + esc(pgIsRoom(chatRoom) ? ((pgThread && pgThread.thread && pgThread.thread.title) || ct('room_progress')) : ct('room_' + chatRoom)) + '</span>' +
         '<button class="chat-head-link" onclick="chatSearchToggle()" title="' + esc(ct('search')) + '">' + SEARCH_SVG + '</button>' +
         '<button class="chat-head-link" onclick="copyShareLink()" title="' + esc(ct('copyLink')) + '">' + LINK_SVG + '</button>';
-    renderCallPanel(); callBadgeSync(); chatSearchRender();
+    renderCallPanel(); callBadgeSync(); chatSearchRender(); pgSync();
 }
 
 function setChatRoom(r) {
@@ -5261,6 +5319,8 @@ function chatScrollBottom() {
     if (box) box.scrollTop = box.scrollHeight;
 }
 async function loadChat(forceScroll, partialOk) {
+    if (chatRoom === 'progress') { pgLoadList(false); return; }
+    if (pgIsRoom(chatRoom)) pgLoadThread(false);
     try {
         var room = chatRoom;
         var partial = !!partialOk && chatMsgs.length > 0;
@@ -5306,6 +5366,235 @@ async function loadChat(forceScroll, partialOk) {
         chatSig = sig;
         renderChat(chatMsgs, forceScroll);
     } catch (e) { setChatMsg(chatErr(e)); }
+}
+
+// ===== #進捗（スレッド） =====
+// 一覧（chatRoom === 'progress'）→ スレッド（chatRoom === 'pg<ID>'。中は、ふつうのチャット）。
+// 進捗の更新は、スレッドを作った本人だけ。画像・sb3 は最大2つ。
+var PG_ROOM_RE = /^pg(\d{1,9})$/;
+var pgList = null, pgListSig = '', pgThread = null, pgThreadId = 0, pgThreadAt = 0, pgListAt = 0, pgCollapsed = (window.innerWidth <= 640), pgAll = false;
+var pgForm = null;        // { kind: 'thread'|'update', title, desc, scratch, text, files: [{name,size,status,progress,id,preview,sb3}], busy, err }
+function pgIsRoom(r) { return PG_ROOM_RE.test(r); }
+function pgRoomId(r) { var m = PG_ROOM_RE.exec(r); return m ? Number(m[1]) : 0; }
+function chatRoomOK(r) { return CHAT_ROOMS.indexOf(r) >= 0 || pgIsRoom(r); }
+function pgAgo(ts) {
+    var s = Math.max(0, (Date.now() - ts) / 1000);
+    if (s < 60) return ct('pg_now');
+    if (s < 3600) return ct('pg_min').replace('{n}', Math.floor(s / 60));
+    if (s < 86400) return ct('pg_hour').replace('{n}', Math.floor(s / 3600));
+    if (s < 86400 * 30) return ct('pg_day').replace('{n}', Math.floor(s / 86400));
+    var d = new Date(ts); return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+}
+function pgOwner(t) { return !!(loginUser && t && t.user_id === loginUser.id); }
+function pgThumbOf(t) {
+    var last = t.last;
+    if (last) { for (var i = 0; i < last.files.length; i++) if (last.files[i].kind === 'image') return last.files[i].url; }
+    return t.cover || '';
+}
+function pgFilesChips(files) {
+    return (files || []).map(function(f) { return '<span class="pg-chip">' + (f.kind === 'image' ? '🖼' : 'sb3') + '</span>'; }).join('');
+}
+function pgSync() {
+    var sec = document.getElementById('chat-section'), v = document.getElementById('pg-view');
+    if (!sec || !v) return;
+    var list = chatRoom === 'progress', th = pgIsRoom(chatRoom);
+    sec.classList.toggle('pg-list', list); sec.classList.toggle('pg-thread', th);
+    v.style.display = (list || th) ? 'block' : 'none';
+    if (pgForm && ((pgForm.kind === 'thread') !== list || (pgForm.kind === 'update' && pgForm.tid !== pgRoomId(chatRoom)))) pgForm = null;
+    pgFormPaint();
+    if (list) { pgThread = null; pgThreadId = 0; v.classList.remove('is-thread'); if (pgList) pgListPaint(); else document.getElementById('pg-main').innerHTML = ''; pgLoadList(true); }
+    else if (th) { var id = pgRoomId(chatRoom); if (id !== pgThreadId) { pgThread = null; pgThreadId = id; pgAll = false; } v.classList.add('is-thread'); pgThreadPaint(); pgLoadThread(true); }
+    else { document.getElementById('pg-main').innerHTML = ''; }
+}
+function pgTitleSync() {
+    var el = document.getElementById('chat-title-t');
+    if (!el) return;
+    el.textContent = pgIsRoom(chatRoom) ? ((pgThread && pgThread.thread && pgThread.thread.title) || ct('room_progress')) : ct('room_' + chatRoom);
+}
+async function pgLoadList(force) {
+    if (chatRoom !== 'progress') return;
+    if (!force && Date.now() - pgListAt < 3000) return;
+    pgListAt = Date.now();
+    try {
+        var d = await apiCall('GET', '/api/chat/progress/threads');
+        if (chatRoom !== 'progress') return;
+        if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; }
+        var sig = JSON.stringify(d.threads.map(function(t) { return [t.id, t.last_update_at, t.last_msg_at, t.title, t.update_count]; }));
+        if (sig !== pgListSig || !pgList) { pgList = d.threads; pgListSig = sig; pgListPaint(); }
+    } catch (e) { setChatMsg(chatErr(e)); }
+}
+function pgListPaint() {
+    var el = document.getElementById('pg-main');
+    if (!el || chatRoom !== 'progress') return;
+    var h = '<div class="pg-bar"><span class="pg-hint">' + esc(ct('pg_sort')) + '</span>' +
+        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\'thread\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
+    if (!pgList || !pgList.length) h += '<div class="chat-time">' + esc(ct('pg_empty')) + '</div>';
+    else h += '<div class="pg-cards">' + pgList.map(function(t) {
+        var th = pgThumbOf(t);
+        return '<a class="pg-card" href="' + esc(chatLinkUrl('pg' + t.id)) + '" onclick="return pgCardClick(event,' + t.id + ')">' +
+            '<div class="pg-thumb">' + (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span>📈</span>') + '</div>' +
+            '<div class="pg-body"><div class="pg-title">' + esc(t.title) + '</div>' +
+            '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
+            (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
+            (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(t.last.files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>'
+                       : '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
+            '</div></a>';
+    }).join('') + '</div>';
+    el.innerHTML = h;
+}
+function pgCardClick(e, id) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; setChatRoom('pg' + id); return false; }
+function pgBack() { setChatRoom('progress'); }
+async function pgLoadThread(force) {
+    var id = pgRoomId(chatRoom);
+    if (!id) return;
+    if (!force && Date.now() - pgThreadAt < 4000) return;
+    pgThreadAt = Date.now();
+    try {
+        var d = await apiCall('GET', '/api/chat/progress/threads/' + id);
+        if (pgRoomId(chatRoom) !== id) return;
+        if (!!d.video_enabled !== chatVideoEnabled) { chatVideoEnabled = !!d.video_enabled; }
+        var sig = JSON.stringify([d.thread.title, d.thread.description, d.updates.map(function(u) { return u.id; })]);
+        var prev = pgThread ? JSON.stringify([pgThread.thread.title, pgThread.thread.description, pgThread.updates.map(function(u) { return u.id; })]) : '';
+        pgThread = d;
+        if (sig !== prev) { pgThreadPaint(); pgTitleSync(); }
+    } catch (e) {
+        if (e && e.message === 'not_found') { pgThread = null; document.getElementById('pg-main').innerHTML = '<div class="chat-time">' + esc(ct('pg_gone')) + '</div>'; }
+        else setChatMsg(chatErr(e));
+    }
+}
+function pgThreadPaint() {
+    var el = document.getElementById('pg-main');
+    if (!el || !pgIsRoom(chatRoom)) return;
+    var back = '<button class="pg-btn" onclick="pgBack()">' + esc(ct('pg_back')) + '</button>';
+    if (!pgThread) { el.innerHTML = '<div class="pg-top">' + back + '</div>'; return; }
+    var t = pgThread.thread, ups = pgThread.updates, own = pgOwner(t);
+    var h = '<div class="pg-top">' + back + '<span class="pg-sp"></span>' +
+        (own || chatIsAdmin ? '<button class="pg-btn danger" onclick="pgDeleteThread()">' + esc(ct('pg_del_thread')) + '</button>' : '') +
+        (pgCollapsed && own ? '<button class="pg-btn primary" onclick="pgFormOpen(\'update\')">' + esc(ct('pg_update_btn')) + '</button>' : '') +
+        '<button class="pg-btn" onclick="pgToggleCollapse()">' + esc(pgCollapsed ? ct('pg_expand') + ' (' + ups.length + ')' : ct('pg_collapse')) + '</button></div>';
+    if (!pgCollapsed) {
+        h += '<div class="pg-info">' + (t.cover ? '<img class="pg-cover" alt="" src="' + esc(t.cover) + '" onclick="chatImageOpen(this.src)">' : '') +
+            '<div class="pg-info-b"><div class="pg-title">' + esc(t.title) + '</div><div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
+            (t.description ? '<div class="pg-desc full">' + esc(t.description) + '</div>' : '') +
+            (t.scratch_id ? '<a class="pg-btn" href="' + esc(projectUrl(t.scratch_id)) + '" onclick="return pgOpenScratch(event,' + t.scratch_id + ')">' + esc(ct('pg_open_scratch')) + '</a>' : '') + '</div></div>';
+        h += '<div class="pg-uhead"><b>' + esc(ct('pg_upd_n').replace('{n}', ups.length)) + '</b>' +
+            (own ? '<button class="pg-btn primary" onclick="pgFormOpen(\'update\')">' + esc(ct('pg_update_btn')) + '</button>' : '') + '</div>';
+        var shown = pgAll ? ups : ups.slice(0, 3);
+        h += shown.length ? shown.map(function(u) {
+            var imgs = u.files.filter(function(f) { return f.kind === 'image'; }).map(function(f) { return chatImageHTML({ url: f.url }); }).join('');
+            var fl = u.files.filter(function(f) { return f.kind === 'file'; }).map(function(f) { return chatFileHTML({ url: f.url, name: f.name, size: f.size }); }).join('');
+            return '<div class="pg-upd"><div class="pg-upd-h"><span>' + esc(pgAgo(u.created_at)) + '</span>' +
+                (own || chatIsAdmin ? '<button class="pg-x" title="' + esc(ct('pg_del_upd')) + '" onclick="pgDeleteUpdate(' + u.id + ')">✕</button>' : '') + '</div>' +
+                (u.content ? '<div class="pg-upd-t">' + esc(u.content) + '</div>' : '') + (imgs ? '<div class="pg-imgs">' + imgs + '</div>' : '') + fl + '</div>';
+        }).join('') : '<div class="chat-time">' + esc(ct('pg_no_update')) + '</div>';
+        if (ups.length > 3) h += '<button class="pg-btn" onclick="pgAll=!pgAll;pgThreadPaint()">' + esc(pgAll ? ct('pg_less') : ct('pg_more').replace('{n}', ups.length - 3)) + '</button>';
+    }
+    el.innerHTML = h;
+}
+function pgToggleCollapse() { pgCollapsed = !pgCollapsed; pgThreadPaint(); }
+function pgOpenScratch(e, id) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; openProject(id); return false; }
+async function pgDeleteThread() {
+    if (!pgThread || !confirm(ct('pg_confirm_thread'))) return;
+    try { await apiCall('DELETE', '/api/chat/progress/threads/' + pgThread.thread.id); pgList = null; pgListSig = ''; setChatRoom('progress'); }
+    catch (e) { setChatMsg(chatErr(e)); }
+}
+async function pgDeleteUpdate(id) {
+    if (!confirm(ct('pg_confirm_upd'))) return;
+    try { await apiCall('DELETE', '/api/chat/progress/updates/' + id); pgLoadThread(true); }
+    catch (e) { setChatMsg(chatErr(e)); }
+}
+// --- 入力フォーム（スレッドをつくる / 進捗を更新する） ---
+function pgFormOpen(kind) {
+    if (!loginUser) return;
+    pgForm = { kind: kind, tid: kind === 'update' ? pgRoomId(chatRoom) : 0, title: '', desc: '', scratch: '', text: '', files: [], busy: false, err: '' };
+    pgFormPaint();
+    var f = document.getElementById(kind === 'thread' ? 'pg-f-title' : 'pg-f-text'); if (f) f.focus();
+}
+async function pgFormClose() {
+    var f = pgForm; pgForm = null; pgFormPaint();
+    if (f) f.files.forEach(function(x) { if (x.id) apiCall('DELETE', '/api/chat/videos/' + x.id).catch(function() {}); if (x.preview) URL.revokeObjectURL(x.preview); });
+}
+function pgFormPaint() {
+    var el = document.getElementById('pg-form');
+    if (!el) return;
+    var sec = document.getElementById('chat-section'); if (sec) sec.classList.toggle('pg-forming', !!pgForm);
+    if (!pgForm) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    var a = document.activeElement, aid = a && a.id && a.id.indexOf('pg-f-') === 0 ? a.id : '', ss = aid && a.selectionStart != null ? [a.selectionStart, a.selectionEnd] : null;
+    var f = pgForm, thread = f.kind === 'thread', max = thread ? 1 : 2, busy = f.files.some(function(x) { return x.status === 'uploading'; }) || f.busy;
+    var h = '<div class="pg-formbox"><div class="pg-f-title">' + esc(ct(thread ? 'pg_new' : 'pg_update_btn')) + '</div>';
+    if (thread) h += '<input id="pg-f-title" class="pg-in" maxlength="60" placeholder="' + esc(ct('pg_title_ph')) + '" value="' + esc(f.title) + '" oninput="pgForm.title=this.value">' +
+        '<textarea id="pg-f-desc" class="pg-in" rows="3" maxlength="600" placeholder="' + esc(ct('pg_desc_ph')) + '" oninput="pgForm.desc=this.value">' + esc(f.desc) + '</textarea>' +
+        '<input id="pg-f-scratch" class="pg-in" placeholder="' + esc(ct('pg_scratch_ph')) + '" value="' + esc(f.scratch) + '" oninput="pgForm.scratch=this.value">';
+    else h += '<textarea id="pg-f-text" class="pg-in" rows="4" maxlength="1000" placeholder="' + esc(ct('pg_upd_ph')) + '" oninput="pgForm.text=this.value">' + esc(f.text) + '</textarea>';
+    h += '<div class="pg-files">' + f.files.map(function(x, i) {
+        return '<div class="pg-file">' + (x.preview ? '<img alt="" src="' + esc(x.preview) + '">' : '<span class="pg-sb3">sb3</span>') +
+            '<span class="pg-fn">' + esc(x.name) + '</span>' +
+            (x.status === 'uploading' ? '<span class="pg-prog"><i data-i="' + i + '" style="width:' + Math.round(x.progress * 100) + '%"></i></span>' : '') +
+            '<button class="pg-x" onclick="pgFileRemove(' + i + ')">✕</button></div>';
+    }).join('') + '</div>';
+    if (chatVideoEnabled && f.files.length < max) h += '<label class="pg-btn pg-addfile">' + esc(ct(thread ? 'pg_cover' : 'pg_add_file').replace('{n}', f.files.length).replace('{m}', max)) +
+        '<input type="file" accept="' + (thread ? 'image/*' : 'image/*,.sb3') + '" style="display:none" onchange="pgPick(this)"></label>';
+    if (f.err) h += '<div class="pg-err">' + esc(f.err) + '</div>';
+    h += '<div class="pg-f-act"><button class="pg-btn" onclick="pgFormClose()">' + esc(ct('pg_cancel')) + '</button>' +
+        '<button class="pg-btn primary" ' + (busy ? 'disabled' : '') + ' onclick="pgFormSubmit()">' + esc(busy ? ct('pg_uploading') : ct(thread ? 'pg_create' : 'pg_post')) + '</button></div></div>';
+    el.style.display = 'block'; el.innerHTML = h;
+    if (aid) { var n = document.getElementById(aid); if (n) { n.focus(); if (ss) try { n.setSelectionRange(ss[0], ss[1]); } catch (e) {} } }
+}
+function pgFileRemove(i) {
+    if (!pgForm) return;
+    var x = pgForm.files.splice(i, 1)[0];
+    if (x && x.id) apiCall('DELETE', '/api/chat/videos/' + x.id).catch(function() {});
+    if (x && x.preview) URL.revokeObjectURL(x.preview);
+    x.removed = true; pgFormPaint();
+}
+async function pgPick(inp) {
+    var f = inp.files && inp.files[0];
+    inp.value = '';
+    var form = pgForm;
+    if (!f || !form) return;
+    var thread = form.kind === 'thread', max = thread ? 1 : 2;
+    if (form.files.length >= max) return;
+    form.err = '';
+    var isSb3 = /\.sb3$/i.test(f.name), isImage = !isSb3 && /^image\//.test(f.type);
+    if (!isImage && !(isSb3 && !thread)) { form.err = ct('pg_e_type'); pgFormPaint(); return; }
+    if (isSb3 && f.size > CHAT_VIDEO_MAX) { form.err = ct('e_sb3_too_big'); pgFormPaint(); return; }
+    var blob = f, preview = '';
+    if (isImage) {
+        try { blob = await chatCompressImage(f); } catch (e) { form.err = ct('e_bad_image'); pgFormPaint(); return; }
+        preview = URL.createObjectURL(blob);
+    }
+    var item = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3 };
+    form.files.push(item); pgFormPaint();
+    try {
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : 'application/x.scratch.sb3', name: isSb3 ? f.name : undefined });
+        item.id = st.id;
+        await chatPutFile(st.upload_url, st.headers, blob, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
+        await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+        item.status = 'ready';
+        if (item.removed) apiCall('DELETE', '/api/chat/videos/' + st.id).catch(function() {});
+    } catch (e) {
+        var k = form.files.indexOf(item); if (k >= 0) form.files.splice(k, 1);
+        if (item.id) apiCall('DELETE', '/api/chat/videos/' + item.id).catch(function() {});
+        if (preview) URL.revokeObjectURL(preview);
+        form.err = chatErr(e);
+    }
+    if (pgForm === form) pgFormPaint();
+}
+async function pgFormSubmit() {
+    var f = pgForm;
+    if (!f || f.busy || f.files.some(function(x) { return x.status === 'uploading'; })) return;
+    var ids = f.files.map(function(x) { return x.id; });
+    f.busy = true; f.err = ''; pgFormPaint();
+    try {
+        if (f.kind === 'thread') {
+            var d = await apiCall('POST', '/api/chat/progress/threads', { title: f.title, description: f.desc, scratch: f.scratch, image_id: ids[0] || undefined });
+            pgForm = null; pgList = null; pgListSig = '';
+            setChatRoom('pg' + d.thread.id);
+        } else {
+            await apiCall('POST', '/api/chat/progress/threads/' + f.tid + '/updates', { content: f.text, file_ids: ids });
+            pgForm = null; pgFormPaint(); pgLoadThread(true);
+        }
+    } catch (e) { f.busy = false; f.err = chatErr(e); pgFormPaint(); }
 }
 
 async function chatLoadOlder() {

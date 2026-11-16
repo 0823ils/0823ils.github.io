@@ -183,3 +183,35 @@ CREATE TABLE IF NOT EXISTS chat_reactions (
 );
 CREATE INDEX IF NOT EXISTS idx_reactions_msg ON chat_reactions(message_id);
 CREATE INDEX IF NOT EXISTS idx_reactions_user_time ON chat_reactions(user_id, created_at);
+
+-- 進捗スレッド（#進捗）。スレッド内のチャットは、部屋 "pg<ID>" の chat_messages を使う
+CREATE TABLE IF NOT EXISTS progress_threads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  scratch_id INTEGER NOT NULL DEFAULT 0,   -- Scratch作品のID（なければ 0）
+  image_id TEXT,                           -- 表紙画像（chat_videos.id）
+  created_at INTEGER NOT NULL,
+  last_msg_at INTEGER NOT NULL DEFAULT 0,  -- 最後にチャットが来た時刻
+  last_update_at INTEGER NOT NULL DEFAULT 0, -- 最後に進捗を更新した時刻（0 = まだ無い）
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_pg_threads_order ON progress_threads(deleted, last_update_at DESC, last_msg_at DESC);
+CREATE TABLE IF NOT EXISTS progress_updates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  thread_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  username TEXT NOT NULL,
+  content TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_pg_updates_thread ON progress_updates(thread_id, id DESC);
+CREATE TABLE IF NOT EXISTS progress_files (
+  update_id INTEGER NOT NULL,
+  video_id TEXT NOT NULL,
+  pos INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (update_id, video_id)
+);

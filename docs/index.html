@@ -537,11 +537,17 @@
         .pg-card-link:hover .pg-title { color: #3577db; }
         .pg-list-video, .pg-video { display: block; width: 100%; max-width: 100%; max-height: 340px; margin-top: 8px; border-radius: 10px; background: #101522; }
         .pg-list-video { max-height: none; }
-        .pg-upd-media { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; min-width: 0; }
-        .pg-sb3-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #f0d49b; border-radius: 10px; background: #fffaf0; }
-        .pg-sb3-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 26px; border-radius: 6px; background: #ffab19; color: #fff; font-size: 11px; font-weight: 900; }
-        .pg-sb3-name { flex: 1; min-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #73511b; font-size: 12px; }
-        .pg-sb3-frame { display: block; width: 100%; aspect-ratio: 482 / 412; border: 0; border-radius: 10px; background: #111; }
+        .pg-upd-media { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; min-width: 0; }
+        .pg-update-media-frame { width:100%; aspect-ratio:4/3; min-width:0; overflow:hidden; border-radius:10px; background:#f7f8fa; }
+        .pg-update-media-image { display:flex; align-items:center; justify-content:center; }
+        .pg-update-media-image .chat-image { display:block; width:100%; height:100%; max-width:100%; max-height:none; object-fit:contain; margin:0; border-radius:0; }
+        .pg-update-media-video .pg-video { display:block; width:100%; height:100%; max-height:none; aspect-ratio:4/3; object-fit:contain; margin:0; border-radius:0; background:transparent; }
+        .pg-update-media-sb3 .pg-sb3-box { background:#f7f8fa; border-color:#dfe5ee; }
+        .pg-update-media-sb3 .pg-sb3-frame { aspect-ratio:482/412; background:transparent; }
+        .pg-sb3-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #dfe5ee; border-radius: 10px; background: #f7f8fa; }
+        .pg-sb3-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 26px; border-radius: 6px; background: #e7ebf1; color: #48566b; font-size: 11px; font-weight: 900; }
+        .pg-sb3-name { flex: 1; min-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #455268; font-size: 12px; }
+        .pg-sb3-frame { display: block; width: 100%; aspect-ratio: 482 / 412; border: 0; border-radius: 0; background: transparent; color-scheme: auto; }
         .pg-sb3-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
         .pg-upd-actions { display: inline-flex; align-items: center; gap: 10px; }
         .pg-upd-actions button { padding: 2px 5px; }
@@ -556,14 +562,14 @@
         #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
         #chat-section.pg-list .pg-card-media { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; width:100%; min-width:0; margin-top:14px; }
         #chat-section.pg-list .pg-card-media.has-two { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-        #chat-section.pg-list .pg-media-item { min-width:0; overflow:hidden; border:1px solid #e3eaf4; border-radius:12px; background:#101522; }
-        #chat-section.pg-list .pg-media-image { background:#f4f6fa; }
-        #chat-section.pg-list .pg-list-image { display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:16/9; min-width:0; overflow:hidden; }
+        #chat-section.pg-list .pg-media-item { min-width:0; overflow:hidden; border:1px solid #e3e8ef; border-radius:12px; background:transparent; }
+        #chat-section.pg-list .pg-media-image { background:#f7f8fa; }
+        #chat-section.pg-list .pg-list-image { display:flex; align-items:center; justify-content:center; width:100%; aspect-ratio:4/3; min-width:0; overflow:hidden; }
         #chat-section.pg-list .pg-list-image .chat-image { display:block; width:100%; height:100%; max-width:100%; max-height:none; object-fit:contain; margin:0; border-radius:0; cursor:zoom-in; }
         #chat-section.pg-list .pg-list-image .chat-video-gone { padding:12px; color:#8792a5; font-size:13px; }
-        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; height:auto; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:0; background:#101522; }
-        #chat-section.pg-list .pg-list-sb3-player { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#101522; }
-        #chat-section.pg-list .pg-list-sb3-frame { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; background:#101522; }
+        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; height:auto; aspect-ratio:4/3; object-fit:contain; margin:0; border-radius:0; background:transparent; }
+        #chat-section.pg-list .pg-list-sb3-player { position:relative; width:100%; aspect-ratio:482/412; overflow:hidden; background:transparent; }
+        #chat-section.pg-list .pg-list-sb3-frame { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; background:transparent; color-scheme:auto; }
         #chat-section.pg-list .pg-list-sb3-error { padding:12px; color:#8792a5; font-size:13px; background:#f7f9fc; }
         #chat-section.pg-list .pg-chip { margin-right:4px; }
         @media (max-width:760px) {
@@ -6042,7 +6048,7 @@ function pgListSB3Embed(file) {
     try { url = new URL(file.url, location.href); } catch (e) { return '<div class="pg-list-sb3-error">SB3を読み込めません</div>'; }
     if (url.protocol !== 'https:' && url.origin !== location.origin) return '<div class="pg-list-sb3-error">SB3を読み込めません</div>';
     var src = 'https://turbowarp.org/embed?project_url=' + encodeURIComponent(url.href);
-    return '<div class="pg-list-sb3-player"><iframe class="pg-list-sb3-frame" src="' + esc(src) + '" title="' + esc(file.name || 'TurboWarp project') + '" loading="lazy" allow="fullscreen; autoplay" allowfullscreen referrerpolicy="no-referrer"></iframe></div>';
+    return '<div class="pg-list-sb3-player"><iframe class="pg-list-sb3-frame" src="' + esc(src) + '" title="' + esc(file.name || 'TurboWarp project') + '" width="482" height="412" loading="lazy" allow="fullscreen; autoplay" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen style="color-scheme:auto" referrerpolicy="no-referrer"></iframe></div>';
 }
 function pgSb3Embed(file, key) {
     return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '" data-name="' + esc(file.name || 'project.sb3') + '">' +
@@ -6069,6 +6075,9 @@ function pgSb3Open(key) {
     frame.src = 'https://turbowarp.org/embed?project_url=' + encodeURIComponent(url.href);
     frame.title = 'TurboWarp SB3 player'; frame.loading = 'lazy'; frame.allow = 'fullscreen; autoplay';
     frame.allowFullscreen = true; frame.referrerPolicy = 'no-referrer'; frame.className = 'pg-sb3-frame';
+    frame.setAttribute('width', '482'); frame.setAttribute('height', '412');
+    frame.setAttribute('allowtransparency', 'true'); frame.setAttribute('frameborder', '0');
+    frame.setAttribute('scrolling', 'no'); frame.style.colorScheme = 'auto';
     var close = document.createElement('button'); close.type = 'button'; close.className = 'pg-btn';
     close.textContent = ct('pg_close_player'); close.onclick = function() { pgSb3Close(key); };
     box.innerHTML = ''; box.appendChild(frame);
@@ -6076,9 +6085,9 @@ function pgSb3Open(key) {
 }
 function pgMediaHTML(files, key) {
     return (files || []).map(function(f, i) {
-        if (f.kind === 'image') return chatImageHTML({ url: f.url });
-        if (f.kind === 'video') return '<video class="pg-video" controls playsinline preload="metadata" src="' + esc(f.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>';
-        if (f.kind === 'sb3') return pgSb3Embed(f, key + '-' + i);
+        if (f.kind === 'image') return '<div class="pg-update-media-frame pg-update-media-image">' + chatImageHTML({ url: f.url }) + '</div>';
+        if (f.kind === 'video') return '<div class="pg-update-media-frame pg-update-media-video"><video class="pg-video" controls playsinline preload="metadata" src="' + esc(f.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video></div>';
+        if (f.kind === 'sb3') return '<div class="pg-update-media-sb3">' + pgSb3Embed(f, key + '-' + i) + '</div>';
         return chatFileHTML({ url: f.url, name: f.name, size: f.size });
     }).join('');
 }

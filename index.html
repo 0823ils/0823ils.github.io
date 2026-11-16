@@ -50,7 +50,9 @@
         #chat-tabs { display: none; }
         #chat-tabs .chat-tab { flex: 0 0 auto; padding-left: 12px; padding-right: 12px; white-space: nowrap; }
         #chat-tabs .chat-tab i { font-style: normal; opacity: .72; margin-right: 4px; }
-        .chat-current-hidden { display: none !important; }
+        .nav-state-proxies { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+        .nav-state-proxy { position: absolute !important; width: 1px !important; height: 1px !important; min-width: 0 !important; min-height: 0 !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap !important; border: 0 !important; pointer-events: none !important; }
+        body.header-no-subnav { padding-top: 64px !important; }
         .navigation-menu { position: fixed !important; inset: 0 auto 0 0; width: min(320px, 84vw); min-width: 0; height: 100vh; height: 100dvh; max-height: none; overflow-y: auto; padding: 22px 14px; border-radius: 0 16px 16px 0; background: #fff; box-shadow: 8px 0 32px rgba(0,0,0,.18); z-index: 1201; display: block; visibility: hidden; transform: translateX(-105%); transition: transform .26s ease, visibility 0s linear .26s; }
         .navigation-menu.open { display: block; visibility: visible; transform: translateX(0); transition: transform .26s ease, visibility 0s; }
         .navigation-menu::before { content: 'メニュー'; display: block; padding: 8px 12px 18px; color: #8793a5; font-size: 12px; font-weight: 800; }
@@ -1259,15 +1261,19 @@
             <button type="button" class="header-mode-tab" id="mode-rank-btn" onclick="setMode('rank')" data-i18n="modeRank">ランキング</button>
             <button type="button" class="header-mode-tab" id="mode-short-btn" onclick="setMode('short')" data-i18n="modeShort">ショート</button>
             <button type="button" class="header-mode-tab" id="mode-saved-btn" onclick="setMode('saved')" style="display:none" data-i18n="modeSaved">保存</button></div>
-        <div class="header-mode-tabs" id="header-mode-tabs-talk" style="display:none"><button type="button" class="header-mode-tab" id="mode-chat-btn" onclick="setMode('chat')" style="display:none" data-i18n="chatBtn">チャット</button><div id="chat-tabs" style="display:none"></div><button type="button" class="header-mode-tab" id="mode-admin-btn" onclick="setMode('admin')" style="display:none" data-i18n="modeAdmin">管理</button></div>
-        <div class="header-mode-tabs" id="header-mode-tabs-guide" style="display:none"><button type="button" class="header-mode-tab" id="mode-guide-btn" onclick="setMode('guide')" style="display:none" data-i18n="modeGuide">解説</button></div>
+        <div class="header-mode-tabs" id="header-mode-tabs-talk" style="display:none"><div id="chat-tabs" style="display:none"></div><button type="button" class="header-mode-tab" id="mode-admin-btn" onclick="setMode('admin')" style="display:none" data-i18n="modeAdmin">管理</button></div>
+        
     </nav>
+    <div class="nav-state-proxies" aria-hidden="true">
+        <button type="button" class="nav-state-proxy" id="mode-chat-btn" style="display:none" data-i18n="chatBtn">チャット</button>
+        <button type="button" class="nav-state-proxy" id="mode-guide-btn" style="display:none" data-i18n="modeGuide">解説</button>
+    </div>
 </header>
 <div class="nav-backdrop" id="nav-backdrop" onclick="closeHeaderMenus()" aria-hidden="true"></div>
 <nav class="header-menu navigation-menu" id="nav-menu" aria-label="カテゴリ選択" aria-hidden="true" onclick="event.stopPropagation()">
-    <button type="button" class="drawer-category-btn active" onclick="setHeaderCategory('explore');closeHeaderMenus()" data-i18n="navExploreGroup">見る・探す</button>
-    <button type="button" class="drawer-category-btn" onclick="setHeaderCategory('talk');closeHeaderMenus()" data-i18n="navTalkGroup">話す</button>
-    <button type="button" class="drawer-category-btn" onclick="setHeaderCategory('guide');closeHeaderMenus()" data-i18n="navGuideGroup">作り方・解説</button>
+    <button type="button" class="drawer-category-btn active" onclick="selectDrawerCategory('explore')" data-i18n="navExploreGroup">見る・探す</button>
+    <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('talk')" data-i18n="navTalkGroup">話す</button>
+    <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('guide')" data-i18n="navGuideGroup">作り方・解説</button>
 </nav>
 
 <!-- サイトを開いてすぐ出す「通知をオンにしますか？」（ログイン中で、まだ設定していない端末だけ） -->
@@ -4919,18 +4925,45 @@ var currentHeaderCategory = 'explore';
 function setHeaderCategory(category) {
     if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
     currentHeaderCategory = category;
+    var headerNav = document.getElementById('header-mode-nav');
+    if (headerNav) headerNav.style.display = category === 'guide' ? 'none' : '';
+    document.body.classList.toggle('header-no-subnav', category === 'guide');
     ['explore', 'talk', 'guide'].forEach(function(key) {
         var tabs = document.getElementById('header-mode-tabs-' + key);
-        if (tabs) tabs.style.display = key === category ? '' : 'none';
+        if (tabs) tabs.style.display = key === category && key !== 'guide' ? '' : 'none';
     });
     var chatActive = category === 'talk' && currentMode === 'chat';
     var chatRooms = document.getElementById('chat-tabs');
-    var chatEntry = document.getElementById('mode-chat-btn');
     if (chatRooms) chatRooms.style.display = chatActive ? 'contents' : 'none';
-    if (chatEntry) chatEntry.classList.toggle('chat-current-hidden', chatActive);
     document.querySelectorAll('.drawer-category-btn').forEach(function(btn, i) {
         btn.classList.toggle('active', ['explore', 'talk', 'guide'][i] === category);
     });
+}
+function selectDrawerCategory(category) {
+    if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
+    closeHeaderMenus();
+    if (category === 'explore') {
+        setHeaderCategory('explore');
+        return;
+    }
+    if (category === 'talk') {
+        chatRoom = 'general';
+        try { localStorage.setItem('twc_chat_room', 'general'); } catch (e) {}
+        chatAround = 0;
+        chatJumpTo = 0;
+        chatReplyTo = null;
+        chatSig = '';
+        chatMsgs = [];
+        chatLoadedFor = '';
+        var chatList = document.getElementById('chat-list');
+        if (chatList) chatList.innerHTML = '';
+        renderReplyBar();
+        setHeaderCategory('talk');
+        setMode('chat', true);
+        return;
+    }
+    setHeaderCategory('guide');
+    setMode('guide', true);
 }
 function toggleNavigationMenu(e) {
     if (e) e.stopPropagation();
@@ -5258,7 +5291,6 @@ document.addEventListener('visibilitychange', function() {
 });
 
 function enterChat() {
-    document.getElementById('chat-rooms-title').innerText = ct('rooms');
     setChatMsg('');
     chatSig = '';
     chatMsgs = []; chatLoadedFor = '';
@@ -7686,7 +7718,7 @@ var adminChecked = 0;
 async function checkAdminTab() {
     var tab = document.getElementById('mode-admin-btn');
     if (!tab) return;
-    if (!apiEnabled() || !loginUser) { tab.style.display = 'none'; adminChecked = 0; syncNavigationGroups(); return; }
+    if (!apiEnabled() || !loginUser) { tab.style.display = 'none'; adminChecked = 0;  return; }
     if (adminChecked === loginUser.id) return;
     adminChecked = loginUser.id;
     try { var r = await apiCall('GET', '/api/applications/mine'); tab.style.display = r.is_admin ? '' : 'none'; } catch (e) {}

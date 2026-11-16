@@ -258,15 +258,6 @@
         .chat-search-more { align-self: center; background: #fff; border: 1px solid #cfdcf5; border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 13px; color: #4D97FF; }
         a.chat-tab { display: block; text-decoration: none; }
         #chat-list { flex: 1; overflow-y: auto; border-radius: 8px; padding: 6px 4px; margin: 8px 0; font-size: 14px; }
-        @media (max-width: 760px) {
-        .pg-card { gap:8px; padding:8px; }
-        .pg-thumb { flex-basis:120px; width:120px; height:100px; }
-        .pg-thumb:not(:has(img)) { flex-basis:72px; width:72px; height:72px; }
-        .pg-info { flex-direction:column; gap:8px; }
-        .pg-cover { flex:0 0 auto; width:100%; max-width:360px; height:auto; aspect-ratio:16/9; }
-        #chat-section.pg-thread #pg-view { padding:8px 0; }
-        #chat-section.pg-thread #pg-detail-switch button { padding:10px 6px; font-size:13px; }
-        }
         @media (max-width: 640px) {
             .chat-layout { flex-direction: column; gap: 8px; height: calc(100vh - 220px); }
             .chat-rooms { width: auto; flex-direction: row; overflow-x: auto; scrollbar-width: none; }
@@ -545,7 +536,7 @@
         .pg-card-link { color: inherit; text-decoration: none; }
         .pg-card-link:hover .pg-title { color: #3577db; }
         .pg-list-video, .pg-video { display: block; width: 100%; max-width: 100%; max-height: 340px; margin-top: 8px; border-radius: 10px; background: #101522; }
-        .pg-list-video { max-height: 240px; }
+        .pg-list-video { max-height: none; }
         .pg-upd-media { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; min-width: 0; }
         .pg-sb3-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 9px 10px; border: 1px solid #f0d49b; border-radius: 10px; background: #fffaf0; }
         .pg-sb3-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 26px; border-radius: 6px; background: #ffab19; color: #fff; font-size: 11px; font-weight: 900; }
@@ -557,23 +548,29 @@
         .pg-existing-file { background: #f5f8fd; }
         .pg-file-kind { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 6px; background: #e7eefb; font-size: 11px; font-weight: 800; color: #526786; }
         .pg-file-kept { color: #8190a6; font-size: 11px; }
-        /* 作品一覧の添付はコンパクトにし、操作した時だけプレイヤーを表示 */
-        #chat-section.pg-list .pg-thumb { flex: 0 0 176px; width:176px; height:110px; }
+        /* 作品一覧：情報とメディアを分け、動画・SB3はカード幅いっぱいに表示 */
+        #chat-section.pg-list .pg-card { display:block; min-width:0; }
+        #chat-section.pg-list .pg-card-main { display:flex; align-items:flex-start; gap:14px; min-width:0; }
+        #chat-section.pg-list .pg-thumb { flex:0 0 220px; width:220px; height:138px; }
         #chat-section.pg-list .pg-thumb-empty { font-size:12px; color:#8b98ae; }
-        #chat-section.pg-list .pg-body { min-width:0; }
-        #chat-section.pg-list .pg-list-attachments { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px; margin-top:8px; min-width:0; }
-        #chat-section.pg-list .pg-list-attachment { display:flex; flex-wrap:wrap; align-items:center; gap:8px; width:min(100%,420px); min-width:0; padding:8px 10px; border:1px solid #e2e9f4; border-radius:9px; background:#f8faff; box-sizing:border-box; }
-        #chat-section.pg-list .pg-list-type { color:#64738b; font-size:12px; font-weight:700; }
-        #chat-section.pg-list .pg-list-video-host { flex:1 0 100%; min-width:0; }
-        #chat-section.pg-list .pg-list-video-player { display:block; width:100%; max-width:420px; height:auto; aspect-ratio:16/9; margin-top:4px; border-radius:8px; background:#101522; }
-        #chat-section.pg-list .pg-list-sb3 { flex:0 1 420px; min-width:0; max-width:100%; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-box { width:100%; min-width:0; box-sizing:border-box; }
-        #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { width:100%; max-width:420px; aspect-ratio:16/10; }
-        #chat-section.pg-list .pg-chip { margin:0 3px 0 0; }
+        #chat-section.pg-list .pg-body { flex:1 1 auto; min-width:0; }
+        #chat-section.pg-list .pg-card-media { display:flex; flex-direction:column; gap:12px; width:100%; min-width:0; margin-top:12px; }
+        #chat-section.pg-list .pg-list-video { display:block; width:100%; max-width:100%; max-height:520px; aspect-ratio:16/9; object-fit:contain; margin:0; border-radius:12px; background:#101522; }
+        #chat-section.pg-list .pg-list-sb3 { width:100%; min-width:0; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-box { width:100%; min-height:58px; box-sizing:border-box; padding:12px 14px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-tag { min-width:46px; height:30px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-name { font-size:13px; }
+        #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { display:block; width:100%; max-width:100%; min-height:clamp(260px, 52vw, 560px); aspect-ratio:16/9; }
+        #chat-section.pg-list .pg-chip { margin-right:4px; }
+        @media (max-width:760px) {
+            #chat-section.pg-list .pg-card-main { gap:10px; }
+            #chat-section.pg-list .pg-thumb { flex-basis:160px; width:160px; height:108px; }
+            #chat-section.pg-list .pg-list-video { max-height:420px; }
+        }
         @media (max-width:640px) {
-            #chat-section.pg-list .pg-thumb { flex:0 0 auto; width:100%; height:auto; aspect-ratio:16/9; }
-            #chat-section.pg-list .pg-list-attachment, #chat-section.pg-list .pg-list-sb3 { width:100%; max-width:100%; flex-basis:100%; }
-            #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { max-width:100%; }
+            #chat-section.pg-list .pg-card-main { flex-direction:column; }
+            #chat-section.pg-list .pg-thumb { flex:none; width:100%; height:auto; aspect-ratio:16/9; }
+            #chat-section.pg-list .pg-list-sb3 .pg-sb3-frame { min-height:clamp(220px, 58vw, 420px); }
         }
         @media (max-width: 640px) { .pg-top { gap: 6px; } .pg-top .pg-btn { padding: 5px 10px; font-size: 12px; } .pg-card { flex-direction: column; } .pg-thumb { flex: none; width: 100%; height: auto; aspect-ratio: 16 / 9; } .pg-info { flex-direction: column; } .pg-cover { width: 100%; height: auto; max-height: 240px; flex: none; } }
         .call-panel.zoom { container-type: inline-size; }
@@ -6002,57 +5999,40 @@ function pgListPaint() {
     var el = document.getElementById('pg-main');
     if (!el || chatRoom !== 'progress') return;
     var h = '<div class="pg-bar"><span class="pg-hint">' + esc(ct('pg_sort')) + '</span>' +
-        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\'thread\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
+        (loginUser ? '<button class="pg-btn primary" onclick="pgFormOpen(\\'thread\\')">' + esc(ct('pg_new')) + '</button>' : '<span class="pg-hint">' + esc(ct('pg_login')) + '</span>') + '</div>';
     if (!pgList || !pgList.length) h += '<div class="chat-time">' + esc(ct('pg_empty')) + '</div>';
     else h += '<div class="pg-cards">' + pgList.map(function(t) {
         var th = pgThumbOf(t), files = t.last && t.last.files ? t.last.files : [];
-        var video = files.find(function(x) { return x.kind === 'video'; });
-        var sb3 = files.find(function(x) { return x.kind === 'sb3'; });
         var href = esc(chatLinkUrl('pg' + t.id));
         return '<article class="pg-card">' +
-            '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')">' + (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span class="pg-thumb-empty">画像なし</span>') + '</a>' +
-            '<div class="pg-body"><a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
-            '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
-            (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
-            (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>'
-                       : '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
-            pgListAttachments(files, t.id) +
-            '</div></article>';
+            '<div class="pg-card-main">' +
+                '<a class="pg-thumb" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')">' +
+                    (th ? '<img loading="lazy" alt="" src="' + esc(th) + '">' : '<span class="pg-thumb-empty">画像なし</span>') +
+                '</a>' +
+                '<div class="pg-body">' +
+                    '<a class="pg-card-link" href="' + href + '" onclick="return pgCardClick(event,' + t.id + ')"><div class="pg-title">' + esc(t.title) + '</div></a>' +
+                    '<div class="pg-by">@' + esc(t.username) + ' ・ ' + esc(pgAgo(t.created_at)) + '</div>' +
+                    (t.description ? '<div class="pg-desc">' + esc(t.description) + '</div>' : '') +
+                    (t.last ? '<div class="pg-last"><b>' + esc(ct('pg_upd_n').replace('{n}', t.update_count)) + '</b> ' + esc(pgAgo(t.last.created_at)) + ' ' + pgFilesChips(files) + '<div class="pg-last-t">' + esc(t.last.content || ct('pg_files_only')) + '</div></div>' :
+                        '<div class="pg-last none">' + esc(ct('pg_no_update')) + '</div>') +
+                '</div>' +
+            '</div>' +
+            pgListMediaHTML(files, t.id) +
+        '</article>';
     }).join('') + '</div>';
     el.innerHTML = h;
 }
-function pgListAttachments(files, threadId) {
-    var items = [];
-    (files || []).forEach(function(file, i) {
-        var key = 'list-video-' + threadId + '-' + i;
+function pgListMediaHTML(files, threadId) {
+    var media = (files || []).map(function(file, i) {
         if (file.kind === 'video') {
-            items.push('<div class="pg-list-attachment"><span class="pg-list-type">' + esc(ct('pg_video')) + '</span>' +
-                '<button type="button" class="pg-btn" onclick="pgListVideoToggle(\'' + key + '\', this, \' ' .trim() + esc(file.url) + '\')">動画を再生</button>' +
-                '<div class="pg-list-video-host" id="' + key + '"></div></div>');
-        } else if (file.kind === 'sb3') {
-            items.push('<div class="pg-list-sb3">' + pgSb3Embed(file, 'list-' + threadId + '-' + i) + '</div>');
+            return '<video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video>';
         }
-    });
-    return items.length ? '<div class="pg-list-attachments">' + items.join('') + '</div>' : '';
-}
-function pgListVideoToggle(key, button, url) {
-    var host = document.getElementById(key);
-    if (!host) return;
-    var existing = host.querySelector('video');
-    if (existing) {
-        host.innerHTML = '';
-        button.textContent = '動画を再生';
-        return;
-    }
-    var video = document.createElement('video');
-    video.className = 'pg-list-video-player';
-    video.controls = true;
-    video.playsInline = true;
-    video.preload = 'metadata';
-    video.src = url;
-    video.setAttribute('aria-label', '動画');
-    host.appendChild(video);
-    button.textContent = '動画を閉じる';
+        if (file.kind === 'sb3') {
+            return '<div class="pg-list-sb3">' + pgSb3Embed(file, 'list-' + threadId + '-' + i) + '</div>';
+        }
+        return '';
+    }).filter(Boolean).join('');
+    return media ? '<div class="pg-card-media">' + media + '</div>' : '';
 }
 function pgSb3Embed(file, key) {
     return '<div class="pg-sb3-box" id="pg-sb3-' + esc(key) + '" data-url="' + esc(file.url) + '" data-name="' + esc(file.name || 'project.sb3') + '">' +

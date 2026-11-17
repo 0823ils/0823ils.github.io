@@ -1197,6 +1197,9 @@
         .fa-playb { min-width: 64px; height: 36px; border: 0; border-radius: 999px; background: #4c97ff; color: #fff; font-weight: 700; cursor: pointer; }
         .fa-note { font-size: 12px; color: #6b7794; line-height: 1.6; margin-top: 6px; }
         .fa-side { width: 280px; flex: none; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #2b3a55; }
+        .fa-tabs { display: flex; gap: 4px; background: #e6e9f3; border-radius: 10px; padding: 3px; } .fa-tabs button { flex: 1; border: 0; background: none; border-radius: 8px; padding: 6px; font-weight: 700; font-size: 12px; color: #55607a; cursor: pointer; } .fa-tabs button.on { background: #fff; color: #2b3a55; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+        .fa-kl { display: flex; flex-direction: column; gap: 4px; } .fa-kr { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 8px; } .fa-kr.on { background: #fdeaea; } .fa-kr a { flex: 1; color: #4c97ff; cursor: pointer; font-size: 12px; } .fa-kr button { border: 0; background: #eef1f8; border-radius: 8px; width: 26px; height: 26px; cursor: pointer; }
+        .fa-sl3 { display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px; border-bottom: 1px solid #eef0f6; } .fa-rg .fa-in.n { width: 62px; }
         .fa-sec { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); display: flex; flex-direction: column; gap: 6px; }
         .fa-h { font-size: 11px; font-weight: 800; color: #8a93ab; letter-spacing: .04em; }
         .fa-list { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -4061,7 +4064,7 @@ var FAT = {
         kf: 'キーフレーム', kfDel: '消す', ease: '動きの補間', eLin: '一定の速さ', eIn: 'なめらか',
         touch: '見る人が触れるようにする', drag: '図形をドラッグできる', slAdd: 'スライダーを追加', slOp: '透明度', slRot: '回転', slSc: '大きさ', slX: '横の位置', slY: '縦の位置', tgAdd: '表示の切り替えを追加', tgName: '表示',
         slT: 'スライダー・切り替え', label: '名前', stepOf: '表示するステップ', step0: '最初から', steps: 'ステップ数（次へ・戻るで順に見せる。0で使わない）',
-        toStart: '最初へ', toEnd: '最後へ', kfPrev: '前のキーフレーム', kfNext: '次のキーフレーム', addKf: '今の時間にキーフレーム', copyAll: '動きを全図形にコピー', rev: '動きを逆にする', speed: '再生速度', keys: 'キー: Space=再生 / ←→=0.05秒 / Shift+←→=0.5秒 / K=キーフレーム追加 / Delete=消す', dur: '長さ（秒）', pad: '余白（元の絵の外へはみ出して動ける範囲・%）', loop: 'くり返す', auto: '自動で再生', total: '全体の設定', secTime: '時間', bad: '図を読み込めません', del: '削除' },
+        toStart: '最初へ', toEnd: '最後へ', kfPrev: '前のキーフレーム', kfNext: '次のキーフレーム', addKf: '今の時間にキーフレーム', copyAll: '動きを全図形にコピー', rev: '動きを逆にする', speed: '再生速度', keys: 'キー: Space=再生 / ←→=0.05秒 / Shift+←→=0.5秒 / K=キーフレーム追加 / Delete=消す', tMove: '動き', tTouch: '触れる', tAll: '全体', reset: 'この図形をリセット', go: '移動', dup: '複製', noKf: 'まだありません。時間を動かして図形をドラッグするか、上のボタンで追加します。', init: '初期', dur: '長さ（秒）', pad: '余白（元の絵の外へはみ出して動ける範囲・%）', loop: 'くり返す', auto: '自動で再生', total: '全体の設定', secTime: '時間', bad: '図を読み込めません', del: '削除' },
     en: { tab1: '1. Draw', tab2: '2. Animate', undo: 'Undo', redo: 'Redo', play: 'Play', pause: 'Pause', prev: 'Back', next: 'Next',
         shapes: 'Shapes to animate', shape: 'Shape', animated: 'animated', none: 'No shapes. Draw some in "1. Draw".', pick: 'Click a shape or pick one in the list to animate it.',
         preset: 'One-click motion', p_spin: 'Spin', p_pulse: 'Pulse', p_bounce: 'Bounce', p_slide: 'Slide', p_blink: 'Blink', p_none: 'Stop',
@@ -4069,7 +4072,7 @@ var FAT = {
         kf: 'Keyframes', kfDel: 'Delete', ease: 'Interpolation', eLin: 'Constant speed', eIn: 'Smooth',
         touch: 'Let viewers interact', drag: 'Shape is draggable', slAdd: 'Add slider', slOp: 'Opacity', slRot: 'Rotation', slSc: 'Size', slX: 'X position', slY: 'Y position', tgAdd: 'Add show/hide toggle', tgName: 'Show',
         slT: 'Sliders and toggles', label: 'Label', stepOf: 'Shown from step', step0: 'From start', steps: 'Steps (viewers go Next/Back; 0 = off)',
-        toStart: 'To start', toEnd: 'To end', kfPrev: 'Previous keyframe', kfNext: 'Next keyframe', addKf: 'Keyframe at now', copyAll: 'Copy motion to all shapes', rev: 'Reverse motion', speed: 'Speed', keys: 'Keys: Space=play / arrows=0.05s / Shift+arrows=0.5s / K=add keyframe / Delete=remove', dur: 'Length (s)', pad: 'Margin (room to move outside the picture, %)', loop: 'Loop', auto: 'Autoplay', total: 'Overall', secTime: 'Time', bad: 'Cannot load figure', del: 'Delete' }
+        toStart: 'To start', toEnd: 'To end', kfPrev: 'Previous keyframe', kfNext: 'Next keyframe', addKf: 'Keyframe at now', copyAll: 'Copy motion to all shapes', rev: 'Reverse motion', speed: 'Speed', keys: 'Keys: Space=play / arrows=0.05s / Shift+arrows=0.5s / K=add keyframe / Delete=remove', tMove: 'Motion', tTouch: 'Interact', tAll: 'Overall', reset: 'Reset this shape', go: 'Go', dup: 'Duplicate', noKf: 'None yet. Move the time and drag the shape, or use the button above.', init: 'Start', dur: 'Length (s)', pad: 'Margin (room to move outside the picture, %)', loop: 'Loop', auto: 'Autoplay', total: 'Overall', secTime: 'Time', bad: 'Cannot load figure', del: 'Delete' }
 };
 function fat(k) { return (FAT[currentLang] || FAT.ja)[k] || FAT.ja[k] || k; }
 var FA_PROPS = ['op', 'rot', 's', 'dx', 'dy'];
@@ -4325,28 +4328,52 @@ function faAddSl(p) {
     fe.a.sl.push({ label: R[3], i: fe.sel, p: p, min: R[0], max: R[1], v: R[2] }); faPaintSide();
 }
 function faAddTg() { if (fe.sel < 0 || fe.a.tg.length >= 8) return; faPush(); fe.a.tg.push({ label: fat('tgName'), i: fe.sel, v: true }); faPaintSide(); }
+function faTab(n) { fe.tab = n; faPaintSide(); }
+function faKfTime(j, v) {
+    var T = fe.sel >= 0 ? faT(fe.a, fe.sel, false) : null; if (!T || !T.kf[j]) return; faPush();
+    var k = T.kf[j]; k.t = Math.round(faN(v, k.t, 0, fe.a.dur) * 20) / 20;
+    T.kf = T.kf.filter(function(x, n) { return n === j || Math.abs(x.t - k.t) > 0.001; }); T.kf.sort(function(p, q) { return p.t - q.t; }); faPaint();
+}
+function faKfDup(j) {
+    var T = fe.sel >= 0 ? faT(fe.a, fe.sel, false) : null; if (!T || !T.kf[j] || T.kf.length >= 30) return; faPush();
+    var t = Math.min(fe.a.dur, Math.round((T.kf[j].t + 0.5) * 20) / 20); while (T.kf.some(function(x) { return Math.abs(x.t - t) < 0.001; }) && t < fe.a.dur) t = Math.round((t + 0.05) * 20) / 20;
+    if (T.kf.some(function(x) { return Math.abs(x.t - t) < 0.001; })) return;
+    T.kf.push(Object.assign({}, T.kf[j], { t: t })); T.kf.sort(function(p, q) { return p.t - q.t; }); faJump(t);
+}
+function faSlSet(j, key, v) { var s = fe.a.sl[j]; if (!s) return; faPush(); v = Number(v); if (!isFinite(v)) return; s[key] = v; if (s.min > s.max) { var m = s.min; s.min = s.max; s.max = m; } s.v = Math.min(s.max, Math.max(s.min, s.v)); faPaintSide(); }
+function faResetShape() { var T = fe.sel >= 0 ? faT(fe.a, fe.sel, false) : null; if (!T) return; faPush(); T.kf = []; T.drag = false; T.step = 0; faPaint(); }
 function faPaintSide() {
-    if (!fe || !fe.ctx) return; var a = fe.a, items = fe.ctx.items, h = '', i = fe.sel, T = i >= 0 ? faT(a, i, false) : null, sec = function(t, inner) { return '<div class="fa-sec"><div class="fa-h">' + esc(t) + '</div>' + inner + '</div>'; };
-    var rg = function(label, key, v, mn, mx, st) { return '<div class="fa-rg"><span>' + esc(label) + '</span><input type="range" min="' + mn + '" max="' + mx + '" step="' + st + '" value="' + v + '" oninput="faProp(\'' + key + '\',this.value);this.nextSibling.textContent=faR(Number(this.value))"><output>' + faR(v) + '</output></div>'; };
+    if (!fe || !fe.ctx) return; var a = fe.a, items = fe.ctx.items, h = '', i = fe.sel, T = i >= 0 ? faT(a, i, false) : null, tab = fe.tab || 1, W = fe.ctx.W;
+    var sec = function(t, inner) { return '<div class="fa-sec">' + (t ? '<div class="fa-h">' + esc(t) + '</div>' : '') + inner + '</div>'; };
+    var rg = function(label, key, v, mn, mx, st) { return '<div class="fa-rg"><span>' + esc(label) + '</span><input type="range" min="' + mn + '" max="' + mx + '" step="' + st + '" value="' + v + '" oninput="faProp(\'' + key + '\',this.value);this.nextSibling.value=faR(Number(this.value))"><input type="number" class="fa-in n" step="' + st + '" value="' + faR(v) + '" onchange="faProp(\'' + key + '\',this.value);faPaintSide()"></div>'; };
     if (!items.length) { document.getElementById('fa-side').innerHTML = '<div class="fa-note">' + esc(fat('none')) + '</div>'; return; }
     h += sec(fat('shapes'), '<div class="fa-list">' + items.map(function(it, n) { var t = faT(a, n, false), on = t && t.kf.length > 1; return '<button class="' + (n === i ? 'on' : '') + '" onclick="faSel(' + n + ')">' + esc(fat('shape') + ' ' + (n + 1)) + (on ? '<small>' + esc(fat('animated')) + '</small>' : '') + '</button>'; }).join('') + '</div>');
-    if (i < 0) h += '<div class="fa-note">' + esc(fat('pick')) + '</div>';
-    else {
-        var st = faState(a, i, fe.t, null, null, null, null).st;
-        h += sec(fat('preset'), '<div class="fa-pre">' + ['spin', 'pulse', 'bounce', 'slide', 'blink', 'none'].map(function(x) { return '<button onclick="faPreset(\'' + x + '\')">' + esc(fat('p_' + x)) + '</button>'; }).join('') + '</div>');
-        h += sec(fat('at'), rg(fat('rot'), 'rot', st.rot, -360, 720, 5) + rg(fat('sc'), 's', st.s, 0.1, 4, 0.05) + rg(fat('op'), 'op', st.op, 0, 1, 0.05));
-        if (T && T.kf.length) h += sec(fat('kf'), '<div class="fa-kfs">' + T.kf.map(function(k, j) { return '<span><a onclick="faJump(' + k.t + ')" style="cursor:pointer">' + faR(k.t) + 's</a> <button onclick="faKfDel(' + j + ')" title="' + esc(fat('kfDel')) + '">x</button></span>'; }).join('') + '</div>');
-        h += sec(fat('touch'), '<label class="fa-chk"><input type="checkbox"' + (T && T.drag ? ' checked' : '') + ' onchange="faPush();faT(fe.a,fe.sel,true).drag=this.checked"> ' + esc(fat('drag')) + '</label>' +
-            '<div class="fa-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc'], ['dx', 'slX'], ['dy', 'slY']].map(function(x) { return '<button onclick="faAddSl(\'' + x[0] + '\')">+ ' + esc(fat(x[1])) + '</button>'; }).join('') + '<button onclick="faAddTg()">+ ' + esc(fat('tgAdd')) + '</button></div>');
-        h += sec(fat('stepOf'), '<select class="fa-in" onchange="faPush();faT(fe.a,fe.sel,true).step=Number(this.value)">' + [0].concat(Array.apply(null, Array(a.steps)).map(function(x, n) { return n + 1; })).map(function(n) { return '<option value="' + n + '"' + ((T ? T.step : 0) === n ? ' selected' : '') + '>' + (n ? n : esc(fat('step0'))) + '</option>'; }).join('') + '</select>');
+    h += '<div class="fa-tabs">' + [[1, 'tMove'], [2, 'tTouch'], [3, 'tAll']].map(function(x) { return '<button class="' + (tab === x[0] ? 'on' : '') + '" onclick="faTab(' + x[0] + ')">' + esc(fat(x[1])) + '</button>'; }).join('') + '</div>';
+    if (tab === 1) {
+        if (i < 0) h += '<div class="fa-note">' + esc(fat('pick')) + '</div>';
+        else {
+            var st = faState(a, i, fe.t, null, null, null, null).st;
+            h += sec(fat('preset'), '<div class="fa-pre">' + ['spin', 'pulse', 'bounce', 'slide', 'blink', 'none'].map(function(x) { return '<button onclick="faPreset(\'' + x + '\')">' + esc(fat('p_' + x)) + '</button>'; }).join('') + '</div>');
+            h += sec(fat('at') + ' (' + faR(fe.t) + 's)', rg(fat('slX'), 'dx', st.dx, -W, W, 1) + rg(fat('slY'), 'dy', st.dy, -W, W, 1) + rg(fat('rot'), 'rot', st.rot, -360, 720, 5) + rg(fat('sc'), 's', st.s, 0.1, 4, 0.05) + rg(fat('op'), 'op', st.op, 0, 1, 0.05) +
+                '<div class="fa-pre"><button onclick="faAddKfNow()">' + esc(fat('addKf')) + '</button><button onclick="faResetShape()">' + esc(fat('reset')) + '</button></div>');
+            h += sec(fat('kf') + (T ? ' (' + T.kf.length + ')' : ''), T && T.kf.length ? '<div class="fa-kl">' + T.kf.map(function(k, j) { return '<div class="fa-kr' + (Math.abs(k.t - fe.t) < 0.026 ? ' on' : '') + '"><input type="number" class="fa-in n" step="0.05" min="0" max="' + a.dur + '" value="' + faR(k.t) + '" onchange="faKfTime(' + j + ',this.value)"><a onclick="faJump(' + k.t + ')">' + esc(fat('go')) + '</a><button onclick="faKfDup(' + j + ')" title="' + esc(fat('dup')) + '">+</button><button onclick="faKfDel(' + j + ')" title="' + esc(fat('kfDel')) + '">x</button></div>'; }).join('') + '</div>' : '<div class="fa-note">' + esc(fat('noKf')) + '</div>');
+        }
+    } else if (tab === 2) {
+        if (i >= 0) {
+            h += sec(fat('touch'), '<label class="fa-chk"><input type="checkbox"' + (T && T.drag ? ' checked' : '') + ' onchange="faPush();faT(fe.a,fe.sel,true).drag=this.checked"> ' + esc(fat('drag')) + '</label>' +
+                '<div class="fa-pre">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc'], ['dx', 'slX'], ['dy', 'slY']].map(function(x) { return '<button onclick="faAddSl(\'' + x[0] + '\')">+ ' + esc(fat(x[1])) + '</button>'; }).join('') + '<button onclick="faAddTg()">+ ' + esc(fat('tgName')) + '</button></div>');
+            h += sec(fat('stepOf'), '<select class="fa-in" onchange="faPush();faT(fe.a,fe.sel,true).step=Number(this.value)">' + [0].concat(Array.apply(null, Array(a.steps)).map(function(x, n) { return n + 1; })).map(function(n) { return '<option value="' + n + '"' + ((T ? T.step : 0) === n ? ' selected' : '') + '>' + (n ? n : esc(fat('step0'))) + '</option>'; }).join('') + '</select>');
+        } else h += '<div class="fa-note">' + esc(fat('pick')) + '</div>';
+        if (a.sl.length || a.tg.length) h += sec(fat('slT'), a.sl.map(function(s, j) { return '<div class="fa-sl3"><div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(s.label) + '" oninput="fe.a.sl[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (s.i + 1)) + '</small><button onclick="faPush();fe.a.sl.splice(' + j + ',1);faPaintSide()">x</button></div>' +
+            '<div class="fa-sl2"><small>min</small><input type="number" class="fa-in n" value="' + s.min + '" onchange="faSlSet(' + j + ',\'min\',this.value)"><small>max</small><input type="number" class="fa-in n" value="' + s.max + '" onchange="faSlSet(' + j + ',\'max\',this.value)"><small>' + esc(fat('init')) + '</small><input type="number" class="fa-in n" value="' + s.v + '" onchange="faSlSet(' + j + ',\'v\',this.value)"></div></div>'; }).join('') +
+            a.tg.map(function(g, j) { return '<div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(g.label) + '" oninput="fe.a.tg[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (g.i + 1)) + '</small><button onclick="faPush();fe.a.tg.splice(' + j + ',1);faPaintSide()">x</button></div>'; }).join(''));
+    } else {
+        h += sec(fat('total'), '<label class="fa-row2">' + esc(fat('dur')) + ' <input type="number" class="fa-in n" min="0.5" max="60" step="0.5" value="' + a.dur + '" onchange="faCfg(\'dur\',this.value)"></label>' +
+            '<label class="fa-row2">' + esc(fat('pad')) + ' <input type="number" class="fa-in n" min="0" max="100" step="5" value="' + a.pad + '" onchange="faCfg(\'pad\',this.value)"></label>' +
+            '<label class="fa-row2">' + esc(fat('ease')) + ' <select class="fa-in" onchange="faCfg(\'ease\',this.value)"><option value="io"' + (a.ease === 'io' ? ' selected' : '') + '>' + esc(fat('eIn')) + '</option><option value="lin"' + (a.ease === 'lin' ? ' selected' : '') + '>' + esc(fat('eLin')) + '</option></select></label>' +
+            '<label class="fa-chk"><input type="checkbox"' + (a.loop ? ' checked' : '') + ' onchange="faCfg(\'loop\',this.checked)"> ' + esc(fat('loop')) + '</label><label class="fa-chk"><input type="checkbox"' + (a.auto ? ' checked' : '') + ' onchange="faCfg(\'auto\',this.checked)"> ' + esc(fat('auto')) + '</label>' +
+            '<label class="fa-row2">' + esc(fat('steps')) + ' <input type="number" class="fa-in n" min="0" max="20" value="' + a.steps + '" onchange="faCfg(\'steps\',this.value)"></label>');
     }
-    if (a.sl.length || a.tg.length) h += sec(fat('slT'), a.sl.map(function(s, j) { return '<div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(s.label) + '" oninput="fe.a.sl[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (s.i + 1)) + '</small><button onclick="faPush();fe.a.sl.splice(' + j + ',1);faPaintSide()">x</button></div>'; }).join('') +
-        a.tg.map(function(g, j) { return '<div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(g.label) + '" oninput="fe.a.tg[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (g.i + 1)) + '</small><button onclick="faPush();fe.a.tg.splice(' + j + ',1);faPaintSide()">x</button></div>'; }).join(''));
-    h += sec(fat('total'), '<label class="fa-row2">' + esc(fat('dur')) + ' <input type="number" class="fa-in n" min="0.5" max="60" step="0.5" value="' + a.dur + '" onchange="faCfg(\'dur\',this.value)"></label>' +
-        '<label class="fa-row2">' + esc(fat('pad')) + ' <input type="number" class="fa-in n" min="0" max="100" step="5" value="' + a.pad + '" onchange="faCfg(\'pad\',this.value)"></label>' +
-        '<label class="fa-row2">' + esc(fat('ease')) + ' <select class="fa-in" onchange="faCfg(\'ease\',this.value)"><option value="io"' + (a.ease === 'io' ? ' selected' : '') + '>' + esc(fat('eIn')) + '</option><option value="lin"' + (a.ease === 'lin' ? ' selected' : '') + '>' + esc(fat('eLin')) + '</option></select></label>' +
-        '<label class="fa-chk"><input type="checkbox"' + (a.loop ? ' checked' : '') + ' onchange="faCfg(\'loop\',this.checked)"> ' + esc(fat('loop')) + '</label><label class="fa-chk"><input type="checkbox"' + (a.auto ? ' checked' : '') + ' onchange="faCfg(\'auto\',this.checked)"> ' + esc(fat('auto')) + '</label>' +
-        '<label class="fa-row2">' + esc(fat('steps')) + ' <input type="number" class="fa-in n" min="0" max="20" value="' + a.steps + '" onchange="faCfg(\'steps\',this.value)"></label>');
     document.getElementById('fa-side').innerHTML = h;
 }
 

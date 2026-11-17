@@ -1,0 +1,104 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index 50a7128..274340f 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -26,6 +26,7 @@ import {
+     VectorIcon
+ } from './components/Icons.jsx';
+ import {getMessages, rememberLocale, SUPPORTED_LOCALES} from './i18n.js';
++import {installEmbedBridge} from './lib/embed-bridge.js';
+ import {addXmlDeclaration, bitmapToSvg, blobToDataUrl, getSvgInfo, hasUnsupportedSvgEffects, imageDataToDataUrl, mergeBitmapImages, mergeSvgImages, pngToPngBlob, svgToPngBlob} from './lib/image.js';
+ import {FileReadError, readCostumeFile} from './lib/files.js';
+ import {downloadBlob, sanitizeFilename} from './lib/download.js';
+@@ -619,6 +620,41 @@ const App = () => {
+ 
+     handleSaveRef.current = handleSave;
+ 
++    // scratch-TWC: iframe embedding (see lib/embed-bridge.js)
++    const embedDocRef = useRef(doc);
++    embedDocRef.current = doc;
++    const embedStartRef = useRef(null);
++    embedStartRef.current = startNew;
++    useEffect(() => installEmbedBridge({
++        getSvg: () => {
++            const current = embedDocRef.current;
++            if (!current || !current.image) return '';
++            return current.format === 'vector' ?
++                current.image :
++                bitmapToSvg(current.image, current.width, current.height);
++        },
++        openSvg: (svg, name) => {
++            const info = getSvgInfo(svg);
++            const imageId = nextImageId('embed');
++            const width = info.width || 480;
++            const height = info.height || 360;
++            setDoc({
++                name: name || 'figure',
++                image: svg,
++                imageId,
++                zoomId: imageId,
++                imageFormat: 'svg',
++                format: 'vector',
++                rotationCenterX: width / 2,
++                rotationCenterY: height / 2,
++                width: info.width,
++                height: info.height
++            });
++            setDirty(false);
++        },
++        openBlank: () => embedStartRef.current && embedStartRef.current()
++    }), [nextImageId]);
++
+     useEffect(() => {
+         const isEditable = target => (
+             target &&
+diff --git a/src/lib/embed-bridge.js b/src/lib/embed-bridge.js
+new file mode 100644
+index 0000000..247a4b8
+--- /dev/null
++++ b/src/lib/embed-bridge.js
+@@ -0,0 +1,44 @@
++/*
++ * Embed bridge: lets a parent page that embeds Costume Studio in an <iframe>
++ * hand it an SVG to edit and read the edited SVG back. Added by scratch-TWC.
++ * Only messages sent by window.parent are accepted.
++ *
++ *   parent -> studio  {target: 'costume-studio', type: 'open', svg, name}
++ *   parent -> studio  {target: 'costume-studio', type: 'get', id}
++ *   studio -> parent  {source: 'costume-studio', type: 'ready'}
++ *   studio -> parent  {source: 'costume-studio', type: 'svg', id, svg}
++ */
++export const isEmbedded = () => {
++    try {
++        return window.parent && window.parent !== window;
++    } catch (error) {
++        return false;
++    }
++};
++
++export const installEmbedBridge = ({getSvg, openSvg, openBlank}) => {
++    if (!isEmbedded()) return () => {};
++    const handler = event => {
++        if (event.source !== window.parent) return;
++        const data = event.data;
++        if (!data || data.target !== 'costume-studio') return;
++        if (data.type === 'open') {
++            if (typeof data.svg === 'string' && data.svg.trim()) openSvg(data.svg, data.name);
++            else openBlank();
++        } else if (data.type === 'get') {
++            // Let the paint editor finish committing the last stroke first.
++            window.setTimeout(() => {
++                let svg = '';
++                try {
++                    svg = getSvg() || '';
++                } catch (error) {
++                    svg = '';
++                }
++                window.parent.postMessage({source: 'costume-studio', type: 'svg', id: data.id, svg}, event.origin || '*');
++            }, 150);
++        }
++    };
++    window.addEventListener('message', handler);
++    window.parent.postMessage({source: 'costume-studio', type: 'ready'}, '*');
++    return () => window.removeEventListener('message', handler);
++};

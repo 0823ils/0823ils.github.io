@@ -1242,6 +1242,16 @@
         #dg-ed input[type=range], #dg-ed input[type=checkbox] { width: auto; height: auto; padding: 0; margin: 0; border: 0; background: none; }
         #dg-ed input[type=number] { width: 58px; padding: 4px 6px; font-size: 13px; border: 1px solid #d6dbe8; border-radius: 6px; height: auto; }
         @media (max-width: 760px) { .dge-main { flex-direction: column; } .dge-tools { width: auto; grid-template-columns: repeat(7, 1fr); } .dge-side { width: auto; } .dge-tool small { display: none; } }
+        .gd-fig { margin: 0 0 1em; }
+        .gd-fig img { display: block; max-width: 100%; height: auto; background: #fff; border: 1px solid #e3e7f1; border-radius: 10px; }
+        #fg-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.6); display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .fg-box { width: min(1280px, 100%); height: 100%; background: #fff; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+        .fg-top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #e3e7f1; flex-wrap: wrap; }
+        .fg-help { font-size: 12px; color: #6b7794; flex: 1 1 260px; }
+        .fg-sp { flex: 0; }
+        .fg-frame { position: relative; flex: 1; min-height: 0; background: #f4f6fb; }
+        .fg-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .fg-load { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6b7794; font-size: 14px; padding: 20px; text-align: center; }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }
@@ -3551,8 +3561,8 @@ var GT = {
         sTitle: 'Make a shape', sHint: 'Add shapes with the buttons above and drag them. Resize with the corner square.', sRect: 'Box', sRound: 'Rounded', sCircle: 'Circle', sEllipse: 'Ellipse', sTri: 'Triangle', sDiamond: 'Diamond', sStar: 'Star', sArrow: 'Arrow', sLine: 'Line', sBubble: 'Bubble', sText: 'Text', sFill: 'Fill', sNoFill: 'None', sStroke: 'Outline', sSize: 'Text size', sRot: 'Rotate', sAnim: 'Motion', aNone: 'None', aSpin: 'Spin', aPulse: 'Pulse', aBounce: 'Bounce', aBlink: 'Blink', aSlide: 'Slide', aWobble: 'Wobble', sDup: 'Copy', sFront: 'Forward', sBack: 'Backward', sDel: 'Delete', sBg: 'Background', sBgW: 'White', sBgT: 'Transparent', sBgB: 'Light blue', sBgD: 'Dark', sInsImg: 'Insert as image', sInsVid: 'Insert as animation', sNoRec: 'This browser cannot export video.', sAlt: 'Figure'
     }
 };
-Object.assign(GT.ja, { bDiagram: '図解（動く・触れる）' });
-Object.assign(GT.en, { bDiagram: 'Interactive diagram' });
+Object.assign(GT.ja, { bDiagram: '動く図', bFigure: '図解', figTitle: '図解（お絵かき）', figIns: '記事に入れる', figUpd: '更新する', figClose: '閉じる', figLoad: '読み込み中です…', figFail: '読み込めません。少し待ってから、もう一度お試しください。', figEmpty: '何も描かれていません。', figBig: '図が大きすぎます。図形を減らしてください。', figHelp: '描いたら「記事に入れる」を押します。入れた図は、記事の中で図の上にカーソルを置いて「図解」を押すと、もう一度編集できます。' });
+Object.assign(GT.en, { bDiagram: 'Moving diagram', bFigure: 'Figure', figTitle: 'Figure editor', figIns: 'Insert', figUpd: 'Update', figClose: 'Close', figLoad: 'Loading…', figFail: 'Could not load. Please try again in a moment.', figEmpty: 'Nothing drawn yet.', figBig: 'The figure is too large. Please use fewer shapes.', figHelp: 'Press Insert when done. To edit later, put the cursor on the figure in the article and press Figure.' });
 function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
 function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
 var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, saved: false, edit: null, keep: false };
@@ -3601,6 +3611,7 @@ function gdFileHTML(f, alt) {
     return '';
 }
 function gdCodeHTML(lang, code) {
+    if (String(lang).toLowerCase() === 'figure') return gdFigureHTML(code);
     if (String(lang).toLowerCase() === 'diagram') return '<div class="dg-view" data-spec="' + esc(code.replace(/\n/g, '')) + '"></div>';
     var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
     if (l === 'html') {
@@ -3905,7 +3916,7 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['shape', '', 'bShape'], ['diagram', '', 'bDiagram'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['shape', '', 'bShape'], ['figure', '', 'bFigure'], ['diagram', '', 'bDiagram'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
@@ -3956,6 +3967,7 @@ function gdFmt(kind) {
     if (kind === 'vid') { document.getElementById('gd-e-vfile').click(); return; }
     if (kind === 'sb3file') { document.getElementById('gd-e-sfile').click(); return; }
     if (kind === 'shape') { gdShapeOpen(); return; }
+    if (kind === 'figure') { gdFigureOpen(); return; }
     if (kind === 'diagram') { dgDiagramOpen(); return; }
     var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
     var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
@@ -4635,6 +4647,46 @@ function dgDiagramOpen() {
         if (!cur || !gd.edit) return;
         cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur);
     });
+}
+
+// ---- 図解（お絵かき）: Costume Studio（docs/costume-studio/）を窓の中で開き、描いたSVGを記事に入れる ----
+function gdFigureHTML(code) {
+    var svg = String(code || '').trim();
+    if (!/^<svg[\s>]/i.test(svg)) return '<pre class="gd-fig-bad">' + esc(svg.slice(0, 200)) + '</pre>';
+    if (!/xmlns\s*=/.test(svg.slice(0, 300))) svg = svg.replace(/^<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+    // <img>の中なら、書かれたスクリプトや外部読み込みは動かない
+    return '<figure class="gd-fig"><img alt="" src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '"></figure>';
+}
+function gdFigureOpen() {
+    var ta = document.getElementById('gd-e-body'), e = gd.edit;
+    if (!ta || !e || document.getElementById('fg-ov')) return;
+    if (e.preview) gdEditTab(false);
+    var v = ta.value, s = ta.selectionStart, re = /```figure\n([\s\S]*?)\n```/g, m, hit = null;
+    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
+    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd, svg0 = hit ? hit[1] : '';
+    var ov = document.createElement('div'); ov.id = 'fg-ov';
+    ov.innerHTML = '<div class="fg-box"><div class="fg-top"><b>' + esc(gt('figTitle')) + '</b><span class="fg-help">' + esc(gt('figHelp')) + '</span><span class="fg-sp"></span>' +
+        '<button type="button" class="gd-btn" id="fg-close">' + esc(gt('figClose')) + '</button><button type="button" class="gd-btn primary" id="fg-ins">' + esc(gt(hit ? 'figUpd' : 'figIns')) + '</button></div>' +
+        '<div class="fg-frame"><div class="fg-load" id="fg-load">' + esc(gt('figLoad')) + '</div><iframe id="fg-if" title="' + esc(gt('figTitle')) + '" src="costume-studio/index.html"></iframe></div></div>';
+    document.body.appendChild(ov);
+    var fr = document.getElementById('fg-if'), ld = document.getElementById('fg-load'), rid = 'f' + Date.now(), tm = 0, ready = false;
+    function close() { window.removeEventListener('message', onMsg); clearTimeout(tm); ov.remove(); }
+    function onMsg(ev) {
+        var d = ev.data; if (ev.source !== fr.contentWindow || !d || d.source !== 'costume-studio') return;
+        if (d.type === 'ready') { ready = true; clearTimeout(tm); ld.style.display = 'none'; fr.contentWindow.postMessage({ target: 'costume-studio', type: 'open', svg: svg0, name: 'figure' }, location.origin); }
+        else if (d.type === 'svg' && d.id === rid) {
+            var svg = String(d.svg || '').replace(/^\s*<\?xml[^>]*\?>\s*/, '').trim();
+            if (!/^<svg[\s>]/i.test(svg)) { showToast(gt('figEmpty')); return; }
+            if (svg.length > 24000) { showToast(gt('figBig')); return; }
+            var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
+            var ins = (hit ? '' : '\n\n') + '```figure\n' + svg + '\n```' + (hit ? '' : '\n\n');
+            cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+        }
+    }
+    window.addEventListener('message', onMsg);
+    document.getElementById('fg-close').onclick = close;
+    document.getElementById('fg-ins').onclick = function() { if (ready) fr.contentWindow.postMessage({ target: 'costume-studio', type: 'get', id: rid }, location.origin); };
+    tm = setTimeout(function() { if (!ready) ld.textContent = gt('figFail'); }, 10000);
 }
 
 // ===== ホーム =====

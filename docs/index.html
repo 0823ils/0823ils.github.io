@@ -1171,77 +1171,47 @@
         .gd-md hr { border: none; border-top: 2px solid #e3ebf7; margin: 1.6em 0; }
         .gd-img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: .4em auto; cursor: zoom-in; }
         .gd-a { color: #2b6be0; }
-        .dg-view { margin: 0 0 1em; border: 1px solid #dfe3ee; border-radius: 12px; overflow: hidden; background: #fff; }
-        .dg-svg { display: block; width: 100%; aspect-ratio: 3 / 2; touch-action: none; user-select: none; background: #fff; }
-        .dg-h { cursor: grab; }
-        .dg-ctl { padding: 8px 12px; border-top: 1px solid #eef0f6; background: #f7f8fc; display: flex; flex-direction: column; gap: 6px; }
-        .dg-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .dg-row span { min-width: 5em; font-weight: 600; }
-        .dg-row input[type=range] { flex: 1; min-width: 0; }
-        .dg-play { border: 0; background: #4c97ff; color: #fff; border-radius: 8px; padding: 3px 12px; cursor: pointer; }
-        #dg-ed { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.6); display: flex; align-items: center; justify-content: center; padding: 12px; }
-        .dge-box { width: min(1140px, 100%); max-height: 100%; background: #f4f6fb; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; color: #2b3a55; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
-        .dge-top { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e3e7f1; flex-wrap: wrap; }
-        .dge-title { font-size: 16px; }
-        .dge-sp { flex: 1; }
-        .dge-steps { display: flex; gap: 4px; background: #eef1f8; padding: 3px; border-radius: 999px; }
-        .dge-step { border: 0; background: none; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #6b7794; cursor: pointer; }
-        .dge-step.on { background: #4c97ff; color: #fff; }
-        .dge-b { border: 0; border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 700; cursor: pointer; }
-        .dge-b.main { background: #4c97ff; color: #fff; }
-        .dge-b.ghost { background: #eef1f8; color: #4a5878; }
-        .dge-main { display: flex; gap: 12px; padding: 12px; overflow: auto; min-height: 0; align-items: flex-start; }
-        .dge-tools { display: grid; grid-template-columns: 1fr; gap: 6px; width: 64px; flex: none; }
-        .dge-tool { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 2px 5px; border: 2px solid transparent; border-radius: 12px; background: #fff; cursor: pointer; color: #2b3a55; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-        .dge-tool span { font-size: 20px; line-height: 1.2; }
-        .dge-tool small { font-size: 10px; font-weight: 700; color: #6b7794; }
-        .dge-tool.on { border-color: #4c97ff; background: #e8f1ff; }
-        .dge-stage { flex: 1; min-width: 0; }
-        .dge-cv { position: relative; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(30,40,80,.15); background: #fff; }
-        .dge-cv .dg-svg { cursor: crosshair; }
-        .dge-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 16px; background: rgba(255,255,255,.88); pointer-events: none; }
-        .dge-em-t { font-size: 20px; font-weight: 800; }
-        .dge-em-s { font-size: 13px; color: #6b7794; }
-        .dge-ex { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; pointer-events: auto; }
-        .dge-ex button { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 128px; padding: 12px 8px; border: 2px solid #dfe5f3; border-radius: 14px; background: #fff; font-size: 13px; font-weight: 700; color: #2b3a55; cursor: pointer; }
-        .dge-ex button span { font-size: 30px; }
-        .dge-ex button:hover { border-color: #4c97ff; background: #f0f6ff; }
-        .dge-tlb { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 12px; flex-wrap: wrap; font-size: 13px; }
-        .dge-tlb input[type=range] { flex: 1; min-width: 120px; }
-        .dge-play { min-width: 64px; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: #4c97ff; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
-        .dge-d { display: flex; align-items: center; gap: 4px; color: #6b7794; }
-        .dge-d input[type=number] { width: 58px; }
-        .dge-kf { font-size: 12px; color: #6b7794; margin-top: 6px; min-height: 18px; }
-        .dge-kf button { border: 0; background: none; color: #d33; cursor: pointer; font-size: 12px; text-decoration: underline; }
-        .dge-side { width: 264px; flex: none; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
-        .dge-note { color: #6b7794; font-size: 12px; line-height: 1.6; }
-        .dge-sec { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-        .dge-h { font-size: 11px; font-weight: 800; color: #8a93ab; letter-spacing: .04em; margin-bottom: 6px; }
-        .dge-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .dge-acts button, .dge-pre button { border: 0; border-radius: 10px; padding: 8px 6px; background: #fff; font-size: 12px; font-weight: 700; color: #2b3a55; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.07); }
-        .dge-acts .del { color: #d33; }
-        .dge-acts button:hover, .dge-pre button:hover { background: #e8f1ff; }
-        .dge-pre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-        .dge-pre button { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #f4f6fb; }
-        .dge-pre button span { font-size: 20px; }
-        .dge-pre.sm { grid-template-columns: 1fr; margin-top: 8px; }
-        .dge-pre.sm button { flex-direction: row; justify-content: center; padding: 7px; }
-        .dge-sw { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .dge-sw button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #d6dbe8; cursor: pointer; padding: 0; }
-        .dge-sw button.on { border-color: #2b3a55; box-shadow: 0 0 0 2px #fff inset; }
-        .dge-sw button.none { background: #fff; color: #888; font-size: 14px; line-height: 1; }
-        .dge-sw input[type=color] { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; }
-        .dge-rg { display: flex; align-items: center; gap: 8px; }
-        .dge-rg input { flex: 1; min-width: 0; }
-        .dge-rg output { width: 40px; text-align: right; font-weight: 700; }
-        .dge-tx { width: 100%; box-sizing: border-box; padding: 7px 9px; font-size: 14px; border: 1px solid #d6dbe8; border-radius: 8px; }
-        .dge-chk { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-        .dge-sl { display: flex; gap: 6px; margin-bottom: 6px; }
-        .dge-sl input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid #d6dbe8; border-radius: 8px; font-size: 13px; }
-        .dge-sl button { border: 0; background: #eef1f8; border-radius: 8px; width: 32px; cursor: pointer; }
-        #dg-ed input[type=range], #dg-ed input[type=checkbox] { width: auto; height: auto; padding: 0; margin: 0; border: 0; background: none; }
-        #dg-ed input[type=number] { width: 58px; padding: 4px 6px; font-size: 13px; border: 1px solid #d6dbe8; border-radius: 6px; height: auto; }
-        @media (max-width: 760px) { .dge-main { flex-direction: column; } .dge-tools { width: auto; grid-template-columns: repeat(7, 1fr); } .dge-side { width: auto; } .dge-tool small { display: none; } }
+        .gd-md .fa-view { margin: 0 0 1em; border: 1px solid #e3e7f1; border-radius: 12px; overflow: hidden; background: #fff; }
+        .fa-stage svg, .fa-cv svg { display: block; width: 100%; height: auto; max-height: 70vh; touch-action: none; user-select: none; }
+        .fa-ctl { padding: 8px 12px; border-top: 1px solid #eef0f6; background: #f7f8fc; display: flex; flex-direction: column; gap: 6px; }
+        .fa-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .fa-row span { min-width: 5em; font-weight: 600; }
+        .fa-row input[type=range] { flex: 1; min-width: 0; }
+        .fa-row output { min-width: 3em; text-align: right; font-weight: 700; color: #4a5878; }
+        .fa-tgl { cursor: pointer; } .fa-tgl span { min-width: 0; }
+        .fa-play, .fa-stb { border: 0; background: #4c97ff; color: #fff; border-radius: 8px; padding: 4px 14px; cursor: pointer; font-weight: 700; }
+        .fa-steps { justify-content: center; } .fa-sn { min-width: 4em; text-align: center; font-weight: 700; color: #6b7794; }
+        .fg-tabs { display: flex; gap: 4px; background: #eef1f8; padding: 3px; border-radius: 999px; }
+        .fg-tabs button { border: 0; background: none; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #6b7794; cursor: pointer; }
+        .fg-tabs button.on { background: #4c97ff; color: #fff; }
+        .fg-anim { position: absolute; inset: 0; overflow: auto; background: #f4f6fb; padding: 12px; }
+        .fa-ed { display: flex; gap: 12px; align-items: flex-start; max-width: 1100px; margin: 0 auto; }
+        .fa-prev { flex: 1; min-width: 0; }
+        .fa-cv { border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 2px 10px rgba(30,40,80,.15); }
+        .fa-tlb { display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 12px; font-size: 13px; }
+        .fa-tlb input[type=range] { flex: 1; min-width: 0; }
+        .fa-playb { min-width: 64px; height: 36px; border: 0; border-radius: 999px; background: #4c97ff; color: #fff; font-weight: 700; cursor: pointer; }
+        .fa-note { font-size: 12px; color: #6b7794; line-height: 1.6; margin-top: 6px; }
+        .fa-side { width: 280px; flex: none; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #2b3a55; }
+        .fa-sec { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); display: flex; flex-direction: column; gap: 6px; }
+        .fa-h { font-size: 11px; font-weight: 800; color: #8a93ab; letter-spacing: .04em; }
+        .fa-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .fa-list button { border: 2px solid transparent; background: #f4f6fb; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: #2b3a55; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .fa-list button.on { border-color: #4c97ff; background: #e8f1ff; } .fa-list small { font-size: 10px; color: #4c97ff; }
+        .fa-pre { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .fa-pre button { border: 0; border-radius: 10px; padding: 9px 4px; background: #f4f6fb; font-size: 12px; font-weight: 700; color: #2b3a55; cursor: pointer; }
+        .fa-pre button:hover { background: #e8f1ff; }
+        .fa-pre.sm { grid-template-columns: 1fr; } .fa-pre.sm button { text-align: center; }
+        .fa-rg { display: flex; align-items: center; gap: 8px; } .fa-rg span { width: 4.5em; } .fa-rg input { flex: 1; min-width: 0; } .fa-rg output { width: 3.5em; text-align: right; font-weight: 700; }
+        .fa-kfs { display: flex; flex-wrap: wrap; gap: 6px; } .fa-kfs span { background: #f4f6fb; border-radius: 8px; padding: 3px 4px 3px 8px; font-size: 12px; }
+        .fa-kfs button { border: 0; background: none; color: #d33; cursor: pointer; font-weight: 700; }
+        .fa-chk, .fa-row2 { display: flex; align-items: center; gap: 6px; cursor: pointer; justify-content: space-between; } .fa-chk { justify-content: flex-start; }
+        .fa-in { padding: 5px 7px; border: 1px solid #d6dbe8; border-radius: 8px; font-size: 13px; min-width: 0; background: #fff; color: #222; box-sizing: border-box; } .fa-in.n { width: 70px; }
+        .fa-sl2 { display: flex; align-items: center; gap: 6px; } .fa-sl2 .fa-in { flex: 1; } .fa-sl2 small { color: #8a93ab; white-space: nowrap; }
+        .fa-sl2 button { border: 0; background: #eef1f8; border-radius: 8px; width: 28px; height: 28px; cursor: pointer; }
+        #fg-ov input[type=range], #fg-ov input[type=checkbox] { width: auto; height: auto; padding: 0; margin: 0; border: 0; background: none; }
+        #fg-ov input[type=range] { width: auto; }
+        @media (max-width: 760px) { .fa-ed { flex-direction: column; } .fa-side { width: 100%; } .fg-help { display: none; } }
         .gd-fig { margin: 0 0 1em; }
         .gd-fig img { display: block; max-width: 100%; height: auto; background: #fff; border: 1px solid #e3e7f1; border-radius: 10px; }
         #fg-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.6); display: flex; align-items: center; justify-content: center; padding: 10px; }
@@ -1306,24 +1276,7 @@
         .gd-bm { display: inline-flex; align-items: center; gap: 5px; } .gd-bm.on { background: #fff3d6; border-color: #f0cf85; color: #a56a00; }
         .gd-sub { font-size: 15px; font-weight: 700; color: #2b3a55; margin: 0 0 10px; }
         .gd-e-body.drop { outline: 3px dashed #4d97ff; background: #f3f8ff; }
-        .gs-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,28,45,.6); display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .gs-box { background: #fff; border-radius: 14px; width: min(940px, 100%); max-height: 100%; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
-        .gs-head { display: flex; align-items: center; justify-content: space-between; font-size: 16px; color: #2b3a55; }
-        .gs-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
-        .gs-k { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 56px; padding: 4px 6px; font: inherit; border: 1px solid #dbe4f3; border-radius: 10px; background: #fff; cursor: pointer; color: #2b3a55; }
-        .gs-k span { font-size: 18px; line-height: 1.2; } .gs-k small { font-size: 10px; color: #667085; } .gs-k:hover { background: #eef4ff; }
-        .gs-main { display: flex; gap: 12px; align-items: flex-start; }
         #gs-cv { flex: 1 1 auto; min-width: 0; width: 640px; max-width: 100%; aspect-ratio: 16 / 9; border: 1px solid #dbe4f3; border-radius: 10px; touch-action: none; cursor: crosshair; background: #fff; }
-        .gs-panel { flex: 0 0 230px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #2b3a55; }
-        .gs-row { display: flex; align-items: center; gap: 6px; } .gs-row > span { flex: 0 0 64px; color: #667085; font-size: 12px; }
-        .gs-row input[type=text], .gs-row select { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid #d6e0f2; border-radius: 6px; }
-        .gs-row input[type=range] { flex: 1; min-width: 0; } .gs-row input[type=color] { width: 32px; height: 26px; padding: 0; border: 1px solid #d6e0f2; border-radius: 6px; background: none; }
-        .gs-btns { display: flex; flex-wrap: wrap; gap: 5px; }
-        .gs-mini { font: inherit; font-size: 12px; padding: 3px 9px; border: 1px solid #d6e0f2; border-radius: 6px; background: #fff; color: #3a5a99; cursor: pointer; } .gs-mini.danger { color: #d23b3b; border-color: #f1c4c4; }
-        .gs-hint { color: #8a94a8; font-size: 12.5px; line-height: 1.6; }
-        .gs-err { color: #d23b3b; font-size: 13px; min-height: 1.2em; }
-        .gs-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; } .gs-sp { flex: 1; } .gs-bg { font-size: 13px; color: #667085; } .gs-bg select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid #d6e0f2; border-radius: 6px; }
-        @media (max-width: 720px) { .gs-main { flex-direction: column; } .gs-panel { flex: none; width: 100%; } }
         .gd-zoom { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.82); display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
         .gd-zoom img { max-width: 96vw; max-height: 94vh; border-radius: 6px; }
         @media (max-width: 640px) { .gd-grid { grid-template-columns: 1fr; } .gd-h1 { font-size: 22px; } .gd-md { font-size: 15.5px; } .gd-e-body { min-height: 45vh; } .home-tiles .home-tile:last-child:nth-child(odd) { grid-column: 1 / -1; } }
@@ -3561,8 +3514,8 @@ var GT = {
         sTitle: 'Make a shape', sHint: 'Add shapes with the buttons above and drag them. Resize with the corner square.', sRect: 'Box', sRound: 'Rounded', sCircle: 'Circle', sEllipse: 'Ellipse', sTri: 'Triangle', sDiamond: 'Diamond', sStar: 'Star', sArrow: 'Arrow', sLine: 'Line', sBubble: 'Bubble', sText: 'Text', sFill: 'Fill', sNoFill: 'None', sStroke: 'Outline', sSize: 'Text size', sRot: 'Rotate', sAnim: 'Motion', aNone: 'None', aSpin: 'Spin', aPulse: 'Pulse', aBounce: 'Bounce', aBlink: 'Blink', aSlide: 'Slide', aWobble: 'Wobble', sDup: 'Copy', sFront: 'Forward', sBack: 'Backward', sDel: 'Delete', sBg: 'Background', sBgW: 'White', sBgT: 'Transparent', sBgB: 'Light blue', sBgD: 'Dark', sInsImg: 'Insert as image', sInsVid: 'Insert as animation', sNoRec: 'This browser cannot export video.', sAlt: 'Figure'
     }
 };
-Object.assign(GT.ja, { bDiagram: '動く図', bFigure: '図解', figTitle: '図解（お絵かき）', figIns: '記事に入れる', figUpd: '更新する', figClose: '閉じる', figLoad: '読み込み中です…', figFail: '読み込めません。少し待ってから、もう一度お試しください。', figEmpty: '何も描かれていません。', figBig: '図が大きすぎます。図形を減らしてください。', figHelp: '描いたら「記事に入れる」を押します。入れた図は、記事の中で図の上にカーソルを置いて「図解」を押すと、もう一度編集できます。' });
-Object.assign(GT.en, { bDiagram: 'Moving diagram', bFigure: 'Figure', figTitle: 'Figure editor', figIns: 'Insert', figUpd: 'Update', figClose: 'Close', figLoad: 'Loading…', figFail: 'Could not load. Please try again in a moment.', figEmpty: 'Nothing drawn yet.', figBig: 'The figure is too large. Please use fewer shapes.', figHelp: 'Press Insert when done. To edit later, put the cursor on the figure in the article and press Figure.' });
+Object.assign(GT.ja, { bFigure: '図解', figTitle: '図解', figIns: '記事に入れる', figUpd: '更新する', figClose: '閉じる', figLoad: '読み込み中です…', figFail: '読み込めません。少し待ってから、もう一度お試しください。', figEmpty: '何も描かれていません。', figBig: '図が大きすぎます。図形を減らしてください。', figHelp: '「1. 描く」で描き、「2. 動かす」でキーフレームやスライダーを付けます。入れた図は、図の上にカーソルを置いて「図解」を押すと、もう一度編集できます。' });
+Object.assign(GT.en, { bFigure: 'Figure', figTitle: 'Figure', figIns: 'Insert', figUpd: 'Update', figClose: 'Close', figLoad: 'Loading…', figFail: 'Could not load. Please try again in a moment.', figEmpty: 'Nothing drawn yet.', figBig: 'The figure is too large. Please use fewer shapes.', figHelp: 'Draw in "1. Draw", then add keyframes and sliders in "2. Animate". To edit later, put the cursor on the figure and press Figure.' });
 function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
 function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
 var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, saved: false, edit: null, keep: false };
@@ -3826,7 +3779,7 @@ function gdReadPaint() {
         (gd.can.edit ? '<button class="gd-btn" onclick="gdEditOpen(' + g.id + ')">' + esc(gt('edit')) + '</button>' : '') +
         (gd.can.del ? '<button class="gd-btn danger" onclick="gdDelete()">' + esc(gt('del')) + '</button>' : '') + '</div></article>';
     if (g.published) h += '<section class="gd-cms"><h3>' + esc(gt('cm')) + ' <span>' + gd.comments.length + '</span></h3><div id="gd-cm-list"></div><div id="gd-cm-form"></div></section>';
-    box.innerHTML = h; dgMountAll(box);
+    box.innerHTML = h; faMountAll(box);
     if (g.published) { gdCommentsPaint(); gdCommentForm(); }
     gdScratchBlocks(box);
 }
@@ -3916,7 +3869,7 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['shape', '', 'bShape'], ['figure', '', 'bFigure'], ['diagram', '', 'bDiagram'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['figure', '', 'bFigure'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
@@ -3952,7 +3905,7 @@ function gdEditTab(p) {
     e.preview = p;
     document.getElementById('gd-e-body').style.display = p ? 'none' : '';
     var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
-    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files); dgMountAll(pv);
+    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files); faMountAll(pv);
     document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
 }
 function gdEditBack() {
@@ -3966,9 +3919,7 @@ function gdFmt(kind) {
     if (kind === 'img') { document.getElementById('gd-e-file').click(); return; }
     if (kind === 'vid') { document.getElementById('gd-e-vfile').click(); return; }
     if (kind === 'sb3file') { document.getElementById('gd-e-sfile').click(); return; }
-    if (kind === 'shape') { gdShapeOpen(); return; }
     if (kind === 'figure') { gdFigureOpen(); return; }
-    if (kind === 'diagram') { dgDiagramOpen(); return; }
     var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
     var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
     if (wrap[kind]) { var w = wrap[kind], t = sel || '…'; ins = w + t + w; ns = s + w.length; ne = ns + t.length; }
@@ -4090,333 +4041,166 @@ function gdEditorWire() {
     });
 }
 
-// ---- 図形ツール（キャンバスで描く。画像にも、動く動画にもできる） ----
-var GS_W = 640, GS_H = 360;
-var GS_KINDS = [['rect', '■', 'sRect'], ['round', '▢', 'sRound'], ['circle', '●', 'sCircle'], ['ellipse', '⬬', 'sEllipse'], ['tri', '▲', 'sTri'], ['diamond', '◆', 'sDiamond'], ['star', '★', 'sStar'], ['arrow', '➡', 'sArrow'], ['line', '／', 'sLine'], ['bubble', '💬', 'sBubble'], ['text', 'T', 'sText']];
-var GS_ANIMS = [['none', 'aNone'], ['spin', 'aSpin'], ['pulse', 'aPulse'], ['bounce', 'aBounce'], ['blink', 'aBlink'], ['slide', 'aSlide'], ['wobble', 'aWobble']];
-var GS_COLORS = ['#4d97ff', '#ff6680', '#ffab19', '#59c059', '#9966ff', '#ff8c1a', '#2b3a55', '#ffffff'];
-var gs = null;
-function gsNew(kind, n) {
-    var d = { rect: [160, 90], round: [160, 90], circle: [110, 110], ellipse: [170, 100], tri: [120, 110], diamond: [120, 120], star: [120, 120], arrow: [170, 80], line: [180, 8], bubble: [180, 100], text: [200, 50] }[kind] || [120, 80];
-    var o = (n % 6) * 18;
-    return { t: kind, x: 150 + o, y: 90 + o, w: d[0], h: d[1], fill: kind === 'text' ? 'transparent' : GS_COLORS[n % 6], stroke: '#2b3a55', sw: kind === 'line' ? 6 : 0, text: kind === 'text' ? 'テキスト' : '', tc: kind === 'text' ? '#2b3a55' : '#ffffff', fs: kind === 'text' ? 32 : 20, rot: 0, anim: 'none' };
-}
-function gdShapeOpen() {
-    if (gs) return;
-    var e = gd.edit; if (!e) return;
-    if (e.preview) gdEditTab(false);
-    gs = { shapes: [], sel: -1, bg: '#ffffff', drag: null, raf: 0, t0: performance.now(), busy: false, err: '' };
-    var o = document.createElement('div'); o.className = 'gs-ov'; o.id = 'gs-ov';
-    o.innerHTML = '<div class="gs-box" role="dialog" aria-label="' + esc(gt('sTitle')) + '">' +
-        '<div class="gs-head"><b>' + esc(gt('sTitle')) + '</b><button type="button" class="gd-x" onclick="gdShapeClose()">✕</button></div>' +
-        '<div class="gs-kinds">' + GS_KINDS.map(function(k) { return '<button type="button" class="gs-k" title="' + esc(gt(k[2])) + '" onclick="gsAdd(\'' + k[0] + '\')"><span>' + k[1] + '</span><small>' + esc(gt(k[2])) + '</small></button>'; }).join('') + '</div>' +
-        '<div class="gs-main"><canvas id="gs-cv" width="' + GS_W + '" height="' + GS_H + '"></canvas><div class="gs-panel" id="gs-panel"></div></div>' +
-        '<div class="gs-err" id="gs-err"></div>' +
-        '<div class="gs-acts"><label class="gs-bg">' + esc(gt('sBg')) + ' <select id="gs-bg" onchange="gs.bg=this.value"><option value="#ffffff">' + esc(gt('sBgW')) + '</option><option value="transparent">' + esc(gt('sBgT')) + '</option><option value="#eef4ff">' + esc(gt('sBgB')) + '</option><option value="#1e2433">' + esc(gt('sBgD')) + '</option></select></label><span class="gs-sp"></span>' +
-        '<button type="button" class="gd-btn" onclick="gdShapeClose()">' + esc(gt('cancel')) + '</button>' +
-        '<button type="button" class="gd-btn primary" id="gs-png" onclick="gsInsert(false)">' + esc(gt('sInsImg')) + '</button>' +
-        '<button type="button" class="gd-btn primary" id="gs-vid" onclick="gsInsert(true)">' + esc(gt('sInsVid')) + '</button></div></div>';
-    document.body.appendChild(o);
-    var cv = document.getElementById('gs-cv');
-    cv.addEventListener('pointerdown', gsDown); cv.addEventListener('pointermove', gsMove); cv.addEventListener('pointerup', gsUp); cv.addEventListener('pointercancel', gsUp);
-    o.addEventListener('keydown', function(ev) { if (ev.key === 'Escape') gdShapeClose(); else if ((ev.key === 'Delete' || ev.key === 'Backspace') && ev.target.tagName !== 'INPUT' && ev.target.tagName !== 'SELECT') { gsDelete(); ev.preventDefault(); } });
-    gsAdd('circle'); gsPanel(); gsLoop();
-}
-function gdShapeClose() {
-    if (!gs) return;
-    cancelAnimationFrame(gs.raf); var o = document.getElementById('gs-ov'); if (o) o.remove(); gs = null;
-}
-function gsAdd(kind) { if (!gs) return; gs.shapes.push(gsNew(kind, gs.shapes.length)); gs.sel = gs.shapes.length - 1; gsPanel(); }
-function gsDelete() { if (!gs || gs.sel < 0) return; gs.shapes.splice(gs.sel, 1); gs.sel = gs.shapes.length - 1; gsPanel(); }
-function gsCopy() { if (!gs || gs.sel < 0) return; var c = JSON.parse(JSON.stringify(gs.shapes[gs.sel])); c.x += 20; c.y += 20; gs.shapes.push(c); gs.sel = gs.shapes.length - 1; gsPanel(); }
-function gsOrder(d) {
-    if (!gs || gs.sel < 0) return; var j = gs.sel + d; if (j < 0 || j >= gs.shapes.length) return;
-    var t = gs.shapes[gs.sel]; gs.shapes[gs.sel] = gs.shapes[j]; gs.shapes[j] = t; gs.sel = j;
-}
-function gsSet(k, v) { if (!gs || gs.sel < 0) return; gs.shapes[gs.sel][k] = v; }
-function gsPanel() {
-    var el = document.getElementById('gs-panel'); if (!el) return;
-    var s = gs.shapes[gs.sel];
-    if (!s) { el.innerHTML = '<div class="gs-hint">' + esc(gt('sHint')) + '</div>'; gsButtons(); return; }
-    var row = function(label, inner) { return '<label class="gs-row"><span>' + esc(label) + '</span>' + inner + '</label>'; };
-    var col = function(k) { return '<input type="color" value="' + (/^#[0-9a-f]{6}$/i.test(s[k]) ? s[k] : '#4d97ff') + '" oninput="gsSet(\'' + k + '\',this.value)">'; };
-    el.innerHTML =
-        (s.t === 'line' ? '' : row(gt('sFill'), col('fill') + '<button type="button" class="gs-mini" onclick="gsSet(\'fill\',\'transparent\');gsPanel()">' + esc(gt('sNoFill')) + '</button>')) +
-        row(gt('sStroke'), col('stroke') + '<input type="range" min="0" max="14" value="' + s.sw + '" oninput="gsSet(\'sw\',+this.value)">') +
-        (s.t === 'line' ? '' : row(gt('sText'), '<input type="text" maxlength="40" value="' + esc(s.text) + '" oninput="gsSet(\'text\',this.value)">' + col('tc'))) +
-        (s.t === 'line' ? '' : row(gt('sSize'), '<input type="range" min="10" max="90" value="' + s.fs + '" oninput="gsSet(\'fs\',+this.value)">')) +
-        row(gt('sRot'), '<input type="range" min="-180" max="180" value="' + s.rot + '" oninput="gsSet(\'rot\',+this.value)">') +
-        row(gt('sAnim'), '<select onchange="gsSet(\'anim\',this.value);gsButtons()">' + GS_ANIMS.map(function(a) { return '<option value="' + a[0] + '"' + (s.anim === a[0] ? ' selected' : '') + '>' + esc(gt(a[1])) + '</option>'; }).join('') + '</select>') +
-        '<div class="gs-btns"><button type="button" class="gs-mini" onclick="gsCopy()">' + esc(gt('sDup')) + '</button><button type="button" class="gs-mini" onclick="gsOrder(1)">' + esc(gt('sFront')) + '</button><button type="button" class="gs-mini" onclick="gsOrder(-1)">' + esc(gt('sBack')) + '</button><button type="button" class="gs-mini danger" onclick="gsDelete()">' + esc(gt('sDel')) + '</button></div>';
-    gsButtons();
-}
-function gsButtons() {
-    var v = document.getElementById('gs-vid'), p = document.getElementById('gs-png'); if (!v || !gs) return;
-    var any = gs.shapes.some(function(s) { return s.anim !== 'none'; }), can = !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream);
-    v.style.display = any && can ? '' : 'none'; p.style.display = gs.shapes.length ? '' : 'none';
-    var er = document.getElementById('gs-err'); if (er) er.textContent = gs.err || (any && !can ? gt('sNoRec') : '');
-}
-// 動き（時間 t 秒での、位置・回転・大きさ・透明度の変化）
-function gsAnimOf(s, t) {
-    var a = { dx: 0, dy: 0, rot: 0, sc: 1, al: 1 };
-    if (s.anim === 'spin') a.rot = (t * 120) % 360;
-    else if (s.anim === 'pulse') a.sc = 1 + 0.18 * Math.sin(t * 2 * Math.PI * 0.8);
-    else if (s.anim === 'bounce') a.dy = -Math.abs(Math.sin(t * Math.PI * 1.2)) * 40;
-    else if (s.anim === 'blink') a.al = 0.55 + 0.45 * Math.cos(t * 2 * Math.PI * 0.8);
-    else if (s.anim === 'slide') a.dx = Math.sin(t * 2 * Math.PI * 0.5) * 60;
-    else if (s.anim === 'wobble') a.rot = Math.sin(t * 2 * Math.PI * 1.2) * 14;
-    return a;
-}
-function gsPath(c, s) {
-    var w = s.w, h = s.h, x = -w / 2, y = -h / 2;
-    c.beginPath();
-    if (s.t === 'rect') c.rect(x, y, w, h);
-    else if (s.t === 'round' || s.t === 'bubble') { var r = Math.min(18, w / 4, h / 4), hh = s.t === 'bubble' ? h * 0.82 : h, yy = y;
-        c.moveTo(x + r, yy); c.arcTo(x + w, yy, x + w, yy + hh, r); c.arcTo(x + w, yy + hh, x, yy + hh, r);
-        if (s.t === 'bubble') { c.lineTo(x + w * 0.3, yy + hh); c.lineTo(x + w * 0.18, y + h); c.lineTo(x + w * 0.18, yy + hh); }
-        c.arcTo(x, yy + hh, x, yy, r); c.arcTo(x, yy, x + w, yy, r); c.closePath(); }
-    else if (s.t === 'circle' || s.t === 'ellipse') c.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
-    else if (s.t === 'tri') { c.moveTo(0, y); c.lineTo(x + w, y + h); c.lineTo(x, y + h); c.closePath(); }
-    else if (s.t === 'diamond') { c.moveTo(0, y); c.lineTo(x + w, 0); c.lineTo(0, y + h); c.lineTo(x, 0); c.closePath(); }
-    else if (s.t === 'star') { for (var i = 0; i < 10; i++) { var ang = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 0.42 : 1; var px = Math.cos(ang) * rr * w / 2, py = Math.sin(ang) * rr * h / 2; if (i) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); }
-    else if (s.t === 'arrow') { var hd = Math.min(w * 0.4, h * 0.9), bh = h * 0.36; c.moveTo(x, -bh / 2); c.lineTo(x + w - hd, -bh / 2); c.lineTo(x + w - hd, y); c.lineTo(x + w, 0); c.lineTo(x + w - hd, y + h); c.lineTo(x + w - hd, bh / 2); c.lineTo(x, bh / 2); c.closePath(); }
-    else if (s.t === 'line') { c.moveTo(x, 0); c.lineTo(x + w, 0); }
-}
-function gsDraw(c, s, t) {
-    var a = gsAnimOf(s, t);
-    c.save(); c.globalAlpha = a.al; c.translate(s.x + s.w / 2 + a.dx, s.y + s.h / 2 + a.dy); c.rotate((s.rot + a.rot) * Math.PI / 180); c.scale(a.sc, a.sc);
-    if (s.t !== 'text') {
-        gsPath(c, s);
-        if (s.t !== 'line' && s.fill && s.fill !== 'transparent') { c.fillStyle = s.fill; c.fill(); }
-        if (s.sw > 0) { c.lineWidth = s.sw; c.strokeStyle = s.stroke; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); }
-    }
-    if (s.text && s.t !== 'line') { c.fillStyle = s.tc; c.font = '700 ' + s.fs + 'px system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s.text, 0, s.t === 'bubble' ? -s.h * 0.09 : 0, Math.max(20, s.w - 8)); }
-    c.restore();
-}
-function gsRender(c, t, withSel) {
-    c.clearRect(0, 0, GS_W, GS_H);
-    if (gs.bg !== 'transparent') { c.fillStyle = gs.bg; c.fillRect(0, 0, GS_W, GS_H); }
-    else if (withSel) { c.fillStyle = '#fff'; c.fillRect(0, 0, GS_W, GS_H); c.fillStyle = '#eef1f6'; for (var yy = 0; yy < GS_H; yy += 20) for (var xx = (yy / 20) % 2 ? 20 : 0; xx < GS_W; xx += 40) c.fillRect(xx, yy, 20, 20); }
-    gs.shapes.forEach(function(s) { gsDraw(c, s, t); });
-    if (withSel && gs.sel >= 0) {
-        var s = gs.shapes[gs.sel]; if (!s) return;
-        c.save(); c.translate(s.x + s.w / 2, s.y + s.h / 2); c.rotate(s.rot * Math.PI / 180); c.setLineDash([5, 4]); c.lineWidth = 1.5; c.strokeStyle = '#2b6be0'; c.strokeRect(-s.w / 2 - 3, -s.h / 2 - 3, s.w + 6, s.h + 6);
-        c.setLineDash([]); c.fillStyle = '#fff'; c.fillRect(s.w / 2 - 4, s.h / 2 - 4, 12, 12); c.strokeRect(s.w / 2 - 4, s.h / 2 - 4, 12, 12); c.restore();
-    }
-}
-function gsLoop() {
-    if (!gs) return;
-    var cv = document.getElementById('gs-cv'); if (!cv) return;
-    if (!gs.rec) gsRender(cv.getContext('2d'), (performance.now() - gs.t0) / 1000, !gs.rec);
-    gs.raf = requestAnimationFrame(gsLoop);
-}
-// マウス/タッチ
-function gsPt(ev) { var cv = document.getElementById('gs-cv'), r = cv.getBoundingClientRect(); return { x: (ev.clientX - r.left) * GS_W / r.width, y: (ev.clientY - r.top) * GS_H / r.height }; }
-function gsInv(s, p) { var cx = s.x + s.w / 2, cy = s.y + s.h / 2, a = -s.rot * Math.PI / 180, dx = p.x - cx, dy = p.y - cy; return { x: dx * Math.cos(a) - dy * Math.sin(a), y: dx * Math.sin(a) + dy * Math.cos(a) }; }
-function gsDown(ev) {
-    if (!gs) return; var p = gsPt(ev); ev.preventDefault();
-    var cur = gs.shapes[gs.sel];
-    if (cur) { var q = gsInv(cur, p); if (Math.abs(q.x - cur.w / 2 - 2) < 12 && Math.abs(q.y - cur.h / 2 - 2) < 12) { gs.drag = { mode: 'size', sx: p.x, sy: p.y, w: cur.w, h: cur.h }; ev.target.setPointerCapture(ev.pointerId); return; } }
-    for (var i = gs.shapes.length - 1; i >= 0; i--) {
-        var s = gs.shapes[i], q2 = gsInv(s, p), pad = s.t === 'line' ? 10 : 0;
-        if (Math.abs(q2.x) <= s.w / 2 + pad && Math.abs(q2.y) <= s.h / 2 + pad) { gs.sel = i; gs.drag = { mode: 'move', ox: p.x - s.x, oy: p.y - s.y }; ev.target.setPointerCapture(ev.pointerId); gsPanel(); return; }
-    }
-    gs.sel = -1; gsPanel();
-}
-function gsMove(ev) {
-    if (!gs || !gs.drag) return; var s = gs.shapes[gs.sel]; if (!s) return; var p = gsPt(ev);
-    if (gs.drag.mode === 'move') { s.x = Math.round(p.x - gs.drag.ox); s.y = Math.round(p.y - gs.drag.oy); }
-    else { s.w = Math.max(s.t === 'line' ? 20 : 16, Math.round(gs.drag.w + (p.x - gs.drag.sx) * 2)); s.h = Math.max(s.t === 'line' ? 4 : 16, Math.round(gs.drag.h + (p.y - gs.drag.sy) * 2)); if (s.t === 'line') s.h = gs.drag.h; }
-}
-function gsUp() { if (gs) gs.drag = null; }
-// 画像（PNG）か、動く動画（WebM）にして、本文に入れる
-async function gsInsert(asVideo) {
-    if (!gs || gs.busy || !gs.shapes.length) return;
-    gs.busy = true; gs.err = ''; gs.sel = -1; var e = gd.edit;
-    var btns = document.querySelectorAll('.gs-acts .gd-btn'); btns.forEach(function(b) { b.disabled = true; });
-    try {
-        var out = document.createElement('canvas'); out.width = GS_W * 2; out.height = GS_H * 2; var oc = out.getContext('2d');
-        var draw = function(t) { oc.setTransform(1, 0, 0, 1, 0, 0); oc.clearRect(0, 0, out.width, out.height); oc.scale(2, 2);
-            var main = document.getElementById('gs-cv'); var tmp = document.createElement('canvas'); tmp.width = GS_W; tmp.height = GS_H; var tc = tmp.getContext('2d');
-            var bgBak = gs.bg; if (asVideo && gs.bg === 'transparent') gs.bg = '#ffffff';
-            gsRender(tc, t, false); gs.bg = bgBak; oc.drawImage(tmp, 0, 0); };
-        if (!asVideo) {
-            draw(0);
-            var blob = await new Promise(function(r) { out.toBlob(r, 'image/png'); });
-            if (!blob) throw new Error('other');
-            var up = await gdUploadBlob(blob, 'image/png');
-            e.files[up.id] = { kind: 'image', url: up.url }; gdInsertToken('![' + gt('sAlt') + '](img:' + up.id + ')');
-        } else {
-            var mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].filter(function(m) { return MediaRecorder.isTypeSupported(m); })[0];
-            if (!mime) throw new Error('other');
-            var stream = out.captureStream(30), rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 }), chunks = [];
-            rec.ondataavailable = function(ev) { if (ev.data && ev.data.size) chunks.push(ev.data); };
-            var done = new Promise(function(r) { rec.onstop = r; });
-            gs.rec = true; var t0 = performance.now(); rec.start(200);
-            await new Promise(function(res) { var tick = function() { var t = (performance.now() - t0) / 1000; draw(t); if (t >= 3.2) res(); else requestAnimationFrame(tick); }; tick(); });
-            rec.stop(); await done; gs.rec = false;
-            var vb = new Blob(chunks, { type: 'video/webm' });
-            if (vb.size < 500) throw new Error('other');
-            var vu = await gdUploadBlob(vb, 'video/webm');
-            e.files[vu.id] = { kind: 'video', url: vu.url, name: '', size: vb.size }; gdInsertToken('![' + gt('sAlt') + '](vid:' + vu.id + ')');
-        }
-        gdShapeClose(); gdEditSync(); return;
-    } catch (x) { gs.rec = false; gs.err = chatErr(x); }
-    gs.busy = false; btns.forEach(function(b) { b.disabled = false; }); gsButtons();
-}
-
 function gdFromUrl(st) {
     gd.sort = st.sort === 'hot' ? 'hot' : 'new'; gd.tag = st.tag || ''; gd.q = st.q || ''; gd.items = []; gd.mine = false;
     if (st.id) { gdOpen(st.id); return; }
     gd.view = 'list'; setMode('guide');
 }
 
-// ===== 図解（図形とアニメーション。記事に ```diagram で埋め込む） =====
-var DG_W = 480, DG_H = 320, DG_MAX = 40;
-var DGT = {
-    ja: { title: '図解エディタ', shape: '形', motion: '動き', ins: '記事に入れる', upd: '更新する', close: '閉じる', ex: '例から始める', ex1: '三角形（頂点をドラッグ）', ex2: 'ボールの動き', ex3: '回る四角形',
-        tSel: '選択', tRect: '四角形', tEll: '円', tTri: '三角形', tLine: '線', tArrow: '矢印', tText: '文字', del: '削除', dup: '複製', up: '前へ', down: '後ろへ',
-        fill: '塗り', stroke: '線', sw: '線の太さ', op: '不透明度', rot: '回転', sc: '拡大', text: '文字', fs: '文字の大きさ', drag: '見る人がドラッグできる', none: 'なし', bg: '背景',
-        hintShape: '図形を選んで、ドラッグで描きます。頂点の丸をドラッグすると形を変えられます。', hintMotion: '時間を動かして図形を動かすと、その時間に「キーフレーム」が記録されます。',
-        play: '再生', pause: '停止', dur: '長さ(秒)', loop: 'くり返す', kf: 'キーフレーム', kfDel: 'この時間のキーフレームを消す', sl: 'スライダー（見る人が動かせる）', slAdd: 'スライダーを追加', slLabel: '名前', slTarget: '対象', slProp: '動かすもの', min: '最小', max: '最大',
-        pText: '文字を入力', empty: '左のツールで図形を描いてみましょう。', err: '図解を読み込めません', pdx: '横', pdy: '縦' },
-    en: { title: 'Diagram editor', shape: 'Shape', motion: 'Motion', ins: 'Insert', upd: 'Update', close: 'Close', ex: 'Start from example', ex1: 'Triangle (drag corners)', ex2: 'Bouncing ball', ex3: 'Spinning square',
-        tSel: 'Select', tRect: 'Rectangle', tEll: 'Ellipse', tTri: 'Triangle', tLine: 'Line', tArrow: 'Arrow', tText: 'Text', del: 'Delete', dup: 'Duplicate', up: 'Forward', down: 'Backward',
-        fill: 'Fill', stroke: 'Stroke', sw: 'Stroke width', op: 'Opacity', rot: 'Rotation', sc: 'Scale', text: 'Text', fs: 'Font size', drag: 'Viewers can drag', none: 'None', bg: 'Background',
-        hintShape: 'Pick a tool and drag to draw. Drag the dots to reshape.', hintMotion: 'Move the time slider, then move a shape: a keyframe is recorded at that time.',
-        play: 'Play', pause: 'Pause', dur: 'Length (s)', loop: 'Loop', kf: 'Keyframes', kfDel: 'Delete keyframe at this time', sl: 'Sliders (viewers can move)', slAdd: 'Add slider', slLabel: 'Label', slTarget: 'Target', slProp: 'Property', min: 'Min', max: 'Max',
-        pText: 'Enter text', empty: 'Draw a shape with the tools on the left.', err: 'Cannot load diagram', pdx: 'X', pdy: 'Y' }
+// ---- 図解（お絵かき）: Costume Studio（docs/costume-studio/）を窓の中で開き、描いたSVGを記事に入れる ----
+// ---- 図解の動き: 描いた図形ごとに、キーフレーム・スライダー・切り替え・ステップを付ける ----
+var FAT = {
+    ja: { tab1: '1. 描く', tab2: '2. 動かす', undo: '元に戻す', redo: 'やり直し', play: '再生', pause: '停止', prev: '戻る', next: '次へ',
+        shapes: '動かす図形', shape: '図形', animated: '動きあり', none: '図形がありません。「1. 描く」で描いてください。', pick: '図形をクリックか一覧で選ぶと、動きを付けられます。',
+        preset: 'ワンクリックで動かす', p_spin: '回る', p_pulse: '脈打つ', p_bounce: '跳ねる', p_slide: '左右', p_blink: '点滅', p_none: '止める',
+        at: '今の時間の状態', rot: '回転', sc: '拡大', op: '不透明度', dragHint: '時間バーを動かして図形をドラッグすると、その時間の位置が「キーフレーム」として記録されます。',
+        kf: 'キーフレーム', kfDel: '消す', ease: '動きの補間', eLin: '一定の速さ', eIn: 'なめらか',
+        touch: '見る人が触れるようにする', drag: '図形をドラッグできる', slAdd: 'スライダーを追加', slOp: '透明度', slRot: '回転', slSc: '大きさ', slX: '横の位置', slY: '縦の位置', tgAdd: '表示の切り替えを追加', tgName: '表示',
+        slT: 'スライダー・切り替え', label: '名前', stepOf: '表示するステップ', step0: '最初から', steps: 'ステップ数（次へ・戻るで順に見せる。0で使わない）',
+        dur: '長さ（秒）', pad: '余白（元の絵の外へはみ出して動ける範囲・%）', loop: 'くり返す', auto: '自動で再生', total: '全体の設定', secTime: '時間', bad: '図を読み込めません', del: '削除' },
+    en: { tab1: '1. Draw', tab2: '2. Animate', undo: 'Undo', redo: 'Redo', play: 'Play', pause: 'Pause', prev: 'Back', next: 'Next',
+        shapes: 'Shapes to animate', shape: 'Shape', animated: 'animated', none: 'No shapes. Draw some in "1. Draw".', pick: 'Click a shape or pick one in the list to animate it.',
+        preset: 'One-click motion', p_spin: 'Spin', p_pulse: 'Pulse', p_bounce: 'Bounce', p_slide: 'Slide', p_blink: 'Blink', p_none: 'Stop',
+        at: 'State at this time', rot: 'Rotation', sc: 'Scale', op: 'Opacity', dragHint: 'Move the time bar and drag the shape: its position at that time is recorded as a keyframe.',
+        kf: 'Keyframes', kfDel: 'Delete', ease: 'Interpolation', eLin: 'Constant speed', eIn: 'Smooth',
+        touch: 'Let viewers interact', drag: 'Shape is draggable', slAdd: 'Add slider', slOp: 'Opacity', slRot: 'Rotation', slSc: 'Size', slX: 'X position', slY: 'Y position', tgAdd: 'Add show/hide toggle', tgName: 'Show',
+        slT: 'Sliders and toggles', label: 'Label', stepOf: 'Shown from step', step0: 'From start', steps: 'Steps (viewers go Next/Back; 0 = off)',
+        dur: 'Length (s)', pad: 'Margin (room to move outside the picture, %)', loop: 'Loop', auto: 'Autoplay', total: 'Overall', secTime: 'Time', bad: 'Cannot load figure', del: 'Delete' }
 };
-Object.assign(DGT.ja, { emptyT: 'はじめに、例から選んでみよう', emptyS: 'または、左の道具をえらんで、ここをドラッグすると図形が描けます。', pick: '図形をクリックで選ぶと、色や動きを変えられます。', preset: 'ワンクリックで動かす', p_spin: '回る', p_pulse: '脈打つ', p_bounce: '跳ねる', p_slide: '左右', p_blink: '点滅', p_none: '止める',
-    touch: '見る人が触れるようにする', dragV: '頂点をドラッグできる', dragO: 'ドラッグで動かせる', slOp: '透明度スライダー', slRot: '回転スライダー', slSc: '大きさスライダー', custom: 'ほかの色', shape: '描く', motion: '動かす', hintMotion: '時間バーを動かして図形をドラッグすると、細かい動きも作れます。', hintShape: '左の道具を選んで、ドラッグで図形を描きます。' });
-Object.assign(DGT.en, { emptyT: 'Start with an example', emptyS: 'Or pick a tool on the left and drag here to draw.', pick: 'Click a shape to change its color and motion.', preset: 'One-click motion', p_spin: 'Spin', p_pulse: 'Pulse', p_bounce: 'Bounce', p_slide: 'Slide', p_blink: 'Blink', p_none: 'Stop',
-    touch: 'Let viewers interact', dragV: 'Corners draggable', dragO: 'Draggable', slOp: 'Opacity slider', slRot: 'Rotation slider', slSc: 'Size slider', custom: 'Other color', shape: 'Draw', motion: 'Animate', hintMotion: 'Move the time bar and drag a shape to make detailed motion.', hintShape: 'Pick a tool on the left and drag to draw.' });
-function dgt(k) { return (DGT[currentLang] || DGT.ja)[k] || DGT.ja[k] || k; }
-var DG_COL = /^#[0-9a-fA-F]{3,8}$/, DG_KINDS = ['rect', 'ellipse', 'tri', 'poly', 'line', 'arrow', 'text'], DG_PROPS = ['op', 'rot', 's', 'dx', 'dy'];
-function dgN(v, d, lo, hi) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
-function dgC(v, d) { return v === 'none' ? 'none' : (typeof v === 'string' && DG_COL.test(v)) ? v : d; }
-// 記事の本文は他人が書けるので、数値と色だけを通す（SVGの属性に入れるのはこの値だけ）
-function dgClean(sp) {
-    sp = sp && typeof sp === 'object' ? sp : {};
-    var out = { dur: dgN(sp.dur, 3, 0.5, 60), loop: sp.loop !== false, bg: dgC(sp.bg, '#ffffff'), objs: [], sl: [] };
-    (Array.isArray(sp.objs) ? sp.objs : []).slice(0, DG_MAX).forEach(function(o, i) {
-        if (!o || DG_KINDS.indexOf(o.k) < 0) return;
-        var n = { k: o.k, id: /^[a-z0-9]{1,8}$/.test(o.id) ? o.id : 'o' + i, fill: dgC(o.fill, '#4c97ff'), stroke: dgC(o.stroke, '#2b5fb8'), sw: dgN(o.sw, 2, 0, 30), op: dgN(o.op, 1, 0, 1),
-            dx: dgN(o.dx, 0, -2000, 2000), dy: dgN(o.dy, 0, -2000, 2000), rot: dgN(o.rot, 0, -3600, 3600), s: dgN(o.s, 1, 0.05, 20), drag: !!o.drag };
-        if (o.k === 'tri' || o.k === 'poly' || o.k === 'line' || o.k === 'arrow') {
-            n.pts = (Array.isArray(o.pts) ? o.pts : []).slice(0, 24).map(function(p) { return [dgN(p && p[0], 0, -2000, 2000), dgN(p && p[1], 0, -2000, 2000)]; });
-            if (n.pts.length < (o.k === 'line' || o.k === 'arrow' ? 2 : 3)) return;
-        } else { n.x = dgN(o.x, 0, -2000, 2000); n.y = dgN(o.y, 0, -2000, 2000); n.w = dgN(o.w, 60, 1, 4000); n.h = dgN(o.h, 40, 1, 4000); }
-        if (o.k === 'text') { n.text = String(o.text == null ? '' : o.text).slice(0, 200); n.fs = dgN(o.fs, 24, 6, 160); }
-        if (Array.isArray(o.kf)) n.kf = o.kf.slice(0, 30).map(function(k) { return { t: dgN(k && k.t, 0, 0, 60), dx: dgN(k && k.dx, 0, -2000, 2000), dy: dgN(k && k.dy, 0, -2000, 2000), rot: dgN(k && k.rot, 0, -3600, 3600), s: dgN(k && k.s, 1, 0.05, 20), op: dgN(k && k.op, 1, 0, 1) }; }).sort(function(a, b) { return a.t - b.t; });
-        out.objs.push(n);
+function fat(k) { return (FAT[currentLang] || FAT.ja)[k] || FAT.ja[k] || k; }
+var FA_PROPS = ['op', 'rot', 's', 'dx', 'dy'];
+function faN(v, d, lo, hi) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, v)); }
+function faR(n) { return Math.round(n * 100) / 100; }
+function faClean(a) {
+    a = a && typeof a === 'object' ? a : {};
+    var out = { dur: faN(a.dur, 3, 0.5, 60), loop: a.loop !== false, auto: a.auto !== false, ease: a.ease === 'lin' ? 'lin' : 'io', pad: Math.round(faN(a.pad, 0, 0, 100)), steps: Math.round(faN(a.steps, 0, 0, 20)), t: [], sl: [], tg: [] };
+    (Array.isArray(a.t) ? a.t : []).slice(0, 60).forEach(function(x) {
+        if (!x) return; var i = Math.round(faN(x.i, -1, -1, 999)); if (i < 0) return;
+        var o = { i: i, drag: !!x.drag, step: Math.round(faN(x.step, 0, 0, 20)), kf: [] };
+        (Array.isArray(x.kf) ? x.kf : []).slice(0, 30).forEach(function(k) { if (k) o.kf.push({ t: faN(k.t, 0, 0, 60), dx: faN(k.dx, 0, -5000, 5000), dy: faN(k.dy, 0, -5000, 5000), rot: faN(k.rot, 0, -3600, 3600), s: faN(k.s, 1, 0.01, 50), op: faN(k.op, 1, 0, 1) }); });
+        o.kf.sort(function(p, q) { return p.t - q.t; });
+        out.t.push(o);
     });
-    (Array.isArray(sp.sl) ? sp.sl : []).slice(0, 6).forEach(function(s) {
-        if (!s || DG_PROPS.indexOf(s.p) < 0 || !out.objs.some(function(o) { return o.id === s.o; })) return;
-        var lo = dgN(s.min, 0, -5000, 5000), hi = dgN(s.max, 1, -5000, 5000);
-        out.sl.push({ label: String(s.label == null ? '' : s.label).slice(0, 30), o: s.o, p: s.p, min: Math.min(lo, hi), max: Math.max(lo, hi), v: dgN(s.v, lo, -5000, 5000) });
+    (Array.isArray(a.sl) ? a.sl : []).slice(0, 8).forEach(function(s) {
+        if (!s || FA_PROPS.indexOf(s.p) < 0) return; var lo = faN(s.min, 0, -9999, 9999), hi = faN(s.max, 1, -9999, 9999);
+        out.sl.push({ label: String(s.label == null ? '' : s.label).slice(0, 30), i: Math.round(faN(s.i, 0, 0, 999)), p: s.p, min: Math.min(lo, hi), max: Math.max(lo, hi), v: faN(s.v, lo, -9999, 9999) });
     });
+    (Array.isArray(a.tg) ? a.tg : []).slice(0, 8).forEach(function(g) { if (g) out.tg.push({ label: String(g.label == null ? '' : g.label).slice(0, 30), i: Math.round(faN(g.i, 0, 0, 999)), v: g.v !== false }); });
     return out;
 }
-function dgSt(sp, o, t, raw, par) {
-    var st = { dx: o.dx, dy: o.dy, rot: o.rot, s: o.s, op: o.op }, k = o.kf;
-    if (!raw && k && k.length) {
-        var a = k[0], b = k[k.length - 1], P = ['dx', 'dy', 'rot', 's', 'op'];
-        if (t <= a.t) { st = { dx: a.dx, dy: a.dy, rot: a.rot, s: a.s, op: a.op }; }
-        else if (t >= b.t) { st = { dx: b.dx, dy: b.dy, rot: b.rot, s: b.s, op: b.op }; }
-        else for (var i = 0; i < k.length - 1; i++) if (t >= k[i].t && t <= k[i + 1].t) {
-            var f = (t - k[i].t) / ((k[i + 1].t - k[i].t) || 1);
-            P.forEach(function(p) { st[p] = k[i][p] + (k[i + 1][p] - k[i][p]) * f; }); break;
+function faHas(a) { return !!(a && (a.t.some(function(x) { return x.kf.length || x.drag || x.step; }) || a.sl.length || a.tg.length || a.steps)); }
+function faT(a, i, make) { var f = a.t.filter(function(x) { return x.i === i; })[0]; if (!f && make) { f = { i: i, drag: false, step: 0, kf: [] }; a.t.push(f); } return f; }
+function faAnimated(a) { return a.t.some(function(x) { return x.kf.length > 1; }); }
+// ---- SVGを安全に取り込む（スクリプト・外部読み込みを除く。idは図ごとに別名にする） ----
+function faParse(str, pre) {
+    var doc; try { doc = new DOMParser().parseFromString(String(str), 'image/svg+xml'); } catch (e) { return null; }
+    var root = doc.documentElement; if (!root || root.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) return null;
+    [].slice.call(root.querySelectorAll('script,foreignObject,iframe,object,embed,audio,video,animate,set,animateTransform,animateMotion,style,use')).forEach(function(n) { n.remove(); });
+    var ids = {};
+    [].forEach.call(root.querySelectorAll('[id]'), function(n) { ids[n.id] = pre + n.id; });
+    [root].concat([].slice.call(root.querySelectorAll('*'))).forEach(function(n) {
+        [].slice.call(n.attributes).forEach(function(at) {
+            var nm = at.name.toLowerCase(), v = at.value;
+            if (nm.indexOf('on') === 0) { n.removeAttribute(at.name); return; }
+            if (nm === 'href' || nm === 'xlink:href') { if (v.charAt(0) === '#' && ids[v.slice(1)]) at.value = '#' + ids[v.slice(1)]; else if (!/^data:image\/(png|jpe?g|gif|webp);base64,/i.test(v)) n.removeAttribute(at.name); return; }
+            if (nm === 'id') { at.value = ids[v] || v; return; }
+            if (/url\(/i.test(v)) at.value = v.replace(/url\(\s*['"]?#([^)'"]+)['"]?\s*\)/g, function(m, id) { return ids[id] ? 'url(#' + ids[id] + ')' : 'none'; }).replace(/url\([^#)][^)]*\)/g, 'none');
+        });
+    });
+    return root;
+}
+function faTargets(root) {
+    var node = root;
+    for (var g = 0; g < 6; g++) {
+        var kids = [].filter.call(node.children, function(c) { return !/^(defs|title|desc|metadata)$/i.test(c.nodeName); });
+        if (kids.length === 1 && /^g$/i.test(kids[0].nodeName)) node = kids[0]; else { return { node: node, list: kids }; }
+    }
+    return { node: node, list: [].filter.call(node.children, function(c) { return !/^(defs|title|desc|metadata)$/i.test(c.nodeName); }) };
+}
+var faMN = 0;
+// host に図を入れて、動かせる状態にする。{apply, items, root, W, H}
+function faBuild(host, svgStr, a) {
+    var root = faParse(svgStr, 'fa' + (++faMN) + '-'); if (!root) { host.textContent = fat('bad'); return null; }
+    var vb = (root.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number), W = vb.length === 4 ? vb[2] : (parseFloat(root.getAttribute('width')) || 480), H = vb.length === 4 ? vb[3] : (parseFloat(root.getAttribute('height')) || 320);
+    if (vb.length !== 4) root.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    root.removeAttribute('width'); root.removeAttribute('height'); root.setAttribute('class', 'fa-svg'); root.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    host.innerHTML = ''; host.appendChild(document.importNode(root, true));
+    var live = host.querySelector('svg'), tg = faTargets(live), ctx = { host: host, root: live, W: W, H: H, vx: vb.length === 4 ? vb[0] : 0, vy: vb.length === 4 ? vb[1] : 0, items: [], a: a, node: tg.node };
+    tg.list.forEach(function(el) {
+        var bb; try { bb = el.getBBox(); } catch (e) { bb = { x: 0, y: 0, width: 0, height: 0 }; }
+        var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2, tr = el.getAttribute('transform') || '';
+        try { if (el.transform && el.transform.baseVal.numberOfItems) { var m = el.transform.baseVal.consolidate().matrix, x = m.a * cx + m.c * cy + m.e, y = m.b * cx + m.d * cy + m.f; cx = x; cy = y; } } catch (e) {}
+        var op0 = parseFloat(el.getAttribute('opacity')); ctx.items.push({ el: el, cx: faR(cx), cy: faR(cy), tr0: tr, op0: isFinite(op0) ? op0 : 1 });
+    });
+    ctx.top = function(n) { while (n && n !== live) { var i = ctx.items.map(function(it) { return it.el; }).indexOf(n); if (i >= 0) return i; n = n.parentNode; } return -1; };
+    ctx.apply = function(t, par, tgv, step, ov) {
+        var pd = (ctx.a.pad || 0) / 100 * Math.max(ctx.W, ctx.H); live.setAttribute('viewBox', faR(ctx.vx - pd) + ' ' + faR(ctx.vy - pd) + ' ' + faR(ctx.W + 2 * pd) + ' ' + faR(ctx.H + 2 * pd));
+        ctx.items.forEach(function(it, i) {
+            var r = faState(ctx.a, i, t, par, tgv, step, ov), s = r.st;
+            it.el.setAttribute('transform', 'translate(' + faR(s.dx) + ' ' + faR(s.dy) + ') translate(' + it.cx + ' ' + it.cy + ') rotate(' + faR(s.rot) + ') scale(' + faR(s.s) + ') translate(' + -it.cx + ' ' + -it.cy + ')' + (it.tr0 ? ' ' + it.tr0 : ''));
+            it.el.style.opacity = faR(it.op0 * s.op); it.el.style.display = r.hidden ? 'none' : '';
+        });
+        if (ctx.after) ctx.after();
+    };
+    ctx.vec = function(i, ev0, ev1) { // 画面の動きを、図形の親の座標の動きに直す
+        var p = ctx.items[i].el.parentNode, m = p.getScreenCTM(); if (!m) return [0, 0]; var inv = m.inverse(), a0 = live.createSVGPoint(), a1 = live.createSVGPoint();
+        a0.x = ev0[0]; a0.y = ev0[1]; a1.x = ev1[0]; a1.y = ev1[1]; a0 = a0.matrixTransform(inv); a1 = a1.matrixTransform(inv); return [a1.x - a0.x, a1.y - a0.y];
+    };
+    return ctx;
+}
+function faState(a, i, t, par, tgv, step, ov) {
+    var st = { dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, T = faT(a, i, false), hidden = false;
+    if (T && T.kf.length) {
+        var k = T.kf, f0 = k[0], f1 = k[k.length - 1], P = ['dx', 'dy', 'rot', 's', 'op'];
+        if (t <= f0.t) P.forEach(function(p) { st[p] = f0[p]; });
+        else if (t >= f1.t) P.forEach(function(p) { st[p] = f1[p]; });
+        else for (var j = 0; j < k.length - 1; j++) if (t >= k[j].t && t <= k[j + 1].t) {
+            var f = (t - k[j].t) / ((k[j + 1].t - k[j].t) || 1); if (a.ease !== 'lin') f = f * f * (3 - 2 * f);
+            P.forEach(function(p) { st[p] = k[j][p] + (k[j + 1][p] - k[j][p]) * f; }); break;
         }
     }
-    if (!raw && par) sp.sl.forEach(function(s, j) { if (s.o === o.id && par[j] != null) st[s.p] = par[j]; });
-    return st;
-}
-function dgCen(o) {
-    if (o.pts) { var xs = o.pts.map(function(p) { return p[0]; }), ys = o.pts.map(function(p) { return p[1]; }); return [(Math.min.apply(0, xs) + Math.max.apply(0, xs)) / 2, (Math.min.apply(0, ys) + Math.max.apply(0, ys)) / 2]; }
-    return [o.x + o.w / 2, o.y + o.h / 2];
-}
-function dgTp(o, st, p) {
-    var c = dgCen(o), r = st.rot * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), x = (p[0] - c[0]) * st.s, y = (p[1] - c[1]) * st.s;
-    return [c[0] + st.dx + x * cs - y * sn, c[1] + st.dy + x * sn + y * cs];
-}
-function dgInv(o, st, q) {
-    var c = dgCen(o), r = -st.rot * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), x = q[0] - c[0] - st.dx, y = q[1] - c[1] - st.dy;
-    return [c[0] + (x * cs - y * sn) / st.s, c[1] + (x * sn + y * cs) / st.s];
-}
-var dgR = function(n) { return Math.round(n * 100) / 100; };
-function dgObjSVG(sp, o, i, t, raw, par, hand, ov, sel) {
-    var st = dgSt(sp, o, t, raw, par), a = ' data-o="' + i + '"', fill = (o.k === 'line' || o.k === 'arrow') ? 'none' : o.fill, h = '';
+    a.sl.forEach(function(s, j) { if (s.i === i && par && par[j] != null) st[s.p] = par[j]; });
+    a.tg.forEach(function(g, j) { if (g.i === i && tgv && tgv[j] === false) hidden = true; });
+    if (T && T.step > 0 && step != null && T.step > step) hidden = true;
     if (ov && ov[i]) { st.dx += ov[i][0]; st.dy += ov[i][1]; }
-    var style = ' fill="' + fill + '" stroke="' + o.stroke + '" stroke-width="' + o.sw + '" opacity="' + dgR(st.op) + '" stroke-linejoin="round" stroke-linecap="round"';
-    if (o.pts) {
-        var P = o.pts.map(function(p) { return dgTp(o, st, p); }), ps = P.map(function(p) { return dgR(p[0]) + ',' + dgR(p[1]); }).join(' ');
-        if (o.k === 'line' || o.k === 'arrow') h = '<polyline' + a + style + ' points="' + ps + '"/>' + '<polyline' + a + ' fill="none" stroke="transparent" stroke-width="' + Math.max(14, o.sw + 8) + '" points="' + ps + '"/>';
-        else h = '<polygon' + a + style + ' points="' + ps + '"/>';
-        if (o.k === 'arrow') {
-            var q = P[P.length - 1], p0 = P[P.length - 2], an = Math.atan2(q[1] - p0[1], q[0] - p0[0]), L = 8 + o.sw * 2.5;
-            h += '<polygon' + a + ' fill="' + (o.stroke === 'none' ? '#000' : o.stroke) + '" opacity="' + dgR(st.op) + '" points="' + dgR(q[0]) + ',' + dgR(q[1]) + ' ' + dgR(q[0] - L * Math.cos(an - 0.45)) + ',' + dgR(q[1] - L * Math.sin(an - 0.45)) + ' ' + dgR(q[0] - L * Math.cos(an + 0.45)) + ',' + dgR(q[1] - L * Math.sin(an + 0.45)) + '"/>';
-        }
-        if (hand && (o.drag || sel)) h += P.map(function(p, j) { return '<circle class="dg-h" data-v="' + i + ':' + j + '" cx="' + dgR(p[0]) + '" cy="' + dgR(p[1]) + '" r="9" fill="#b794f6" fill-opacity=".75" stroke="#4b3a7a" stroke-width="2.5"/>'; }).join('');
-        return h;
-    }
-    var c = dgCen(o), tr = ' transform="translate(' + dgR(st.dx) + ' ' + dgR(st.dy) + ') translate(' + dgR(c[0]) + ' ' + dgR(c[1]) + ') rotate(' + dgR(st.rot) + ') scale(' + dgR(st.s) + ') translate(' + -dgR(c[0]) + ' ' + -dgR(c[1]) + ')"';
-    if (o.k === 'rect') h = '<rect' + a + tr + style + ' x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" rx="3"/>';
-    else if (o.k === 'ellipse') h = '<ellipse' + a + tr + style + ' cx="' + dgR(c[0]) + '" cy="' + dgR(c[1]) + '" rx="' + dgR(o.w / 2) + '" ry="' + dgR(o.h / 2) + '"/>';
-    else h = '<text' + a + tr + ' x="' + dgR(c[0]) + '" y="' + dgR(c[1]) + '" font-size="' + o.fs + '" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="' + (o.fill === 'none' ? '#000' : o.fill) + '" opacity="' + dgR(st.op) + '" font-family="sans-serif">' + esc(o.text) + '</text>';
-    return h;
+    return { st: st, hidden: hidden };
 }
-function dgSceneSVG(sp, t, raw, par, hand, ov, selIdx) {
-    var h = '<rect width="' + DG_W + '" height="' + DG_H + '" fill="' + (sp.bg === 'none' ? '#ffffff' : sp.bg) + '"/>', over = '';
-    sp.objs.forEach(function(o, i) { h += dgObjSVG(sp, o, i, t, raw, par, hand, ov, i === selIdx); });
-    return h;
-}
-function dgPt(svg, ev) { var r = svg.getBoundingClientRect(); return [(ev.clientX - r.left) * DG_W / r.width, (ev.clientY - r.top) * DG_H / r.height]; }
-
 // ---- 見る側（記事の中） ----
-function dgMountAll(root) {
-    [].forEach.call((root || document).querySelectorAll('.dg-view[data-spec]:not([data-m])'), dgMount);
-}
-function dgMount(el) {
+function faMountAll(root) { [].forEach.call((root || document).querySelectorAll('.fa-view[data-svg]:not([data-m])'), faMount); }
+function faMount(el) {
     el.setAttribute('data-m', '1');
-    var sp;
-    try { sp = dgClean(JSON.parse(el.getAttribute('data-spec'))); } catch (e) { el.textContent = dgt('err'); return; }
-    var anim = sp.objs.some(function(o) { return o.kf && o.kf.length > 1; });
-    var S = { t: 0, play: anim, par: sp.sl.map(function(s) { return s.v; }), t0: 0, ov: {} };
-    var ctl = '';
-    if (anim) ctl += '<div class="dg-row"><button type="button" class="dg-play">' + esc(dgt('pause')) + '</button><input type="range" class="dg-t" min="0" max="' + sp.dur + '" step="0.01" value="0"></div>';
-    sp.sl.forEach(function(s, j) { ctl += '<label class="dg-row"><span>' + esc(s.label) + '</span><input type="range" class="dg-sl" data-j="' + j + '" min="' + s.min + '" max="' + s.max + '" step="' + (s.max - s.min) / 200 + '" value="' + s.v + '"><output>' + dgR(s.v) + '</output></label>'; });
-    el.innerHTML = '<svg class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg>' + (ctl ? '<div class="dg-ctl">' + ctl + '</div>' : '');
-    var svg = el.querySelector('svg'), btn = el.querySelector('.dg-play'), rng = el.querySelector('.dg-t');
-    var draw = function() { svg.innerHTML = dgSceneSVG(sp, S.t, false, S.par, true, S.ov, -1); };
+    var a; try { a = faClean(JSON.parse(el.getAttribute('data-anim') || '{}')); } catch (e) { a = faClean({}); }
+    var anim = faAnimated(a), S = { t: 0, play: anim && a.auto, par: a.sl.map(function(s) { return s.v; }), tgv: a.tg.map(function(g) { return g.v; }), step: 0, t0: 0, ov: {} };
+    var stage = document.createElement('div'), ctl = document.createElement('div'); stage.className = 'fa-stage'; ctl.className = 'fa-ctl'; el.innerHTML = ''; el.appendChild(stage); el.appendChild(ctl);
+    var ctx = faBuild(stage, el.getAttribute('data-svg'), a); if (!ctx) return;
+    var h = '';
+    if (anim) h += '<div class="fa-row"><button type="button" class="fa-play">' + esc(fat(S.play ? 'pause' : 'play')) + '</button><input type="range" class="fa-t" min="0" max="' + a.dur + '" step="0.01" value="0"></div>';
+    if (a.steps > 0) h += '<div class="fa-row fa-steps"><button type="button" class="fa-stb" data-d="-1">' + esc(fat('prev')) + '</button><span class="fa-sn"></span><button type="button" class="fa-stb" data-d="1">' + esc(fat('next')) + '</button></div>';
+    a.sl.forEach(function(s, j) { h += '<label class="fa-row"><span>' + esc(s.label) + '</span><input type="range" class="fa-sl" data-j="' + j + '" min="' + s.min + '" max="' + s.max + '" step="' + (s.max - s.min) / 200 + '" value="' + s.v + '"><output>' + faR(s.v) + '</output></label>'; });
+    a.tg.forEach(function(g, j) { h += '<label class="fa-row fa-tgl"><input type="checkbox" class="fa-tg" data-j="' + j + '"' + (g.v ? ' checked' : '') + '><span>' + esc(g.label) + '</span></label>'; });
+    ctl.innerHTML = h; if (!h) ctl.style.display = 'none';
+    var btn = ctl.querySelector('.fa-play'), rng = ctl.querySelector('.fa-t'), sn = ctl.querySelector('.fa-sn');
+    var draw = function() { ctx.apply(S.t, S.par, S.tgv, a.steps > 0 ? S.step : null, S.ov); if (sn) sn.textContent = S.step + ' / ' + a.steps; };
     draw();
-    if (btn) btn.onclick = function() { S.play = !S.play; S.t0 = 0; btn.textContent = dgt(S.play ? 'pause' : 'play'); };
-    if (rng) rng.oninput = function() { S.play = false; S.t = Number(rng.value); if (btn) btn.textContent = dgt('play'); draw(); };
-    [].forEach.call(el.querySelectorAll('.dg-sl'), function(r) { r.oninput = function() { S.par[Number(r.dataset.j)] = Number(r.value); r.nextSibling.textContent = dgR(Number(r.value)); draw(); }; });
-    var drag = null;
+    if (btn) btn.onclick = function() { S.play = !S.play; S.t0 = 0; btn.textContent = fat(S.play ? 'pause' : 'play'); };
+    if (rng) rng.oninput = function() { S.play = false; S.t = Number(rng.value); if (btn) btn.textContent = fat('play'); draw(); };
+    [].forEach.call(ctl.querySelectorAll('.fa-sl'), function(r) { r.oninput = function() { S.par[Number(r.dataset.j)] = Number(r.value); r.nextSibling.textContent = faR(Number(r.value)); draw(); }; });
+    [].forEach.call(ctl.querySelectorAll('.fa-tg'), function(r) { r.onchange = function() { S.tgv[Number(r.dataset.j)] = r.checked; draw(); }; });
+    [].forEach.call(ctl.querySelectorAll('.fa-stb'), function(b) { b.onclick = function() { S.step = Math.max(0, Math.min(a.steps, S.step + Number(b.dataset.d))); draw(); }; });
+    var drag = null, svg = ctx.root;
     svg.onpointerdown = function(ev) {
-        var v = ev.target.closest && ev.target.closest('[data-v]'), o = ev.target.closest && ev.target.closest('[data-o]'), p = dgPt(svg, ev);
-        if (v) { var a = v.dataset.v.split(':'); drag = { k: 'v', i: Number(a[0]), j: Number(a[1]) }; }
-        else if (o && sp.objs[Number(o.dataset.o)] && sp.objs[Number(o.dataset.o)].drag && !sp.objs[Number(o.dataset.o)].pts) { var i = Number(o.dataset.o); drag = { k: 'm', i: i, p: p, o: (S.ov[i] || [0, 0]).slice() }; }
-        if (!drag) return;
-        try { svg.setPointerCapture(ev.pointerId); } catch (x) {}
-        ev.preventDefault();
+        var i = ctx.top(ev.target), T = i >= 0 ? faT(a, i, false) : null; if (!T || !T.drag) return;
+        drag = { i: i, p: [ev.clientX, ev.clientY], o: (S.ov[i] || [0, 0]).slice() };
+        try { svg.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault();
     };
-    svg.onpointermove = function(ev) {
-        if (!drag) return;
-        var p = dgPt(svg, ev), o = sp.objs[drag.i];
-        if (drag.k === 'v') { var st = dgSt(sp, o, S.t, false, S.par); o.pts[drag.j] = dgInv(o, st, p).map(function(n) { return Math.max(-500, Math.min(1000, n)); }); }
-        else S.ov[drag.i] = [drag.o[0] + p[0] - drag.p[0], drag.o[1] + p[1] - drag.p[1]];
-        draw();
-    };
+    svg.onpointermove = function(ev) { if (!drag) return; var v = ctx.vec(drag.i, drag.p, [ev.clientX, ev.clientY]); S.ov[drag.i] = [drag.o[0] + v[0], drag.o[1] + v[1]]; draw(); };
     svg.onpointerup = svg.onpointercancel = function() { drag = null; };
     if (anim) {
         var tick = function(ts) {
             if (!document.body.contains(el)) return;
             if (S.play) {
-                if (!S.t0) S.t0 = ts - S.t * 1000;
-                var t = (ts - S.t0) / 1000;
-                if (t > sp.dur) { if (sp.loop) { S.t0 = ts; t = 0; } else { t = sp.dur; S.play = false; if (btn) btn.textContent = dgt('play'); } }
+                if (!S.t0) S.t0 = ts - S.t * 1000; var t = (ts - S.t0) / 1000;
+                if (t > a.dur) { if (a.loop) { S.t0 = ts; t = 0; } else { t = a.dur; S.play = false; if (btn) btn.textContent = fat('play'); } }
                 S.t = t; if (rng) rng.value = t; draw();
             }
             requestAnimationFrame(tick);
@@ -4424,235 +4208,125 @@ function dgMount(el) {
         requestAnimationFrame(tick);
     }
 }
-
-// ---- 描く側（エディタ） ----
-var dge = null;
-var DG_EXAMPLES = {
-    ex1: function() { return { dur: 3, loop: true, bg: '#ffffff', objs: [
-        { k: 'tri', id: 'tri', pts: [[240, 40], [380, 120], [150, 270]], fill: '#4c6bff99', stroke: '#6a3fd0', sw: 2, drag: true },
-        { k: 'line', id: 'ln', pts: [[0, 165], [480, 165]], fill: 'none', stroke: '#000000', sw: 3 },
-        { k: 'text', id: 'tx', x: 340, y: 178, w: 100, h: 30, text: 'z=0', fs: 24, fill: '#000000', stroke: 'none', sw: 0 }
-    ], sl: [{ label: '面の透明度', o: 'tri', p: 'op', min: 0.1, max: 1, v: 0.7 }] }; },
-    ex2: function() { return { dur: 3, loop: true, bg: '#ffffff', objs: [
-        { k: 'line', id: 'gr', pts: [[20, 290], [460, 290]], fill: 'none', stroke: '#888888', sw: 3 },
-        { k: 'ellipse', id: 'ball', x: 40, y: 230, w: 60, h: 60, fill: '#ff6b3d', stroke: '#b23a12', sw: 2, kf: [
-            { t: 0, dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, { t: 0.75, dx: 120, dy: -170, rot: 0, s: 1, op: 1 }, { t: 1.5, dx: 240, dy: 0, rot: 0, s: 1, op: 1 }, { t: 2.25, dx: 330, dy: -90, rot: 0, s: 1, op: 1 }, { t: 3, dx: 380, dy: 0, rot: 0, s: 1, op: 1 }] }
-    ], sl: [] }; },
-    ex3: function() { return { dur: 2, loop: true, bg: '#ffffff', objs: [
-        { k: 'rect', id: 'sq', x: 190, y: 110, w: 100, h: 100, fill: '#4c97ff', stroke: '#2b5fb8', sw: 3, kf: [
-            { t: 0, dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, { t: 1, dx: 0, dy: 0, rot: 180, s: 1.5, op: 0.6 }, { t: 2, dx: 0, dy: 0, rot: 360, s: 1, op: 1 }] }
-    ], sl: [] }; }
-};
-var dgCnt = 0;
-function dgNewId() { dgCnt++; return 'o' + Date.now().toString(36).slice(-4) + dgCnt; }
-function dgOpen(spec, done) {
-    var sp = dgClean(spec && spec.objs ? spec : { objs: [] });
-    dge = { sp: sp, sel: -1, tool: 'select', mode: 'shape', t: 0, play: false, t0: 0, drag: null, done: done, edit: !!(spec && spec.objs && spec.objs.length) };
-    var d = document.getElementById('dg-ed'); if (d) d.remove();
-    d = document.createElement('div'); d.id = 'dg-ed';
-    d.innerHTML = '<div class="dge-box"><div class="dge-top"><b class="dge-title">' + esc(dgt('title')) + '</b><div class="dge-steps" id="dge-modes"></div><div class="dge-sp"></div>' +
-        '<button class="dge-b ghost" onclick="dgClose()">' + esc(dgt('close')) + '</button><button class="dge-b main" onclick="dgFinish()">' + esc(dgt(dge.edit ? 'upd' : 'ins')) + '</button></div>' +
-        '<div class="dge-main"><div class="dge-tools" id="dge-tools"></div><div class="dge-stage"><div class="dge-cv"><svg id="dge-svg" class="dg-svg" viewBox="0 0 ' + DG_W + ' ' + DG_H + '"></svg><div class="dge-empty" id="dge-empty"></div></div><div id="dge-tl"></div></div><div class="dge-side" id="dge-side"></div></div></div>';
-    document.body.appendChild(d);
-    var svg = document.getElementById('dge-svg');
-    svg.onpointerdown = dgDown; svg.onpointermove = dgMove; svg.onpointerup = svg.onpointercancel = dgUp;
-    dgPaintAll();
-    requestAnimationFrame(dgTick);
+// ---- 作る側（「2. 動かす」の画面） ----
+var fe = null;
+function faEdMount(pane, svgStr, a) {
+    fe = { pane: pane, svg: svgStr, a: a, sel: -1, t: 0, play: false, t0: 0, drag: null, u: [], r: [], par: null, lp: 0, lk: '', ctx: null };
+    pane.innerHTML = '<div class="fa-ed"><div class="fa-prev"><div class="fa-cv" id="fa-cv"></div><div id="fa-tl"></div></div><div class="fa-side" id="fa-side"></div></div>';
+    fe.ctx = faBuild(document.getElementById('fa-cv'), svgStr, a);
+    if (!fe.ctx) return;
+    fe.a.t = fe.a.t.filter(function(x) { return x.i < fe.ctx.items.length; }); fe.a.sl = fe.a.sl.filter(function(x) { return x.i < fe.ctx.items.length; }); fe.a.tg = fe.a.tg.filter(function(x) { return x.i < fe.ctx.items.length; });
+    fe.ctx.a = fe.a; fe.ctx.after = faSelBox;
+    var svg = fe.ctx.root; svg.onpointerdown = faDown; svg.onpointermove = faMove; svg.onpointerup = svg.onpointercancel = faUp;
+    if (fe.ctx.items.length && fe.sel < 0) fe.sel = 0;
+    faPaint(); requestAnimationFrame(faTick);
 }
-function dgClose() { dge = null; var d = document.getElementById('dg-ed'); if (d) d.remove(); }
-function dgFinish() {
-    if (!dge) return;
-    var sp = dgClean(dge.sp), cb = dge.done;
-    if (!sp.objs.length) { showToast(dgt('empty')); return; }
-    dgClose(); if (cb) cb(sp);
+function faEdStop() { fe = null; }
+function faPush() { if (!fe) return; fe.u.push(JSON.stringify(fe.a)); if (fe.u.length > 60) fe.u.shift(); fe.r = []; }
+function faRestore(s) { fe.a = faClean(JSON.parse(s)); fe.ctx.a = fe.a; faPaint(); }
+function faUndo() { if (!fe || !fe.u.length) return; fe.r.push(JSON.stringify(fe.a)); faRestore(fe.u.pop()); }
+function faRedo() { if (!fe || !fe.r.length) return; fe.u.push(JSON.stringify(fe.a)); faRestore(fe.r.pop()); }
+function faPaint() { if (!fe) return; faPaintSide(); faPaintTl(); faDraw(); }
+function faDraw() { if (!fe || !fe.ctx) return; fe.ctx.apply(fe.t, fe.par, null, null, null); }
+function faSelBox() {
+    if (!fe || !fe.ctx) return; var root = fe.ctx.root, old = root.querySelector('.fa-selbox'); if (old) old.remove();
+    var it = fe.ctx.items[fe.sel]; if (!it) return;
+    try {
+        var bb = it.el.getBBox(), m = root.getScreenCTM().inverse().multiply(it.el.getScreenCTM()), xs = [], ys = [];
+        [[bb.x, bb.y], [bb.x + bb.width, bb.y], [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]].forEach(function(c) { var p = root.createSVGPoint(); p.x = c[0]; p.y = c[1]; p = p.matrixTransform(m); xs.push(p.x); ys.push(p.y); });
+        var r = document.createElementNS('http://www.w3.org/2000/svg', 'rect'), x0 = Math.min.apply(0, xs), y0 = Math.min.apply(0, ys);
+        r.setAttribute('class', 'fa-selbox'); r.setAttribute('x', x0 - 3); r.setAttribute('y', y0 - 3); r.setAttribute('width', Math.max.apply(0, xs) - x0 + 6); r.setAttribute('height', Math.max.apply(0, ys) - y0 + 6);
+        r.setAttribute('fill', 'none'); r.setAttribute('stroke', '#6a3fd0'); r.setAttribute('stroke-width', Math.max(1.5, fe.ctx.W / 300)); r.setAttribute('stroke-dasharray', '6 4'); r.setAttribute('pointer-events', 'none'); root.appendChild(r);
+    } catch (e) {}
 }
-function dgExample(k) { if (!dge || !DG_EXAMPLES[k]) return; dge.sp = dgClean(DG_EXAMPLES[k]()); dge.sel = -1; dge.t = 0; dge.mode = k === 'ex1' ? 'shape' : 'motion'; dge.play = k !== 'ex1'; dge.t0 = 0; dgPaintAll(); }
-function dgSelObj() { return dge && dge.sel >= 0 ? dge.sp.objs[dge.sel] : null; }
-function dgPaintAll() { dgPaintTop(); dgPaintTools(); dgPaintSide(); dgPaintTl(); dgDraw(); }
-function dgPaintTop() {
-    document.getElementById('dge-modes').innerHTML = [['shape', '① ' + dgt('shape')], ['motion', '② ' + dgt('motion')]].map(function(m) { return '<button class="dge-step' + (dge.mode === m[0] ? ' on' : '') + '" onclick="dgSetMode(\'' + m[0] + '\')">' + esc(m[1]) + '</button>'; }).join('');
-    var em = document.getElementById('dge-empty');
-    em.style.display = dge.sp.objs.length ? 'none' : '';
-    em.innerHTML = dge.sp.objs.length ? '' : '<div class="dge-em-t">' + esc(dgt('emptyT')) + '</div><div class="dge-em-s">' + esc(dgt('emptyS')) + '</div><div class="dge-ex">' +
-        [['ex1', 'ex1'], ['ex2', 'ex2'], ['ex3', 'ex3']].map(function(x) { return '<button onclick="dgExample(\'' + x[0] + '\')">' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div>';
-}
-function dgSetMode(m) { dge.mode = m; dge.play = false; dgPaintAll(); }
-function dgPaintTools() {
-    var T = [['select', '↖', 'tSel'], ['rect', '▭', 'tRect'], ['ellipse', '◯', 'tEll'], ['tri', '△', 'tTri'], ['line', '／', 'tLine'], ['arrow', '➜', 'tArrow'], ['text', 'T', 'tText']];
-    document.getElementById('dge-tools').innerHTML = T.map(function(x) { return '<button class="dge-tool' + (dge.tool === x[0] ? ' on' : '') + '" onclick="dge.tool=\'' + x[0] + '\';dgPaintTools()"><span>' + x[1] + '</span><small>' + esc(dgt(x[2])) + '</small></button>'; }).join('');
-}
-function dgDup() { var o = dgSelObj(); if (!o || dge.sp.objs.length >= DG_MAX) return; var c = JSON.parse(JSON.stringify(o)); c.id = dgNewId(); if (c.pts) c.pts = c.pts.map(function(p) { return [p[0] + 16, p[1] + 16]; }); else { c.x += 16; c.y += 16; } dge.sp.objs.push(c); dge.sel = dge.sp.objs.length - 1; dgPaintAll(); }
-function dgDel() { var o = dgSelObj(); if (!o) return; dge.sp.objs.splice(dge.sel, 1); dge.sp.sl = dge.sp.sl.filter(function(s) { return s.o !== o.id; }); dge.sel = -1; dgPaintAll(); }
-function dgOrder(d) { var i = dge.sel, a = dge.sp.objs, j = i + d; if (i < 0 || j < 0 || j >= a.length) return; var t = a[i]; a[i] = a[j]; a[j] = t; dge.sel = j; dgPaintAll(); }
-function dgCol(label, key, o) {
-    var v = o[key], P = ['#ff6680', '#ffab19', '#ffd500', '#59c059', '#4c97ff', '#9966ff', '#2b3a55', '#ffffff', '#222222'];
-    return '<div class="dge-sec"><div class="dge-h">' + esc(dgt(label)) + '</div><div class="dge-sw">' + P.map(function(c) { return '<button class="' + (v === c ? 'on' : '') + '" style="background:' + c + '" onclick="dgProp(\'' + key + '\',\'' + c + '\');dgPaintSide()"></button>'; }).join('') +
-        '<button class="none' + (v === 'none' ? ' on' : '') + '" title="' + esc(dgt('none')) + '" onclick="dgProp(\'' + key + '\',\'none\');dgPaintSide()">∅</button>' +
-        '<input type="color" value="' + (/^#[0-9a-f]{6}/i.test(v) ? v.slice(0, 7) : '#888888') + '" oninput="dgProp(\'' + key + '\',this.value)" title="' + esc(dgt('custom')) + '"></div></div>';
-}
-function dgNumF(label, key, v, min, max, step) { return '<div class="dge-sec"><div class="dge-h">' + esc(dgt(label)) + '</div><div class="dge-rg"><input type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" oninput="dgProp(\'' + key + '\',this.value);this.nextSibling.textContent=dgR(Number(this.value))"><output>' + dgR(v) + '</output></div></div>'; }
-function dgPaintSide() {
-    var o = dgSelObj(), h = '', mo = dge.mode === 'motion';
-    if (!o) h += '<div class="dge-note">' + esc(dgt(dge.sp.objs.length ? 'pick' : 'hintShape')) + '</div>';
-    else {
-        var st = dgSt(dge.sp, o, dge.t, !mo, null);
-        h += '<div class="dge-acts"><button onclick="dgDup()">' + esc(dgt('dup')) + '</button><button onclick="dgOrder(1)">' + esc(dgt('up')) + '</button><button onclick="dgOrder(-1)">' + esc(dgt('down')) + '</button><button class="del" onclick="dgDel()">' + esc(dgt('del')) + '</button></div>';
-        if (mo) {
-            h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('preset')) + '</div><div class="dge-pre">' + ['spin', 'pulse', 'bounce', 'slide', 'blink', 'none'].map(function(x) { return '<button onclick="dgPreset(\'' + x + '\')">' + esc(dgt('p_' + x)) + '</button>'; }).join('') + '</div><div class="dge-note">' + esc(dgt('hintMotion')) + '</div></div>';
-            h += dgNumF('rot', 'rot', st.rot, -360, 720, 5) + dgNumF('sc', 's', st.s, 0.1, 4, 0.05) + dgNumF('op', 'op', st.op, 0, 1, 0.05);
-        } else {
-            if (o.k !== 'line' && o.k !== 'arrow') h += dgCol('fill', 'fill', o);
-            if (o.k !== 'text') h += dgCol('stroke', 'stroke', o) + dgNumF('sw', 'sw', o.sw, 0, 20, 1);
-            if (o.k === 'text') h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('text')) + '</div><input type="text" class="dge-tx" maxlength="200" value="' + esc(o.text) + '" oninput="dgProp(\'text\',this.value)"></div>' + dgNumF('fs', 'fs', o.fs, 8, 120, 1);
-            h += dgNumF('op', 'op', o.op, 0, 1, 0.05) + dgNumF('rot', 'rot', o.rot, -180, 180, 5);
-        }
-        h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('touch')) + '</div><label class="dge-chk"><input type="checkbox"' + (o.drag ? ' checked' : '') + ' onchange="dgProp(\'drag\',this.checked)"> ' + esc(dgt(o.pts ? 'dragV' : 'dragO')) + '</label>' +
-            '<div class="dge-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc']].map(function(x) { return '<button onclick="dgSlAdd(\'' + x[0] + '\')">+ ' + esc(dgt(x[1])) + '</button>'; }).join('') + '</div></div>';
-    }
-    if (dge.sp.sl.length) h += '<div class="dge-sec"><div class="dge-h">' + esc(dgt('sl')) + '</div>' + dge.sp.sl.map(function(s, j) {
-        return '<div class="dge-sl"><input type="text" maxlength="30" placeholder="' + esc(dgt('slLabel')) + '" value="' + esc(s.label) + '" oninput="dge.sp.sl[' + j + '].label=this.value"><button onclick="dge.sp.sl.splice(' + j + ',1);dgPaintSide()">x</button></div>';
-    }).join('') + '</div>';
-    document.getElementById('dge-side').innerHTML = h;
-}
-function dgSlAdd(p) {
-    var o = dgSelObj(); if (!o || dge.sp.sl.length >= 6) return;
-    var R = { op: [0, 1, 1, dgt('slOp')], rot: [0, 360, 0, dgt('slRot')], s: [0.3, 2.5, 1, dgt('slSc')] }[p];
-    dge.sp.sl.push({ label: R[3], o: o.id, p: p, min: R[0], max: R[1], v: R[2] }); dgPaintSide();
-}
-function dgPreset(name) {
-    var o = dgSelObj(); if (!o) return;
-    if (name === 'none') delete o.kf;
-    else {
-        var D = dge.sp.dur, b = { dx: o.dx, dy: o.dy, rot: o.rot, s: o.s, op: o.op }, K = function(t, q) { return Object.assign({ t: t }, b, q); };
-        o.kf = { spin: [K(0), K(D, { rot: b.rot + 360 })], pulse: [K(0), K(D / 2, { s: b.s * 1.3 }), K(D)], bounce: [K(0), K(D * 0.25, { dy: b.dy - 70 }), K(D * 0.5), K(D * 0.75, { dy: b.dy - 35 }), K(D)],
-            slide: [K(0), K(D / 2, { dx: b.dx + 90 }), K(D)], blink: [K(0), K(D / 2, { op: 0.15 }), K(D)] }[name];
-    }
-    dge.play = true; dge.t0 = 0; dgPaintAll();
-}
-
-function dgSetKF(o, t, patch) {
+function faAutoPad() { if (fe && fe.a.pad === 0 && !fe.padTouched) fe.a.pad = 25; }
+function faSetKF(T, t, patch) {
+    faAutoPad();
     t = Math.round(t * 20) / 20;
-    if (!o.kf || !o.kf.length) { var b = dgSt(dge.sp, o, 0, true, null); o.kf = [{ t: 0, dx: b.dx, dy: b.dy, rot: b.rot, s: b.s, op: b.op }]; }
-    var k = o.kf.filter(function(x) { return Math.abs(x.t - t) < 0.001; })[0];
-    if (!k) { if (o.kf.length >= 30) return; var c = dgSt(dge.sp, o, t, false, null); k = { t: t, dx: c.dx, dy: c.dy, rot: c.rot, s: c.s, op: c.op }; o.kf.push(k); o.kf.sort(function(a, b) { return a.t - b.t; }); }
+    if (!T.kf.length) T.kf.push({ t: 0, dx: 0, dy: 0, rot: 0, s: 1, op: 1 });
+    var k = T.kf.filter(function(x) { return Math.abs(x.t - t) < 0.001; })[0];
+    if (!k) { if (T.kf.length >= 30) return; var c = faState(fe.a, T.i, t, null, null, null, null).st; k = { t: t, dx: c.dx, dy: c.dy, rot: c.rot, s: c.s, op: c.op }; T.kf.push(k); T.kf.sort(function(p, q) { return p.t - q.t; }); }
     Object.keys(patch).forEach(function(p) { k[p] = patch[p]; });
 }
-function dgProp(key, v) {
-    var o = dgSelObj(); if (!o) return;
-    if (key === 'op' || key === 'rot' || key === 's') {
-        v = Number(v); if (!isFinite(v)) return;
-        v = key === 'op' ? Math.min(1, Math.max(0, v)) : key === 's' ? Math.min(20, Math.max(0.05, v)) : v;
-        if (dge.mode === 'motion') dgSetKF(o, dge.t, (function() { var p = {}; p[key] = v; return p; })()); else o[key] = v;
-    } else if (key === 'sw') o.sw = dgN(v, 2, 0, 30);
-    else if (key === 'fs') o.fs = dgN(v, 24, 6, 160);
-    else if (key === 'text') o.text = String(v).slice(0, 200);
-    else if (key === 'drag') o.drag = !!v;
-    else o[key] = v;
-    dgDraw(); if (dge.mode === 'motion') dgPaintTl();
+function faDown(ev) {
+    if (!fe) return; var i = fe.ctx.top(ev.target); if (i < 0) { fe.sel = -1; faPaintSide(); faDraw(); return; }
+    faPush(); fe.sel = i; var T = faT(fe.a, i, true), st = faState(fe.a, i, fe.t, null, null, null, null).st;
+    fe.drag = { i: i, p: [ev.clientX, ev.clientY], dx: st.dx, dy: st.dy };
+    try { fe.ctx.root.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); faPaintSide(); faDraw();
 }
-function dgPaintTl() {
-    var el = document.getElementById('dge-tl'); if (!el) return;
-    if (dge.mode !== 'motion') { el.innerHTML = ''; return; }
-    var o = dgSelObj(), kf = o && o.kf ? o.kf.map(function(k) { return dgR(k.t) + 's'; }).join(' ・ ') : '';
-    el.innerHTML = '<div class="dge-tlb"><button class="dge-play" onclick="dgPlay()">' + esc(dgt(dge.play ? 'pause' : 'play')) + '</button>' +
-        '<input type="range" id="dge-t" min="0" max="' + dge.sp.dur + '" step="0.05" value="' + dge.t + '" oninput="dge.play=false;dge.t=Number(this.value);dgTimeLabel();dgPaintSide();dgDraw();dgPaintTl2()"><span id="dge-tt"></span>' +
-        '<label class="dge-d">' + esc(dgt('dur')) + ' <input type="number" min="0.5" max="60" step="0.5" value="' + dge.sp.dur + '" onchange="dge.sp.dur=dgN(this.value,3,0.5,60);dgPaintTl()"></label>' +
-        '<label class="dge-d"><input type="checkbox"' + (dge.sp.loop ? ' checked' : '') + ' onchange="dge.sp.loop=this.checked"> ' + esc(dgt('loop')) + '</label></div>' +
-        '<div class="dge-kf" id="dge-kf">' + (kf ? esc(dgt('kf')) + ': ' + kf + ' <button onclick="dgKfDel()">' + esc(dgt('kfDel')) + '</button>' : '') + '</div>';
-    dgTimeLabel();
+function faMove(ev) {
+    if (!fe || !fe.drag) return; var d = fe.drag, v = fe.ctx.vec(d.i, d.p, [ev.clientX, ev.clientY]);
+    faSetKF(faT(fe.a, d.i, true), fe.t, { dx: d.dx + v[0], dy: d.dy + v[1] }); faDraw();
 }
-function dgPaintTl2() { var e = document.getElementById('dge-play'); }
-function dgTimeLabel() { var e = document.getElementById('dge-tt'); if (e) e.textContent = dgR(dge.t) + ' / ' + dge.sp.dur + 's'; }
-function dgKfDel() { var o = dgSelObj(); if (!o || !o.kf) return; var t = Math.round(dge.t * 20) / 20; o.kf = o.kf.filter(function(k) { return Math.abs(k.t - t) > 0.001; }); if (o.kf.length < 1) delete o.kf; dgPaintTl(); dgDraw(); }
-function dgPlay() { dge.play = !dge.play; dge.t0 = 0; dgPaintTl(); }
-function dgTick(ts) {
-    if (!dge) return;
-    if (dge.play) {
-        if (!dge.t0) dge.t0 = ts - dge.t * 1000;
-        var t = (ts - dge.t0) / 1000;
-        if (t > dge.sp.dur) { if (dge.sp.loop) { dge.t0 = ts; t = 0; } else { t = dge.sp.dur; dge.play = false; dgPaintTl(); } }
-        dge.t = t; var r = document.getElementById('dge-t'); if (r) r.value = t; dgTimeLabel(); dgDraw();
+function faUp() { if (!fe || !fe.drag) return; fe.drag = null; faPaintSide(); faPaintTl(); }
+function faTick(ts) {
+    if (!fe) return;
+    if (fe.play) {
+        if (!fe.t0) fe.t0 = ts - fe.t * 1000; var t = (ts - fe.t0) / 1000;
+        if (t > fe.a.dur) { if (fe.a.loop) { fe.t0 = ts; t = 0; } else { t = fe.a.dur; fe.play = false; faPaintTl(); } }
+        fe.t = t; var r = document.getElementById('fa-t'); if (r) r.value = t; faTimeLabel(); faDraw();
     }
-    requestAnimationFrame(dgTick);
+    requestAnimationFrame(faTick);
 }
-function dgDraw() {
-    var svg = document.getElementById('dge-svg'); if (!svg || !dge) return;
-    var raw = dge.mode === 'shape', sel = dge.sel, h = dgSceneSVG(dge.sp, raw ? 0 : dge.t, raw, raw ? null : dge.sp.sl.map(function(s) { return s.v; }), true, null, sel), o = dgSelObj(), g = '<g stroke="#eceff7" stroke-width="1" pointer-events="none">';
-    for (var x = 40; x < DG_W; x += 40) g += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + DG_H + '"/>';
-    for (var y = 40; y < DG_H; y += 40) g += '<line x1="0" y1="' + y + '" x2="' + DG_W + '" y2="' + y + '"/>';
-    h = h.replace('/>', '/>' + g + '</g>');
-    if (o && !o.pts && raw) h += '<rect x="' + o.x + '" y="' + o.y + '" width="' + o.w + '" height="' + o.h + '" fill="none" stroke="#6a3fd0" stroke-width="1.5" stroke-dasharray="5 4" pointer-events="none"/><rect class="dg-h" data-r="1" x="' + (o.x + o.w - 7) + '" y="' + (o.y + o.h - 7) + '" width="14" height="14" rx="3" fill="#fff" stroke="#6a3fd0" stroke-width="2.5"/>';
-    else if (o && !o.pts) { var c = dgCen(o), st = dgSt(dge.sp, o, dge.t, false, null); h += '<circle cx="' + dgR(c[0] + st.dx) + '" cy="' + dgR(c[1] + st.dy) + '" r="5" fill="#6a3fd0" pointer-events="none"/>'; }
-    svg.innerHTML = h;
+function faTimeLabel() { var e = document.getElementById('fa-tt'); if (e) e.textContent = faR(fe.t) + ' / ' + fe.a.dur + 's'; }
+function faPaintTl() {
+    var el = document.getElementById('fa-tl'); if (!el || !fe) return;
+    el.innerHTML = '<div class="fa-tlb"><button class="fa-playb" onclick="faPlay()">' + esc(fat(fe.play ? 'pause' : 'play')) + '</button><input type="range" id="fa-t" min="0" max="' + fe.a.dur + '" step="0.05" value="' + fe.t + '" oninput="fe.play=false;fe.t=Number(this.value);faTimeLabel();faPaintSide();faDraw();faPaintTl2()"><span id="fa-tt"></span></div><div class="fa-note">' + esc(fat('dragHint')) + '</div>';
+    faTimeLabel();
 }
-function dgDown(ev) {
-    if (!dge) return; var svg = ev.currentTarget, p = dgPt(svg, ev), T = dge.tool;
-    if (T === 'text') {
-        var s = prompt(dgt('pText'), ''); dge.tool = 'select';
-        if (s) { dge.sp.objs.push({ k: 'text', id: dgNewId(), x: p[0] - 60, y: p[1] - 16, w: 120, h: 32, text: s.slice(0, 200), fs: 24, fill: '#222222', stroke: 'none', sw: 0, op: 1, dx: 0, dy: 0, rot: 0, s: 1 }); dge.sel = dge.sp.objs.length - 1; }
-        dgPaintAll(); return;
+function faPaintTl2() { var b = document.querySelector('.fa-playb'); if (b) b.textContent = fat('play'); }
+function faPlay() { fe.play = !fe.play; fe.t0 = 0; faPaintTl(); }
+function faProp(key, v) {
+    var T = fe.sel >= 0 ? faT(fe.a, fe.sel, true) : null; if (!T) return;
+    var nw = Date.now(); if (nw - fe.lp > 800 || fe.lk !== key) faPush(); fe.lp = nw; fe.lk = key;
+    v = Number(v); if (!isFinite(v)) return; var p = {}; p[key] = v; faSetKF(T, fe.t, p); faDraw(); faTimeLabel();
+}
+function faPreset(name) {
+    var T = fe.sel >= 0 ? faT(fe.a, fe.sel, true) : null; if (!T) return; faPush();
+    var D = fe.a.dur, W = fe.ctx.W, K = function(t, q) { return Object.assign({ t: t, dx: 0, dy: 0, rot: 0, s: 1, op: 1 }, q); };
+    if (name !== 'none') faAutoPad();
+    T.kf = name === 'none' ? [] : { spin: [K(0), K(D, { rot: 360 })], pulse: [K(0), K(D / 2, { s: 1.3 }), K(D)], bounce: [K(0), K(D * 0.25, { dy: -W * 0.15 }), K(D * 0.5), K(D * 0.75, { dy: -W * 0.07 }), K(D)], slide: [K(0), K(D / 2, { dx: W * 0.2 }), K(D)], blink: [K(0), K(D / 2, { op: 0.15 }), K(D)] }[name];
+    fe.play = true; fe.t0 = 0; faPaint();
+}
+function faKfDel(j) { var T = fe.sel >= 0 ? faT(fe.a, fe.sel, false) : null; if (!T) return; faPush(); T.kf.splice(j, 1); faPaint(); }
+function faSel(i) { fe.sel = i; faPaintSide(); faDraw(); }
+function faCfg(key, v) { faPush(); if (key === 'dur') { fe.a.dur = faN(v, 3, 0.5, 60); faPaintTl(); } else if (key === 'steps') { fe.a.steps = Math.round(faN(v, 0, 0, 20)); faPaintSide(); } else if (key === 'pad') { fe.padTouched = true; fe.a.pad = Math.round(faN(v, 0, 0, 100)); faDraw(); } else if (key === 'ease') fe.a.ease = v === 'lin' ? 'lin' : 'io'; else fe.a[key] = !!v; }
+function faAddSl(p) {
+    if (fe.sel < 0 || fe.a.sl.length >= 8) return; faPush(); var W = fe.ctx.W, R = { op: [0, 1, 1, fat('slOp')], rot: [0, 360, 0, fat('slRot')], s: [0.3, 2.5, 1, fat('slSc')], dx: [-Math.round(W / 2), Math.round(W / 2), 0, fat('slX')], dy: [-Math.round(W / 2), Math.round(W / 2), 0, fat('slY')] }[p];
+    fe.a.sl.push({ label: R[3], i: fe.sel, p: p, min: R[0], max: R[1], v: R[2] }); faPaintSide();
+}
+function faAddTg() { if (fe.sel < 0 || fe.a.tg.length >= 8) return; faPush(); fe.a.tg.push({ label: fat('tgName'), i: fe.sel, v: true }); faPaintSide(); }
+function faPaintSide() {
+    if (!fe || !fe.ctx) return; var a = fe.a, items = fe.ctx.items, h = '', i = fe.sel, T = i >= 0 ? faT(a, i, false) : null, sec = function(t, inner) { return '<div class="fa-sec"><div class="fa-h">' + esc(t) + '</div>' + inner + '</div>'; };
+    var rg = function(label, key, v, mn, mx, st) { return '<div class="fa-rg"><span>' + esc(label) + '</span><input type="range" min="' + mn + '" max="' + mx + '" step="' + st + '" value="' + v + '" oninput="faProp(\'' + key + '\',this.value);this.nextSibling.textContent=faR(Number(this.value))"><output>' + faR(v) + '</output></div>'; };
+    if (!items.length) { document.getElementById('fa-side').innerHTML = '<div class="fa-note">' + esc(fat('none')) + '</div>'; return; }
+    h += sec(fat('shapes'), '<div class="fa-list">' + items.map(function(it, n) { var t = faT(a, n, false), on = t && t.kf.length > 1; return '<button class="' + (n === i ? 'on' : '') + '" onclick="faSel(' + n + ')">' + esc(fat('shape') + ' ' + (n + 1)) + (on ? '<small>' + esc(fat('animated')) + '</small>' : '') + '</button>'; }).join('') + '</div>');
+    if (i < 0) h += '<div class="fa-note">' + esc(fat('pick')) + '</div>';
+    else {
+        var st = faState(a, i, fe.t, null, null, null, null).st;
+        h += sec(fat('preset'), '<div class="fa-pre">' + ['spin', 'pulse', 'bounce', 'slide', 'blink', 'none'].map(function(x) { return '<button onclick="faPreset(\'' + x + '\')">' + esc(fat('p_' + x)) + '</button>'; }).join('') + '</div>');
+        h += sec(fat('at'), rg(fat('rot'), 'rot', st.rot, -360, 720, 5) + rg(fat('sc'), 's', st.s, 0.1, 4, 0.05) + rg(fat('op'), 'op', st.op, 0, 1, 0.05));
+        if (T && T.kf.length) h += sec(fat('kf'), '<div class="fa-kfs">' + T.kf.map(function(k, j) { return '<span>' + faR(k.t) + 's <button onclick="faKfDel(' + j + ')" title="' + esc(fat('kfDel')) + '">x</button></span>'; }).join('') + '</div>');
+        h += sec(fat('touch'), '<label class="fa-chk"><input type="checkbox"' + (T && T.drag ? ' checked' : '') + ' onchange="faPush();faT(fe.a,fe.sel,true).drag=this.checked"> ' + esc(fat('drag')) + '</label>' +
+            '<div class="fa-pre sm">' + [['op', 'slOp'], ['rot', 'slRot'], ['s', 'slSc'], ['dx', 'slX'], ['dy', 'slY']].map(function(x) { return '<button onclick="faAddSl(\'' + x[0] + '\')">+ ' + esc(fat(x[1])) + '</button>'; }).join('') + '<button onclick="faAddTg()">+ ' + esc(fat('tgAdd')) + '</button></div>');
+        h += sec(fat('stepOf'), '<select class="fa-in" onchange="faPush();faT(fe.a,fe.sel,true).step=Number(this.value)">' + [0].concat(Array.apply(null, Array(a.steps)).map(function(x, n) { return n + 1; })).map(function(n) { return '<option value="' + n + '"' + ((T ? T.step : 0) === n ? ' selected' : '') + '>' + (n ? n : esc(fat('step0'))) + '</option>'; }).join('') + '</select>');
     }
-    if (T !== 'select') {
-        if (dge.sp.objs.length >= DG_MAX) return;
-        var o = { k: T, id: dgNewId(), fill: T === 'line' || T === 'arrow' ? 'none' : '#4c97ff', stroke: T === 'line' || T === 'arrow' ? '#333333' : '#2b5fb8', sw: T === 'line' || T === 'arrow' ? 4 : 2, op: 1, dx: 0, dy: 0, rot: 0, s: 1 };
-        if (T === 'tri' || T === 'line' || T === 'arrow') o.pts = T === 'tri' ? [[p[0], p[1]], [p[0], p[1]], [p[0], p[1]]] : [[p[0], p[1]], [p[0], p[1]]]; else { o.x = p[0]; o.y = p[1]; o.w = 1; o.h = 1; }
-        dge.sp.objs.push(o); dge.sel = dge.sp.objs.length - 1; dge.drag = { k: 'new', p: p }; dge.mode = 'shape';
-        try { svg.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); dgPaintTop(); dgPaintTl(); return;
-    }
-    var v = ev.target.closest && ev.target.closest('[data-v]'), r = ev.target.closest && ev.target.closest('[data-r]'), ob = ev.target.closest && ev.target.closest('[data-o]');
-    if (v && dge.mode === 'shape') { var a = v.dataset.v.split(':'); dge.sel = Number(a[0]); dge.drag = { k: 'v', j: Number(a[1]) }; }
-    else if (r && dge.mode === 'shape') dge.drag = { k: 'r' };
-    else if (ob) {
-        dge.sel = Number(ob.dataset.o); var o2 = dge.sp.objs[dge.sel], st = dgSt(dge.sp, o2, dge.t, dge.mode === 'shape', null);
-        dge.drag = { k: 'm', p: p, pts: o2.pts ? JSON.parse(JSON.stringify(o2.pts)) : null, x: o2.x, y: o2.y, dx: st.dx, dy: st.dy };
-    } else { dge.sel = -1; dgPaintSide(); dgPaintTl(); dgDraw(); return; }
-    try { svg.setPointerCapture(ev.pointerId); } catch (x) {} ev.preventDefault(); dgPaintSide(); dgPaintTl(); dgDraw();
-}
-function dgMove(ev) {
-    if (!dge || !dge.drag) return; var d = dge.drag, o = dgSelObj(), p = dgPt(ev.currentTarget, ev); if (!o) return;
-    var cl = function(n) { return Math.max(-200, Math.min(DG_W + 200, n)); };
-    if (d.k === 'new') {
-        if (o.k === 'tri') { var x0 = Math.min(d.p[0], p[0]), x1 = Math.max(d.p[0], p[0]), y0 = Math.min(d.p[1], p[1]), y1 = Math.max(d.p[1], p[1]); o.pts = [[(x0 + x1) / 2, y0], [x1, y1], [x0, y1]]; }
-        else if (o.pts) o.pts = [d.p, [cl(p[0]), cl(p[1])]];
-        else { o.x = Math.min(d.p[0], p[0]); o.y = Math.min(d.p[1], p[1]); o.w = Math.max(1, Math.abs(p[0] - d.p[0])); o.h = Math.max(1, Math.abs(p[1] - d.p[1])); }
-    } else if (d.k === 'v') o.pts[d.j] = [cl(p[0]), cl(p[1])];
-    else if (d.k === 'r') { o.w = Math.max(4, p[0] - o.x); o.h = Math.max(4, p[1] - o.y); }
-    else if (d.k === 'm') {
-        var mx = p[0] - d.p[0], my = p[1] - d.p[1];
-        if (dge.mode === 'motion') dgSetKF(o, dge.t, { dx: d.dx + mx, dy: d.dy + my });
-        else if (d.pts) o.pts = d.pts.map(function(q) { return [q[0] + mx, q[1] + my]; });
-        else { o.x = d.x + mx; o.y = d.y + my; }
-    }
-    dgDraw();
-}
-function dgUp() {
-    if (!dge || !dge.drag) return; var d = dge.drag, o = dgSelObj(); dge.drag = null;
-    if (d.k === 'new' && o) {
-        if (o.pts) { var c = dgCen(o), w = Math.max.apply(0, o.pts.map(function(q) { return q[0]; })) - Math.min.apply(0, o.pts.map(function(q) { return q[0]; })), hh = Math.max.apply(0, o.pts.map(function(q) { return q[1]; })) - Math.min.apply(0, o.pts.map(function(q) { return q[1]; }));
-            if (w < 6 && hh < 6) { var p0 = o.pts[0]; o.pts = o.k === 'tri' ? [[p0[0], p0[1] - 45], [p0[0] + 50, p0[1] + 35], [p0[0] - 50, p0[1] + 35]] : [[p0[0] - 50, p0[1]], [p0[0] + 50, p0[1]]]; } }
-        else if (o.w < 6 && o.h < 6) { o.x -= 45; o.y -= 35; o.w = 90; o.h = 70; }
-        dge.tool = 'select'; dgPaintAll(); return;
-    }
-    dgPaintSide(); dgPaintTl();
-}
-function dgDiagramOpen() {
-    var ta = document.getElementById('gd-e-body'), e = gd.edit; if (!ta || !e) return;
-    if (e.preview) gdEditTab(false);
-    var v = ta.value, s = ta.selectionStart, re = /```diagram\n([\s\S]*?)\n```/g, m, hit = null, spec = null;
-    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
-    if (hit) { try { spec = JSON.parse(hit[1]); } catch (x) { hit = null; } }
-    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
-    dgOpen(spec, function(sp) {
-        var ins = (hit ? '' : '\n\n') + '```diagram\n' + JSON.stringify(sp) + '\n```' + (hit ? '' : '\n\n'), cur = document.getElementById('gd-e-body');
-        if (!cur || !gd.edit) return;
-        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur);
-    });
+    if (a.sl.length || a.tg.length) h += sec(fat('slT'), a.sl.map(function(s, j) { return '<div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(s.label) + '" oninput="fe.a.sl[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (s.i + 1)) + '</small><button onclick="faPush();fe.a.sl.splice(' + j + ',1);faPaintSide()">x</button></div>'; }).join('') +
+        a.tg.map(function(g, j) { return '<div class="fa-sl2"><input class="fa-in" maxlength="30" placeholder="' + esc(fat('label')) + '" value="' + esc(g.label) + '" oninput="fe.a.tg[' + j + '].label=this.value"><small>' + esc(fat('shape') + ' ' + (g.i + 1)) + '</small><button onclick="faPush();fe.a.tg.splice(' + j + ',1);faPaintSide()">x</button></div>'; }).join(''));
+    h += sec(fat('total'), '<label class="fa-row2">' + esc(fat('dur')) + ' <input type="number" class="fa-in n" min="0.5" max="60" step="0.5" value="' + a.dur + '" onchange="faCfg(\'dur\',this.value)"></label>' +
+        '<label class="fa-row2">' + esc(fat('pad')) + ' <input type="number" class="fa-in n" min="0" max="100" step="5" value="' + a.pad + '" onchange="faCfg(\'pad\',this.value)"></label>' +
+        '<label class="fa-row2">' + esc(fat('ease')) + ' <select class="fa-in" onchange="faCfg(\'ease\',this.value)"><option value="io"' + (a.ease === 'io' ? ' selected' : '') + '>' + esc(fat('eIn')) + '</option><option value="lin"' + (a.ease === 'lin' ? ' selected' : '') + '>' + esc(fat('eLin')) + '</option></select></label>' +
+        '<label class="fa-chk"><input type="checkbox"' + (a.loop ? ' checked' : '') + ' onchange="faCfg(\'loop\',this.checked)"> ' + esc(fat('loop')) + '</label><label class="fa-chk"><input type="checkbox"' + (a.auto ? ' checked' : '') + ' onchange="faCfg(\'auto\',this.checked)"> ' + esc(fat('auto')) + '</label>' +
+        '<label class="fa-row2">' + esc(fat('steps')) + ' <input type="number" class="fa-in n" min="0" max="20" value="' + a.steps + '" onchange="faCfg(\'steps\',this.value)"></label>');
+    document.getElementById('fa-side').innerHTML = h;
 }
 
-// ---- 図解（お絵かき）: Costume Studio（docs/costume-studio/）を窓の中で開き、描いたSVGを記事に入れる ----
 function gdFigureHTML(code) {
-    var svg = String(code || '').trim();
+    var src = String(code || ''), anim = null, m = /\n?<!--anim:([\s\S]*?)-->\s*$/.exec(src);
+    if (m) { src = src.slice(0, m.index); try { anim = faClean(JSON.parse(m[1])); } catch (x) { anim = null; } }
+    var svg = src.trim();
     if (!/^<svg[\s>]/i.test(svg)) return '<pre class="gd-fig-bad">' + esc(svg.slice(0, 200)) + '</pre>';
+    if (anim && faHas(anim)) return '<div class="fa-view" data-svg="' + esc(svg) + '" data-anim="' + esc(JSON.stringify(anim)) + '"></div>';
     if (!/xmlns\s*=/.test(svg.slice(0, 300))) svg = svg.replace(/^<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
     // <img>の中なら、書かれたスクリプトや外部読み込みは動かない
     return '<figure class="gd-fig"><img alt="" src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '"></figure>';
@@ -4663,30 +4337,58 @@ function gdFigureOpen() {
     if (e.preview) gdEditTab(false);
     var v = ta.value, s = ta.selectionStart, re = /```figure\n([\s\S]*?)\n```/g, m, hit = null;
     while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
-    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd, svg0 = hit ? hit[1] : '';
+    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd, svg0 = hit ? hit[1] : '', anim = faClean({});
+    var am = /\n?<!--anim:([\s\S]*?)-->\s*$/.exec(svg0); if (am) { svg0 = svg0.slice(0, am.index); try { anim = faClean(JSON.parse(am[1])); } catch (x) {} }
     try { if (!localStorage.getItem('costume-studio.locale.v1')) localStorage.setItem('costume-studio.locale.v1', currentLang === 'en' ? 'en' : 'ja'); } catch (x) {}
     var ov = document.createElement('div'); ov.id = 'fg-ov';
-    ov.innerHTML = '<div class="fg-box"><div class="fg-top"><b>' + esc(gt('figTitle')) + '</b><span class="fg-help">' + esc(gt('figHelp')) + '</span><span class="fg-sp"></span>' +
+    ov.innerHTML = '<div class="fg-box"><div class="fg-top"><b>' + esc(gt('figTitle')) + '</b><div class="fg-tabs"><button type="button" id="fg-t1" class="on">' + esc(fat('tab1')) + '</button><button type="button" id="fg-t2">' + esc(fat('tab2')) + '</button></div>' +
+        '<span class="fg-help">' + esc(gt('figHelp')) + '</span><span class="fg-sp"></span><span id="fg-ur" style="display:none"><button type="button" class="gd-btn" onclick="faUndo()">' + esc(fat('undo')) + '</button> <button type="button" class="gd-btn" onclick="faRedo()">' + esc(fat('redo')) + '</button></span>' +
         '<button type="button" class="gd-btn" id="fg-close">' + esc(gt('figClose')) + '</button><button type="button" class="gd-btn primary" id="fg-ins">' + esc(gt(hit ? 'figUpd' : 'figIns')) + '</button></div>' +
-        '<div class="fg-frame"><div class="fg-load" id="fg-load">' + esc(gt('figLoad')) + '</div><iframe id="fg-if" title="' + esc(gt('figTitle')) + '" src="costume-studio/index.html"></iframe></div></div>';
+        '<div class="fg-frame"><div class="fg-load" id="fg-load">' + esc(gt('figLoad')) + '</div><iframe id="fg-if" title="' + esc(gt('figTitle')) + '" src="costume-studio/index.html"></iframe><div class="fg-anim" id="fg-anim" style="display:none"></div></div></div>';
     document.body.appendChild(ov);
-    var fr = document.getElementById('fg-if'), ld = document.getElementById('fg-load'), rid = 'f' + Date.now(), tm = 0, ready = false;
-    function close() { window.removeEventListener('message', onMsg); clearTimeout(tm); ov.remove(); }
+    var fr = document.getElementById('fg-if'), ld = document.getElementById('fg-load'), pane = document.getElementById('fg-anim'), tm = 0, ready = false, tab = 1, pend = {}, seq = 0;
+    function close() { window.removeEventListener('message', onMsg); document.removeEventListener('keydown', onKey); clearTimeout(tm); faEdStop(); ov.remove(); }
+    function getSvg(cb) { var id = 'f' + Date.now() + '_' + (++seq); pend[id] = cb; fr.contentWindow.postMessage({ target: 'costume-studio', type: 'get', id: id }, location.origin); }
+    function clean(svg) { return String(svg || '').replace(/^\s*<\?xml[^>]*\?>\s*/, '').trim(); }
     function onMsg(ev) {
         var d = ev.data; if (ev.source !== fr.contentWindow || !d || d.source !== 'costume-studio') return;
         if (d.type === 'ready') { ready = true; clearTimeout(tm); ld.style.display = 'none'; fr.contentWindow.postMessage({ target: 'costume-studio', type: 'open', svg: svg0, name: 'figure' }, location.origin); }
-        else if (d.type === 'svg' && d.id === rid) {
-            var svg = String(d.svg || '').replace(/^\s*<\?xml[^>]*\?>\s*/, '').trim();
-            if (!/^<svg[\s>]/i.test(svg)) { showToast(gt('figEmpty')); return; }
-            if (svg.length > 24000) { showToast(gt('figBig')); return; }
-            var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
-            var ins = (hit ? '' : '\n\n') + '```figure\n' + svg + '\n```' + (hit ? '' : '\n\n');
-            cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+        else if (d.type === 'svg' && pend[d.id]) { var cb = pend[d.id]; delete pend[d.id]; cb(clean(d.svg)); }
+    }
+    function onKey(ev) {
+        if (tab !== 2 || !fe) return; var tg = ev.target && ev.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+        if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); if (ev.shiftKey) faRedo(); else faUndo(); }
+    }
+    function setTab(n) {
+        if (!ready) return;
+        if (n === 2) {
+            getSvg(function(svg) {
+                if (!/^<svg[\s>]/i.test(svg)) { showToast(gt('figEmpty')); return; }
+                tab = 2; fr.style.display = 'none'; pane.style.display = ''; document.getElementById('fg-ur').style.display = ''; faEdMount(pane, svg, anim);
+                document.getElementById('fg-t1').classList.remove('on'); document.getElementById('fg-t2').classList.add('on');
+            });
+        } else {
+            if (fe) { anim = fe.a; svg0 = fe.svg; faEdStop(); }
+            tab = 1; pane.style.display = 'none'; fr.style.display = ''; document.getElementById('fg-ur').style.display = 'none';
+            document.getElementById('fg-t2').classList.remove('on'); document.getElementById('fg-t1').classList.add('on');
         }
     }
-    window.addEventListener('message', onMsg);
+    function finish(svg, an) {
+        if (!/^<svg[\s>]/i.test(svg)) { showToast(gt('figEmpty')); return; }
+        var tail = faHas(an) ? '\n<!--anim:' + JSON.stringify(an).replace(/--/g, '\\u002d\\u002d') + '-->' : '';
+        if (svg.length + tail.length > 24000) { showToast(gt('figBig')); return; }
+        var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
+        var ins = (hit ? '' : '\n\n') + '```figure\n' + svg + tail + '\n```' + (hit ? '' : '\n\n');
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+    }
+    window.addEventListener('message', onMsg); document.addEventListener('keydown', onKey);
     document.getElementById('fg-close').onclick = close;
-    document.getElementById('fg-ins').onclick = function() { if (ready) fr.contentWindow.postMessage({ target: 'costume-studio', type: 'get', id: rid }, location.origin); };
+    document.getElementById('fg-t1').onclick = function() { setTab(1); };
+    document.getElementById('fg-t2').onclick = function() { setTab(2); };
+    document.getElementById('fg-ins').onclick = function() {
+        if (!ready) return;
+        if (tab === 2 && fe) finish(fe.svg, fe.a); else getSvg(function(svg) { finish(svg, anim); });
+    };
     tm = setTimeout(function() { if (!ready) ld.textContent = gt('figFail'); }, 10000);
 }
 

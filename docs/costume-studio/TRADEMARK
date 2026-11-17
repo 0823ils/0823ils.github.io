@@ -1,0 +1,12 @@
+The Scratch trademarks, including the Scratch name, logo, the Scratch Cat, Gobo, Pico,
+Nano, Tera and Giga graphics (the "Marks"), are property of the Scratch Foundation.
+Marks may not be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+Costume Studio is an unofficial, independent project. It is not affiliated with,
+endorsed by, or sponsored by the Scratch Foundation. The Scratch name is used only
+to describe the origin of the editing engine and the visual style of the editor.
+
+The browser application bundle and source repository do not include Scratch
+character artwork. The sample drawing in `src/sample.js` was created for this
+project and is original artwork.

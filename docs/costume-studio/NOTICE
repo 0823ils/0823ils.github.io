@@ -1,0 +1,41 @@
+Costume Studio
+Copyright (C) 2026 Costume Studio contributors
+
+Costume Studio is distributed under the GNU Affero General Public License,
+version 3 only (AGPL-3.0-only). See LICENSE for the full text.
+
+This program is distributed in the hope it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for details.
+
+## Bundled AGPL components
+
+  @scratch/scratch-paint 15.3.0
+  Copyright (C) Scratch Foundation and contributors
+  Licensed under AGPL-3.0-only
+  https://github.com/scratchfoundation/scratch-paint
+
+  @scratch/scratch-svg-renderer 15.3.0
+  Copyright (C) Scratch Foundation and contributors
+  Licensed under AGPL-3.0-only
+  https://github.com/scratchfoundation/scratch-svg-renderer
+
+  scratch-l10n 6.1.136
+  Copyright (C) Scratch Foundation and contributors
+  Licensed under AGPL-3.0-only
+  https://github.com/scratchfoundation/scratch-l10n
+
+The source for the locally modified paint editor is provided in
+src/vendor/scratch-paint/. The app also incorporates or adapts code under
+GPL-3.0 in portions of that fork. GPLv3 permits combination with AGPLv3 under
+its section 13; the included GPL terms are in LICENSE-GPL-3.0. See
+THIRD_PARTY_NOTICES.md for component details and file-level provenance.
+The vendored fork's modification/provenance record is in
+src/vendor/scratch-paint/MODIFICATIONS.md; its GPL text is in
+src/vendor/scratch-paint/LICENSE-GPL-3.0.
+
+If this modified application is provided for remote network interaction, users
+must be offered the corresponding source code under AGPL-3.0-only.
+
+Scratch is a trademark of the Scratch Foundation. This project is unofficial
+and is not affiliated with or endorsed by the Scratch Foundation. See TRADEMARK.

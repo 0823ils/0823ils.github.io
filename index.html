@@ -4664,6 +4664,7 @@ function gdFigureOpen() {
     var v = ta.value, s = ta.selectionStart, re = /```figure\n([\s\S]*?)\n```/g, m, hit = null;
     while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
     var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd, svg0 = hit ? hit[1] : '';
+    try { if (!localStorage.getItem('costume-studio.locale.v1')) localStorage.setItem('costume-studio.locale.v1', currentLang === 'en' ? 'en' : 'ja'); } catch (x) {}
     var ov = document.createElement('div'); ov.id = 'fg-ov';
     ov.innerHTML = '<div class="fg-box"><div class="fg-top"><b>' + esc(gt('figTitle')) + '</b><span class="fg-help">' + esc(gt('figHelp')) + '</span><span class="fg-sp"></span>' +
         '<button type="button" class="gd-btn" id="fg-close">' + esc(gt('figClose')) + '</button><button type="button" class="gd-btn primary" id="fg-ins">' + esc(gt(hit ? 'figUpd' : 'figIns')) + '</button></div>' +

@@ -1,0 +1,34 @@
+name: vendor-jsxgraph
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/jsxgraph.yml']
+permissions:
+  contents: write
+concurrency:
+  group: data-push
+  cancel-in-progress: false
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch JSXGraph (MIT / LGPL dual)
+        run: |
+          set -e
+          mkdir -p /tmp/jx && cd /tmp/jx
+          npm pack jsxgraph@1.12.2
+          tar xzf jsxgraph-1.12.2.tgz
+          ls package/distrib | head -30
+          mkdir -p "$GITHUB_WORKSPACE/docs/vendor/jsxgraph"
+          cp package/distrib/jsxgraphcore.js package/distrib/jsxgraph.css package/LICENSE.MIT "$GITHUB_WORKSPACE/docs/vendor/jsxgraph/" || cp package/LICENSE* "$GITHUB_WORKSPACE/docs/vendor/jsxgraph/"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/vendor/jsxgraph
+          git diff --cached --quiet && exit 0
+          git commit -m "vendor jsxgraph 1.12.2"
+          git pull --rebase origin main
+          git push origin HEAD:main

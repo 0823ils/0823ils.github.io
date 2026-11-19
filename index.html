@@ -1180,7 +1180,7 @@
         .jx-ex { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-bottom: 1px solid #e3eaf7; font-size: 12px; color: #6b7794; }
         .jx-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; }
         .jx-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 10px; gap: 6px; }
-        #jx-code { flex: 1; width: 100%; box-sizing: border-box; resize: none; font: 12.5px/1.55 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid #d9e2f3; border-radius: 10px; background: #f7f9fd; color: #223; tab-size: 2; white-space: pre; }
+        #jx-code { flex: 1; min-height: 120px; width: 100%; box-sizing: border-box; resize: none; font: 12.5px/1.55 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid #d9e2f3; border-radius: 10px; background: #f7f9fd; color: #223; tab-size: 2; white-space: pre; }
         .jx-help { font-size: 12px; color: #6b7794; }
         #jx-if { flex: 1; width: 100%; border: 1px solid #d9e2f3; border-radius: 10px; background: #fff; }
         .gd-jsx iframe { width: 100%; height: 380px; border: 0; display: block; }
@@ -4004,15 +4004,28 @@ function gdFromUrl(st) {
     gd.view = 'list'; setMode('guide');
 }
 
-Object.assign(GT.ja, { bJsx: '数学図', jxTitle: '数学の図（動かせるグラフ）', jxIns: '記事に入れる', jxUpd: '更新する', jxClose: '閉じる', jxEx: '例から始める', jxExTri: '三角形を線で分ける', jxExFn: 'スライダーのグラフ', jxExAnim: '自動で動く点', jxExBlank: '白紙', jxEmpty: 'コードが空です', jxHelp: 'JavaScriptで書きます。boardに点や線やグラフを足します。先頭の //@ box 左 上 右 下、//@ axis、//@ grid、//@ height 高さ で見た目を決められます。' });
-Object.assign(GT.en, { bJsx: 'Math figure', jxTitle: 'Math figure (interactive graph)', jxIns: 'Insert', jxUpd: 'Update', jxClose: 'Close', jxEx: 'Start from', jxExTri: 'Triangle split by a line', jxExFn: 'Slider graph', jxExAnim: 'Auto-moving point', jxExBlank: 'Blank', jxEmpty: 'The code is empty', jxHelp: 'Write JavaScript. Add points, lines and graphs to board. Lines starting with //@ box left top right bottom, //@ axis, //@ grid, //@ height N set the view.' });
+Object.assign(GT.ja, { bJsx: '数学図', jxTitle: '数学の図（動かせるグラフ）', jxIns: '記事に入れる', jxUpd: '更新する', jxClose: '閉じる', jxEx: '例から始める', jxExTri: '三角形を線で分ける', jxExFn: 'スライダーのグラフ', jxExAnim: '自動で動く点', jxExBlank: '白紙', jxEmpty: 'コードが空です', jxAdd: '足す', jxMove: '動かす', jxSnPt: '点', jxSnSeg: '線分', jxSnCir: '円', jxSnPoly: '三角形', jxSnTxt: '文字', jxSnSl: 'スライダー', jxSnFn: '関数グラフ', jxSnCirMove: '円を回る点', jxSnSwing: '左右に往復する点', jxSnBounce: '上下にはねる点', jxHelp: '上のボタンで部品を足せます。点は、プレビューの上でドラッグして動かせます。自動で動かしたいときは、animate(function(t) { ... }) の中に、t秒後の位置を書きます。見た目は先頭の //@ box 左 上 右 下 、//@ axis(座標軸)、//@ grid(方眼)、//@ height 高さ で決めます。' });
+Object.assign(GT.en, { bJsx: 'Math figure', jxTitle: 'Math figure (interactive graph)', jxIns: 'Insert', jxUpd: 'Update', jxClose: 'Close', jxEx: 'Start from', jxExTri: 'Triangle split by a line', jxExFn: 'Slider graph', jxExAnim: 'Auto-moving point', jxExBlank: 'Blank', jxEmpty: 'The code is empty', jxAdd: 'Add', jxMove: 'Animate', jxSnPt: 'Point', jxSnSeg: 'Segment', jxSnCir: 'Circle', jxSnPoly: 'Triangle', jxSnTxt: 'Text', jxSnSl: 'Slider', jxSnFn: 'Function graph', jxSnCirMove: 'Point on a circle', jxSnSwing: 'Point swinging left-right', jxSnBounce: 'Bouncing point', jxHelp: 'Use the buttons to add parts. Drag points in the preview. To move things automatically, put the position at t seconds inside animate(function(t) { ... }). Set the view with //@ box left top right bottom, //@ axis, //@ grid, //@ height N at the top.' });
 // ---- 数学図（JSXGraph）: ```jsxgraph の中にJavaScriptを書くと、動かせるグラフや図になる。別の安全な箱の中で動く ----
 var JX_EX = {
     tri: "//@ box -6 4.5 6 -4.5\n//@ axis\n// 三角形の頂点をドラッグすると、y=0の線で分けた上下が色分けされる\nvar A = board.create('point', [-3, -2], { name: 'A', size: 5 });\nvar B = board.create('point', [3, -2.5], { name: 'B', size: 5 });\nvar C = board.create('point', [0.5, 3.2], { name: 'C', size: 5 });\nboard.create('polygon', [A, B, C], { fillColor: 'none', borders: { strokeColor: '#555', strokeWidth: 2 }, vertices: { visible: false } });\nvar s = board.create('slider', [[-5.5, -4.1], [-2, -4.1], [0, 0.5, 1]], { name: '透明度', snapToGrid: false });\nfunction clip(P, up) {\n  var out = [];\n  for (var i = 0; i < P.length; i++) {\n    var p = P[i], q = P[(i + 1) % P.length];\n    var pi = up ? p[1] >= 0 : p[1] <= 0, qi = up ? q[1] >= 0 : q[1] <= 0;\n    if (pi) out.push(p);\n    if (pi !== qi) { var t = (0 - p[1]) / (q[1] - p[1]); out.push([p[0] + t * (q[0] - p[0]), 0]); }\n  }\n  return out;\n}\nfunction part(up, color) {\n  var c = board.create('curve', [[], []], { strokeWidth: 0, fillColor: color, highlight: false, fixed: true });\n  c.updateDataArray = function() {\n    var P = clip([[A.X(), A.Y()], [B.X(), B.Y()], [C.X(), C.Y()]], up);\n    if (P.length) P.push(P[0]);\n    this.dataX = P.map(function(p) { return p[0]; });\n    this.dataY = P.map(function(p) { return p[1]; });\n    this.visProp.fillopacity = 1 - s.Value();\n  };\n  return c;\n}\npart(true, '#4d97ff');\npart(false, '#ff6680');\n",
     fn: "//@ box -6 4 6 -4\n//@ axis\n//@ grid\n// スライダーで、グラフの形を変える\nvar a = board.create('slider', [[-5, -3], [-1, -3], [-3, 1, 3]], { name: 'a' });\nvar b = board.create('slider', [[1, -3], [5, -3], [0, 0, 6]], { name: 'b' });\nboard.create('functiongraph', [function(x) { return a.Value() * Math.sin(x + b.Value()); }], { strokeColor: '#4d97ff', strokeWidth: 3 });\n",
-    anim: "//@ box -5 5 5 -5\n// 自動で動く点。円の上を回る\nvar O = board.create('point', [0, 0], { name: '', size: 2, fixed: true, color: '#999' });\nboard.create('circle', [O, 3], { strokeColor: '#999', dash: 2 });\nvar P = board.create('point', [3, 0], { name: 'P', size: 5, fixed: true });\nboard.create('segment', [O, P], { strokeColor: '#4d97ff', strokeWidth: 3 });\nvar t0 = Date.now();\n(function loop() {\n  var t = (Date.now() - t0) / 1000;\n  P.setPosition(JXG.COORDS_BY_USER, [3 * Math.cos(t), 3 * Math.sin(t)]);\n  board.update();\n  requestAnimationFrame(loop);\n})();\n",
+    anim: "//@ box -5 5 5 -5\n// animate(function(t){ ... }) の中に、t秒後の位置を書くと、ずっと動き続ける\nvar O = board.create('point', [0, 0], { name: '', size: 2, fixed: true, color: '#999' });\nboard.create('circle', [O, 3], { strokeColor: '#999', dash: 2 });\nvar P = board.create('point', [3, 0], { name: 'P', size: 5, fixed: true });\nboard.create('segment', [O, P], { strokeColor: '#4d97ff', strokeWidth: 3 });\nanimate(function(t) {\n  P.setPosition(JXG.COORDS_BY_USER, [3 * Math.cos(t), 3 * Math.sin(t)]);\n});\n",
     blank: "//@ box -5 5 5 -5\n//@ axis\nvar A = board.create('point', [-2, 1], { name: 'A' });\nvar B = board.create('point', [2, 2], { name: 'B' });\nboard.create('segment', [A, B]);\n"
 };
+var JX_SN = [
+    ['jxSnPt', "var P# = board.create('point', [0, 0], { name: 'P#' });"],
+    ['jxSnSeg', "var A# = board.create('point', [-2, -1], { name: 'A#' });\nvar B# = board.create('point', [2, 1], { name: 'B#' });\nboard.create('segment', [A#, B#]);"],
+    ['jxSnCir', "var O# = board.create('point', [0, 0], { name: 'O#' });\nvar R# = board.create('point', [2, 0], { name: 'R#' });\nboard.create('circle', [O#, R#]);"],
+    ['jxSnPoly', "board.create('polygon', [[-2, -1], [2, -1], [0, 2]], { fillColor: '#4d97ff', fillOpacity: 0.4 });"],
+    ['jxSnTxt', "board.create('text', [-2, 2, 'ここに文字'], { fontSize: 18 });"],
+    ['jxSnSl', "var k# = board.create('slider', [[-5, -4], [-1, -4], [0, 1, 5]], { name: 'k#' });"],
+    ['jxSnFn', "board.create('functiongraph', [function(x) { return x * x / 4 - 2; }], { strokeColor: '#4d97ff', strokeWidth: 3 });"],
+    ['jxSnCirMove', "var M# = board.create('point', [3, 0], { name: '', size: 5, fixed: true, color: '#e8590c' });\nanimate(function(t) {\n  M#.setPosition(JXG.COORDS_BY_USER, [3 * Math.cos(t), 3 * Math.sin(t)]);\n});"],
+    ['jxSnSwing', "var M# = board.create('point', [0, 0], { name: '', size: 5, fixed: true, color: '#e8590c' });\nanimate(function(t) {\n  M#.setPosition(JXG.COORDS_BY_USER, [3 * Math.sin(t * 2), 0]);\n});"],
+    ['jxSnBounce', "var M# = board.create('point', [0, 0], { name: '', size: 5, fixed: true, color: '#e8590c' });\nanimate(function(t) {\n  M#.setPosition(JXG.COORDS_BY_USER, [0, 3 * Math.abs(Math.sin(t * 2))]);\n});"]
+];
+var jxN = 0;
 function gdJsxDoc(code) {
     var box = [-6, 4.5, 6, -4.5], axis = false, grid = false, height = 360, body = [];
     String(code || '').split('\n').forEach(function(l) {
@@ -4028,7 +4041,8 @@ function gdJsxDoc(code) {
     var base = new URL('vendor/jsxgraph/', location.href).href, org = location.origin;
     var csp = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' " + org + "; style-src 'unsafe-inline' " + org + "; img-src data: blob:; font-src " + org + " data:";
     var safe = body.join('\n').replace(/<\//g, '<\\/');
-    var init = "var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});";
+    var helper = "function animate(f){var t0=Date.now();(function l(){f((Date.now()-t0)/1000);board.update();requestAnimationFrame(l)})()}";
+    var init = "var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});" + helper;
     var rep = "function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},'*')}addEventListener('load',r);";
     var err = "window.onerror=function(m){var e=document.getElementById('jxerr');e.textContent=String(m);e.style.display='block';};";
     return '<!doctype html><meta http-equiv="Content-Security-Policy" content="' + csp + '"><meta charset="utf-8"><base target="_blank">' +
@@ -4051,6 +4065,8 @@ function gdJsxOpen() {
     ov.innerHTML = '<div class="jx-box"><div class="jx-top"><b>' + esc(gt('jxTitle')) + '</b><span class="jx-sp"></span>' +
         '<button type="button" class="gd-btn" id="jx-close">' + esc(gt('jxClose')) + '</button><button type="button" class="gd-btn primary" id="jx-ins">' + esc(gt(hit ? 'jxUpd' : 'jxIns')) + '</button></div>' +
         '<div class="jx-ex"><span>' + esc(gt('jxEx')) + '</span>' + exBtns + '</div>' +
+        '<div class="jx-ex"><span>' + esc(gt('jxAdd')) + '</span>' + JX_SN.slice(0, 7).map(function(x, i) { return '<button type="button" class="gd-btn" data-sn="' + i + '">' + esc(gt(x[0])) + '</button>'; }).join('') + '</div>' +
+        '<div class="jx-ex"><span>' + esc(gt('jxMove')) + '</span>' + JX_SN.slice(7).map(function(x, i) { return '<button type="button" class="gd-btn" data-sn="' + (i + 7) + '">' + esc(gt(x[0])) + '</button>'; }).join('') + '</div>' +
         '<div class="jx-main"><div class="jx-pane"><textarea id="jx-code" spellcheck="false"></textarea><div class="jx-help">' + esc(gt('jxHelp')) + '</div></div>' +
         '<div class="jx-pane"><iframe id="jx-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(gt('jxTitle')) + '"></iframe></div></div></div>';
     document.body.appendChild(ov);
@@ -4061,6 +4077,10 @@ function gdJsxOpen() {
     cd.oninput = function() { clearTimeout(tm); tm = setTimeout(draw, 500); };
     cd.onkeydown = function(ev) { if (ev.key === 'Tab') { ev.preventDefault(); var p = cd.selectionStart; cd.value = cd.value.slice(0, p) + '  ' + cd.value.slice(cd.selectionEnd); cd.setSelectionRange(p + 2, p + 2); } };
     ov.querySelectorAll('[data-ex]').forEach(function(bt) { bt.onclick = function() { cd.value = JX_EX[bt.getAttribute('data-ex')]; draw(); }; });
+    ov.querySelectorAll('[data-sn]').forEach(function(bt) { bt.onclick = function() {
+        var c = JX_SN[+bt.getAttribute('data-sn')][1].replace(/#/g, String(++jxN));
+        cd.value = cd.value.replace(/\s+$/, '') + '\n' + c + '\n'; cd.scrollTop = cd.scrollHeight; draw();
+    }; });
     document.getElementById('jx-close').onclick = close;
     document.getElementById('jx-ins').onclick = function() {
         var code = cd.value.replace(/\s+$/, '');

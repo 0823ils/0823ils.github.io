@@ -1,4 +1,0 @@
-Costume Studio (AGPL-3.0-only) - https://github.com/PixelNest256/costume-studio
-Upstream commit: 430f7e18768ab207bb729037bbf20cb372a074ac
-Local change (iframe bridge only): https://github.com/0823ils/0823ils.github.io/blob/main/tools/costume-studio/embed-bridge.patch
-Build recipe: https://github.com/0823ils/0823ils.github.io/blob/main/.github/workflows/costume-studio.yml

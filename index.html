@@ -1171,19 +1171,8 @@
         .gd-md hr { border: none; border-top: 2px solid #e3ebf7; margin: 1.6em 0; }
         .gd-img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: .4em auto; cursor: zoom-in; }
         .gd-a { color: #2b6be0; }
-        #fg-ov input[type=range], #fg-ov input[type=checkbox] { width: auto; height: auto; padding: 0; margin: 0; border: 0; background: none; }
-        #fg-ov input[type=range] { width: auto; }
-        @media (max-width: 760px) { .fg-help { display: none; } }
-        .gd-fig { margin: 0 0 1em; }
-        .gd-fig img { display: block; max-width: 100%; height: auto; background: #fff; border: 1px solid #e3e7f1; border-radius: 10px; }
-        #fg-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,24,40,.6); display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .fg-box { width: min(1280px, 100%); height: 100%; background: #fff; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
-        .fg-top { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #e3e7f1; flex-wrap: wrap; }
-        .fg-help { font-size: 12px; color: #6b7794; flex: 1 1 260px; }
-        .fg-sp { flex: 0; }
-        .fg-frame { position: relative; flex: 1; min-height: 0; background: #f4f6fb; }
-        .fg-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-        .fg-load { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #6b7794; font-size: 14px; padding: 20px; text-align: center; }
+        .gd-fig { margin: 0 0 1em; text-align: center; }
+        .gd-fig figcaption { font-size: 13px; color: #8a94a8; margin-top: 4px; }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }
@@ -1227,8 +1216,6 @@
         .gd-run { background: #fff; border-top: 2px solid #4d97ff; }
         .gd-run iframe { display: block; width: 100%; height: 320px; border: 0; resize: vertical; overflow: auto; }
         .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
-        .gd-fig { margin: 0 0 1em; text-align: center; }
-        .gd-fig figcaption { font-size: 13px; color: #8a94a8; margin-top: 4px; }
         .gd-vid { display: block; max-width: 100%; border-radius: 10px; margin: 0 auto; background: #000; }
         .gd-sb3 { margin: 0 0 1em; } .gd-sb3 .sb3-card { width: min(100%, 560px); }
         .gd-tbl { overflow-x: auto; margin: 0 0 1em; }
@@ -3459,8 +3446,7 @@ var GT = {
         e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
         hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新',
         run: 'スクリプトを実行', stop: '閉じる', showCode: 'コード', hideCode: 'コードを隠す', scriptOff: 'スクリプトは止めてあります（通信もできません）', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
-        bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bShape: '図形', bVid: '動画・アニメ', bSb3: 'sb3',
-        sTitle: '図形をつくる', sHint: '上のボタンで図形を足して、ドラッグで動かします。右下の□で大きさを変えられます。', sRect: '四角', sRound: '角丸', sCircle: '丸', sEllipse: '楕円', sTri: '三角', sDiamond: 'ひし形', sStar: '星', sArrow: '矢印', sLine: '線', sBubble: '吹き出し', sText: '文字', sFill: '塗り', sNoFill: 'なし', sStroke: '枠線', sSize: '文字の大きさ', sRot: '回転', sAnim: '動き', aNone: 'なし', aSpin: 'くるくる', aPulse: 'ドクドク', aBounce: 'はねる', aBlink: 'ぴかぴか', aSlide: '左右', aWobble: 'ゆらゆら', sDup: '複製', sFront: '前へ', sBack: '後ろへ', sDel: '削除', sBg: '背景', sBgW: '白', sBgT: '透明', sBgB: '薄い青', sBgD: '黒', sInsImg: '画像として入れる', sInsVid: '動く動画として入れる', sNoRec: 'このブラウザは、動画の書き出しに対応していません。', sAlt: '図'
+        bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bVid: '動画・アニメ', bSb3: 'sb3',
     },
     en: {
         title: 'Guides', write: 'Write', mine: 'My articles', all: 'All articles', sNew: 'New', sHot: 'Popular', search: 'Search articles…', empty: 'No articles yet. Be the first to write one!', emptyQ: 'Nothing found.', more: 'Show more', loading: 'Loading…',
@@ -3472,12 +3458,9 @@ var GT = {
         e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
         hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated',
         run: 'Run script', stop: 'Close', showCode: 'Code', hideCode: 'Hide code', scriptOff: 'Scripts are off (no network either)', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
-        bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bShape: 'Shapes', bVid: 'Video / animation', bSb3: 'sb3',
-        sTitle: 'Make a shape', sHint: 'Add shapes with the buttons above and drag them. Resize with the corner square.', sRect: 'Box', sRound: 'Rounded', sCircle: 'Circle', sEllipse: 'Ellipse', sTri: 'Triangle', sDiamond: 'Diamond', sStar: 'Star', sArrow: 'Arrow', sLine: 'Line', sBubble: 'Bubble', sText: 'Text', sFill: 'Fill', sNoFill: 'None', sStroke: 'Outline', sSize: 'Text size', sRot: 'Rotate', sAnim: 'Motion', aNone: 'None', aSpin: 'Spin', aPulse: 'Pulse', aBounce: 'Bounce', aBlink: 'Blink', aSlide: 'Slide', aWobble: 'Wobble', sDup: 'Copy', sFront: 'Forward', sBack: 'Backward', sDel: 'Delete', sBg: 'Background', sBgW: 'White', sBgT: 'Transparent', sBgB: 'Light blue', sBgD: 'Dark', sInsImg: 'Insert as image', sInsVid: 'Insert as animation', sNoRec: 'This browser cannot export video.', sAlt: 'Figure'
+        bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bVid: 'Video / animation', bSb3: 'sb3',
     }
 };
-Object.assign(GT.ja, { bFigure: '図解', figTitle: '図解', figIns: '記事に入れる', figUpd: '更新する', figClose: '閉じる', figLoad: '読み込み中です…', figFail: '読み込めません。少し待ってから、もう一度お試しください。', figEmpty: '何も描かれていません。', figBig: '図が大きすぎます。図形を減らしてください。', figHelp: '「1. 描く」で描き、「2. 動かす」でキーフレームやスライダーを付けます。入れた図は、図の上にカーソルを置いて「図解」を押すと、もう一度編集できます。' });
-Object.assign(GT.en, { bFigure: 'Figure', figTitle: 'Figure', figIns: 'Insert', figUpd: 'Update', figClose: 'Close', figLoad: 'Loading…', figFail: 'Could not load. Please try again in a moment.', figEmpty: 'Nothing drawn yet.', figBig: 'The figure is too large. Please use fewer shapes.', figHelp: 'Draw in "1. Draw", then add keyframes and sliders in "2. Animate". To edit later, put the cursor on the figure and press Figure.' });
 function gt(k) { return (GT[currentLang] || GT.ja)[k] || GT.ja[k] || k; }
 function gdErr(e) { var m = e && e.message; return gt('e_' + m) === 'e_' + m ? gt('e_other') : gt('e_' + m); }
 var gd = { view: 'list', sort: 'new', tag: '', q: '', items: [], more: false, state: '', seq: 0, cur: null, can: {}, comments: [], mine: false, saved: false, edit: null, keep: false };
@@ -3526,7 +3509,6 @@ function gdFileHTML(f, alt) {
     return '';
 }
 function gdCodeHTML(lang, code) {
-    if (String(lang).toLowerCase() === 'figure') return gdFigureHTML(code);
     if (String(lang).toLowerCase() === 'diagram') return '<div class="dg-view" data-spec="' + esc(code.replace(/\n/g, '')) + '"></div>';
     var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
     if (l === 'html') {
@@ -3831,7 +3813,7 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['figure', '', 'bFigure'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
@@ -3881,7 +3863,6 @@ function gdFmt(kind) {
     if (kind === 'img') { document.getElementById('gd-e-file').click(); return; }
     if (kind === 'vid') { document.getElementById('gd-e-vfile').click(); return; }
     if (kind === 'sb3file') { document.getElementById('gd-e-sfile').click(); return; }
-    if (kind === 'figure') { gdFigureOpen(); return; }
     var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd, sel = v.slice(s, en), ins = '', ns = s, ne = s;
     var wrap = { b: '**', i: '*', code: '`' }, pre = { h2: '# ', h3: '## ', quote: '> ', ul: '- ', ol: '1. ' };
     if (wrap[kind]) { var w = wrap[kind], t = sel || '…'; ins = w + t + w; ns = s + w.length; ne = ns + t.length; }
@@ -4007,54 +3988,6 @@ function gdFromUrl(st) {
     gd.sort = st.sort === 'hot' ? 'hot' : 'new'; gd.tag = st.tag || ''; gd.q = st.q || ''; gd.items = []; gd.mine = false;
     if (st.id) { gdOpen(st.id); return; }
     gd.view = 'list'; setMode('guide');
-}
-
-// ---- 図解（お絵かき）: Costume Studio（docs/costume-studio/）を窓の中で開き、描いたSVGを記事に入れる ----
-function gdFigureHTML(code) {
-    var svg = String(code || '').replace(/\n?<!--anim:[\s\S]*?-->\s*$/, '').trim();
-    if (!/^<svg[\s>]/i.test(svg)) return '<pre class="gd-fig-bad">' + esc(svg.slice(0, 200)) + '</pre>';
-    if (!/xmlns\s*=/.test(svg.slice(0, 300))) svg = svg.replace(/^<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
-    // <img>の中なら、書かれたスクリプトや外部読み込みは動かない
-    return '<figure class="gd-fig"><img alt="" src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '"></figure>';
-}
-function gdFigureOpen() {
-    var ta = document.getElementById('gd-e-body'), e = gd.edit;
-    if (!ta || !e || document.getElementById('fg-ov')) return;
-    if (e.preview) gdEditTab(false);
-    var v = ta.value, s = ta.selectionStart, re = /```figure\n([\s\S]*?)\n```/g, m, hit = null;
-    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
-    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd, svg0 = hit ? hit[1].replace(/\n?<!--anim:[\s\S]*?-->\s*$/, '') : '';
-    try { if (!localStorage.getItem('costume-studio.locale.v1')) localStorage.setItem('costume-studio.locale.v1', currentLang === 'en' ? 'en' : 'ja'); } catch (x) {}
-    var ov = document.createElement('div'); ov.id = 'fg-ov';
-    ov.innerHTML = '<div class="fg-box"><div class="fg-top"><b>' + esc(gt('figTitle')) + '</b>' +
-        '<span class="fg-help">' + esc(gt('figHelp')) + '</span><span class="fg-sp"></span>' +
-        '<button type="button" class="gd-btn" id="fg-close">' + esc(gt('figClose')) + '</button><button type="button" class="gd-btn primary" id="fg-ins">' + esc(gt(hit ? 'figUpd' : 'figIns')) + '</button></div>' +
-        '<div class="fg-frame"><div class="fg-load" id="fg-load">' + esc(gt('figLoad')) + '</div><iframe id="fg-if" title="' + esc(gt('figTitle')) + '" src="costume-studio/index.html"></iframe></div></div>';
-    document.body.appendChild(ov);
-    var fr = document.getElementById('fg-if'), ld = document.getElementById('fg-load'), tm = 0, ready = false, pend = {}, seq = 0;
-    function close() { window.removeEventListener('message', onMsg); clearTimeout(tm); ov.remove(); }
-    function getSvg(cb) { var id = 'f' + Date.now() + '_' + (++seq); pend[id] = cb; fr.contentWindow.postMessage({ target: 'costume-studio', type: 'get', id: id }, location.origin); }
-    function clean(svg) { return String(svg || '').replace(/^\s*<\?xml[^>]*\?>\s*/, '').trim(); }
-    function onMsg(ev) {
-        var d = ev.data; if (ev.source !== fr.contentWindow || !d || d.source !== 'costume-studio') return;
-        if (d.type === 'ready') { ready = true; clearTimeout(tm); ld.style.display = 'none'; fr.contentWindow.postMessage({ target: 'costume-studio', type: 'open', svg: svg0, name: 'figure' }, location.origin); }
-        else if (d.type === 'svg' && pend[d.id]) { var cb = pend[d.id]; delete pend[d.id]; cb(clean(d.svg)); }
-    }
-    function finish(svg) {
-        if (!/^<svg[\s>]/i.test(svg)) { showToast(gt('figEmpty')); return; }
-        var tail = '';
-        if (svg.length + tail.length > 24000) { showToast(gt('figBig')); return; }
-        var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
-        var ins = (hit ? '' : '\n\n') + '```figure\n' + svg + tail + '\n```' + (hit ? '' : '\n\n');
-        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
-    }
-    window.addEventListener('message', onMsg);
-    document.getElementById('fg-close').onclick = close;
-    document.getElementById('fg-ins').onclick = function() {
-        if (!ready) return;
-        getSvg(function(svg) { finish(svg); });
-    };
-    tm = setTimeout(function() { if (!ready) ld.textContent = gt('figFail'); }, 10000);
 }
 
 // ===== ホーム =====

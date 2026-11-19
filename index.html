@@ -1173,6 +1173,18 @@
         .gd-a { color: #2b6be0; }
         .gd-fig { margin: 0 0 1em; text-align: center; }
         .gd-fig figcaption { font-size: 13px; color: #8a94a8; margin-top: 4px; }
+        #jx-ov { position: fixed; inset: 0; z-index: 9000; background: rgba(20,28,50,.55); display: flex; padding: 12px; }
+        .jx-box { margin: auto; width: min(1180px, 100%); height: min(760px, 100%); background: #fff; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+        .jx-top { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #e3eaf7; }
+        .jx-sp { flex: 1; }
+        .jx-ex { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-bottom: 1px solid #e3eaf7; font-size: 12px; color: #6b7794; }
+        .jx-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; }
+        .jx-pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 10px; gap: 6px; }
+        #jx-code { flex: 1; width: 100%; box-sizing: border-box; resize: none; font: 12.5px/1.55 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid #d9e2f3; border-radius: 10px; background: #f7f9fd; color: #223; tab-size: 2; white-space: pre; }
+        .jx-help { font-size: 12px; color: #6b7794; }
+        #jx-if { flex: 1; width: 100%; border: 1px solid #d9e2f3; border-radius: 10px; background: #fff; }
+        .gd-jsx iframe { width: 100%; height: 380px; border: 0; display: block; }
+        @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }
@@ -3509,6 +3521,7 @@ function gdFileHTML(f, alt) {
     return '';
 }
 function gdCodeHTML(lang, code) {
+    if (String(lang).toLowerCase() === 'jsxgraph') return gdJsxHTML(code);
     if (String(lang).toLowerCase() === 'diagram') return '<div class="dg-view" data-spec="' + esc(code.replace(/\n/g, '')) + '"></div>';
     var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
     if (l === 'html') {
@@ -3813,7 +3826,7 @@ async function gdEditOpen(id) {
 }
 function gdEditPaint() {
     var e = gd.edit, box = gdBox(); if (!e) { gdList(); return; }
-    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
+    var tb = [['h2', 'H', 'bH2'], ['h3', 'h', 'bH3'], ['b', 'B', 'bB'], ['i', 'I', 'bI'], ['link', '🔗', 'bLink'], ['quote', '❝', 'bQuote'], ['ul', '•', 'bUl'], ['ol', '1.', 'bOl'], ['code', '&lt;/&gt;', 'bCode'], ['block', '{ }', 'bBlock'], ['html', '', 'bHtml'], ['jsx', '', 'bJsx'], ['table', '▦', 'bTable'], ['hr', '―', 'bHr'], ['img', '', 'bImg'], ['vid', '', 'bVid'], ['sb3file', '', 'bSb3'], ['scratch', '', 'bScratch']];
     var h = '<button class="gd-back" onclick="gdEditBack()">' + esc(gt('back')) + '</button><div class="gd-edit">' +
         '<input id="gd-e-title" class="gd-e-title" maxlength="80" placeholder="' + esc(gt('eTitle')) + '" value="' + esc(e.title) + '" oninput="gd.edit.title=this.value;gdDraftSave()">' +
         '<div class="gd-e-cover" id="gd-e-cover"></div>' +
@@ -3874,6 +3887,7 @@ function gdFmt(kind) {
     else if (kind === 'link') { var tx = sel || 'テキスト'; ins = '[' + tx + '](https://)'; ns = s + tx.length + 3; ne = ns + 8; }
     else if (kind === 'hr') { ins = '\n\n---\n\n'; ns = ne = s + ins.length; }
     else if (kind === 'block') { ins = '\n```\n' + sel + '\n```\n'; ns = s + 5; ne = ns + sel.length; }
+    else if (kind === 'jsx') { gdJsxOpen(); return; }
     else if (kind === 'html') { var ex = sel || '<button onclick="this.textContent = \'押した！\'">押してね</button>'; ins = '\n```html\n' + ex + '\n```\n'; ns = s + 9; ne = ns + ex.length; }
     else if (kind === 'table') { ins = '\n| 見出し1 | 見出し2 |\n|---|---|\n| セル | セル |\n| セル | セル |\n'; ns = ne = s + ins.length; }
     else if (kind === 'scratch') { var u = prompt(gt('scratchAsk'), 'https://scratch.mit.edu/projects/'); if (!u) return; var m = /scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(u) || /^(\d{3,12})$/.exec(u.trim()); if (!m) return; ins = '\n\nhttps://scratch.mit.edu/projects/' + m[1] + '\n\n'; ns = ne = s + ins.length; }
@@ -3988,6 +4002,74 @@ function gdFromUrl(st) {
     gd.sort = st.sort === 'hot' ? 'hot' : 'new'; gd.tag = st.tag || ''; gd.q = st.q || ''; gd.items = []; gd.mine = false;
     if (st.id) { gdOpen(st.id); return; }
     gd.view = 'list'; setMode('guide');
+}
+
+Object.assign(GT.ja, { bJsx: '数学図', jxTitle: '数学の図（動かせるグラフ）', jxIns: '記事に入れる', jxUpd: '更新する', jxClose: '閉じる', jxEx: '例から始める', jxExTri: '三角形を線で分ける', jxExFn: 'スライダーのグラフ', jxExAnim: '自動で動く点', jxExBlank: '白紙', jxEmpty: 'コードが空です', jxHelp: 'JavaScriptで書きます。boardに点や線やグラフを足します。先頭の //@ box 左 上 右 下、//@ axis、//@ grid、//@ height 高さ で見た目を決められます。' });
+Object.assign(GT.en, { bJsx: 'Math figure', jxTitle: 'Math figure (interactive graph)', jxIns: 'Insert', jxUpd: 'Update', jxClose: 'Close', jxEx: 'Start from', jxExTri: 'Triangle split by a line', jxExFn: 'Slider graph', jxExAnim: 'Auto-moving point', jxExBlank: 'Blank', jxEmpty: 'The code is empty', jxHelp: 'Write JavaScript. Add points, lines and graphs to board. Lines starting with //@ box left top right bottom, //@ axis, //@ grid, //@ height N set the view.' });
+// ---- 数学図（JSXGraph）: ```jsxgraph の中にJavaScriptを書くと、動かせるグラフや図になる。別の安全な箱の中で動く ----
+var JX_EX = {
+    tri: "//@ box -6 4.5 6 -4.5\n//@ axis\n// 三角形の頂点をドラッグすると、y=0の線で分けた上下が色分けされる\nvar A = board.create('point', [-3, -2], { name: 'A', size: 5 });\nvar B = board.create('point', [3, -2.5], { name: 'B', size: 5 });\nvar C = board.create('point', [0.5, 3.2], { name: 'C', size: 5 });\nboard.create('polygon', [A, B, C], { fillColor: 'none', borders: { strokeColor: '#555', strokeWidth: 2 }, vertices: { visible: false } });\nvar s = board.create('slider', [[-5.5, -4.1], [-2, -4.1], [0, 0.5, 1]], { name: '透明度', snapToGrid: false });\nfunction clip(P, up) {\n  var out = [];\n  for (var i = 0; i < P.length; i++) {\n    var p = P[i], q = P[(i + 1) % P.length];\n    var pi = up ? p[1] >= 0 : p[1] <= 0, qi = up ? q[1] >= 0 : q[1] <= 0;\n    if (pi) out.push(p);\n    if (pi !== qi) { var t = (0 - p[1]) / (q[1] - p[1]); out.push([p[0] + t * (q[0] - p[0]), 0]); }\n  }\n  return out;\n}\nfunction part(up, color) {\n  var c = board.create('curve', [[], []], { strokeWidth: 0, fillColor: color, highlight: false, fixed: true });\n  c.updateDataArray = function() {\n    var P = clip([[A.X(), A.Y()], [B.X(), B.Y()], [C.X(), C.Y()]], up);\n    if (P.length) P.push(P[0]);\n    this.dataX = P.map(function(p) { return p[0]; });\n    this.dataY = P.map(function(p) { return p[1]; });\n    this.visProp.fillopacity = 1 - s.Value();\n  };\n  return c;\n}\npart(true, '#4d97ff');\npart(false, '#ff6680');\n",
+    fn: "//@ box -6 4 6 -4\n//@ axis\n//@ grid\n// スライダーで、グラフの形を変える\nvar a = board.create('slider', [[-5, -3], [-1, -3], [-3, 1, 3]], { name: 'a' });\nvar b = board.create('slider', [[1, -3], [5, -3], [0, 0, 6]], { name: 'b' });\nboard.create('functiongraph', [function(x) { return a.Value() * Math.sin(x + b.Value()); }], { strokeColor: '#4d97ff', strokeWidth: 3 });\n",
+    anim: "//@ box -5 5 5 -5\n// 自動で動く点。円の上を回る\nvar O = board.create('point', [0, 0], { name: '', size: 2, fixed: true, color: '#999' });\nboard.create('circle', [O, 3], { strokeColor: '#999', dash: 2 });\nvar P = board.create('point', [3, 0], { name: 'P', size: 5, fixed: true });\nboard.create('segment', [O, P], { strokeColor: '#4d97ff', strokeWidth: 3 });\nvar t0 = Date.now();\n(function loop() {\n  var t = (Date.now() - t0) / 1000;\n  P.setPosition(JXG.COORDS_BY_USER, [3 * Math.cos(t), 3 * Math.sin(t)]);\n  board.update();\n  requestAnimationFrame(loop);\n})();\n",
+    blank: "//@ box -5 5 5 -5\n//@ axis\nvar A = board.create('point', [-2, 1], { name: 'A' });\nvar B = board.create('point', [2, 2], { name: 'B' });\nboard.create('segment', [A, B]);\n"
+};
+function gdJsxDoc(code) {
+    var box = [-6, 4.5, 6, -4.5], axis = false, grid = false, height = 360, body = [];
+    String(code || '').split('\n').forEach(function(l) {
+        var m = /^\s*\/\/@\s*(\w+)\s*(.*)$/.exec(l);
+        if (!m) { body.push(l); return; }
+        var n = m[2].trim().split(/\s+/).map(Number);
+        if (m[1] === 'box' && n.length === 4 && n.every(isFinite)) box = n;
+        else if (m[1] === 'axis') axis = true;
+        else if (m[1] === 'grid') grid = true;
+        else if (m[1] === 'height' && isFinite(n[0])) height = Math.max(160, Math.min(900, n[0]));
+        body.push(l);
+    });
+    var base = new URL('vendor/jsxgraph/', location.href).href, org = location.origin;
+    var csp = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' " + org + "; style-src 'unsafe-inline' " + org + "; img-src data: blob:; font-src " + org + " data:";
+    var safe = body.join('\n').replace(/<\//g, '<\\/');
+    var init = "var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});";
+    var rep = "function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},'*')}addEventListener('load',r);";
+    var err = "window.onerror=function(m){var e=document.getElementById('jxerr');e.textContent=String(m);e.style.display='block';};";
+    return '<!doctype html><meta http-equiv="Content-Security-Policy" content="' + csp + '"><meta charset="utf-8"><base target="_blank">' +
+        '<link rel="stylesheet" href="' + base + 'jsxgraph.css"><style>html,body{margin:0;background:#fff}#jxgbox{width:100%;height:' + height + 'px;border:1px solid #d9e2f3;border-radius:10px;box-sizing:border-box}#jxerr{display:none;font:12px monospace;color:#b3261e;background:#fdecea;padding:6px 10px;white-space:pre-wrap}</style>' +
+        '<div id="jxgbox" class="jxgbox"></div><div id="jxerr"></div>' +
+        '<scr' + 'ipt src="' + base + 'jsxgraphcore.js"></scr' + 'ipt><scr' + 'ipt>' + err + rep + '</scr' + 'ipt><scr' + 'ipt>' + init + '</scr' + 'ipt><scr' + 'ipt>' + safe + '\n</scr' + 'ipt>';
+}
+function gdJsxHTML(code) {
+    return '<div class="gd-live gd-jsx"><iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="' + esc(gt('jxTitle')) + '" srcdoc="' + esc(gdJsxDoc(code)) + '"></iframe></div>';
+}
+function gdJsxOpen() {
+    var ta = document.getElementById('gd-e-body'), e = gd.edit;
+    if (!ta || !e || document.getElementById('jx-ov')) return;
+    if (e.preview) gdEditTab(false);
+    var v = ta.value, s = ta.selectionStart, re = /```jsxgraph\n([\s\S]*?)\n```/g, m, hit = null;
+    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
+    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
+    var ov = document.createElement('div'); ov.id = 'jx-ov';
+    var exBtns = [['tri', 'jxExTri'], ['fn', 'jxExFn'], ['anim', 'jxExAnim'], ['blank', 'jxExBlank']].map(function(x) { return '<button type="button" class="gd-btn" data-ex="' + x[0] + '">' + esc(gt(x[1])) + '</button>'; }).join('');
+    ov.innerHTML = '<div class="jx-box"><div class="jx-top"><b>' + esc(gt('jxTitle')) + '</b><span class="jx-sp"></span>' +
+        '<button type="button" class="gd-btn" id="jx-close">' + esc(gt('jxClose')) + '</button><button type="button" class="gd-btn primary" id="jx-ins">' + esc(gt(hit ? 'jxUpd' : 'jxIns')) + '</button></div>' +
+        '<div class="jx-ex"><span>' + esc(gt('jxEx')) + '</span>' + exBtns + '</div>' +
+        '<div class="jx-main"><div class="jx-pane"><textarea id="jx-code" spellcheck="false"></textarea><div class="jx-help">' + esc(gt('jxHelp')) + '</div></div>' +
+        '<div class="jx-pane"><iframe id="jx-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(gt('jxTitle')) + '"></iframe></div></div></div>';
+    document.body.appendChild(ov);
+    var cd = document.getElementById('jx-code'), fr = document.getElementById('jx-if'), tm = 0;
+    cd.value = hit ? hit[1] : JX_EX.tri;
+    function draw() { fr.srcdoc = gdJsxDoc(cd.value); }
+    function close() { clearTimeout(tm); ov.remove(); }
+    cd.oninput = function() { clearTimeout(tm); tm = setTimeout(draw, 500); };
+    cd.onkeydown = function(ev) { if (ev.key === 'Tab') { ev.preventDefault(); var p = cd.selectionStart; cd.value = cd.value.slice(0, p) + '  ' + cd.value.slice(cd.selectionEnd); cd.setSelectionRange(p + 2, p + 2); } };
+    ov.querySelectorAll('[data-ex]').forEach(function(bt) { bt.onclick = function() { cd.value = JX_EX[bt.getAttribute('data-ex')]; draw(); }; });
+    document.getElementById('jx-close').onclick = close;
+    document.getElementById('jx-ins').onclick = function() {
+        var code = cd.value.replace(/\s+$/, '');
+        if (!code) { showToast(gt('jxEmpty')); return; }
+        var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
+        var ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+    };
+    draw();
 }
 
 // ===== ホーム =====

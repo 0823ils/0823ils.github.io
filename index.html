@@ -1199,7 +1199,10 @@
         .mb-r input[type=color] { width: 44px; height: 28px; border: 1px solid #d6dbe8; border-radius: 8px; padding: 1px; background: #fff; } .mb-c { display: flex; align-items: center; gap: 6px; cursor: pointer; }
         @media (max-width: 800px) { .mb-main { flex-direction: column; overflow: auto; } .mb-side { width: 100%; overflow: visible; } .mb-prev iframe { min-height: 320px; } }
         .gd-jsx iframe { width: 100%; height: 380px; border: 0; display: block; }
-        .gd-math-hint { margin:0 2px 4px; color:#8793a5; font-size:11px; text-align:right; user-select:none; }
+        .gd-math-tools { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:0 0 6px; }
+        .gd-math-edit { border:1px solid #cbd8ef; border-radius:8px; background:#f5f8ff; color:#34518a; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; }
+        .gd-math-edit:hover { background:#eaf1ff; }
+        .gd-math-hint { margin:0 2px; color:#8793a5; font-size:11px; user-select:none; }
         .gd-jsx[data-math-index] iframe { cursor:default; }
         @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
@@ -3562,13 +3565,13 @@ async function gdEditMathFromArticle(mathIndex) {
     var ta = document.getElementById('gd-e-body');
     if (!ta || !gd.edit) return;
     if (gd.edit.preview) gdEditTab(false);
-    var re = /```jsxgraph\\n([\\s\\S]*?)\\n```/g, m, index = 0, hit = null;
+    var re = /```jsxgraph\n([\s\S]*?)\n```/g, m, index = 0, hit = null;
     while ((m = re.exec(ta.value))) {
         if (index++ === mathIndex) { hit = m; break; }
     }
     if (!hit) { showToast('この数学図を本文から見つけられませんでした'); return; }
     // カーソルを対象図のコード内部に合わせてから、保存済みモデルでコード不要エディターを開く
-    var pos = hit.index + '```jsxgraph\\n'.length;
+    var pos = hit.index + '```jsxgraph\n'.length;
     ta.focus(); ta.setSelectionRange(pos, pos);
     gdMbOpen(false);
 }
@@ -4102,9 +4105,11 @@ function gdJsxDoc(code, editableMathIndex) {
 }
 function gdJsxHTML(code, mathIndex) {
     var canEdit = (!!gd.edit || !!(gd.cur && gd.can && gd.can.edit)) && Number.isInteger(mathIndex);
-    var hint = canEdit ? '<div class="gd-math-hint">図をダブルクリックすると、そのまま編集できます</div>' : '';
+    var tools = canEdit
+        ? '<div class="gd-math-tools"><button type="button" class="gd-math-edit" onclick="gdEditMathFromArticle(' + mathIndex + ')">この数学図を編集</button><span class="gd-math-hint">ダブルクリックでも編集できます</span></div>'
+        : '';
     var indexAttr = canEdit ? ' data-math-index="' + mathIndex + '"' : '';
-    return '<div class="gd-live gd-jsx"' + indexAttr + '>' + hint + '<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="' + esc(gt('jxTitle')) + '" srcdoc="' + esc(gdJsxDoc(code, canEdit ? mathIndex : null)) + '"></iframe></div>';
+    return '<div class="gd-live gd-jsx"' + indexAttr + '>' + tools + '<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="' + esc(gt('jxTitle')) + '" srcdoc="' + esc(gdJsxDoc(code, canEdit ? mathIndex : null)) + '"></iframe></div>';
 }
 function gdJsxOpen() {
     var ta = document.getElementById('gd-e-body'), e = gd.edit;

@@ -3535,8 +3535,12 @@ function gdFileHTML(f, alt) {
     if (f.kind === 'sb3') return '<div class="gd-sb3">' + chatSb3CardHTML({ url: f.url, name: alt || f.name || 'project.sb3', size: f.size || 0 }, chatFmtSize(f.size || 0)) + '</div>';
     return '';
 }
-function gdCodeHTML(lang, code) {
-    if (String(lang).toLowerCase() === 'jsxgraph') return gdJsxHTML(code);
+function gdCodeHTML(lang, code, editIndex) {
+    if (String(lang).toLowerCase() === 'jsxgraph') {
+        var graph = gdJsxHTML(code);
+        if (editIndex == null) return graph;
+        return '<div class="gd-edit-jsx"><div style="display:flex;justify-content:flex-end;margin:0 0 6px"><button type="button" class="gd-btn" onclick="gdEditPreviewMath(' + editIndex + ')">' + (currentLang === 'en' ? 'Edit diagram' : '図を編集') + '</button></div>' + graph + '</div>';
+    }
     if (String(lang).toLowerCase() === 'diagram') return '<div class="dg-view" data-spec="' + esc(code.replace(/\n/g, '')) + '"></div>';
     var l = String(lang || '').toLowerCase(), pretty = { js: 'JavaScript', javascript: 'JavaScript', py: 'Python', python: 'Python', html: 'HTML', css: 'CSS', scratch: 'Scratch', scratchblocks: 'Scratch', json: 'JSON', ts: 'TypeScript', cpp: 'C++', c: 'C', java: 'Java', bash: 'Shell', sh: 'Shell', text: 'テキスト' }[l] || (l ? l.toUpperCase() : '');
     if (l === 'html') {
@@ -3551,8 +3555,8 @@ function gdCodeHTML(lang, code) {
     return '<div class="gd-code" data-lang="' + esc(l) + '"><div class="gd-code-h"><span class="gd-code-l">' + esc(pretty) + '</span><span class="gd-code-sp"></span>' + run +
         '<button type="button" class="gd-code-b" onclick="gdCopyCode(this)">' + esc(gt('copy')) + '</button></div>' + body + '</div>';
 }
-function gdMd(src, imgs) {
-    var lines = String(src || '').split('\n'), out = [], i = 0, para = [];
+function gdMd(src, imgs, editing) {
+    var lines = String(src || '').split('\n'), out = [], i = 0, para = [], mathIndex = 0;
     var flush = function() { if (para.length) { out.push('<p>' + para.map(function(l) { return gdInline(l, imgs); }).join('<br>') + '</p>'); para = []; } };
     var cells = function(l) { return l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function(c) { return c.trim(); }); };
     while (i < lines.length) {
@@ -3560,7 +3564,8 @@ function gdMd(src, imgs) {
         if ((m = /^```\s*([A-Za-z0-9_+#.-]*)\s*$/.exec(l))) {
             flush(); var code = [], lang = m[1]; i++;
             while (i < lines.length && !/^```\s*$/.test(lines[i])) code.push(lines[i++]);
-            i++; out.push(gdCodeHTML(lang, code.join('\n'))); continue;
+            i++; var codeText = code.join('\n'), editIndex = editing && String(lang).toLowerCase() === 'jsxgraph' ? mathIndex++ : null;
+            out.push(gdCodeHTML(lang, codeText, editIndex)); continue;
         }
         if (!l.trim()) { flush(); i++; continue; }
         if ((m = /^\s*!\[([^\]\n]*)\]\((?:img|vid|sb3):([a-f0-9]{32})\)\s*$/.exec(l)) && imgs && imgs[m[2]]) { flush(); out.push(gdFileHTML(imgs[m[2]], m[1])); i++; continue; }
@@ -3877,8 +3882,16 @@ function gdEditTab(p) {
     e.preview = p;
     document.getElementById('gd-e-body').style.display = p ? 'none' : '';
     var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
-    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files);
+    if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files, true);
     document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
+}
+function gdEditPreviewMath(index) {
+    var ta = document.getElementById('gd-e-body'); if (!ta || !gd.edit) return;
+    var re = /```jsxgraph\n[\s\S]*?\n```/gi, m, n = 0;
+    while ((m = re.exec(ta.value))) {
+        if (n++ === index) { ta.focus(); ta.setSelectionRange(m.index + 4, m.index + 4); gdMbOpen(); return; }
+    }
+    showToast(currentLang === 'en' ? 'Diagram not found in article text.' : '記事本文に図が見つかりませんでした。');
 }
 function gdEditBack() {
     var e = gd.edit;
@@ -4075,6 +4088,12 @@ function gdJsxOpen() {
     var v = ta.value, s = ta.selectionStart, re = /```jsxgraph\n([\s\S]*?)\n```/g, m, hit = null;
     while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
     var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
+    var pendingModel = window.mbModelSeed || '', pendingCode = window.mbSeed;
+    window.mbModelSeed = null; window.mbSeed = null;
+    var codeSeed = pendingCode != null ? pendingCode : (hit ? hit[1] : JX_EX.tri);
+    if (!pendingModel) { var modelMatch = /^\/\/@ model .*$/m.exec(codeSeed); if (modelMatch) pendingModel = modelMatch[0]; }
+    codeSeed = codeSeed.replace(/^\/\/@ model .*$(?:\r?\n)?/m, '');
+    var initialCodeSeed = codeSeed;
     var ov = document.createElement('div'); ov.id = 'jx-ov';
     var exBtns = [['tri', 'jxExTri'], ['fn', 'jxExFn'], ['anim', 'jxExAnim'], ['blank', 'jxExBlank']].map(function(x) { return '<button type="button" class="gd-btn" data-ex="' + x[0] + '">' + esc(gt(x[1])) + '</button>'; }).join('');
     ov.innerHTML = '<div class="jx-box"><div class="jx-top"><b>' + esc(gt('jxTitle')) + '</b><span class="jx-sp"></span>' +
@@ -4086,7 +4105,7 @@ function gdJsxOpen() {
         '<div class="jx-pane"><iframe id="jx-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(gt('jxTitle')) + '"></iframe></div></div></div>';
     document.body.appendChild(ov);
     var cd = document.getElementById('jx-code'), fr = document.getElementById('jx-if'), tm = 0;
-    cd.value = window.mbSeed != null ? window.mbSeed : (hit ? hit[1] : JX_EX.tri); window.mbSeed = null;
+    cd.value = codeSeed;
     function draw() { fr.srcdoc = gdJsxDoc(cd.value); }
     function close() { clearTimeout(tm); ov.remove(); }
     cd.oninput = function() { clearTimeout(tm); tm = setTimeout(draw, 500); };
@@ -4102,6 +4121,7 @@ function gdJsxOpen() {
         var code = cd.value.replace(/\s+$/, '');
         if (!code) { showToast(gt('jxEmpty')); return; }
         var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
+        if (pendingModel && cd.value === initialCodeSeed) code = pendingModel + '\n' + code;
         var ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
         cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
     };
@@ -4198,6 +4218,15 @@ function mgExprCode(src, m, ownerId, strict) {
         if (strict && p.mode === 'expr' && p.id >= ownerId) throw new Error('数式変数 ' + p.label + ' は先に作成してください');
         return p;
     }
+    function lineByRef(name) {
+        var match = /^L([1-9]\d*)$/i.exec(name);
+        if (!match) throw new Error('線は x1(L5) のように、Lとカード番号で指定してください');
+        var id = Number(match[1]), p = parts.filter(function(q) { return q.id === id; })[0];
+        if (!p) throw new Error('線 L' + id + ' が見つかりません');
+        if (!/^(seg|line|cseg)$/.test(p.t)) throw new Error('L' + id + ' は始点・終点のある線分ではありません');
+        if (p.id >= ownerId) throw new Error('線 L' + id + ' は先に作成してください');
+        return p;
+    }
     var funcs = { sin: ['sin',1], cos: ['cos',1], tan: ['tan',1], asin: ['asin',1], acos: ['acos',1], atan: ['atan',1], sqrt: ['sqrt',1], abs: ['abs',1], exp: ['exp',1], log: ['log',1], ln: ['log',1], log10: ['log10',1], floor: ['floor',1], ceil: ['ceil',1], round: ['round',1], min: ['min',-1], max: ['max',-1], pow: ['pow',2] };
     function primary() {
         if (++depth > 32) throw new Error('式の入れ子が深すぎます');
@@ -4211,6 +4240,16 @@ function mgExprCode(src, m, ownerId, strict) {
                 if (low === 'x' || low === 'y') {
                     if (!peek('id')) throw new Error('x(A) / y(A) のように点名を指定してください');
                     var pn = tokens[at++].v; take(')'); var point = pointByName(pn); out = 'P' + point.id + (low === 'x' ? '.X()' : '.Y()');
+                } else if (/^[xy][12]$/.test(low)) {
+                    if (!peek('id')) throw new Error('x1(L5) のように線カードの番号を指定してください');
+                    var ln = lineByRef(tokens[at++].v); take(')');
+                    if (ln.t === 'cseg') out = mgJ(ln[low], m, ln.id, true);
+                    else {
+                        var endpointId = low.charAt(1) === '1' ? ln.a : ln.b;
+                        var endpoint = parts.filter(function(q) { return q.id === endpointId && /^(pt|mid|tcen)$/.test(q.t); })[0];
+                        if (!endpoint) throw new Error('線 L' + ln.id + ' の端点が見つかりません');
+                        out = 'P' + endpoint.id + (low.charAt(0) === 'x' ? '.X()' : '.Y()');
+                    }
                 } else {
                     var f = funcs[low]; if (!f) throw new Error('使えない関数: ' + name);
                     var args = [];
@@ -4381,7 +4420,7 @@ function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== ke
 function mbUndo() { if (!mb.u.length) return; mb.r.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.u.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbRedo() { if (!mb.r.length) return; mb.u.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.r.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var f = document.getElementById('mb-if'); if (f) { try { f.srcdoc = gdJsxDoc(mbGen(mb.m, true)); } catch (e) { showToast((currentLang === 'en' ? 'Formula error: ' : '数式エラー: ') + e.message); } } }, now ? 0 : 300); }
-function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A). Trig uses degrees (sin(90)=1). Examples: (x(A)+x(B)+x(C))/3; g*sin(x(P))-x(F).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、x(A)、y(A)。三角関数は度数法です（sin(90)=1）。例: (x(A)+x(B)+x(C))/3、g*sin(x(P))-x(F)。'; }
+function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A). Trig uses degrees (sin(90)=1). Use x1(L5), y1(L5), x2(L5), y2(L5) for line endpoints; L5 is the ID shown on a line card.' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、x(A)、y(A)。三角関数は度数法です（sin(90)=1）。線の座標は x1(L5)、y1(L5)、x2(L5)、y2(L5) で参照できます。L5は線カードの番号です。'; }
 function mbSetExpr(id, k, raw) {
     var p = mbGet(id); if (!p) return; raw = mbStr(raw, 180).trim();
     try { mgExprCode(raw, mb.m, p.id, p.t === 'pt' || (p.t === 'var' && k === 'formula')); }
@@ -4434,6 +4473,7 @@ function mbDel(id) {
 }
 function mbVerts(id, j, v) { var p = mbGet(id); if (!p) return; mbSnap('vt'); if (v === 'del') p.pts.splice(j, 1); else if (v === 'add') { if (p.pts.length >= 12) return; var P = mbOf(['pt']); p.pts.push(P.length ? P[P.length - 1].id : 0); } else p.pts[j] = Math.round(Number(v)); mbPaint(); mbDraw(); }
 function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : ''; }
+function mbCardName(p) { return /^(seg|line|cseg)$/.test(p.t) ? 'L' + p.id : mbName(p); }
 function mbRow(l, inner) { return '<label class="mb-r"><span>' + esc(l) + '</span>' + inner + '</label>'; }
 function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().filter(function(x) { return x.id !== p.id; }).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
 function mbSel(p, k, opts) { return mbRow(mbt('kind'), '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">' + opts.map(function(o) { return '<option value="' + o[0] + '"' + (p[k] === o[0] ? ' selected' : '') + '>' + esc(mbt(o[1])) + '</option>'; }).join('') + '</select>'); }
@@ -4452,10 +4492,10 @@ function mbExpr(v) {
 }
 function mbFL(p, k, l) {
     var r = mbR(p, k), v = r.o[r.k], raw = mbExpr(v), id = p.id;
-    return '<div class="mb-lr">' + mbRow(l, '<input type="text" class="mb-in n" maxlength="180" value="' + esc(raw) + '" placeholder="sin(g), x(A), y(A)" onchange="mbSetExpr(' + id + ',\'' + k + '\',this.value)">') + '</div>';
+    return '<div class="mb-lr">' + mbRow(l, '<input type="text" class="mb-in n" maxlength="180" value="' + esc(raw) + '" placeholder="sin(g), x(A), y(A), x1(L5)" onchange="mbSetExpr(' + id + ',\'' + k + '\',this.value)">') + '</div>';
 }
 function mbFormulaInput(p, k, l) {
-    return mbRow(l, '<input type="text" class="mb-in n" maxlength="180" value="' + esc(p[k] || '0') + '" placeholder="g*sin(x(P))-x(F)" onchange="mbSetExpr(' + p.id + ',\'' + k + '\',this.value)">');
+    return mbRow(l, '<input type="text" class="mb-in n" maxlength="180" value="' + esc(p[k] || '0') + '" placeholder="g*sin(x(P))-x(F), x1(L5)" onchange="mbSetExpr(' + p.id + ',\'' + k + '\',this.value)">');
 }
 function mbBody(p) {
     var h = '';
@@ -4481,7 +4521,7 @@ function mbPaint() {
     var pn = document.getElementById('mb-side'); if (!pn || !mb) return; var m = mb.m, h = '';
     h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['seg', 'aSeg'], ['line', 'aLine'], ['cseg', 'aCSeg'], ['hline', 'aH'], ['vline', 'aV'], ['poly', 'aPoly'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
     h += m.parts.length ? m.parts.map(function(p) {
-        return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
+        return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbCardName(p)) + '</span><i></i>' +
             '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';
     }).join('') : '<div class="mb-note">' + esc(mbt('empty')) + '</div>';
     var B = m.box, bx = function(i, l) { return mbRow(l, '<input type="number" class="mb-in n" step="any" value="' + B[i] + '" onchange="mbBox(' + i + ',this.value)">'); };
@@ -4519,7 +4559,7 @@ function gdMbOpen(force) {
     window.addEventListener('message', onMsg);
     ov.querySelectorAll('[data-tpl]').forEach(function(bt) { bt.onclick = function() { mbSnap('tpl' + Math.random()); var keep = mb.u; mbTpl(bt.getAttribute('data-tpl')); mb.u = keep; }; });
     document.getElementById('mb-close').onclick = close;
-    document.getElementById('mb-code').onclick = function() { window.mbSeed = mbGen(mb.m, false).replace(/^\/\/@ model .*\n/m, ''); close(); gdJsxOpen(); };
+    document.getElementById('mb-code').onclick = function() { var generated = mbGen(mb.m, false), modelLine = /^\/\/@ model .*$/m.exec(generated); window.mbModelSeed = modelLine ? modelLine[0] : ''; window.mbSeed = generated.replace(/^\/\/@ model .*\n/m, ''); close(); gdJsxOpen(); };
     document.getElementById('mb-ins').onclick = function() {
         if (!mb.m.parts.length) { showToast(mbt('empty')); return; }
         var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }

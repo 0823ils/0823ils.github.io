@@ -4619,8 +4619,23 @@ function gdMbOpen(force) {
     var ta = document.getElementById('gd-e-body'), e = gd.edit;
     if (!ta || !e || document.getElementById('mb-ov')) return;
     if (e.preview) gdEditTab(false);
-    var v = ta.value, s = ta.selectionStart, re = /```jsxgraph\n([\s\S]*?)\n```/g, m, hit = null, model = null;
-    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
+    var v = ta.value, s = ta.selectionStart, re = /```jsxgraph\n([\s\S]*?)\n```/g, m, hit = null, model = null, blocks = [];
+    while ((m = re.exec(v))) {
+        blocks.push(m);
+        if (s >= m.index && s <= m.index + m[0].length) hit = m;
+    }
+    // カーソルがコードブロック外でも、数学図が1つだけならそれを再編集対象にする。
+    // 複数ある場合はカーソルに最も近い図を選ぶ（追加直後のカーソル位置も考慮）。
+    if (!hit && blocks.length === 1) hit = blocks[0];
+    if (!hit && blocks.length > 1) {
+        var near = null, nearDist = Infinity;
+        blocks.forEach(function(x) {
+            var end = x.index + x[0].length;
+            var dist = s < x.index ? x.index - s : (s > end ? s - end : 0);
+            if (dist < nearDist) { nearDist = dist; near = x; }
+        });
+        if (near && nearDist <= 160) hit = near;
+    }
     if (hit) { var mm = /^\/\/@ model (.*)$/m.exec(hit[1]); if (mm) { try { model = mbClean(JSON.parse(mm[1])); } catch (x) {} }
         if (!model) { if (!force) { gdJsxOpen(); return; } if (!window.confirm(mbt('over'))) return; } }
     var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
@@ -4648,8 +4663,13 @@ function gdMbOpen(force) {
     document.getElementById('mb-ins').onclick = function() {
         if (!mb.m.parts.length) { showToast(mbt('empty')); return; }
         var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
-        var code = mbGen(mb.m, false).replace(/\s+$/, ''), ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
-        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+        var code = mbGen(mb.m, false).replace(/\s+$/, ''), prefix = hit ? '' : '\n\n';
+        var ins = prefix + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b);
+        // 挿入・更新直後はカーソルをフェンス内に置き、次回もこの図をすぐ編集できるようにする
+        var codeStart = a + prefix.length + '```jsxgraph\n'.length;
+        cur.focus(); cur.setSelectionRange(codeStart, codeStart);
+        gdBodyInput(cur); close();
     };
     if (!model) mbTpl('cut'); else { mbPaint(); mbDraw(true); }
 }

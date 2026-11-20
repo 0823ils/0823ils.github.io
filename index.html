@@ -4415,17 +4415,27 @@ function mbAdd(kind) {
 }
 function mbTpl(kind) {
     mb.m = mbNew(); mb.open = {}; mb.u = []; mb.r = [];
+    var cutPart = null;
     if (kind === 'cut') {
-        var z = mbPush({ t: 'var', label: 'クリップz', min: 0, max: 100, v: 40, step: 0, show: true, kf: [] });
-        var a = mbPt(-3, -2), b = mbPt(3, -2.5), c = mbPt(0.5, 3.2); a.name = 'A'; b.name = 'B'; c.name = 'C';
-        var tri = mbPush({ t: 'poly', pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2, color: '#333333', dash: false });
-        mbPush({ t: 'hline', y: 0, color: '#000000', w: 3, dash: false });
-        var cl = mbPush({ t: 'hline', y: { c: -4, t: [{ s: z.id, k: 0.08 }] }, color: '#e03131', w: 3, dash: false });
-        mbPush({ t: 'cut', poly: tri.id, by: cl.id, c1: '#2f4bff', c2: '#ff2b2b', op: 1, edge: false, ec: '#ff4d4d', ew: 3, color: '#333333', w: 3, dash: false });
+        // 実際の「線で切り分け」と同じ構成：多角形 + 2点で定義した無限直線 + 切り分け
+        var a = mbPt(-3, -2), b = mbPt(3, -2.5), c = mbPt(0.5, 3.2);
+        a.name = 'A'; b.name = 'B'; c.name = 'C';
+        var tri = mbPush({ t: 'poly', pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0, line: '#39445c', w: 2, color: '#333333', dash: false });
+
+        // P・Qをドラッグすると、切断線の位置と角度を自由に変えられる
+        var p = mbPt(-4, -1.4), q = mbPt(4, 1.0);
+        p.name = 'P'; q.name = 'Q';
+        p.color = '#e03131'; q.color = '#e03131'; p.size = 6; q.size = 6;
+        var ln = mbPush({ t: 'line', name: 'L', a: p.id, b: q.id, color: '#e03131', w: 3, dash: false });
+
+        cutPart = mbPush({ t: 'cut', poly: tri.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 0.88, edge: true, ec: '#ffffff', ew: 2, color: '#333333', w: 3, dash: false });
+        mbPush({ t: 'text', x: -5.5, y: 4.0, text: 'P・Qをドラッグして切断線を動かせます', fs: 14, color: '#39445c' });
     } else if (kind === 'seg') {
         var p1 = mbPt(-2, -1), p2 = mbPt(2, 1); mbPush({ t: 'seg', a: p1.id, b: p2.id, color: '#333333', w: 3, dash: false });
     }
-    mb.open = {}; mbPaint(); mbDraw(true);
+    mb.open = {};
+    if (cutPart) mb.open[cutPart.id] = true;
+    mbPaint(); mbDraw(true);
 }
 function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== key) { mb.u.push(JSON.stringify(mb.m)); if (mb.u.length > 80) mb.u.shift(); mb.r = []; } mb.lp = nw; mb.lk = key; }
 function mbExportFile() {

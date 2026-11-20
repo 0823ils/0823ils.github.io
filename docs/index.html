@@ -4111,7 +4111,7 @@ function gdJsxOpen() {
 // ---- 数学図ビルダー: ボタン・数字・スライダーだけで、点・線・多角形・切り分け・スライダーの図を作る。裏でJSXGraphのコードを作り、```jsxgraph に入れる ----
 var MBT = {
     ja: { title: '数学図をつくる（コード不要）', export: '書き出し', import: '読み込み', exported: '数学図をJSONファイルに書き出しました', imported: '数学図を読み込みました', importError: 'JSONファイルを読み込めませんでした。正しい数学図ファイルか確認してください。', importLarge: 'ファイルが大きすぎます（2MB以下にしてください）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
-        tpl: '例から始める', tCut: '直線で三角形を分割', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
+        tpl: '例から始める', tCut: '座標の線で三角形を分割', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
         aPt: '点', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
         k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
         name: '名前', x: '横', y: '縦', drag: '動かせる', show: '表示', color: '色', width: '太さ', dash: '点線', size: '大きさ', p1: '点1', p2: '点2', verts: '頂点', addV: '頂点を足す', fill: '塗り', op: '濃さ(0〜1)', lineC: '線の色',
@@ -4119,7 +4119,7 @@ var MBT = {
         label: '名前', min: '最小', max: '最大', val: 'はじめの値', step: 'きざみ（0=なめらか）', fixed: '固定', times: '倍', plus: '足す', link: 'スライダー連動',
         range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
     en: { title: 'Build a math figure (no code)', export: 'Export', import: 'Import', exported: 'Math figure exported as JSON', imported: 'Math figure imported', importError: 'Could not read this JSON file. Check that it is a valid math figure file.', importLarge: 'File is too large (maximum 2 MB)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
-        tpl: 'Start from', tCut: 'Split a triangle with a line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
+        tpl: 'Start from', tCut: 'Split a triangle with a coordinate line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
         aPt: 'Point', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
         k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
         name: 'Name', x: 'X', y: 'Y', drag: 'Draggable', show: 'Visible', color: 'Color', width: 'Width', dash: 'Dashed', size: 'Size', p1: 'Point 1', p2: 'Point 2', verts: 'Vertices', addV: 'Add vertex', fill: 'Fill', op: 'Opacity (0-1)', lineC: 'Line color',
@@ -4403,9 +4403,11 @@ function mbAdd(kind) {
     else if (kind === 'vline') base('vline', { x: 0, color: '#e03131' });
     else if (kind === 'poly') { a = mbPt(); b = mbPt(); var c = mbPt(); base('poly', { pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0.4, line: '#555555', w: 2 }); }
     else if (kind === 'cut') {
-        var pl = mbOf(['poly', 'cpoly']).pop(), made = false; if (!pl) { a = mbPt(); b = mbPt(); var c2 = mbPt(); pl = base('poly', { pts: [a.id, b.id, c2.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2 }); made = true; }
-        var ln = mbOf(['line', 'hline', 'vline', 'cseg']).pop(); if (!ln) ln = base('hline', { y: 0, color: '#e03131' });
-        base('cut', { poly: pl.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 1 }); if (made) mb.open[pl.id] = false;
+        var pl = mbOf(['cpoly', 'poly']).pop();
+        if (!pl) pl = base('cpoly', { name: mbNextName(), v: [{ x: -2, y: -1 }, { x: 2, y: -1 }, { x: 0, y: 2 }], fill: '#4d97ff', op: 0, line: '#555555', w: 2 });
+        var ln = mbOf(['cseg', 'line', 'hline', 'vline']).pop();
+        if (!ln) ln = base('cseg', { name: mbNextName(), x1: -4, y1: 0, x2: 4, y2: 0, inf: true, color: '#e03131' });
+        base('cut', { poly: pl.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 0.9, edge: true, ec: '#ffffff', ew: 2 });
     }
     else if (kind === 'circle') { a = mbPt(); base('circle', { c: a.id, r: 2, through: 0, color: '#555555', w: 2, fill: '#4d97ff', op: 0 }); }
     else if (kind === 'text') base('text', { x: cx, y: cy, text: '文字', fs: 18, color: '#222222' });
@@ -4415,25 +4417,35 @@ function mbAdd(kind) {
 }
 function mbTpl(kind) {
     mb.m = mbNew(); mb.open = {}; mb.u = []; mb.r = [];
-    var cutPart = null;
+    var cutPart = null, tri = null, ln = null;
     if (kind === 'cut') {
-        // 実際の「線で切り分け」と同じ構成：多角形 + 2点で定義した無限直線 + 切り分け
-        var a = mbPt(-3, -2), b = mbPt(3, -2.5), c = mbPt(0.5, 3.2);
-        a.name = 'A'; b.name = 'B'; c.name = 'C';
-        var tri = mbPush({ t: 'poly', pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0, line: '#39445c', w: 2, color: '#333333', dash: false });
+        // 現在の追加メニューにある部品だけで作る：座標で多角形 + 座標で線 + 切り分け
+        var h = mbPush({ t: 'var', label: 'h', min: -1.5, max: 1.5, v: 0.1, step: 0.05, show: true, kf: [] });
+        var slope = mbPush({ t: 'var', label: 'm', min: -0.9, max: 0.9, v: 0.15, step: 0.05, show: true, kf: [] });
 
-        // P・Qをドラッグすると、切断線の位置と角度を自由に変えられる
-        var p = mbPt(-4, -1.4), q = mbPt(4, 1.0);
-        p.name = 'P'; q.name = 'Q';
-        p.color = '#e03131'; q.color = '#e03131'; p.size = 6; q.size = 6;
-        var ln = mbPush({ t: 'line', name: 'L', a: p.id, b: q.id, color: '#e03131', w: 3, dash: false });
-
-        cutPart = mbPush({ t: 'cut', poly: tri.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 0.88, edge: true, ec: '#ffffff', ew: 2, color: '#333333', w: 3, dash: false });
-        mbPush({ t: 'text', x: -5.5, y: 4.0, text: 'P・Qをドラッグして切断線を動かせます', fs: 14, color: '#39445c' });
+        tri = mbPush({
+            t: 'cpoly', name: 'D',
+            v: [{ x: -3, y: -2 }, { x: 3, y: -2.5 }, { x: 0.5, y: 3.2 }],
+            fill: '#4d97ff', op: 0, line: '#39445c', w: 2, color: '#333333', dash: false
+        });
+        ln = mbPush({
+            t: 'cseg', name: 'L',
+            x1: -4.5, y1: { e: 'h - 4*m' },
+            x2: 4.5, y2: { e: 'h + 4*m' },
+            inf: true, color: '#e03131', w: 3, dash: false
+        });
+        cutPart = mbPush({
+            t: 'cut', poly: tri.id, by: ln.id,
+            c1: '#4d97ff', c2: '#ff6680', op: 0.9,
+            edge: true, ec: '#ffffff', ew: 2, color: '#333333', w: 3, dash: false
+        });
+        mbPush({ t: 'text', x: -5.5, y: 4.0, text: 'h：高さ　m：傾き（スライダーで変更）', fs: 13, color: '#39445c' });
     } else if (kind === 'seg') {
         var p1 = mbPt(-2, -1), p2 = mbPt(2, 1); mbPush({ t: 'seg', a: p1.id, b: p2.id, color: '#333333', w: 3, dash: false });
     }
     mb.open = {};
+    if (tri) mb.open[tri.id] = true;
+    if (ln) mb.open[ln.id] = true;
     if (cutPart) mb.open[cutPart.id] = true;
     mbPaint(); mbDraw(true);
 }

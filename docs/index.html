@@ -1199,9 +1199,8 @@
         .mb-r input[type=color] { width: 44px; height: 28px; border: 1px solid #d6dbe8; border-radius: 8px; padding: 1px; background: #fff; } .mb-c { display: flex; align-items: center; gap: 6px; cursor: pointer; }
         @media (max-width: 800px) { .mb-main { flex-direction: column; overflow: auto; } .mb-side { width: 100%; overflow: visible; } .mb-prev iframe { min-height: 320px; } }
         .gd-jsx iframe { width: 100%; height: 380px; border: 0; display: block; }
-        .gd-math-tools { display:flex; justify-content:flex-end; gap:6px; margin:0 0 6px; }
-        .gd-math-edit { border:1px solid #cbd8ef; border-radius:8px; background:#f5f8ff; color:#34518a; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; }
-        .gd-math-edit:hover { background:#eaf1ff; }
+        .gd-math-hint { margin:0 2px 4px; color:#8793a5; font-size:11px; text-align:right; user-select:none; }
+        .gd-jsx[data-math-index] iframe { cursor:default; }
         @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
@@ -3573,6 +3572,19 @@ async function gdEditMathFromArticle(mathIndex) {
     ta.focus(); ta.setSelectionRange(pos, pos);
     gdMbOpen(false);
 }
+window.addEventListener('message', function(ev) {
+    var d = ev.data;
+    if (!d || !Number.isInteger(d.gdMathEdit)) return;
+    var frames = document.querySelectorAll('.gd-jsx[data-math-index]');
+    for (var i = 0; i < frames.length; i++) {
+        if (Number(frames[i].getAttribute('data-math-index')) !== d.gdMathEdit) continue;
+        var frame = frames[i].querySelector('iframe');
+        if (frame && frame.contentWindow === ev.source) {
+            gdEditMathFromArticle(d.gdMathEdit);
+            return;
+        }
+    }
+});
 function gdMd(src, imgs) {
     var lines = String(src || '').split('\n'), out = [], i = 0, para = [], mathIndex = 0;
     var flush = function() { if (para.length) { out.push('<p>' + para.map(function(l) { return gdInline(l, imgs); }).join('<br>') + '</p>'); para = []; } };
@@ -4063,7 +4075,7 @@ var JX_SN = [
     ['jxSnBounce', "var M# = board.create('point', [0, 0], { name: '', size: 5, fixed: true, color: '#e8590c' });\nanimate(function(t) {\n  M#.setPosition(JXG.COORDS_BY_USER, [0, 3 * Math.abs(Math.sin(t * 2))]);\n});"]
 ];
 var jxN = 0;
-function gdJsxDoc(code) {
+function gdJsxDoc(code, editableMathIndex) {
     var box = [-6, 4.5, 6, -4.5], axis = false, grid = false, height = 360, body = [];
     String(code || '').split('\n').forEach(function(l) {
         var m = /^\s*\/\/@\s*(\w+)\s*(.*)$/.exec(l);
@@ -4080,7 +4092,8 @@ function gdJsxDoc(code) {
     var safe = body.join('\n').replace(/<\//g, '<\\/');
     var helper = "function animate(f){var t0=Date.now();(function l(){f((Date.now()-t0)/1000);board.update();requestAnimationFrame(l)})()}";
     var init = "var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});" + helper;
-    var rep = "function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},'*')}addEventListener('load',r);";
+    var rep = "function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},'*')}addEventListener('load',r);" +
+        (Number.isInteger(editableMathIndex) ? "document.addEventListener('dblclick',function(){parent.postMessage({gdMathEdit:" + editableMathIndex + "},'*');});" : "");
     var err = "window.onerror=function(m){var e=document.getElementById('jxerr');e.textContent=String(m);e.style.display='block';};";
     return '<!doctype html><meta http-equiv="Content-Security-Policy" content="' + csp + '"><meta charset="utf-8"><base target="_blank">' +
         '<link rel="stylesheet" href="' + base + 'jsxgraph.css"><style>html,body{margin:0;background:#fff}#jxgbox{width:100%;height:' + height + 'px;border:1px solid #d9e2f3;border-radius:10px;box-sizing:border-box}#jxerr{display:none;font:12px monospace;color:#b3261e;background:#fdecea;padding:6px 10px;white-space:pre-wrap}</style>' +
@@ -4088,11 +4101,10 @@ function gdJsxDoc(code) {
         '<scr' + 'ipt src="' + base + 'jsxgraphcore.js"></scr' + 'ipt><scr' + 'ipt>' + err + rep + '</scr' + 'ipt><scr' + 'ipt>' + init + '</scr' + 'ipt><scr' + 'ipt>' + safe + '\n</scr' + 'ipt>';
 }
 function gdJsxHTML(code, mathIndex) {
-    var canRebuild = !!gd.edit || !!(gd.cur && gd.can && gd.can.edit);
-    var tools = canRebuild && Number.isInteger(mathIndex)
-        ? '<div class="gd-math-tools"><button type="button" class="gd-math-edit" onclick="gdEditMathFromArticle(' + mathIndex + ')">この数学図を作り直す</button></div>'
-        : '';
-    return '<div class="gd-live gd-jsx">' + tools + '<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="' + esc(gt('jxTitle')) + '" srcdoc="' + esc(gdJsxDoc(code)) + '"></iframe></div>';
+    var canEdit = (!!gd.edit || !!(gd.cur && gd.can && gd.can.edit)) && Number.isInteger(mathIndex);
+    var hint = canEdit ? '<div class="gd-math-hint">図をダブルクリックすると、そのまま編集できます</div>' : '';
+    var indexAttr = canEdit ? ' data-math-index="' + mathIndex + '"' : '';
+    return '<div class="gd-live gd-jsx"' + indexAttr + '>' + hint + '<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" loading="lazy" title="' + esc(gt('jxTitle')) + '" srcdoc="' + esc(gdJsxDoc(code, canEdit ? mathIndex : null)) + '"></iframe></div>';
 }
 function gdJsxOpen() {
     var ta = document.getElementById('gd-e-body'), e = gd.edit;

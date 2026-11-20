@@ -4110,7 +4110,7 @@ function gdJsxOpen() {
 
 // ---- 数学図ビルダー: ボタン・数字・スライダーだけで、点・線・多角形・切り分け・スライダーの図を作る。裏でJSXGraphのコードを作り、```jsxgraph に入れる ----
 var MBT = {
-    ja: { title: '数学図をつくる（コード不要）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
+    ja: { title: '数学図をつくる（コード不要）', export: '書き出し', import: '読み込み', exported: '数学図をJSONファイルに書き出しました', imported: '数学図を読み込みました', importError: 'JSONファイルを読み込めませんでした。正しい数学図ファイルか確認してください。', importLarge: 'ファイルが大きすぎます（2MB以下にしてください）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
         tpl: '例から始める', tCut: '三角形を線で切る', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
         aPt: '点', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
         k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
@@ -4118,7 +4118,7 @@ var MBT = {
         poly: '切る図形', by: '切る線', c1: '上・右側の色', c2: '下・左側の色', r: '半径', center: '中心', through: '通る点（半径の代わり）', none: 'なし', text: '文字（{スライダー名} で値を出せる）', fs: '文字の大きさ',
         label: '名前', min: '最小', max: '最大', val: 'はじめの値', step: 'きざみ（0=なめらか）', fixed: '固定', times: '倍', plus: '足す', link: 'スライダー連動',
         range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
-    en: { title: 'Build a math figure (no code)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
+    en: { title: 'Build a math figure (no code)', export: 'Export', import: 'Import', exported: 'Math figure exported as JSON', imported: 'Math figure imported', importError: 'Could not read this JSON file. Check that it is a valid math figure file.', importLarge: 'File is too large (maximum 2 MB)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
         tpl: 'Start from', tCut: 'Triangle cut by a line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
         aPt: 'Point', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
         k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
@@ -4423,6 +4423,42 @@ function mbTpl(kind) {
     mb.open = {}; mbPaint(); mbDraw(true);
 }
 function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== key) { mb.u.push(JSON.stringify(mb.m)); if (mb.u.length > 80) mb.u.shift(); mb.r = []; } mb.lp = nw; mb.lk = key; }
+function mbExportFile() {
+    if (!mb || !mb.m) return;
+    try {
+        var data = { format: '0823ils-math-figure', version: 1, model: mb.m };
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        var url = URL.createObjectURL(blob), a = document.createElement('a'), d = new Date();
+        function pad(n) { return String(n).padStart(2, '0'); }
+        a.href = url;
+        a.download = 'math-figure-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        showToast(mbt('exported'));
+    } catch (e) { showToast(mbt('importError')); }
+}
+function mbImportFile(file) {
+    if (!mb || !file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast(mbt('importLarge')); return; }
+    var reader = new FileReader();
+    reader.onerror = function() { if (mb) showToast(mbt('importError')); };
+    reader.onload = function() {
+        if (!mb) return;
+        try {
+            var raw = JSON.parse(String(reader.result || '')), model;
+            if (raw && raw.format != null) {
+                if (raw.format !== '0823ils-math-figure' || raw.version !== 1) throw new Error('format');
+                model = raw.model;
+            } else model = raw;
+            if (!model || typeof model !== 'object' || Array.isArray(model) || !Array.isArray(model.parts)) throw new Error('model');
+            var cleaned = mbClean(model);
+            mb.u.push(JSON.stringify(mb.m)); if (mb.u.length > 80) mb.u.shift();
+            mb.r = []; mb.m = cleaned; mb.open = {}; mb.lk = ''; mb.lp = 0;
+            mbPaint(); mbDraw(true); showToast(mbt('imported'));
+        } catch (e) { showToast(mbt('importError')); }
+    };
+    reader.readAsText(file);
+}
 function mbUndo() { if (!mb.u.length) return; mb.r.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.u.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbRedo() { if (!mb.r.length) return; mb.u.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.r.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var f = document.getElementById('mb-if'); if (f) { try { f.srcdoc = gdJsxDoc(mbGen(mb.m, true)); } catch (e) { showToast((currentLang === 'en' ? 'Formula error: ' : '数式エラー: ') + e.message); } } }, now ? 0 : 300); }
@@ -4552,7 +4588,7 @@ function gdMbOpen(force) {
     var ov = document.createElement('div'); ov.id = 'mb-ov';
     ov.innerHTML = '<div class="mb-box"><div class="mb-top"><b>' + esc(mbt('title')) + '</b><span class="mb-sp"></span>' +
         '<span class="mb-tpl">' + esc(mbt('tpl')) + ': <button class="gd-btn" data-tpl="cut">' + esc(mbt('tCut')) + '</button><button class="gd-btn" data-tpl="seg">' + esc(mbt('tSeg')) + '</button><button class="gd-btn" data-tpl="blank">' + esc(mbt('tBlank')) + '</button></span>' +
-        '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
+        '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-export">' + esc(mbt('export')) + '</button><button class="gd-btn" id="mb-import">' + esc(mbt('import')) + '</button><input type="file" id="mb-import-file" accept=".json,application/json" style="display:none">' + '<button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
         '<button class="gd-btn" id="mb-close">' + esc(mbt('close')) + '</button><button class="gd-btn primary" id="mb-ins">' + esc(mbt(hit ? 'upd' : 'ins')) + '</button></div>' +
         '<div class="mb-main"><div class="mb-prev"><iframe id="mb-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(mbt('title')) + '"></iframe></div><div class="mb-side" id="mb-side"></div></div></div>';
     document.body.appendChild(ov);
@@ -4565,6 +4601,9 @@ function gdMbOpen(force) {
     window.addEventListener('message', onMsg);
     ov.querySelectorAll('[data-tpl]').forEach(function(bt) { bt.onclick = function() { mbSnap('tpl' + Math.random()); var keep = mb.u; mbTpl(bt.getAttribute('data-tpl')); mb.u = keep; }; });
     document.getElementById('mb-close').onclick = close;
+    document.getElementById('mb-export').onclick = mbExportFile;
+    document.getElementById('mb-import').onclick = function() { var input = document.getElementById('mb-import-file'); if (input) input.click(); };
+    document.getElementById('mb-import-file').onchange = function() { var file = this.files && this.files[0]; if (file) mbImportFile(file); this.value = ''; };
     document.getElementById('mb-code').onclick = function() { window.mbSeed = mbGen(mb.m, false).replace(/^\/\/@ model .*\n/m, ''); close(); gdJsxOpen(); };
     document.getElementById('mb-ins').onclick = function() {
         if (!mb.m.parts.length) { showToast(mbt('empty')); return; }

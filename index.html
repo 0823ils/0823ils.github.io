@@ -4217,7 +4217,9 @@ function mgExprCode(src, m, ownerId, strict) {
                     if (!peek(')')) { args.push(add()); while (peek(',')) { at++; args.push(add()); } }
                     take(')');
                     if ((f[1] > 0 && args.length !== f[1]) || (f[1] === 1 && args.length !== 1) || (f[1] === -1 && args.length < 1)) throw new Error(name + ' の引数の数が違います');
-                    out = 'Math.' + f[0] + '(' + args.join(',') + ')';
+                    if (low === 'sin' || low === 'cos' || low === 'tan') out = 'Math.' + low + '((' + args[0] + ')*Math.PI/180)';
+                    else if (low === 'asin' || low === 'acos' || low === 'atan') out = '(Math.' + low + '(' + args[0] + ')*180/Math.PI)';
+                    else out = 'Math.' + f[0] + '(' + args.join(',') + ')';
                 }
             } else if (low === 'pi') out = 'Math.PI';
             else if (low === 'e') out = 'Math.E';
@@ -4379,7 +4381,7 @@ function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== ke
 function mbUndo() { if (!mb.u.length) return; mb.r.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.u.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbRedo() { if (!mb.r.length) return; mb.u.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.r.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var f = document.getElementById('mb-if'); if (f) { try { f.srcdoc = gdJsxDoc(mbGen(mb.m, true)); } catch (e) { showToast((currentLang === 'en' ? 'Formula error: ' : '数式エラー: ') + e.message); } } }, now ? 0 : 300); }
-function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A). Trig uses radians. Examples: (x(A)+x(B)+x(C))/3; g*sin(x(P))-x(F).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、x(A)、y(A)。三角関数はラジアンです。例: (x(A)+x(B)+x(C))/3、g*sin(x(P))-x(F)。'; }
+function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A). Trig uses degrees (sin(90)=1). Examples: (x(A)+x(B)+x(C))/3; g*sin(x(P))-x(F).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、x(A)、y(A)。三角関数は度数法です（sin(90)=1）。例: (x(A)+x(B)+x(C))/3、g*sin(x(P))-x(F)。'; }
 function mbSetExpr(id, k, raw) {
     var p = mbGet(id); if (!p) return; raw = mbStr(raw, 180).trim();
     try { mgExprCode(raw, mb.m, p.id, p.t === 'pt' || (p.t === 'var' && k === 'formula')); }

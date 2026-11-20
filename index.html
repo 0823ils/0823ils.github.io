@@ -1183,6 +1183,20 @@
         #jx-code { flex: 1; min-height: 120px; width: 100%; box-sizing: border-box; resize: none; font: 12.5px/1.55 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid #d9e2f3; border-radius: 10px; background: #f7f9fd; color: #223; tab-size: 2; white-space: pre; }
         .jx-help { font-size: 12px; color: #6b7794; }
         #jx-if { flex: 1; width: 100%; border: 1px solid #d9e2f3; border-radius: 10px; background: #fff; }
+        #mb-ov { position: fixed; inset: 0; z-index: 9999; background: rgba(20,28,50,.55); display: flex; align-items: stretch; justify-content: center; padding: 10px; }
+        .mb-box { background: #f4f6fb; border-radius: 14px; width: 100%; max-width: 1280px; display: flex; flex-direction: column; overflow: hidden; }
+        .mb-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e3e7f1; } .mb-sp { flex: 1; } .mb-tpl { font-size: 12px; color: #6b7794; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+        .mb-main { flex: 1; min-height: 0; display: flex; gap: 10px; padding: 10px; } .mb-prev { flex: 1; min-width: 0; background: #fff; border-radius: 12px; overflow: auto; } .mb-prev iframe { width: 100%; height: 100%; min-height: 420px; border: 0; display: block; }
+        .mb-side { width: 340px; flex: none; overflow: auto; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #2b3a55; }
+        .mb-sec, .mb-card { background: #fff; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; } .mb-card { display: block; padding: 6px 12px; }
+        .mb-card summary { cursor: pointer; display: flex; align-items: center; gap: 6px; list-style: none; } .mb-card summary i { flex: 1; } .mb-card summary span { color: #6b7794; }
+        .mb-body { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
+        .mb-h { font-size: 11px; font-weight: 800; color: #8a93ab; } .mb-note { font-size: 12px; color: #6b7794; line-height: 1.6; }
+        .mb-add { display: flex; flex-wrap: wrap; gap: 6px; } .mb-ab { border: 0; background: #eef3ff; color: #2b4a9a; border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: 12px; cursor: pointer; } .mb-ab:hover { background: #dbe6ff; }
+        .mb-ib { border: 0; background: #eef1f8; border-radius: 8px; width: 26px; height: 26px; cursor: pointer; }
+        .mb-r { display: flex; align-items: center; gap: 6px; } .mb-r > span { width: 5.5em; flex: none; color: #55607a; } .mb-in { padding: 4px 6px; border: 1px solid #d6dbe8; border-radius: 8px; font-size: 13px; min-width: 0; flex: 1; background: #fff; color: #222; box-sizing: border-box; } .mb-in.n { width: 70px; flex: none; }
+        .mb-r input[type=color] { width: 44px; height: 28px; border: 1px solid #d6dbe8; border-radius: 8px; padding: 1px; background: #fff; } .mb-c { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        @media (max-width: 800px) { .mb-main { flex-direction: column; overflow: auto; } .mb-side { width: 100%; overflow: visible; } .mb-prev iframe { min-height: 320px; } }
         .gd-jsx iframe { width: 100%; height: 380px; border: 0; display: block; }
         @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
@@ -3887,7 +3901,7 @@ function gdFmt(kind) {
     else if (kind === 'link') { var tx = sel || 'テキスト'; ins = '[' + tx + '](https://)'; ns = s + tx.length + 3; ne = ns + 8; }
     else if (kind === 'hr') { ins = '\n\n---\n\n'; ns = ne = s + ins.length; }
     else if (kind === 'block') { ins = '\n```\n' + sel + '\n```\n'; ns = s + 5; ne = ns + sel.length; }
-    else if (kind === 'jsx') { gdJsxOpen(); return; }
+    else if (kind === 'jsx') { gdMbOpen(); return; }
     else if (kind === 'html') { var ex = sel || '<button onclick="this.textContent = \'押した！\'">押してね</button>'; ins = '\n```html\n' + ex + '\n```\n'; ns = s + 9; ne = ns + ex.length; }
     else if (kind === 'table') { ins = '\n| 見出し1 | 見出し2 |\n|---|---|\n| セル | セル |\n| セル | セル |\n'; ns = ne = s + ins.length; }
     else if (kind === 'scratch') { var u = prompt(gt('scratchAsk'), 'https://scratch.mit.edu/projects/'); if (!u) return; var m = /scratch\.mit\.edu\/projects\/(\d{1,12})/i.exec(u) || /^(\d{3,12})$/.exec(u.trim()); if (!m) return; ins = '\n\nhttps://scratch.mit.edu/projects/' + m[1] + '\n\n'; ns = ne = s + ins.length; }
@@ -4063,7 +4077,7 @@ function gdJsxOpen() {
     var ov = document.createElement('div'); ov.id = 'jx-ov';
     var exBtns = [['tri', 'jxExTri'], ['fn', 'jxExFn'], ['anim', 'jxExAnim'], ['blank', 'jxExBlank']].map(function(x) { return '<button type="button" class="gd-btn" data-ex="' + x[0] + '">' + esc(gt(x[1])) + '</button>'; }).join('');
     ov.innerHTML = '<div class="jx-box"><div class="jx-top"><b>' + esc(gt('jxTitle')) + '</b><span class="jx-sp"></span>' +
-        '<button type="button" class="gd-btn" id="jx-close">' + esc(gt('jxClose')) + '</button><button type="button" class="gd-btn primary" id="jx-ins">' + esc(gt(hit ? 'jxUpd' : 'jxIns')) + '</button></div>' +
+        '<button type="button" class="gd-btn" id="jx-ui">' + esc(mbt('title')) + '</button><button type="button" class="gd-btn" id="jx-close">' + esc(gt('jxClose')) + '</button><button type="button" class="gd-btn primary" id="jx-ins">' + esc(gt(hit ? 'jxUpd' : 'jxIns')) + '</button></div>' +
         '<div class="jx-ex"><span>' + esc(gt('jxEx')) + '</span>' + exBtns + '</div>' +
         '<div class="jx-ex"><span>' + esc(gt('jxAdd')) + '</span>' + JX_SN.slice(0, 7).map(function(x, i) { return '<button type="button" class="gd-btn" data-sn="' + i + '">' + esc(gt(x[0])) + '</button>'; }).join('') + '</div>' +
         '<div class="jx-ex"><span>' + esc(gt('jxMove')) + '</span>' + JX_SN.slice(7).map(function(x, i) { return '<button type="button" class="gd-btn" data-sn="' + (i + 7) + '">' + esc(gt(x[0])) + '</button>'; }).join('') + '</div>' +
@@ -4071,7 +4085,7 @@ function gdJsxOpen() {
         '<div class="jx-pane"><iframe id="jx-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(gt('jxTitle')) + '"></iframe></div></div></div>';
     document.body.appendChild(ov);
     var cd = document.getElementById('jx-code'), fr = document.getElementById('jx-if'), tm = 0;
-    cd.value = hit ? hit[1] : JX_EX.tri;
+    cd.value = window.mbSeed != null ? window.mbSeed : (hit ? hit[1] : JX_EX.tri); window.mbSeed = null;
     function draw() { fr.srcdoc = gdJsxDoc(cd.value); }
     function close() { clearTimeout(tm); ov.remove(); }
     cd.oninput = function() { clearTimeout(tm); tm = setTimeout(draw, 500); };
@@ -4082,6 +4096,7 @@ function gdJsxOpen() {
         cd.value = cd.value.replace(/\s+$/, '') + '\n' + c + '\n'; cd.scrollTop = cd.scrollHeight; draw();
     }; });
     document.getElementById('jx-close').onclick = close;
+    document.getElementById('jx-ui').onclick = function() { close(); gdMbOpen(true); };
     document.getElementById('jx-ins').onclick = function() {
         var code = cd.value.replace(/\s+$/, '');
         if (!code) { showToast(gt('jxEmpty')); return; }
@@ -4090,6 +4105,265 @@ function gdJsxOpen() {
         cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
     };
     draw();
+}
+
+// ---- 数学図ビルダー: ボタン・数字・スライダーだけで、点・線・多角形・切り分け・スライダーの図を作る。裏でJSXGraphのコードを作り、```jsxgraph に入れる ----
+var MBT = {
+    ja: { title: '数学図をつくる（コード不要）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
+        tpl: '例から始める', tCut: '三角形を線で切る', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
+        aPt: '点', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', needPts: '点が2つ必要です',
+        k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
+        name: '名前', x: '横', y: '縦', drag: '動かせる', show: '表示', color: '色', width: '太さ', dash: '点線', size: '大きさ', p1: '点1', p2: '点2', verts: '頂点', addV: '頂点を足す', fill: '塗り', op: '濃さ(0〜1)', lineC: '線の色',
+        poly: '切る図形', by: '切る線', c1: '上・右側の色', c2: '下・左側の色', r: '半径', center: '中心', through: '通る点（半径の代わり）', none: 'なし', text: '文字（{スライダー名} で値を出せる）', fs: '文字の大きさ',
+        label: '名前', min: '最小', max: '最大', val: 'はじめの値', step: 'きざみ（0=なめらか）', fixed: '固定', times: '倍', plus: '足す', link: 'スライダー連動',
+        range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
+    en: { title: 'Build a math figure (no code)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
+        tpl: 'Start from', tCut: 'Triangle cut by a line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
+        aPt: 'Point', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', needPts: 'Needs two points',
+        k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
+        name: 'Name', x: 'X', y: 'Y', drag: 'Draggable', show: 'Visible', color: 'Color', width: 'Width', dash: 'Dashed', size: 'Size', p1: 'Point 1', p2: 'Point 2', verts: 'Vertices', addV: 'Add vertex', fill: 'Fill', op: 'Opacity (0-1)', lineC: 'Line color',
+        poly: 'Polygon to cut', by: 'Cutting line', c1: 'Upper / right color', c2: 'Lower / left color', r: 'Radius', center: 'Center', through: 'Through point (instead of radius)', none: 'None', text: 'Text ({slider name} shows its value)', fs: 'Font size',
+        label: 'Name', min: 'Min', max: 'Max', val: 'Start value', step: 'Step (0 = smooth)', fixed: 'Fixed', times: 'x', plus: '+', link: 'Linked to slider',
+        range: 'View range', xmin: 'Left', xmax: 'Right', ymin: 'Bottom', ymax: 'Top', axis: 'Show axes', grid: 'Show grid', all: 'Overall', front: 'Forward', back: 'Back', del: 'Delete', hint: 'Drag points directly in the preview to place them.', empty: 'No parts', unnamed: '(no name)' }
+};
+function mbt(k) { return (MBT[currentLang] || MBT.ja)[k] || MBT.ja[k] || k; }
+var mb = null;
+// ---- 図のデータ（ここだけが本体。コードはここから作る） ----
+function mbNew() { return { v: 1, n: 1, box: [-6, 4.5, 6, -4.5], axis: true, grid: false, h: 380, parts: [] }; }
+function mbNn(v, d) { v = Number(v); return isFinite(v) ? v : d; }
+function mbNum(v, d) { if (v && typeof v === 'object') return { s: Math.round(mbNn(v.s, 0)), k: mbNn(v.k, 1), c: mbNn(v.c, 0) }; return mbNn(v, d); }
+function mbCol(c, d) { return /^#[0-9a-f]{6}$/i.test(c) ? c : d; }
+function mbStr(s, n) { return String(s == null ? '' : s).replace(/[\u2028\u2029\n\r]/g, ' ').slice(0, n || 60); }
+function mbClean(a) {
+    var m = mbNew(); if (!a || typeof a !== 'object') return m;
+    if (Array.isArray(a.box) && a.box.length === 4) { var b = a.box.map(function(x, i) { return mbNn(x, m.box[i]); }); if (b[2] > b[0] && b[1] > b[3]) m.box = b; }
+    m.axis = a.axis !== false; m.grid = !!a.grid; m.h = Math.max(160, Math.min(900, Math.round(mbNn(a.h, 380)))); m.n = Math.max(1, Math.round(mbNn(a.n, 1)));
+    var ok = { pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
+    (Array.isArray(a.parts) ? a.parts : []).slice(0, 80).forEach(function(p) {
+        if (!p || !ok[p.t]) return; var o = { id: Math.round(mbNn(p.id, 0)), t: p.t }; if (o.id < 1) return; if (o.id >= m.n) m.n = o.id + 1;
+        o.color = mbCol(p.color, '#333333'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 3))); o.dash = !!p.dash;
+        if (p.t === 'pt') { o.name = mbStr(p.name, 8); o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.drag = p.drag !== false; o.show = p.show !== false; o.size = Math.max(1, Math.min(20, mbNn(p.size, 7))); o.color = mbCol(p.color, '#9b5de5'); }
+        else if (p.t === 'mid') { o.name = mbStr(p.name, 8); o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.show = p.show !== false; o.size = 5; o.color = mbCol(p.color, '#e8590c'); }
+        else if (p.t === 'seg' || p.t === 'line') { o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); }
+        else if (p.t === 'hline') o.y = mbNum(p.y, 0);
+        else if (p.t === 'vline') o.x = mbNum(p.x, 0);
+        else if (p.t === 'poly') { o.pts = (Array.isArray(p.pts) ? p.pts : []).slice(0, 12).map(function(x) { return Math.round(mbNn(x, 0)); }); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.4); o.line = mbCol(p.line, '#555555'); }
+        else if (p.t === 'cut') { o.poly = Math.round(mbNn(p.poly, 0)); o.by = Math.round(mbNn(p.by, 0)); o.c1 = mbCol(p.c1, '#4d97ff'); o.c2 = mbCol(p.c2, '#ff6680'); o.op = mbNum(p.op, 1); }
+        else if (p.t === 'circle') { o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 2); o.through = Math.round(mbNn(p.through, 0)); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0); o.color = mbCol(p.color, '#555555'); }
+        else if (p.t === 'text') { o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.text = mbStr(p.text, 120); o.fs = Math.max(8, Math.min(60, mbNn(p.fs, 16))); o.color = mbCol(p.color, '#222222'); }
+        else if (p.t === 'var') { o.label = mbStr(p.label, 20); o.min = mbNn(p.min, 0); o.max = mbNn(p.max, 1); if (o.max <= o.min) o.max = o.min + 1; o.v = Math.min(o.max, Math.max(o.min, mbNn(p.v, o.min))); o.step = Math.max(0, mbNn(p.step, 0)); }
+        m.parts.push(o);
+    });
+    return m;
+}
+// ---- データからJSXGraphのコードを作る ----
+function mgJ(n) { return (n && typeof n === 'object') ? '(' + n.k + '*V' + n.s + '.Value()+' + n.c + ')' : String(mbNn(n, 0)); }
+function mgF(n) { return (n && typeof n === 'object') ? 'function(){return ' + mgJ(n) + ';}' : mgJ(n); }
+function mgQ(s) { return JSON.stringify(String(s == null ? '' : s)).replace(/[\u2028\u2029]/g, ''); }
+var MB_HELP = "function mbClip(P,L,pos){var out=[];for(var i=0;i<P.length;i++){var p=P[i],q=P[(i+1)%P.length];var fp=L[0]*p[0]+L[1]*p[1]+L[2],fq=L[0]*q[0]+L[1]*q[1]+L[2];var ip=pos?fp>=0:fp<=0,iq=pos?fq>=0:fq<=0;if(ip)out.push(p);if(ip!==iq){var t=fp/(fp-fq);out.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])]);}}return out;}\n" +
+    "function mbPart(PF,LF,pos,color,op){var c=board.create('curve',[[],[]],{strokeWidth:0,fillColor:color,highlight:false,fixed:true});c.updateDataArray=function(){var P=mbClip(PF(),LF(),pos);if(P.length)P.push(P[0]);this.dataX=P.map(function(p){return p[0]});this.dataY=P.map(function(p){return p[1]});this.visProp.fillopacity=typeof op==='function'?op():op;};return c;}";
+function mbGen(m, edit) {
+    var o = [], B = m.box, W = B[2] - B[0], H = B[1] - B[3], vi = 0, by = {}, q = mgQ, hasCut = false;
+    m.parts.forEach(function(p) { by[p.id] = p; if (p.t === 'cut') hasCut = true; });
+    o.push('//@ box ' + B.join(' ')); if (m.axis) o.push('//@ axis'); if (m.grid) o.push('//@ grid'); o.push('//@ height ' + m.h);
+    o.push('//@ model ' + JSON.stringify(m).replace(/[\u2028\u2029]/g, ''));
+    if (hasCut) o.push(MB_HELP);
+    var pt = function(id) { var p = by[id]; return p && (p.t === 'pt' || p.t === 'mid') ? 'P' + id : null; };
+    m.parts.forEach(function(p) { if (p.t !== 'var') return; var y = B[1] - H * 0.07 - vi * H * 0.1, x1 = B[0] + W * 0.04; vi++;
+        o.push('var V' + p.id + " = board.create('slider', [[" + x1 + ', ' + y + '], [' + (x1 + W * 0.28) + ', ' + y + '], [' + p.min + ', ' + p.v + ', ' + p.max + ']], { name: ' + q(p.label) + ', snapWidth: ' + (p.step > 0 ? p.step : -1) + ' });'); });
+    m.parts.forEach(function(p) {
+        if (p.t === 'pt') {
+            var lk = typeof p.x === 'object' || typeof p.y === 'object';
+            o.push('var P' + p.id + " = board.create('point', [" + mgF(p.x) + ', ' + mgF(p.y) + '], { name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', fixed: ' + (!p.drag || lk) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ' });');
+            if (edit && p.drag && !lk) o.push('P' + p.id + ".on('up', function() { parent.postMessage({ mbp: " + p.id + ', x: P' + p.id + '.X(), y: P' + p.id + '.Y() }, "*"); });');
+        } else if (p.t === 'mid') {
+            var a = pt(p.a), b = pt(p.b); if (a && b) o.push('var P' + p.id + " = board.create('midpoint', [" + a + ', ' + b + '], { name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ' });');
+        }
+    });
+    m.parts.forEach(function(p) {
+        var st = '{ strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', fixed: true, highlight: false }';
+        if (p.t === 'seg' || p.t === 'line') { var a = pt(p.a), b = pt(p.b); if (!a || !b) return;
+            o.push("board.create('" + (p.t === 'seg' ? 'segment' : 'line') + "', [" + a + ', ' + b + '], ' + st + ');');
+            if (p.t === 'line') o.push('function L' + p.id + '(){var a=' + a + '.X(),b=' + a + '.Y(),c=' + b + '.X(),d=' + b + '.Y();var A=d-b,B=-(c-a);return [A,B,-(A*a+B*b)];}');
+        } else if (p.t === 'hline') {
+            o.push('function L' + p.id + '(){return [0,1,-' + mgJ(p.y) + '];}');
+            o.push("board.create('line', [function(){return -" + mgJ(p.y) + ';}, 0, 1], ' + st + ');');
+        } else if (p.t === 'vline') {
+            o.push('function L' + p.id + '(){return [1,0,-' + mgJ(p.x) + '];}');
+            o.push("board.create('line', [function(){return -" + mgJ(p.x) + ';}, 1, 0], ' + st + ');');
+        } else if (p.t === 'poly') {
+            var ps = p.pts.map(pt).filter(Boolean); if (ps.length < 3) return;
+            o.push('function Q' + p.id + '(){return [' + ps.map(function(x) { return '[' + x + '.X(),' + x + '.Y()]'; }).join(',') + '];}');
+            o.push("board.create('polygon', [" + ps.join(', ') + '], { fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', borders: { strokeColor: ' + q(p.line) + ', strokeWidth: ' + p.w + ' }, vertices: { visible: false }, highlight: false, hasInnerPoints: false });');
+        } else if (p.t === 'cut') {
+            var pl = by[p.poly], ln = by[p.by]; if (!pl || pl.t !== 'poly' || pl.pts.map(pt).filter(Boolean).length < 3 || !ln || !/^(line|hline|vline)$/.test(ln.t)) return;
+            if (ln.t === 'line' && !(pt(ln.a) && pt(ln.b))) return;
+            o.push('mbPart(Q' + pl.id + ', L' + ln.id + ', true, ' + q(p.c1) + ', ' + mgF(p.op) + ');'); o.push('mbPart(Q' + pl.id + ', L' + ln.id + ', false, ' + q(p.c2) + ', ' + mgF(p.op) + ');');
+        } else if (p.t === 'circle') {
+            var c = pt(p.c); if (!c) return; var th = p.through ? pt(p.through) : null;
+            o.push("board.create('circle', [" + c + ', ' + (th || mgF(p.r)) + '], { strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', fixed: true, highlight: false });');
+        } else if (p.t === 'text') {
+            var lab = {}; m.parts.forEach(function(v) { if (v.t === 'var') lab[v.label] = v.id; });
+            var ex = String(p.text).split(/\{([^}]*)\}/).map(function(s, i) { return i % 2 ? (lab[s] != null ? 'V' + lab[s] + '.Value().toFixed(2)' : q('{' + s + '}')) : q(s); }).join('+');
+            o.push("board.create('text', [" + mgF(p.x) + ', ' + mgF(p.y) + ', function(){return ' + ex + ';}], { fontSize: ' + p.fs + ', strokeColor: ' + q(p.color) + ', fixed: true });');
+        }
+    });
+    return o.join('\n') + '\n';
+}
+// ---- 作る画面 ----
+function mbId() { return mb.m.n++; }
+function mbGet(id) { return mb.m.parts.filter(function(p) { return p.id === id; })[0]; }
+function mbOf(t) { return mb.m.parts.filter(function(p) { return t.indexOf(p.t) >= 0; }); }
+function mbPtsAll() { return mbOf(['pt', 'mid']); }
+function mbNextName() { var used = {}; mb.m.parts.forEach(function(p) { if (p.name) used[p.name] = 1; }); for (var i = 0; i < 26; i++) { var c = String.fromCharCode(65 + i); if (!used[c]) return c; } return 'P' + mb.m.n; }
+function mbSpot() { var B = mb.m.box, W = B[2] - B[0], H = B[1] - B[3], n = mbOf(['pt']).length, pat = [[-.5, -.4], [.5, -.45], [0, .55], [-.6, .4], [.6, .3], [0, -.6]], q = pat[n % pat.length];
+    return [Math.round(((B[0] + B[2]) / 2 + q[0] * W / 3) * 2) / 2, Math.round(((B[1] + B[3]) / 2 + q[1] * H / 3) * 2) / 2]; }
+function mbPush(p) { p.id = mbId(); mb.m.parts.push(p); mb.open[p.id] = true; return p; }
+function mbPt(x, y) { var s = mbSpot(); return mbPush({ t: 'pt', name: mbNextName(), x: x == null ? s[0] : x, y: y == null ? s[1] : y, drag: true, show: true, size: 7, color: '#9b5de5', w: 3, dash: false }); }
+function mbAdd(kind) {
+    mbSnap('add' + Math.random()); var m = mb.m, B = m.box, cx = (B[0] + B[2]) / 2, cy = (B[1] + B[3]) / 2, P, a, b, i;
+    var base = function(t, o) { return mbPush(Object.assign({ t: t, color: '#333333', w: 3, dash: false }, o)); };
+    if (kind === 'pt') mbPt();
+    else if (kind === 'seg' || kind === 'line') { a = mbPt(); b = mbPt(); base(kind, { a: a.id, b: b.id }); }
+    else if (kind === 'hline') base('hline', { y: 0, color: '#e03131' });
+    else if (kind === 'vline') base('vline', { x: 0, color: '#e03131' });
+    else if (kind === 'poly') { a = mbPt(); b = mbPt(); var c = mbPt(); base('poly', { pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0.4, line: '#555555', w: 2 }); }
+    else if (kind === 'cut') {
+        var pl = mbOf(['poly']).pop(), made = false; if (!pl) { a = mbPt(); b = mbPt(); var c2 = mbPt(); pl = base('poly', { pts: [a.id, b.id, c2.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2 }); made = true; }
+        var ln = mbOf(['line', 'hline', 'vline']).pop(); if (!ln) ln = base('hline', { y: 0, color: '#e03131' });
+        base('cut', { poly: pl.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 1 }); if (made) mb.open[pl.id] = false;
+    }
+    else if (kind === 'circle') { a = mbPt(); base('circle', { c: a.id, r: 2, through: 0, color: '#555555', w: 2, fill: '#4d97ff', op: 0 }); }
+    else if (kind === 'text') base('text', { x: cx, y: cy, text: '文字', fs: 18, color: '#222222' });
+    else if (kind === 'var') { var n = mbOf(['var']).length; base('var', { label: 'kmnpqrst'.charAt(n % 8), min: 0, max: 1, v: 0.5, step: 0 }); }
+    else if (kind === 'mid') { P = mbPtsAll(); if (P.length < 2) { showToast(mbt('needPts')); return; } base('mid', { name: '', a: P[0].id, b: P[1].id, show: true, size: 5, color: '#e8590c' }); }
+    mbPaint(); mbDraw();
+}
+function mbTpl(kind) {
+    mb.m = mbNew(); mb.open = {}; mb.u = []; mb.r = [];
+    if (kind === 'cut') {
+        var z = mbPush({ t: 'var', label: 'クリップz', min: 0, max: 100, v: 40, step: 0 });
+        var a = mbPt(-3, -2), b = mbPt(3, -2.5), c = mbPt(0.5, 3.2); a.name = 'A'; b.name = 'B'; c.name = 'C';
+        var tri = mbPush({ t: 'poly', pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2, color: '#333333', dash: false });
+        mbPush({ t: 'hline', y: 0, color: '#000000', w: 3, dash: false });
+        var cl = mbPush({ t: 'hline', y: { s: z.id, k: 0.08, c: -4 }, color: '#e03131', w: 3, dash: false });
+        mbPush({ t: 'cut', poly: tri.id, by: cl.id, c1: '#2f4bff', c2: '#ff2b2b', op: 1, color: '#333333', w: 3, dash: false });
+    } else if (kind === 'seg') {
+        var p1 = mbPt(-2, -1), p2 = mbPt(2, 1); mbPush({ t: 'seg', a: p1.id, b: p2.id, color: '#333333', w: 3, dash: false });
+        mbPush({ t: 'mid', name: 'M', a: p1.id, b: p2.id, show: true, size: 5, color: '#e8590c', w: 3, dash: false });
+    }
+    mb.open = {}; mbPaint(); mbDraw(true);
+}
+function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== key) { mb.u.push(JSON.stringify(mb.m)); if (mb.u.length > 80) mb.u.shift(); mb.r = []; } mb.lp = nw; mb.lk = key; }
+function mbUndo() { if (!mb.u.length) return; mb.r.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.u.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
+function mbRedo() { if (!mb.r.length) return; mb.u.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.r.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
+function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var f = document.getElementById('mb-if'); if (f) f.srcdoc = gdJsxDoc(mbGen(mb.m, true)); }, now ? 0 : 300); }
+function mbSet(id, k, v, kind) {
+    var p = mbGet(id); if (!p) return; mbSnap(id + k);
+    if (kind === 'n') { v = Number(v); if (!isFinite(v)) return; } else if (kind === 'b') v = !!v; else if (kind === 'i') v = Math.round(Number(v)) || 0;
+    p[k] = v;
+    if (p.t === 'var') { if (p.max <= p.min) p.max = p.min + 1; p.v = Math.min(p.max, Math.max(p.min, p.v)); }
+    mbDraw(); if (kind === 'b' || kind === 'i' || k === 'name' || k === 'label' || k === 'min' || k === 'max') mbPaint();
+}
+function mbSetNv(id, k, w, v) {
+    var p = mbGet(id); if (!p) return; mbSnap(id + k); var cur = p[k], n = Number(v);
+    if (w === 's') { if (v === '') p[k] = (cur && typeof cur === 'object') ? mbNn(cur.c, 0) : cur; else p[k] = { s: Math.round(n), k: (cur && typeof cur === 'object') ? cur.k : 1, c: (cur && typeof cur === 'object') ? cur.c : mbNn(cur, 0) }; mbPaint(); }
+    else if (isFinite(n)) { if (w === 'v') p[k] = n; else if (cur && typeof cur === 'object') cur[w] = n; }
+    mbDraw();
+}
+function mbMove(id, d) { var A = mb.m.parts, i = A.findIndex(function(p) { return p.id === id; }), j = i + d; if (i < 0 || j < 0 || j >= A.length) return; mbSnap('mv'); var t = A[i]; A[i] = A[j]; A[j] = t; mbPaint(); mbDraw(); }
+function mbDel(id) {
+    mbSnap('del' + id); var A = mb.m.parts, gone = {}; gone[id] = 1;
+    for (var again = true; again;) { again = false;
+        A.forEach(function(p) { if (gone[p.id]) return; var bad = false;
+            if (p.t === 'seg' || p.t === 'line' || p.t === 'mid') bad = gone[p.a] || gone[p.b];
+            else if (p.t === 'poly') { p.pts = p.pts.filter(function(x) { return !gone[x]; }); bad = p.pts.length < 3; }
+            else if (p.t === 'cut') bad = gone[p.poly] || gone[p.by]; else if (p.t === 'circle') { if (gone[p.through]) p.through = 0; bad = gone[p.c]; }
+            if (bad) { gone[p.id] = 1; again = true; } }); }
+    mb.m.parts = A.filter(function(p) { return !gone[p.id]; });
+    mb.m.parts.forEach(function(p) { ['x', 'y', 'r', 'op'].forEach(function(k) { if (p[k] && typeof p[k] === 'object' && gone[p[k].s]) p[k] = p[k].c; }); });
+    mbPaint(); mbDraw();
+}
+function mbVerts(id, j, v) { var p = mbGet(id); if (!p) return; mbSnap('vt'); if (v === 'del') p.pts.splice(j, 1); else if (v === 'add') { if (p.pts.length >= 12) return; var P = mbOf(['pt']); p.pts.push(P.length ? P[P.length - 1].id : 0); } else p.pts[j] = Math.round(Number(v)); mbPaint(); mbDraw(); }
+function mbName(p) { return p.t === 'pt' || p.t === 'mid' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : ''; }
+function mbRow(l, inner) { return '<label class="mb-r"><span>' + esc(l) + '</span>' + inner + '</label>'; }
+function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
+function mbSelOf(p, k, types) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + mbOf(types).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbt('k_' + x.t) + ' ' + mbName(x) + ' #' + x.id) + '</option>'; }).join('') + '</select>'; }
+function mbFS(p, k, l) { return mbRow(l, '<input class="mb-in" value="' + esc(p[k]) + '" maxlength="120" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">'); }
+function mbFC(p, k, l) { return mbRow(l, '<input type="color" value="' + esc(p[k]) + '" oninput="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">'); }
+function mbFB(p, k, l) { return '<label class="mb-c"><input type="checkbox"' + (p[k] ? ' checked' : '') + ' onchange="mbSet(' + p.id + ',\'' + k + '\',this.checked,\'b\')"> ' + esc(l) + '</label>'; }
+function mbFN(p, k, l, st) { return mbRow(l, '<input type="number" class="mb-in n" step="' + (st || 'any') + '" value="' + p[k] + '" data-f="' + p.id + '.' + k + '" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'n\')">'); }
+function mbFL(p, k, l) {   // 数字。スライダーと連動もできる
+    var v = p[k], lk = v && typeof v === 'object', vs = mbOf(['var']), h = '<div class="mb-r"><span>' + esc(l) + '</span>';
+    if (!lk) h += '<input type="number" class="mb-in n" step="any" value="' + v + '" data-f="' + p.id + '.' + k + '" onchange="mbSetNv(' + p.id + ',\'' + k + '\',\'v\',this.value)">';
+    else h += '<input type="number" class="mb-in n" step="any" value="' + v.k + '" onchange="mbSetNv(' + p.id + ',\'' + k + '\',\'k\',this.value)"> ×';
+    if (vs.length) h += '<select class="mb-in" onchange="mbSetNv(' + p.id + ',\'' + k + '\',\'s\',this.value)" title="' + esc(mbt('link')) + '"><option value="">' + esc(mbt('fixed')) + '</option>' + vs.map(function(x) { return '<option value="' + x.id + '"' + (lk && v.s === x.id ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('') + '</select>';
+    if (lk) h += '+ <input type="number" class="mb-in n" step="any" value="' + v.c + '" onchange="mbSetNv(' + p.id + ',\'' + k + '\',\'c\',this.value)">';
+    return h + '</div>';
+}
+function mbBody(p) {
+    var h = '';
+    if (p.t === 'pt') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'x', mbt('x')) + mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'size', mbt('size'), 1) + mbFB(p, 'drag', mbt('drag')) + mbFB(p, 'show', mbt('show'));
+    else if (p.t === 'mid') h = mbFS(p, 'name', mbt('name')) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFB(p, 'show', mbt('show'));
+    else if (p.t === 'seg' || p.t === 'line') h = mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'hline') h = mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'vline') h = mbFL(p, 'x', mbt('x')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'poly') h = '<div class="mb-h">' + esc(mbt('verts')) + '</div>' + p.pts.map(function(x, j) { return '<div class="mb-r"><select class="mb-in" onchange="mbVerts(' + p.id + ',' + j + ',this.value)">' + mbPtsAll().map(function(q) { return '<option value="' + q.id + '"' + (q.id === x ? ' selected' : '') + '>' + esc(mbName(q)) + '</option>'; }).join('') + '</select><button class="mb-ib" onclick="mbVerts(' + p.id + ',' + j + ',\'del\')">x</button></div>'; }).join('') +
+        '<button class="mb-ab" onclick="mbVerts(' + p.id + ',0,\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
+    else if (p.t === 'cut') h = mbRow(mbt('poly'), mbSelOf(p, 'poly', ['poly'])) + mbRow(mbt('by'), mbSelOf(p, 'by', ['line', 'hline', 'vline'])) + mbFC(p, 'c1', mbt('c1')) + mbFC(p, 'c2', mbt('c2')) + mbFL(p, 'op', mbt('op'));
+    else if (p.t === 'circle') h = mbRow(mbt('center'), mbSelPt(p, 'c')) + mbFL(p, 'r', mbt('r')) + mbRow(mbt('through'), mbSelPt(p, 'through', true)) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
+    else if (p.t === 'text') h = mbFS(p, 'text', mbt('text')) + mbFL(p, 'x', mbt('x')) + mbFL(p, 'y', mbt('y')) + mbFN(p, 'fs', mbt('fs'), 1) + mbFC(p, 'color', mbt('color'));
+    else if (p.t === 'var') h = mbFS(p, 'label', mbt('label')) + mbFN(p, 'min', mbt('min')) + mbFN(p, 'max', mbt('max')) + mbFN(p, 'v', mbt('val')) + mbFN(p, 'step', mbt('step'));
+    return h;
+}
+function mbPaint() {
+    var pn = document.getElementById('mb-side'); if (!pn || !mb) return; var m = mb.m, h = '';
+    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['seg', 'aSeg'], ['line', 'aLine'], ['hline', 'aH'], ['vline', 'aV'], ['poly', 'aPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['mid', 'aMid'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div></div>';
+    h += m.parts.length ? m.parts.map(function(p) {
+        return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
+            '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';
+    }).join('') : '<div class="mb-note">' + esc(mbt('empty')) + '</div>';
+    var B = m.box, bx = function(i, l) { return mbRow(l, '<input type="number" class="mb-in n" step="any" value="' + B[i] + '" onchange="mbBox(' + i + ',this.value)">'); };
+    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('all')) + ' — ' + esc(mbt('range')) + '</div>' + bx(0, mbt('xmin')) + bx(2, mbt('xmax')) + bx(3, mbt('ymin')) + bx(1, mbt('ymax')) +
+        '<label class="mb-c"><input type="checkbox"' + (m.axis ? ' checked' : '') + ' onchange="mbAll(\'axis\',this.checked)"> ' + esc(mbt('axis')) + '</label><label class="mb-c"><input type="checkbox"' + (m.grid ? ' checked' : '') + ' onchange="mbAll(\'grid\',this.checked)"> ' + esc(mbt('grid')) + '</label></div>';
+    var scr = pn.scrollTop; pn.innerHTML = h; pn.scrollTop = scr;
+}
+function mbBox(i, v) { v = Number(v); if (!isFinite(v)) return; mbSnap('box' + i); var b = mb.m.box.slice(); b[i] = v; if (b[2] > b[0] && b[1] > b[3]) { mb.m.box = b; mbDraw(); } else mbPaint(); }
+function mbAll(k, v) { mbSnap(k); mb.m[k] = !!v; mbDraw(); }
+function gdMbOpen(force) {
+    var ta = document.getElementById('gd-e-body'), e = gd.edit;
+    if (!ta || !e || document.getElementById('mb-ov')) return;
+    if (e.preview) gdEditTab(false);
+    var v = ta.value, s = ta.selectionStart, re = /```jsxgraph\n([\s\S]*?)\n```/g, m, hit = null, model = null;
+    while ((m = re.exec(v))) { if (s >= m.index && s <= m.index + m[0].length) { hit = m; break; } }
+    if (hit) { var mm = /^\/\/@ model (.*)$/m.exec(hit[1]); if (mm) { try { model = mbClean(JSON.parse(mm[1])); } catch (x) {} }
+        if (!model) { if (!force) { gdJsxOpen(); return; } if (!window.confirm(mbt('over'))) return; } }
+    var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;
+    mb = { m: model || mbNew(), u: [], r: [], lp: 0, lk: '', tm: 0, open: {} };
+    var ov = document.createElement('div'); ov.id = 'mb-ov';
+    ov.innerHTML = '<div class="mb-box"><div class="mb-top"><b>' + esc(mbt('title')) + '</b><span class="mb-sp"></span>' +
+        '<span class="mb-tpl">' + esc(mbt('tpl')) + ': <button class="gd-btn" data-tpl="cut">' + esc(mbt('tCut')) + '</button><button class="gd-btn" data-tpl="seg">' + esc(mbt('tSeg')) + '</button><button class="gd-btn" data-tpl="blank">' + esc(mbt('tBlank')) + '</button></span>' +
+        '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
+        '<button class="gd-btn" id="mb-close">' + esc(mbt('close')) + '</button><button class="gd-btn primary" id="mb-ins">' + esc(mbt(hit ? 'upd' : 'ins')) + '</button></div>' +
+        '<div class="mb-main"><div class="mb-prev"><iframe id="mb-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(mbt('title')) + '"></iframe></div><div class="mb-side" id="mb-side"></div></div></div>';
+    document.body.appendChild(ov);
+    function onMsg(ev) {
+        var f = document.getElementById('mb-if'), d = ev.data; if (!mb || !f || ev.source !== f.contentWindow || !d || typeof d.mbp !== 'number') return;
+        var p = mbGet(d.mbp); if (!p || p.t !== 'pt') return; mbSnap('drag' + d.mbp); p.x = Math.round(d.x * 100) / 100; p.y = Math.round(d.y * 100) / 100;
+        [['x', p.x], ['y', p.y]].forEach(function(z) { var i = document.querySelector('[data-f="' + p.id + '.' + z[0] + '"]'); if (i) i.value = z[1]; });
+    }
+    function close() { window.removeEventListener('message', onMsg); clearTimeout(mb && mb.tm); ov.remove(); mb = null; }
+    window.addEventListener('message', onMsg);
+    ov.querySelectorAll('[data-tpl]').forEach(function(bt) { bt.onclick = function() { mbSnap('tpl' + Math.random()); var keep = mb.u; mbTpl(bt.getAttribute('data-tpl')); mb.u = keep; }; });
+    document.getElementById('mb-close').onclick = close;
+    document.getElementById('mb-code').onclick = function() { window.mbSeed = mbGen(mb.m, false).replace(/^\/\/@ model .*\n/m, ''); close(); gdJsxOpen(); };
+    document.getElementById('mb-ins').onclick = function() {
+        if (!mb.m.parts.length) { showToast(mbt('empty')); return; }
+        var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }
+        var code = mbGen(mb.m, false).replace(/\s+$/, ''), ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b); cur.focus(); cur.setSelectionRange(a + ins.length, a + ins.length); gdBodyInput(cur); close();
+    };
+    if (!model) mbTpl('cut'); else { mbPaint(); mbDraw(true); }
 }
 
 // ===== ホーム =====

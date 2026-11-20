@@ -4112,7 +4112,7 @@ function gdJsxOpen() {
 var MBT = {
     ja: { title: '数学図をつくる（コード不要）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
         tpl: '例から始める', tCut: '三角形を線で切る', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
-        aPt: '点', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
+        aPt: '点', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
         k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
         name: '名前', x: '横', y: '縦', drag: '動かせる', show: '表示', color: '色', width: '太さ', dash: '点線', size: '大きさ', p1: '点1', p2: '点2', verts: '頂点', addV: '頂点を足す', fill: '塗り', op: '濃さ(0〜1)', lineC: '線の色',
         poly: '切る図形', by: '切る線', c1: '上・右側の色', c2: '下・左側の色', r: '半径', center: '中心', through: '通る点（半径の代わり）', none: 'なし', text: '文字（{スライダー名} で値を出せる）', fs: '文字の大きさ',
@@ -4120,7 +4120,7 @@ var MBT = {
         range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
     en: { title: 'Build a math figure (no code)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
         tpl: 'Start from', tCut: 'Triangle cut by a line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
-        aPt: 'Point', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
+        aPt: 'Point', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
         k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
         name: 'Name', x: 'X', y: 'Y', drag: 'Draggable', show: 'Visible', color: 'Color', width: 'Width', dash: 'Dashed', size: 'Size', p1: 'Point 1', p2: 'Point 2', verts: 'Vertices', addV: 'Add vertex', fill: 'Fill', op: 'Opacity (0-1)', lineC: 'Line color',
         poly: 'Polygon to cut', by: 'Cutting line', c1: 'Upper / right color', c2: 'Lower / left color', r: 'Radius', center: 'Center', through: 'Through point (instead of radius)', none: 'None', text: 'Text ({slider name} shows its value)', fs: 'Font size',
@@ -4130,7 +4130,7 @@ var MBT = {
 function mbt(k) { return (MBT[currentLang] || MBT.ja)[k] || MBT.ja[k] || k; }
 var mb = null;
 // ---- 図のデータ（ここだけが本体。コードはここから作る） ----
-function mbNew() { return { v: 1, n: 1, box: [-6, 4.5, 6, -4.5], axis: true, grid: false, h: 380, dur: 4, loop: true, auto: true, ease: 'io', parts: [] }; }
+function mbNew() { return { v: 1, n: 1, box: [-6, 4.5, 6, -4.5], axis: true, grid: false, dark: false, h: 380, dur: 4, loop: true, auto: true, ease: 'io', parts: [] }; }
 function mbNn(v, d) { v = Number(v); return isFinite(v) ? v : d; }
 function mbNum(v, d) { if (v && typeof v === 'object') { var ts = Array.isArray(v.t) ? v.t : (v.s != null ? [{ s: v.s, k: v.k }] : []); ts = ts.slice(0, 6).map(function(x) { return { s: Math.round(mbNn(x && x.s, 0)), k: mbNn(x && x.k, 1) }; }); return ts.length ? { c: mbNn(v.c, 0), t: ts } : mbNn(v.c, d); } return mbNn(v, d); }
 function mbCol(c, d) { return /^#[0-9a-f]{6}$/i.test(c) ? c : d; }
@@ -4138,19 +4138,22 @@ function mbStr(s, n) { return String(s == null ? '' : s).replace(/[\u2028\u2029\
 function mbClean(a) {
     var m = mbNew(); if (!a || typeof a !== 'object') return m;
     if (Array.isArray(a.box) && a.box.length === 4) { var b = a.box.map(function(x, i) { return mbNn(x, m.box[i]); }); if (b[2] > b[0] && b[1] > b[3]) m.box = b; }
-    m.dur = Math.max(0.5, Math.min(120, mbNn(a.dur, 4))); m.loop = a.loop !== false; m.auto = a.auto !== false; m.ease = a.ease === 'lin' ? 'lin' : 'io'; m.axis = a.axis !== false; m.grid = !!a.grid; m.h = Math.max(160, Math.min(900, Math.round(mbNn(a.h, 380)))); m.n = Math.max(1, Math.round(mbNn(a.n, 1)));
-    var ok = { cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
+    m.dur = Math.max(0.5, Math.min(120, mbNn(a.dur, 4))); m.loop = a.loop !== false; m.auto = a.auto !== false; m.ease = a.ease === 'lin' ? 'lin' : 'io'; m.dark = !!a.dark; m.axis = a.axis !== false; m.grid = !!a.grid; m.h = Math.max(160, Math.min(900, Math.round(mbNn(a.h, 380)))); m.n = Math.max(1, Math.round(mbNn(a.n, 1)));
+    var ok = { cpoly: 1, tcen: 1, tcirc: 1, cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
     (Array.isArray(a.parts) ? a.parts : []).slice(0, 80).forEach(function(p) {
         if (!p || !ok[p.t]) return; var o = { id: Math.round(mbNn(p.id, 0)), t: p.t }; if (o.id < 1) return; if (o.id >= m.n) m.n = o.id + 1;
         o.color = mbCol(p.color, '#333333'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 3))); o.dash = !!p.dash;
         if (p.t === 'pt') { o.name = mbStr(p.name, 8); o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.drag = p.drag !== false; o.show = p.show !== false; o.size = Math.max(1, Math.min(20, mbNn(p.size, 7))); o.color = mbCol(p.color, '#9b5de5'); }
         else if (p.t === 'mid') { o.name = mbStr(p.name, 8); o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.show = p.show !== false; o.size = 5; o.color = mbCol(p.color, '#e8590c'); }
         else if (p.t === 'seg' || p.t === 'line') { o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); }
+        else if (p.t === 'cpoly') { o.v = (Array.isArray(p.v) ? p.v : []).slice(0, 12).map(function(q) { return { x: mbNum(q && q.x, 0), y: mbNum(q && q.y, 0) }; }); while (o.v.length < 3) o.v.push({ x: o.v.length, y: 0 }); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.4); o.line = mbCol(p.line, '#555555'); }
+        else if (p.t === 'tcen') { o.name = mbStr(p.name, 8); o.kind = /^(in|out|g)$/.test(p.kind) ? p.kind : 'in'; o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.show = p.show !== false; o.size = Math.max(1, Math.min(20, mbNn(p.size, 5))); o.color = mbCol(p.color, '#e8590c'); }
+        else if (p.t === 'tcirc') { o.kind = p.kind === 'out' ? 'out' : 'in'; o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.3); o.color = mbCol(p.color, '#555555'); }
         else if (p.t === 'cseg') { o.x1 = mbNum(p.x1, 0); o.y1 = mbNum(p.y1, 0); o.x2 = mbNum(p.x2, 1); o.y2 = mbNum(p.y2, 1); o.inf = !!p.inf; o.color = mbCol(p.color, '#d9480f'); }
         else if (p.t === 'hline') o.y = mbNum(p.y, 0);
         else if (p.t === 'vline') o.x = mbNum(p.x, 0);
         else if (p.t === 'poly') { o.pts = (Array.isArray(p.pts) ? p.pts : []).slice(0, 12).map(function(x) { return Math.round(mbNn(x, 0)); }); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.4); o.line = mbCol(p.line, '#555555'); }
-        else if (p.t === 'cut') { o.poly = Math.round(mbNn(p.poly, 0)); o.by = Math.round(mbNn(p.by, 0)); o.c1 = mbCol(p.c1, '#4d97ff'); o.c2 = mbCol(p.c2, '#ff6680'); o.op = mbNum(p.op, 1); }
+        else if (p.t === 'cut') { o.poly = Math.round(mbNn(p.poly, 0)); o.by = Math.round(mbNn(p.by, 0)); o.c1 = mbCol(p.c1, '#4d97ff'); o.c2 = mbCol(p.c2, '#ff6680'); o.op = mbNum(p.op, 1); o.edge = !!p.edge; o.ec = mbCol(p.ec, '#ff4d4d'); o.ew = Math.max(1, Math.min(12, mbNn(p.ew, 3))); }
         else if (p.t === 'circle') { o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 2); o.through = Math.round(mbNn(p.through, 0)); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0); o.color = mbCol(p.color, '#555555'); }
         else if (p.t === 'text') { o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.text = mbStr(p.text, 120); o.fs = Math.max(8, Math.min(60, mbNn(p.fs, 16))); o.color = mbCol(p.color, '#222222'); }
         else if (p.t === 'var') { o.label = mbStr(p.label, 20); o.min = mbNn(p.min, 0); o.max = mbNn(p.max, 1); if (o.max <= o.min) o.max = o.min + 1; o.v = Math.min(o.max, Math.max(o.min, mbNn(p.v, o.min))); o.step = Math.max(0, mbNn(p.step, 0)); o.show = p.show !== false;
@@ -4164,21 +4167,33 @@ function mgJ(n) { return (n && typeof n === 'object') ? '(' + n.c + n.t.map(func
 function mgF(n) { return (n && typeof n === 'object') ? 'function(){return ' + mgJ(n) + ';}' : mgJ(n); }
 function mgQ(s) { return JSON.stringify(String(s == null ? '' : s)).replace(/[\u2028\u2029]/g, ''); }
 var MB_HELP = "function mbClip(P,L,pos){var out=[];for(var i=0;i<P.length;i++){var p=P[i],q=P[(i+1)%P.length];var fp=L[0]*p[0]+L[1]*p[1]+L[2],fq=L[0]*q[0]+L[1]*q[1]+L[2];var ip=pos?fp>=0:fp<=0,iq=pos?fq>=0:fq<=0;if(ip)out.push(p);if(ip!==iq){var t=fp/(fp-fq);out.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])]);}}return out;}\n" +
-    "function mbPart(PF,LF,pos,color,op){var c=board.create('curve',[[],[]],{strokeWidth:0,fillColor:color,highlight:false,fixed:true});c.updateDataArray=function(){var P=mbClip(PF(),LF(),pos);if(P.length)P.push(P[0]);this.dataX=P.map(function(p){return p[0]});this.dataY=P.map(function(p){return p[1]});this.visProp.fillopacity=typeof op==='function'?op():op;};return c;}";
+    "function mbPart(PF,LF,pos,color,op){var c=board.create('curve',[[],[]],{strokeWidth:0,fillColor:color,highlight:false,fixed:true});c.updateDataArray=function(){var P=mbClip(PF(),LF(),pos);if(P.length)P.push(P[0]);this.dataX=P.map(function(p){return p[0]});this.dataY=P.map(function(p){return p[1]});this.visProp.fillopacity=typeof op==='function'?op():op;};return c;}\n" +
+    "function mbEdge(PF,LF,color,w){var c=board.create('curve',[[],[]],{strokeColor:color,strokeWidth:w,highlight:false,fixed:true});c.updateDataArray=function(){var P=PF(),L=LF(),r=[];for(var i=0;i<P.length;i++){var p=P[i],q=P[(i+1)%P.length],fp=L[0]*p[0]+L[1]*p[1]+L[2],fq=L[0]*q[0]+L[1]*q[1]+L[2];if((fp>0&&fq<0)||(fp<0&&fq>0)){var t=fp/(fp-fq);r.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])]);}}if(r.length>=2){this.dataX=[r[0][0],r[r.length-1][0]];this.dataY=[r[0][1],r[r.length-1][1]];}else{this.dataX=[];this.dataY=[];}};return c;}";
 function mbGen(m, edit) {
     var o = [], B = m.box, W = B[2] - B[0], H = B[1] - B[3], vi = 0, by = {}, q = mgQ, hasCut = false;
     m.parts.forEach(function(p) { by[p.id] = p; if (p.t === 'cut') hasCut = true; });
-    o.push('//@ box ' + B.join(' ')); if (m.axis) o.push('//@ axis'); if (m.grid) o.push('//@ grid'); o.push('//@ height ' + m.h);
+    o.push('//@ box ' + B.join(' ')); if (m.axis && !m.dark) o.push('//@ axis'); if (m.grid && !m.dark) o.push('//@ grid'); o.push('//@ height ' + m.h);
     o.push('//@ model ' + JSON.stringify(m).replace(/[\u2028\u2029]/g, ''));
     if (hasCut) o.push(MB_HELP);
-    var pt = function(id) { var p = by[id]; return p && (p.t === 'pt' || p.t === 'mid') ? 'P' + id : null; };
+    if (m.dark) {
+        o.push("var _bx = document.getElementById('jxgbox'); _bx.style.background = '#111218'; _bx.style.borderColor = '#2a2d3a'; JXG.Options.text.strokeColor = '#d8dbe6'; try { JXG.Options.point.label.strokeColor = '#d8dbe6'; JXG.Options.slider.label.strokeColor = '#d8dbe6'; JXG.Options.circle.label.strokeColor = '#d8dbe6'; } catch (e) {}");
+        if (m.grid) o.push("board.create('grid', [], { strokeColor: '#2c2f3d', highlight: false });");
+        if (m.axis) o.push("var _tk = { strokeColor: '#80869a', label: { strokeColor: '#80869a' } }; board.create('axis', [[0, 0], [1, 0]], { strokeColor: '#80869a', highlight: false, ticks: _tk }); board.create('axis', [[0, 0], [0, 1]], { strokeColor: '#80869a', highlight: false, ticks: _tk });");
+    }
+    var pt = function(id) { var p = by[id]; return p && (p.t === 'pt' || p.t === 'mid' || p.t === 'tcen') ? 'P' + id : null; };
     m.parts.forEach(function(p) { if (p.t !== 'var') return; var sh = p.show !== false, y = B[1] - H * 0.07 - vi * H * 0.1, x1 = B[0] + W * 0.04; if (sh) vi++;
         o.push('var V' + p.id + " = board.create('slider', [[" + x1 + ', ' + y + '], [' + (x1 + W * 0.28) + ', ' + y + '], [' + p.min + ', ' + p.v + ', ' + p.max + ']], { name: ' + q(p.label) + ', snapWidth: ' + (p.step > 0 ? p.step : -1) + ', visible: ' + sh + ', withLabel: ' + sh + ' });'); });
     m.parts.forEach(function(p) {
         if (p.t === 'pt') {
             var lk = typeof p.x === 'object' || typeof p.y === 'object';
-            o.push('var P' + p.id + " = board.create('point', [" + mgF(p.x) + ', ' + mgF(p.y) + '], { name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', fixed: ' + (!p.drag || lk) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ' });');
+            o.push('var P' + p.id + " = board.create('point', [" + mgF(p.x) + ', ' + mgF(p.y) + '], { name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', fixed: ' + (!p.drag || lk) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ', label: { strokeColor: ' + q(m.dark ? '#d8dbe6' : '#000000') + ' } });');
             if (edit && p.drag && !lk) o.push('P' + p.id + ".on('up', function() { parent.postMessage({ mbp: " + p.id + ', x: P' + p.id + '.X(), y: P' + p.id + '.Y() }, "*"); });');
+        } else if (p.t === 'tcen') {
+            var ta = pt(p.a), tb = pt(p.b), tc = pt(p.c); if (ta && tb && tc) {
+                var tat = '{ name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ' }';
+                if (p.kind === 'g') o.push('var P' + p.id + " = board.create('point', [function(){return (" + ta + '.X()+' + tb + '.X()+' + tc + '.X())/3;}, function(){return (' + ta + '.Y()+' + tb + '.Y()+' + tc + '.Y())/3;}], ' + tat.replace(' }', ', fixed: true }') + ');');
+                else o.push('var P' + p.id + " = board.create('" + (p.kind === 'out' ? 'circumcenter' : 'incenter') + "', [" + ta + ', ' + tb + ', ' + tc + '], ' + tat + ');');
+            }
         } else if (p.t === 'mid') {
             var a = pt(p.a), b = pt(p.b); if (a && b) o.push('var P' + p.id + " = board.create('midpoint', [" + a + ', ' + b + '], { name: ' + q(p.name) + ', size: ' + p.size + ', color: ' + q(p.color) + ', withLabel: ' + (p.name !== '') + ', visible: ' + (p.show !== false) + ' });');
         }
@@ -4202,10 +4217,17 @@ function mbGen(m, edit) {
             var ps = p.pts.map(pt).filter(Boolean); if (ps.length < 3) return;
             o.push('function Q' + p.id + '(){return [' + ps.map(function(x) { return '[' + x + '.X(),' + x + '.Y()]'; }).join(',') + '];}');
             o.push("board.create('polygon', [" + ps.join(', ') + '], { fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', borders: { strokeColor: ' + q(p.line) + ', strokeWidth: ' + p.w + ' }, vertices: { visible: false }, highlight: false, hasInnerPoints: false });');
+        } else if (p.t === 'cpoly') {
+            o.push('function Q' + p.id + '(){return [' + p.v.map(function(c) { return '[' + mgJ(c.x) + ',' + mgJ(c.y) + ']'; }).join(',') + '];}');
+            o.push("board.create('polygon', [" + p.v.map(function(c) { return '[' + mgF(c.x) + ', ' + mgF(c.y) + ']'; }).join(', ') + '], { fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', borders: { strokeColor: ' + q(p.line) + ', strokeWidth: ' + p.w + ', fixed: true, highlight: false }, vertices: { visible: false, fixed: true }, fixed: true, highlight: false, hasInnerPoints: false });');
+        } else if (p.t === 'tcirc') {
+            var ca = pt(p.a), cb = pt(p.b), cc = pt(p.c); if (!ca || !cb || !cc) return;
+            o.push("board.create('" + (p.kind === 'out' ? 'circumcircle' : 'incircle') + "', [" + ca + ', ' + cb + ', ' + cc + '], { strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', center: { visible: false }, highlight: false, fixed: true });');
         } else if (p.t === 'cut') {
-            var pl = by[p.poly], ln = by[p.by]; if (!pl || pl.t !== 'poly' || pl.pts.map(pt).filter(Boolean).length < 3 || !ln || !/^(line|hline|vline|cseg)$/.test(ln.t)) return;
+            var pl = by[p.poly], ln = by[p.by]; if (!pl || !((pl.t === 'poly' && pl.pts.map(pt).filter(Boolean).length >= 3) || pl.t === 'cpoly') || !ln || !/^(line|hline|vline|cseg)$/.test(ln.t)) return;
             if (ln.t === 'line' && !(pt(ln.a) && pt(ln.b))) return;
             o.push('mbPart(Q' + pl.id + ', L' + ln.id + ', true, ' + q(p.c1) + ', ' + mgF(p.op) + ');'); o.push('mbPart(Q' + pl.id + ', L' + ln.id + ', false, ' + q(p.c2) + ', ' + mgF(p.op) + ');');
+            if (p.edge) o.push('mbEdge(Q' + pl.id + ', L' + ln.id + ', ' + q(p.ec) + ', ' + p.ew + ');');
         } else if (p.t === 'circle') {
             var c = pt(p.c); if (!c) return; var th = p.through ? pt(p.through) : null;
             o.push("board.create('circle', [" + c + ', ' + (th || mgF(p.r)) + '], { strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op) + ', fixed: true, highlight: false });');
@@ -4229,7 +4251,7 @@ function mbGen(m, edit) {
 function mbId() { return mb.m.n++; }
 function mbGet(id) { return mb.m.parts.filter(function(p) { return p.id === id; })[0]; }
 function mbOf(t) { return mb.m.parts.filter(function(p) { return t.indexOf(p.t) >= 0; }); }
-function mbPtsAll() { return mbOf(['pt', 'mid']); }
+function mbPtsAll() { return mbOf(['pt', 'mid', 'tcen']); }
 function mbNextName() { var used = {}; mb.m.parts.forEach(function(p) { if (p.name) used[p.name] = 1; }); for (var i = 0; i < 26; i++) { var c = String.fromCharCode(65 + i); if (!used[c]) return c; } return 'P' + mb.m.n; }
 function mbSpot() { var B = mb.m.box, W = B[2] - B[0], H = B[1] - B[3], n = mbOf(['pt']).length, pat = [[-.5, -.4], [.5, -.45], [0, .55], [-.6, .4], [.6, .3], [0, -.6]], q = pat[n % pat.length];
     return [Math.round(((B[0] + B[2]) / 2 + q[0] * W / 3) * 2) / 2, Math.round(((B[1] + B[3]) / 2 + q[1] * H / 3) * 2) / 2]; }
@@ -4244,11 +4266,17 @@ function mbAdd(kind) {
         var vr = mbOf(['var'])[0] || mbPush({ t: 'var', label: 't', min: 0, max: 2, v: 1, step: 0, show: true, kf: [] }), L = function(k) { return { c: 0, t: [{ s: vr.id, k: k }] }; };
         base('cseg', { x1: L(3), y1: L(3), x2: L(-5), y2: L(3), inf: false, color: '#d9480f' });
     }
+    else if (kind === 'cpoly') base('cpoly', { v: [{ x: -2, y: -1 }, { x: 2, y: -1 }, { x: 0, y: 2 }], fill: '#4d97ff', op: 0.4, line: '#555555', w: 2 });
+    else if (kind === 'tcen' || kind === 'tcirc') {
+        var ps = mbOf(['pt']); while (ps.length < 3) { mbPt(); ps = mbOf(['pt']); } var l3 = ps.slice(-3);
+        if (kind === 'tcen') base('tcen', { name: '', kind: 'in', a: l3[0].id, b: l3[1].id, c: l3[2].id, show: true, size: 5, color: '#e8590c' });
+        else base('tcirc', { kind: 'in', a: l3[0].id, b: l3[1].id, c: l3[2].id, color: '#9ad17a', w: 2, dash: false, fill: '#4d97ff', op: 0.3 });
+    }
     else if (kind === 'hline') base('hline', { y: 0, color: '#e03131' });
     else if (kind === 'vline') base('vline', { x: 0, color: '#e03131' });
     else if (kind === 'poly') { a = mbPt(); b = mbPt(); var c = mbPt(); base('poly', { pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0.4, line: '#555555', w: 2 }); }
     else if (kind === 'cut') {
-        var pl = mbOf(['poly']).pop(), made = false; if (!pl) { a = mbPt(); b = mbPt(); var c2 = mbPt(); pl = base('poly', { pts: [a.id, b.id, c2.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2 }); made = true; }
+        var pl = mbOf(['poly', 'cpoly']).pop(), made = false; if (!pl) { a = mbPt(); b = mbPt(); var c2 = mbPt(); pl = base('poly', { pts: [a.id, b.id, c2.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2 }); made = true; }
         var ln = mbOf(['line', 'hline', 'vline', 'cseg']).pop(); if (!ln) ln = base('hline', { y: 0, color: '#e03131' });
         base('cut', { poly: pl.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 1 }); if (made) mb.open[pl.id] = false;
     }
@@ -4266,7 +4294,13 @@ function mbTpl(kind) {
         var tri = mbPush({ t: 'poly', pts: [a.id, b.id, c.id], fill: '#4d97ff', op: 0, line: '#555555', w: 2, color: '#333333', dash: false });
         mbPush({ t: 'hline', y: 0, color: '#000000', w: 3, dash: false });
         var cl = mbPush({ t: 'hline', y: { c: -4, t: [{ s: z.id, k: 0.08 }] }, color: '#e03131', w: 3, dash: false });
-        mbPush({ t: 'cut', poly: tri.id, by: cl.id, c1: '#2f4bff', c2: '#ff2b2b', op: 1, color: '#333333', w: 3, dash: false });
+        mbPush({ t: 'cut', poly: tri.id, by: cl.id, c1: '#2f4bff', c2: '#ff2b2b', op: 1, edge: false, ec: '#ff4d4d', ew: 3, color: '#333333', w: 3, dash: false });
+    } else if (kind === 'tri2') {
+        mb.m.dark = true; var a2 = mbPt(-4, -2.5), b2 = mbPt(4, -2), c2 = mbPt(0, 3.5); a2.color = b2.color = c2.color = '#ffffff';
+        mbPush({ t: 'poly', pts: [a2.id, b2.id, c2.id], fill: '#4d97ff', op: 0.12, line: '#9ad17a', w: 2, color: '#333333', dash: false });
+        mbPush({ t: 'tcirc', kind: 'in', a: a2.id, b: b2.id, c: c2.id, color: '#f4a261', w: 2, dash: false, fill: '#4dc4ff', op: 0.5 });
+        mbPush({ t: 'tcirc', kind: 'out', a: a2.id, b: b2.id, c: c2.id, color: '#c77dff', w: 2, dash: true, fill: '#c77dff', op: 0.05 });
+        mbPush({ t: 'tcen', name: 'I', kind: 'in', a: a2.id, b: b2.id, c: c2.id, show: true, size: 4, color: '#f4a261' });
     } else if (kind === 'seg') {
         var p1 = mbPt(-2, -1), p2 = mbPt(2, 1); mbPush({ t: 'seg', a: p1.id, b: p2.id, color: '#333333', w: 3, dash: false });
         mbPush({ t: 'mid', name: 'M', a: p1.id, b: p2.id, show: true, size: 5, color: '#e8590c', w: 3, dash: false });
@@ -4284,16 +4318,23 @@ function mbSet(id, k, v, kind) {
     if (p.t === 'var') { if (p.max <= p.min) p.max = p.min + 1; p.v = Math.min(p.max, Math.max(p.min, p.v)); }
     mbDraw(); if (kind === 'b' || kind === 'i' || k === 'name' || k === 'label' || k === 'min' || k === 'max') mbPaint();
 }
+function mbR(p, k) { var a = String(k).split('.'); return a.length === 1 ? { o: p, k: k } : { o: p[a[0]][+a[1]], k: a[2] }; }
 function mbSetNv(id, k, w, v) {
-    var p = mbGet(id); if (!p) return; var n = Number(v); if (!isFinite(n)) return; mbSnap(id + k + w);
-    if (w === 'v') p[k] = n; else if (p[k] && typeof p[k] === 'object') p[k].c = n; mbDraw();
+    var p = mbGet(id); if (!p) return; var r = mbR(p, k), n = Number(v); if (!isFinite(n)) return; mbSnap(id + k + w);
+    if (w === 'v') r.o[r.k] = n; else if (r.o[r.k] && typeof r.o[r.k] === 'object') r.o[r.k].c = n; mbDraw();
 }
-function mbTerm(id, k, j, w, v) { var p = mbGet(id), o = p && p[k]; if (!o || typeof o !== 'object' || !o.t[j]) return; mbSnap(id + k + j + w); if (w === 'k') { var n = Number(v); if (!isFinite(n)) return; o.t[j].k = n; } else o.t[j].s = Math.round(Number(v)); mbDraw(); mbPaint(); }
+function mbTerm(id, k, j, w, v) { var p = mbGet(id), r = p && mbR(p, k), o = r && r.o[r.k]; if (!o || typeof o !== 'object' || !o.t[j]) return; mbSnap(id + k + j + w); if (w === 'k') { var n = Number(v); if (!isFinite(n)) return; o.t[j].k = n; } else o.t[j].s = Math.round(Number(v)); mbDraw(); mbPaint(); }
 function mbTermAdd(id, k) {
-    var p = mbGet(id), vs = mbOf(['var']); if (!p || !vs.length) return; mbSnap('ta'); var o = p[k];
-    if (!o || typeof o !== 'object') p[k] = o = { c: mbNn(o, 0), t: [] }; if (o.t.length >= 6) return; o.t.push({ s: vs[0].id, k: 1 }); mbPaint(); mbDraw();
+    var p = mbGet(id), vs = mbOf(['var']); if (!p || !vs.length) return; mbSnap('ta'); var r = mbR(p, k), o = r.o[r.k];
+    if (!o || typeof o !== 'object') r.o[r.k] = o = { c: mbNn(o, 0), t: [] }; if (o.t.length >= 6) return; o.t.push({ s: vs[0].id, k: 1 }); mbPaint(); mbDraw();
 }
-function mbTermDel(id, k, j) { var p = mbGet(id), o = p && p[k]; if (!o || typeof o !== 'object') return; mbSnap('td'); o.t.splice(j, 1); if (!o.t.length) p[k] = o.c; mbPaint(); mbDraw(); }
+function mbTermDel(id, k, j) { var p = mbGet(id), r = p && mbR(p, k), o = r && r.o[r.k]; if (!o || typeof o !== 'object') return; mbSnap('td'); o.t.splice(j, 1); if (!o.t.length) r.o[r.k] = o.c; mbPaint(); mbDraw(); }
+function mbCV(id, w, j) {
+    var p = mbGet(id); if (!p || p.t !== 'cpoly') return; mbSnap('cv');
+    if (w === 'del') { if (p.v.length > 3) p.v.splice(j, 1); }
+    else if (p.v.length < 12) { var c = JSON.parse(JSON.stringify(p.v[p.v.length - 1])); if (typeof c.x === 'number') c.x += 1; p.v.push(c); }
+    mbPaint(); mbDraw();
+}
 function mbKf(id, j, w, v) { var p = mbGet(id); if (!p || !p.kf[j]) return; var n = Number(v); if (!isFinite(n)) return; mbSnap('kf' + id + j + w); p.kf[j][w] = n; mbDraw(); }
 function mbKfAdd(id) { var p = mbGet(id); if (!p || p.kf.length >= 20) return; mbSnap('kfa'); var last = p.kf.length ? p.kf[p.kf.length - 1] : null; p.kf.push({ t: last ? Math.min(mb.m.dur, Math.round((last.t + 1) * 10) / 10) : 0, v: last ? last.v : p.v }); mbPaint(); mbDraw(); }
 function mbKfDel(id, j) { var p = mbGet(id); if (!p) return; mbSnap('kfd'); p.kf.splice(j, 1); mbPaint(); mbDraw(); }
@@ -4303,18 +4344,20 @@ function mbDel(id) {
     mbSnap('del' + id); var A = mb.m.parts, gone = {}; gone[id] = 1;
     for (var again = true; again;) { again = false;
         A.forEach(function(p) { if (gone[p.id]) return; var bad = false;
-            if (p.t === 'seg' || p.t === 'line' || p.t === 'mid') bad = gone[p.a] || gone[p.b];
+            if (p.t === 'seg' || p.t === 'line' || p.t === 'mid') bad = gone[p.a] || gone[p.b]; else if (p.t === 'tcen' || p.t === 'tcirc') bad = gone[p.a] || gone[p.b] || gone[p.c];
             else if (p.t === 'poly') { p.pts = p.pts.filter(function(x) { return !gone[x]; }); bad = p.pts.length < 3; }
             else if (p.t === 'cut') bad = gone[p.poly] || gone[p.by]; else if (p.t === 'circle') { if (gone[p.through]) p.through = 0; bad = gone[p.c]; }
             if (bad) { gone[p.id] = 1; again = true; } }); }
     mb.m.parts = A.filter(function(p) { return !gone[p.id]; });
-    mb.m.parts.forEach(function(p) { ['x', 'y', 'r', 'op', 'x1', 'y1', 'x2', 'y2'].forEach(function(k) { var v = p[k]; if (v && typeof v === 'object') { v.t = v.t.filter(function(q) { return !gone[q.s]; }); if (!v.t.length) p[k] = v.c; } }); });
+    mb.m.parts.forEach(function(p) { var fix = function(o, k) { var v = o[k]; if (v && typeof v === 'object') { v.t = v.t.filter(function(q) { return !gone[q.s]; }); if (!v.t.length) o[k] = v.c; } };
+        ['x', 'y', 'r', 'op', 'x1', 'y1', 'x2', 'y2'].forEach(function(k) { fix(p, k); }); if (p.v && p.t === 'cpoly') p.v.forEach(function(c) { fix(c, 'x'); fix(c, 'y'); }); });
     mbPaint(); mbDraw();
 }
 function mbVerts(id, j, v) { var p = mbGet(id); if (!p) return; mbSnap('vt'); if (v === 'del') p.pts.splice(j, 1); else if (v === 'add') { if (p.pts.length >= 12) return; var P = mbOf(['pt']); p.pts.push(P.length ? P[P.length - 1].id : 0); } else p.pts[j] = Math.round(Number(v)); mbPaint(); mbDraw(); }
-function mbName(p) { return p.t === 'pt' || p.t === 'mid' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : ''; }
+function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : ''; }
 function mbRow(l, inner) { return '<label class="mb-r"><span>' + esc(l) + '</span>' + inner + '</label>'; }
-function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
+function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().filter(function(x) { return x.id !== p.id; }).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
+function mbSel(p, k, opts) { return mbRow(mbt('kind'), '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">' + opts.map(function(o) { return '<option value="' + o[0] + '"' + (p[k] === o[0] ? ' selected' : '') + '>' + esc(mbt(o[1])) + '</option>'; }).join('') + '</select>'); }
 function mbSelOf(p, k, types) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + mbOf(types).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbt('k_' + x.t) + ' ' + mbName(x) + ' #' + x.id) + '</option>'; }).join('') + '</select>'; }
 function mbFS(p, k, l) { return mbRow(l, '<input class="mb-in" value="' + esc(p[k]) + '" maxlength="120" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">'); }
 function mbFC(p, k, l) { return mbRow(l, '<input type="color" value="' + esc(p[k]) + '" oninput="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">'); }
@@ -4322,7 +4365,7 @@ function mbFB(p, k, l) { return '<label class="mb-c"><input type="checkbox"' + (
 function mbFN(p, k, l, st) { return mbRow(l, '<input type="number" class="mb-in n" step="' + (st || 'any') + '" value="' + p[k] + '" data-f="' + p.id + '.' + k + '" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'n\')">'); }
 function mbExpr(v) { var s = v.t.map(function(q) { var x = mbGet(q.s); return (q.k === 1 ? '' : q.k === -1 ? '-' : q.k) + (x ? x.label : '?'); }).join(' + ').replace(/\+ -/g, '- '); if (v.c) s += (v.c > 0 ? ' + ' : ' - ') + Math.abs(v.c); return s; }
 function mbFL(p, k, l) {   // 数字。変数（スライダー）を使った式にもできる（例: 3t、-5t+2）
-    var v = p[k], lk = v && typeof v === 'object', vs = mbOf(['var']), id = p.id, h = '<div class="mb-lr"><div class="mb-r"><span>' + esc(l) + '</span>';
+    var v = mbR(p, k).o[mbR(p, k).k], lk = v && typeof v === 'object', vs = mbOf(['var']), id = p.id, h = '<div class="mb-lr"><div class="mb-r"><span>' + esc(l) + '</span>';
     if (!lk) h += '<input type="number" class="mb-in n" step="any" value="' + v + '" data-f="' + id + '.' + k + '" onchange="mbSetNv(' + id + ',\'' + k + '\',\'v\',this.value)">';
     else h += '<b class="mb-ex">= ' + esc(mbExpr(v)) + '</b>';
     if (vs.length) h += '<button class="mb-ab sm" onclick="mbTermAdd(' + id + ',\'' + k + '\')">+ ' + esc(currentLang === 'en' ? 'variable' : '変数') + '</button>';
@@ -4338,12 +4381,16 @@ function mbBody(p) {
     if (p.t === 'pt') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'x', mbt('x')) + mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'size', mbt('size'), 1) + mbFB(p, 'drag', mbt('drag')) + mbFB(p, 'show', mbt('show'));
     else if (p.t === 'mid') h = mbFS(p, 'name', mbt('name')) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFB(p, 'show', mbt('show'));
     else if (p.t === 'seg' || p.t === 'line') h = mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'cpoly') h = p.v.map(function(c, j) { return '<div class="mb-h">' + esc(mbt('vtx') + ' ' + (j + 1)) + (p.v.length > 3 ? ' <button class="mb-ib" onclick="mbCV(' + p.id + ',\'del\',' + j + ')">x</button>' : '') + '</div>' + mbFL(p, 'v.' + j + '.x', mbt('x')) + mbFL(p, 'v.' + j + '.y', mbt('y')); }).join('') +
+        '<button class="mb-ab" onclick="mbCV(' + p.id + ',\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
+    else if (p.t === 'tcen') h = mbFS(p, 'name', mbt('name')) + mbSel(p, 'kind', [['in', 'kIn'], ['out', 'kOut'], ['g', 'kG']]) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbRow(mbt('p3'), mbSelPt(p, 'c')) + mbFC(p, 'color', mbt('color')) + mbFB(p, 'show', mbt('show'));
+    else if (p.t === 'tcirc') h = mbSel(p, 'kind', [['in', 'kIn'], ['out', 'kOut']]) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbRow(mbt('p3'), mbSelPt(p, 'c')) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
     else if (p.t === 'cseg') h = mbFL(p, 'x1', mbt('x1')) + mbFL(p, 'y1', mbt('y1')) + mbFL(p, 'x2', mbt('x2')) + mbFL(p, 'y2', mbt('y2')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFB(p, 'inf', mbt('inf'));
     else if (p.t === 'hline') h = mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
     else if (p.t === 'vline') h = mbFL(p, 'x', mbt('x')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
     else if (p.t === 'poly') h = '<div class="mb-h">' + esc(mbt('verts')) + '</div>' + p.pts.map(function(x, j) { return '<div class="mb-r"><select class="mb-in" onchange="mbVerts(' + p.id + ',' + j + ',this.value)">' + mbPtsAll().map(function(q) { return '<option value="' + q.id + '"' + (q.id === x ? ' selected' : '') + '>' + esc(mbName(q)) + '</option>'; }).join('') + '</select><button class="mb-ib" onclick="mbVerts(' + p.id + ',' + j + ',\'del\')">x</button></div>'; }).join('') +
         '<button class="mb-ab" onclick="mbVerts(' + p.id + ',0,\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
-    else if (p.t === 'cut') h = mbRow(mbt('poly'), mbSelOf(p, 'poly', ['poly'])) + mbRow(mbt('by'), mbSelOf(p, 'by', ['line', 'hline', 'vline', 'cseg'])) + mbFC(p, 'c1', mbt('c1')) + mbFC(p, 'c2', mbt('c2')) + mbFL(p, 'op', mbt('op'));
+    else if (p.t === 'cut') h = mbRow(mbt('poly'), mbSelOf(p, 'poly', ['poly', 'cpoly'])) + mbRow(mbt('by'), mbSelOf(p, 'by', ['line', 'hline', 'vline', 'cseg'])) + mbFC(p, 'c1', mbt('c1')) + mbFC(p, 'c2', mbt('c2')) + mbFL(p, 'op', mbt('op')) + mbFB(p, 'edge', mbt('edge')) + mbFC(p, 'ec', mbt('ec')) + mbFN(p, 'ew', mbt('ew'), 1);
     else if (p.t === 'circle') h = mbRow(mbt('center'), mbSelPt(p, 'c')) + mbFL(p, 'r', mbt('r')) + mbRow(mbt('through'), mbSelPt(p, 'through', true)) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
     else if (p.t === 'text') h = mbFS(p, 'text', mbt('text')) + mbFL(p, 'x', mbt('x')) + mbFL(p, 'y', mbt('y')) + mbFN(p, 'fs', mbt('fs'), 1) + mbFC(p, 'color', mbt('color'));
     else if (p.t === 'var') h = mbFS(p, 'label', mbt('label')) + mbFN(p, 'min', mbt('min')) + mbFN(p, 'max', mbt('max')) + mbFN(p, 'v', mbt('val')) + mbFN(p, 'step', mbt('step')) + mbFB(p, 'show', mbt('showSl')) +
@@ -4352,7 +4399,7 @@ function mbBody(p) {
 }
 function mbPaint() {
     var pn = document.getElementById('mb-side'); if (!pn || !mb) return; var m = mb.m, h = '';
-    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['seg', 'aSeg'], ['line', 'aLine'], ['cseg', 'aCSeg'], ['hline', 'aH'], ['vline', 'aV'], ['poly', 'aPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['mid', 'aMid'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div></div>';
+    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['seg', 'aSeg'], ['line', 'aLine'], ['cseg', 'aCSeg'], ['hline', 'aH'], ['vline', 'aV'], ['poly', 'aPoly'], ['cpoly', 'aCPoly'], ['tcirc', 'aTCirc'], ['tcen', 'aTCen'], ['cut', 'aCut'], ['circle', 'aCir'], ['mid', 'aMid'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div></div>';
     h += m.parts.length ? m.parts.map(function(p) {
         return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
             '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';
@@ -4361,11 +4408,11 @@ function mbPaint() {
     if (mbOf(['var']).some(function(p) { return p.kf.length > 1; })) h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('anim')) + '</div>' + mbRow(mbt('dur'), '<input type="number" class="mb-in n" step="0.5" min="0.5" value="' + m.dur + '" onchange="mbAll(\'dur\',this.value)">') +
         '<label class="mb-c"><input type="checkbox"' + (m.loop ? ' checked' : '') + ' onchange="mbAll(\'loop\',this.checked)"> ' + esc(mbt('loop')) + '</label><label class="mb-c"><input type="checkbox"' + (m.auto ? ' checked' : '') + ' onchange="mbAll(\'auto\',this.checked)"> ' + esc(mbt('auto')) + '</label><label class="mb-c"><input type="checkbox"' + (m.ease !== 'lin' ? ' checked' : '') + ' onchange="mbAll(\'ease\',this.checked?\'io\':\'lin\')"> ' + esc(mbt('ease')) + '</label></div>';
     h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('all')) + ' — ' + esc(mbt('range')) + '</div>' + bx(0, mbt('xmin')) + bx(2, mbt('xmax')) + bx(3, mbt('ymin')) + bx(1, mbt('ymax')) +
-        '<label class="mb-c"><input type="checkbox"' + (m.axis ? ' checked' : '') + ' onchange="mbAll(\'axis\',this.checked)"> ' + esc(mbt('axis')) + '</label><label class="mb-c"><input type="checkbox"' + (m.grid ? ' checked' : '') + ' onchange="mbAll(\'grid\',this.checked)"> ' + esc(mbt('grid')) + '</label></div>';
+        '<label class="mb-c"><input type="checkbox"' + (m.axis ? ' checked' : '') + ' onchange="mbAll(\'axis\',this.checked)"> ' + esc(mbt('axis')) + '</label><label class="mb-c"><input type="checkbox"' + (m.grid ? ' checked' : '') + ' onchange="mbAll(\'grid\',this.checked)"> ' + esc(mbt('grid')) + '</label><label class="mb-c"><input type="checkbox"' + (m.dark ? ' checked' : '') + ' onchange="mbAll(\'dark\',this.checked)"> ' + esc(mbt('dark')) + '</label></div>';
     var scr = pn.scrollTop; pn.innerHTML = h; pn.scrollTop = scr;
 }
 function mbBox(i, v) { v = Number(v); if (!isFinite(v)) return; mbSnap('box' + i); var b = mb.m.box.slice(); b[i] = v; if (b[2] > b[0] && b[1] > b[3]) { mb.m.box = b; mbDraw(); } else mbPaint(); }
-function mbAll(k, v) { mbSnap(k); if (k === 'dur') mb.m.dur = Math.max(0.5, Math.min(120, Number(v) || 4)); else if (k === 'ease') mb.m.ease = v; else mb.m[k] = !!v; mbDraw(); }
+function mbAll(k, v) { mbSnap(k); if (k === 'dark') { mb.m.dark = !!v; if (v) mb.m.parts.forEach(function(p) { if (p.t === 'pt' && p.color === '#9b5de5') p.color = '#ffffff'; }); } else if (k === 'dur') mb.m.dur = Math.max(0.5, Math.min(120, Number(v) || 4)); else if (k === 'ease') mb.m.ease = v; else mb.m[k] = !!v; mbDraw(); }
 function gdMbOpen(force) {
     var ta = document.getElementById('gd-e-body'), e = gd.edit;
     if (!ta || !e || document.getElementById('mb-ov')) return;
@@ -4378,7 +4425,7 @@ function gdMbOpen(force) {
     mb = { m: model || mbNew(), u: [], r: [], lp: 0, lk: '', tm: 0, open: {} };
     var ov = document.createElement('div'); ov.id = 'mb-ov';
     ov.innerHTML = '<div class="mb-box"><div class="mb-top"><b>' + esc(mbt('title')) + '</b><span class="mb-sp"></span>' +
-        '<span class="mb-tpl">' + esc(mbt('tpl')) + ': <button class="gd-btn" data-tpl="cut">' + esc(mbt('tCut')) + '</button><button class="gd-btn" data-tpl="seg">' + esc(mbt('tSeg')) + '</button><button class="gd-btn" data-tpl="blank">' + esc(mbt('tBlank')) + '</button></span>' +
+        '<span class="mb-tpl">' + esc(mbt('tpl')) + ': <button class="gd-btn" data-tpl="cut">' + esc(mbt('tCut')) + '</button><button class="gd-btn" data-tpl="seg">' + esc(mbt('tSeg')) + '</button><button class="gd-btn" data-tpl="tri2">' + esc(mbt('tTri')) + '</button><button class="gd-btn" data-tpl="blank">' + esc(mbt('tBlank')) + '</button></span>' +
         '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
         '<button class="gd-btn" id="mb-close">' + esc(mbt('close')) + '</button><button class="gd-btn primary" id="mb-ins">' + esc(mbt(hit ? 'upd' : 'ins')) + '</button></div>' +
         '<div class="mb-main"><div class="mb-prev"><iframe id="mb-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(mbt('title')) + '"></iframe></div><div class="mb-side" id="mb-side"></div></div></div>';

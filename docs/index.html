@@ -4097,7 +4097,20 @@ function gdJsxOpen() {
         cd.value = cd.value.replace(/\s+$/, '') + '\n' + c + '\n'; cd.scrollTop = cd.scrollHeight; draw();
     }; });
     document.getElementById('jx-close').onclick = close;
-    document.getElementById('jx-ui').onclick = function() { close(); gdMbOpen(true); };
+    document.getElementById('jx-ui').onclick = function() {
+        var code = cd.value.replace(/\s+$/, '');
+        if (!code) { showToast(gt('jxEmpty')); return; }
+        var cur = document.getElementById('gd-e-body');
+        if (!cur || !gd.edit) { close(); return; }
+        // コード画面での編集を記事本文に保存してから、同じモデルをコード不要画面で復元する
+        var ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
+        cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b);
+        cur.focus();
+        cur.setSelectionRange(a + ins.length, a + ins.length);
+        gdBodyInput(cur);
+        close();
+        gdMbOpen(true);
+    };
     document.getElementById('jx-ins').onclick = function() {
         var code = cd.value.replace(/\s+$/, '');
         if (!code) { showToast(gt('jxEmpty')); return; }
@@ -4631,7 +4644,7 @@ function gdMbOpen(force) {
     document.getElementById('mb-export').onclick = mbExportFile;
     document.getElementById('mb-import').onclick = function() { var input = document.getElementById('mb-import-file'); if (input) input.click(); };
     document.getElementById('mb-import-file').onchange = function() { var file = this.files && this.files[0]; if (file) mbImportFile(file); this.value = ''; };
-    document.getElementById('mb-code').onclick = function() { window.mbSeed = mbGen(mb.m, false).replace(/^\/\/@ model .*\n/m, ''); close(); gdJsxOpen(); };
+    document.getElementById('mb-code').onclick = function() { window.mbSeed = mbGen(mb.m, false); close(); gdJsxOpen(); };
     document.getElementById('mb-ins').onclick = function() {
         if (!mb.m.parts.length) { showToast(mbt('empty')); return; }
         var cur = document.getElementById('gd-e-body'); if (!cur || !gd.edit) { close(); return; }

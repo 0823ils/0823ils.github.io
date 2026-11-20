@@ -4191,6 +4191,46 @@ function mgExprCode(src, m, ownerId, strict) {
         if (strict && p.id >= ownerId) throw new Error('点 ' + name + ' は先に作成してください');
         return p;
     }
+    function shapeByName(name) {
+        var shapes = parts.filter(function(p) { return /^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t); });
+        var p = named(shapes, name, function(q) { return q.name; }, '線・多角形');
+        if (strict && p.id >= ownerId) throw new Error('線・多角形 ' + name + ' は先に作成してください');
+        return p;
+    }
+    function shapeCoord(p, index, axis) {
+        var j = index - 1;
+        function pointExpr(id) {
+            var q = parts.filter(function(v) { return v.id === id && /^(pt|mid|tcen)$/.test(v.t); })[0];
+            if (!q) throw new Error('図形 ' + (p.name || p.id) + ' の頂点 ' + index + ' が見つかりません');
+            return 'P' + q.id + (axis === 'x' ? '.X()' : '.Y()');
+        }
+        function valueExpr(v) { return mgJ(v, m, p.id, false); }
+        if (p.t === 'seg' || p.t === 'line') {
+            if (index > 2) throw new Error('線 ' + (p.name || p.id) + ' の頂点は2つです');
+            return pointExpr(j === 0 ? p.a : p.b);
+        }
+        if (p.t === 'cseg') {
+            if (index > 2) throw new Error('線 ' + (p.name || p.id) + ' の頂点は2つです');
+            return valueExpr(p[axis + index]);
+        }
+        if (p.t === 'hline') {
+            if (index > 2) throw new Error('水平線 ' + (p.name || p.id) + ' の座標は1・2だけです');
+            return axis === 'x' ? String(index === 1 ? m.box[0] : m.box[2]) : valueExpr(p.y);
+        }
+        if (p.t === 'vline') {
+            if (index > 2) throw new Error('垂直線 ' + (p.name || p.id) + ' の座標は1・2だけです');
+            return axis === 'x' ? valueExpr(p.x) : String(index === 1 ? m.box[3] : m.box[1]);
+        }
+        if (p.t === 'poly') {
+            if (!Array.isArray(p.pts) || index > p.pts.length) throw new Error('多角形 ' + (p.name || p.id) + ' に頂点 ' + index + ' はありません');
+            return pointExpr(p.pts[j]);
+        }
+        if (p.t === 'cpoly') {
+            if (!Array.isArray(p.v) || index > p.v.length) throw new Error('多角形 ' + (p.name || p.id) + ' に頂点 ' + index + ' はありません');
+            return valueExpr(p.v[j][axis]);
+        }
+        throw new Error('図形 ' + (p.name || p.id) + ' の座標は取得できません');
+    }
     function variableByName(name) {
         var vs = parts.filter(function(p) { return p.t === 'var'; }), match = /^v([1-9]\d*)$/i.exec(name), p = null;
         if (match) p = vs.filter(function(q) { return q.id === Number(match[1]); })[0] || null;
@@ -4208,9 +4248,14 @@ function mgExprCode(src, m, ownerId, strict) {
             var name = tokens[at++].v, low = name.toLowerCase();
             if (peek('(')) {
                 at++;
+                var coordMatch = /^([xy])([1-9][0-9]*)$/i.exec(low);
                 if (low === 'x' || low === 'y') {
                     if (!peek('id')) throw new Error('x(A) / y(A) のように点名を指定してください');
                     var pn = tokens[at++].v; take(')'); var point = pointByName(pn); out = 'P' + point.id + (low === 'x' ? '.X()' : '.Y()');
+                } else if (coordMatch) {
+                    if (!peek('id')) throw new Error('x1(A) / y1(A) のように図形名を指定してください');
+                    var sn = tokens[at++].v; take(')'); var shape = shapeByName(sn);
+                    out = shapeCoord(shape, Number(coordMatch[2]), coordMatch[1].toLowerCase());
                 } else {
                     var f = funcs[low]; if (!f) throw new Error('使えない関数: ' + name);
                     var args = [];
@@ -4332,7 +4377,7 @@ function mbPtsAll() { return mbOf(['pt', 'mid', 'tcen']); }
 function mbNextName() { var used = {}; mb.m.parts.forEach(function(p) { if (p.name) used[p.name] = 1; }); for (var i = 0; i < 26; i++) { var c = String.fromCharCode(65 + i); if (!used[c]) return c; } return 'P' + mb.m.n; }
 function mbSpot() { var B = mb.m.box, W = B[2] - B[0], H = B[1] - B[3], n = mbOf(['pt']).length, pat = [[-.5, -.4], [.5, -.45], [0, .55], [-.6, .4], [.6, .3], [0, -.6]], q = pat[n % pat.length];
     return [Math.round(((B[0] + B[2]) / 2 + q[0] * W / 3) * 2) / 2, Math.round(((B[1] + B[3]) / 2 + q[1] * H / 3) * 2) / 2]; }
-function mbPush(p) { p.id = mbId(); mb.m.parts.push(p); mb.open[p.id] = true; return p; }
+function mbPush(p) { if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) && !p.name) p.name = mbNextName(); p.id = mbId(); mb.m.parts.push(p); mb.open[p.id] = true; return p; }
 function mbPt(x, y) { var s = mbSpot(); return mbPush({ t: 'pt', name: mbNextName(), x: x == null ? s[0] : x, y: y == null ? s[1] : y, drag: true, show: true, size: 7, color: '#9b5de5', w: 3, dash: false }); }
 function mbAdd(kind) {
     mbSnap('add' + Math.random()); var m = mb.m, B = m.box, cx = (B[0] + B[2]) / 2, cy = (B[1] + B[3]) / 2, P, a, b, i;
@@ -4381,7 +4426,7 @@ function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== ke
 function mbUndo() { if (!mb.u.length) return; mb.r.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.u.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbRedo() { if (!mb.r.length) return; mb.u.push(JSON.stringify(mb.m)); mb.m = mbClean(JSON.parse(mb.r.pop())); mb.lk = ''; mbPaint(); mbDraw(); }
 function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var f = document.getElementById('mb-if'); if (f) { try { f.srcdoc = gdJsxDoc(mbGen(mb.m, true)); } catch (e) { showToast((currentLang === 'en' ? 'Formula error: ' : '数式エラー: ') + e.message); } } }, now ? 0 : 300); }
-function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A). Trig uses degrees (sin(90)=1). Examples: (x(A)+x(B)+x(C))/3; g*sin(x(P))-x(F).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、x(A)、y(A)。三角関数は度数法です（sin(90)=1）。例: (x(A)+x(B)+x(C))/3、g*sin(x(P))-x(F)。'; }
+function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A), x1(A), y1(A), x2(A), y2(A). For polygons, the number is the vertex order. Horizontal/vertical line coordinates use the current view edges. Trig uses degrees (sin(90)=1).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、点は x(A)・y(A)、線や多角形は x1(A)・y1(A)〜xN(A)・yN(A)。多角形の番号は頂点順です。水平線・垂直線の1・2番は現在の表示範囲の端です。三角関数は度数法（sin(90)=1）。'; }
 function mbSetExpr(id, k, raw) {
     var p = mbGet(id); if (!p) return; raw = mbStr(raw, 180).trim();
     try { mgExprCode(raw, mb.m, p.id, p.t === 'pt' || (p.t === 'var' && k === 'formula')); }
@@ -4433,7 +4478,7 @@ function mbDel(id) {
     mbPaint(); mbDraw();
 }
 function mbVerts(id, j, v) { var p = mbGet(id); if (!p) return; mbSnap('vt'); if (v === 'del') p.pts.splice(j, 1); else if (v === 'add') { if (p.pts.length >= 12) return; var P = mbOf(['pt']); p.pts.push(P.length ? P[P.length - 1].id : 0); } else p.pts[j] = Math.round(Number(v)); mbPaint(); mbDraw(); }
-function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : ''; }
+function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : /^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) ? (p.name || mbt('unnamed')) : ''; }
 function mbRow(l, inner) { return '<label class="mb-r"><span>' + esc(l) + '</span>' + inner + '</label>'; }
 function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().filter(function(x) { return x.id !== p.id; }).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
 function mbSel(p, k, opts) { return mbRow(mbt('kind'), '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">' + opts.map(function(o) { return '<option value="' + o[0] + '"' + (p[k] === o[0] ? ' selected' : '') + '>' + esc(mbt(o[1])) + '</option>'; }).join('') + '</select>'); }
@@ -4461,15 +4506,15 @@ function mbBody(p) {
     var h = '';
     if (p.t === 'pt') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'x', mbt('x')) + mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'size', mbt('size'), 1) + mbFB(p, 'drag', mbt('drag')) + mbFB(p, 'show', mbt('show'));
     else if (p.t === 'mid') h = mbFS(p, 'name', mbt('name')) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFB(p, 'show', mbt('show'));
-    else if (p.t === 'seg' || p.t === 'line') h = mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
-    else if (p.t === 'cpoly') h = p.v.map(function(c, j) { return '<div class="mb-h">' + esc(mbt('vtx') + ' ' + (j + 1)) + (p.v.length > 3 ? ' <button class="mb-ib" onclick="mbCV(' + p.id + ',\'del\',' + j + ')">x</button>' : '') + '</div>' + mbFL(p, 'v.' + j + '.x', mbt('x')) + mbFL(p, 'v.' + j + '.y', mbt('y')); }).join('') +
+    else if (p.t === 'seg' || p.t === 'line') h = mbFS(p, 'name', mbt('name')) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'cpoly') h = mbFS(p, 'name', mbt('name')) + p.v.map(function(c, j) { return '<div class="mb-h">' + esc(mbt('vtx') + ' ' + (j + 1)) + (p.v.length > 3 ? ' <button class="mb-ib" onclick="mbCV(' + p.id + ',\'del\',' + j + ')">x</button>' : '') + '</div>' + mbFL(p, 'v.' + j + '.x', mbt('x')) + mbFL(p, 'v.' + j + '.y', mbt('y')); }).join('') +
         '<button class="mb-ab" onclick="mbCV(' + p.id + ',\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
     else if (p.t === 'tcen') h = mbFS(p, 'name', mbt('name')) + mbSel(p, 'kind', [['in', 'kIn'], ['out', 'kOut'], ['g', 'kG']]) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbRow(mbt('p3'), mbSelPt(p, 'c')) + mbFC(p, 'color', mbt('color')) + mbFB(p, 'show', mbt('show'));
     else if (p.t === 'tcirc') h = mbSel(p, 'kind', [['in', 'kIn'], ['out', 'kOut']]) + mbRow(mbt('p1'), mbSelPt(p, 'a')) + mbRow(mbt('p2'), mbSelPt(p, 'b')) + mbRow(mbt('p3'), mbSelPt(p, 'c')) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
-    else if (p.t === 'cseg') h = mbFL(p, 'x1', mbt('x1')) + mbFL(p, 'y1', mbt('y1')) + mbFL(p, 'x2', mbt('x2')) + mbFL(p, 'y2', mbt('y2')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFB(p, 'inf', mbt('inf'));
-    else if (p.t === 'hline') h = mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
-    else if (p.t === 'vline') h = mbFL(p, 'x', mbt('x')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
-    else if (p.t === 'poly') h = '<div class="mb-h">' + esc(mbt('verts')) + '</div>' + p.pts.map(function(x, j) { return '<div class="mb-r"><select class="mb-in" onchange="mbVerts(' + p.id + ',' + j + ',this.value)">' + mbPtsAll().map(function(q) { return '<option value="' + q.id + '"' + (q.id === x ? ' selected' : '') + '>' + esc(mbName(q)) + '</option>'; }).join('') + '</select><button class="mb-ib" onclick="mbVerts(' + p.id + ',' + j + ',\'del\')">x</button></div>'; }).join('') +
+    else if (p.t === 'cseg') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'x1', mbt('x1')) + mbFL(p, 'y1', mbt('y1')) + mbFL(p, 'x2', mbt('x2')) + mbFL(p, 'y2', mbt('y2')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFB(p, 'inf', mbt('inf'));
+    else if (p.t === 'hline') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'y', mbt('y')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'vline') h = mbFS(p, 'name', mbt('name')) + mbFL(p, 'x', mbt('x')) + mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'poly') h = mbFS(p, 'name', mbt('name')) + '<div class="mb-h">' + esc(mbt('verts')) + '</div>' + p.pts.map(function(x, j) { return '<div class="mb-r"><select class="mb-in" onchange="mbVerts(' + p.id + ',' + j + ',this.value)">' + mbPtsAll().map(function(q) { return '<option value="' + q.id + '"' + (q.id === x ? ' selected' : '') + '>' + esc(mbName(q)) + '</option>'; }).join('') + '</select><button class="mb-ib" onclick="mbVerts(' + p.id + ',' + j + ',\'del\')">x</button></div>'; }).join('') +
         '<button class="mb-ab" onclick="mbVerts(' + p.id + ',0,\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
     else if (p.t === 'cut') h = mbRow(mbt('poly'), mbSelOf(p, 'poly', ['poly', 'cpoly'])) + mbRow(mbt('by'), mbSelOf(p, 'by', ['line', 'hline', 'vline', 'cseg'])) + mbFC(p, 'c1', mbt('c1')) + mbFC(p, 'c2', mbt('c2')) + mbFL(p, 'op', mbt('op')) + mbFB(p, 'edge', mbt('edge')) + mbFC(p, 'ec', mbt('ec')) + mbFN(p, 'ew', mbt('ew'), 1);
     else if (p.t === 'circle') h = mbRow(mbt('center'), mbSelPt(p, 'c')) + mbFL(p, 'r', mbt('r')) + mbRow(mbt('through'), mbSelPt(p, 'through', true)) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
@@ -4479,7 +4524,8 @@ function mbBody(p) {
 }
 function mbPaint() {
     var pn = document.getElementById('mb-side'); if (!pn || !mb) return; var m = mb.m, h = '';
-    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['seg', 'aSeg'], ['line', 'aLine'], ['cseg', 'aCSeg'], ['hline', 'aH'], ['vline', 'aV'], ['poly', 'aPoly'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
+    m.parts.forEach(function(p) { if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) && !p.name) p.name = mbNextName(); });
+    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['cseg', 'aCSeg'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
     h += m.parts.length ? m.parts.map(function(p) {
         return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
             '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';

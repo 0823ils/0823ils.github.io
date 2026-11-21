@@ -7143,7 +7143,7 @@ async function chatCompressVideo(file, onProgress) {
         var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
             (MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm');
         var audioRate = audioDestination && audioDestination.stream.getAudioTracks().length ? 96000 : 0;
-        var videoRate = Math.max(250000, Math.min(1800000, Math.floor((CHAT_VIDEO_OUTPUT_TARGET * 8 / video.duration) - audioRate)));
+        var videoRate = Math.max(100000, Math.min(1800000, Math.floor((CHAT_VIDEO_OUTPUT_TARGET * 8 / video.duration) - audioRate)));
         recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: videoRate, audioBitsPerSecond: audioRate || 64000 });
         var chunks = [];
         var result = await new Promise(function(resolve, reject) {

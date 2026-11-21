@@ -4172,7 +4172,7 @@ function gdJsxOpen() {
 var MBT = {
     ja: { title: '数学図をつくる（コード不要）', export: '書き出し', import: '読み込み', exported: '数学図をJSONファイルに書き出しました', imported: '数学図を読み込みました', importError: 'JSONファイルを読み込めませんでした。正しい数学図ファイルか確認してください。', importLarge: 'ファイルが大きすぎます（2MB以下にしてください）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
         tpl: '例から始める', tCut: '座標の線で三角形を分割', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
-        aPt: '点', aAng: '角度', mPt: '点を選ぶ', mXY: '座標（式）で指定', k_angle: '角度', angP1: '角の始まりの点', angV: '頂点', angP2: '角の終わりの点', shape: '形', sAuto: '自動（90°なら直角記号）', sSector: '扇形（塗る）', sArc: '弧だけ', sSquare: '直角記号', rev: '反対側（大きい方）を測る', alabel: '文字（θ・αなど）', showVal: '角度の値(°)を出す', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
+        aPt: '点', aAng: '角度', k_angle: '角度', angP1: '始点', angV: '頂点', angP2: '終点', shape: '形', sAuto: '自動（90°なら直角記号）', sSector: '扇形（塗る）', sArc: '弧だけ', sSquare: '直角記号', rev: '反対側（大きい方）を測る', alabel: '文字（θ・αなど）', showVal: '角度の値(°)を出す', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
         k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
         name: '名前', x: '横', y: '縦', drag: '動かせる', show: '表示', color: '色', width: '太さ', dash: '点線', size: '大きさ', p1: '点1', p2: '点2', verts: '頂点', addV: '頂点を足す', fill: '塗り', op: '濃さ(0〜1)', lineC: '線の色',
         poly: '切る図形', by: '切る線', c1: '上・右側の色', c2: '下・左側の色', r: '半径', center: '中心', through: '通る点（半径の代わり）', none: 'なし', text: '文字（{スライダー名} で値、{x(A)}・{y(A)} で点Aの座標を表示）', fs: '文字の大きさ',
@@ -4180,7 +4180,7 @@ var MBT = {
         range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
     en: { title: 'Build a math figure (no code)', export: 'Export', import: 'Import', exported: 'Math figure exported as JSON', imported: 'Math figure imported', importError: 'Could not read this JSON file. Check that it is a valid math figure file.', importLarge: 'File is too large (maximum 2 MB)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
         tpl: 'Start from', tCut: 'Split a triangle with a coordinate line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
-        aPt: 'Point', aAng: 'Angle', mPt: 'Pick a point', mXY: 'By coordinates (formula)', k_angle: 'Angle', angP1: 'Start point', angV: 'Vertex', angP2: 'End point', shape: 'Shape', sAuto: 'Auto (right-angle mark at 90°)', sSector: 'Sector (filled)', sArc: 'Arc only', sSquare: 'Right-angle mark', rev: 'Measure the other side (larger)', alabel: 'Label (θ, α …)', showVal: 'Show value (°)', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
+        aPt: 'Point', aAng: 'Angle', k_angle: 'Angle', angP1: 'Start', angV: 'Vertex', angP2: 'End', shape: 'Shape', sAuto: 'Auto (right-angle mark at 90°)', sSector: 'Sector (filled)', sArc: 'Arc only', sSquare: 'Right-angle mark', rev: 'Measure the other side (larger)', alabel: 'Label (θ, α …)', showVal: 'Show value (°)', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
         k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
         name: 'Name', x: 'X', y: 'Y', drag: 'Draggable', show: 'Visible', color: 'Color', width: 'Width', dash: 'Dashed', size: 'Size', p1: 'Point 1', p2: 'Point 2', verts: 'Vertices', addV: 'Add vertex', fill: 'Fill', op: 'Opacity (0-1)', lineC: 'Line color',
         poly: 'Polygon to cut', by: 'Cutting line', c1: 'Upper / right color', c2: 'Lower / left color', r: 'Radius', center: 'Center', through: 'Through point (instead of radius)', none: 'None', text: 'Text ({slider name} shows its value; {x(A)} / {y(A)} show point coordinates)', fs: 'Font size',
@@ -4215,20 +4215,24 @@ function mbClean(a) {
         else if (p.t === 'poly') { o.pts = (Array.isArray(p.pts) ? p.pts : []).slice(0, 12).map(function(x) { return Math.round(mbNn(x, 0)); }); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.4); o.line = mbCol(p.line, '#555555'); }
         else if (p.t === 'cut') { o.poly = Math.round(mbNn(p.poly, 0)); o.by = Math.round(mbNn(p.by, 0)); o.c1 = mbCol(p.c1, '#4d97ff'); o.c2 = mbCol(p.c2, '#ff6680'); o.op = mbNum(p.op, 1); o.edge = !!p.edge; o.ec = mbCol(p.ec, '#ff4d4d'); o.ew = Math.max(1, Math.min(12, mbNn(p.ew, 3))); }
         else if (p.t === 'circle') { o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 2); o.through = Math.round(mbNn(p.through, 0)); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0); o.color = mbCol(p.color, '#555555'); }
-        else if (p.t === 'angle') { o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 0.8); ['a', 'b', 'c'].forEach(function(k) { o[k + 'm'] = p[k + 'm'] === 'xy' ? 'xy' : 'pt'; o[k + 'x'] = mbNum(p[k + 'x'], 0); o[k + 'y'] = mbNum(p[k + 'y'], 0); }); o.shape = /^(auto|sector|arc|square)$/.test(p.shape) ? p.shape : 'auto'; o.color = mbCol(p.color, '#d9480f'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 2))); o.fill = mbCol(p.fill, '#ffa94d'); o.op = mbNum(p.op, 0.35); o.rev = !!p.rev; o.text = mbStr(p.text, 12); o.showVal = p.showVal !== false; o.fs = Math.max(8, Math.min(40, mbNn(p.fs, 15))); }
+        else if (p.t === 'angle') { o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 0.8); ['a', 'b', 'c'].forEach(function(k) { o[k + 'm'] = p[k + 'm'] === 'pt' || (p[k + 'm'] == null && p[k + 'x'] == null && p[k + 'y'] == null) ? 'pt' : 'xy'; o[k + 'x'] = mbNum(p[k + 'x'], 0); o[k + 'y'] = mbNum(p[k + 'y'], 0); }); o.shape = /^(auto|sector|arc|square)$/.test(p.shape) ? p.shape : 'auto'; o.color = mbCol(p.color, '#d9480f'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 2))); o.fill = mbCol(p.fill, '#ffa94d'); o.op = mbNum(p.op, 0.35); o.rev = !!p.rev; o.text = mbStr(p.text, 12); o.showVal = p.showVal !== false; o.fs = Math.max(8, Math.min(40, mbNn(p.fs, 15))); }
         else if (p.t === 'text') { o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.text = mbStr(p.text, 120); o.fs = Math.max(8, Math.min(60, mbNn(p.fs, 16))); o.color = mbCol(p.color, '#222222'); }
         else if (p.t === 'var') { o.label = mbStr(p.label, 20); o.mode = p.mode === 'expr' ? 'expr' : 'slider'; o.min = mbNn(p.min, 0); o.max = mbNn(p.max, 1); if (o.max <= o.min) o.max = o.min + 1; o.v = Math.min(o.max, Math.max(o.min, mbNn(p.v, o.min))); o.formula = mbStr(p.formula, 180) || String(o.v); o.step = Math.max(0, mbNn(p.step, 0)); o.show = p.show !== false;
             o.kf = (Array.isArray(p.kf) ? p.kf : []).slice(0, 20).map(function(q) { return { t: Math.max(0, mbNn(q && q.t, 0)), v: mbNn(q && q.v, o.min) }; }).sort(function(x, y) { return x.t - y.t; }); }
         m.parts.push(o);
     });
-    // 古い「点を選ぶ」指定の角度は、その点の名前を使った式（x(A)・y(A)）に直す
+    // 旧形式の角度を座標式へ変換し、新形式では座標データだけを保持する
     m.parts.forEach(function(g) {
         if (g.t !== 'angle') return;
         ['a', 'b', 'c'].forEach(function(k) {
-            if (g[k + 'm'] === 'xy') return;
-            var s = m.parts.filter(function(q) { return q.id === g[k]; })[0]; g[k + 'm'] = 'xy';
-            if (s && s.name) { g[k + 'x'] = { e: 'x(' + s.name + ')' }; g[k + 'y'] = { e: 'y(' + s.name + ')' }; }
-            else if (s && s.t === 'pt') { g[k + 'x'] = s.x; g[k + 'y'] = s.y; }
+            if (g[k + 'm'] !== 'xy') {
+                var s = m.parts.filter(function(q) { return q.id === g[k]; })[0];
+                if (s && s.name) { g[k + 'x'] = { e: 'x(' + s.name + ')' }; g[k + 'y'] = { e: 'y(' + s.name + ')' }; }
+                else if (s && s.t === 'pt') { g[k + 'x'] = s.x; g[k + 'y'] = s.y; }
+                else { g[k + 'x'] = 0; g[k + 'y'] = 0; }
+            }
+            delete g[k];
+            delete g[k + 'm'];
         });
     });
     return m;
@@ -4434,7 +4438,7 @@ function mbGen(m, edit) {
             o.push("board.create('circle', [" + c + ', ' + (th || mgF(p.r, m, p.id, false)) + '], { strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', fillColor: ' + q(p.fill) + ', fillOpacity: ' + mgF(p.op, m, p.id, false) + ', fixed: true, highlight: false });');
         } else if (p.t === 'angle') {
             var xyo = function(k) { return '{X:function(){return ' + mgJ(p[k + 'x'], m, p.id, false) + ';},Y:function(){return ' + mgJ(p[k + 'y'], m, p.id, false) + ';}}'; };
-            var ga = p.am === 'xy' ? xyo('a') : pt(p.a), gb = p.bm === 'xy' ? xyo('b') : pt(p.b), gc = p.cm === 'xy' ? xyo('c') : pt(p.c); if (!ga || !gb || !gc) return;
+            var ga = xyo('a'), gb = xyo('b'), gc = xyo('c');
             o.push('mbAngle(' + (p.rev ? gc : ga) + ', ' + gb + ', ' + (p.rev ? ga : gc) + ', ' + mgF(p.r, m, p.id, false) + ', ' + q(p.shape) + ', ' + q(p.color) + ', ' + p.w + ', ' + q(p.fill) + ', ' + mgF(p.op, m, p.id, false) + ', ' + q(p.text) + ', ' + !!p.showVal + ', ' + p.fs + ', ' + q(m.dark ? '#d8dbe6' : '#222222') + ');');
         } else if (p.t === 'text') {
             var lab = {}; m.parts.forEach(function(v) { if (v.t === 'var') lab[v.label] = v.id; });
@@ -4493,8 +4497,8 @@ function mbAdd(kind) {
         base('cut', { poly: pl.id, by: ln.id, c1: '#4d97ff', c2: '#ff6680', op: 0.9, edge: true, ec: '#ffffff', ew: 2 });
     }
     else if (kind === 'angle') {
-        var gp = mbOf(['pt']); while (gp.length < 3) { mbPt(); gp = mbOf(['pt']); } var g3 = gp.slice(-3);
-        base('angle', { am: 'xy', bm: 'xy', cm: 'xy', ax: { e: 'x(' + g3[0].name + ')' }, ay: { e: 'y(' + g3[0].name + ')' }, bx: { e: 'x(' + g3[1].name + ')' }, by: { e: 'y(' + g3[1].name + ')' }, cx: { e: 'x(' + g3[2].name + ')' }, cy: { e: 'y(' + g3[2].name + ')' }, a: 0, b: 0, c: 0, r: 0.8, shape: 'auto', color: '#d9480f', w: 2, fill: '#ffa94d', op: 0.35, rev: false, text: '', showVal: true, fs: 15 });
+        // 始点・頂点・終点の座標を直接入力する独立した角度部品
+        base('angle', { ax: -2, ay: 0, bx: 0, by: 0, cx: 0, cy: 2, r: 0.8, shape: 'auto', color: '#d9480f', w: 2, fill: '#ffa94d', op: 0.35, rev: false, text: '', showVal: true, fs: 15 });
     }
     else if (kind === 'circle') { a = mbPt(); base('circle', { c: a.id, r: 2, through: 0, color: '#555555', w: 2, fill: '#4d97ff', op: 0 }); }
     else if (kind === 'text') base('text', { x: cx, y: cy, text: '文字', fs: 18, color: '#222222' });
@@ -4618,7 +4622,7 @@ function mbDel(id) {
     mbSnap('del' + id); var A = mb.m.parts, gone = {}; gone[id] = 1;
     for (var again = true; again;) { again = false;
         A.forEach(function(p) { if (gone[p.id]) return; var bad = false;
-            if (p.t === 'seg' || p.t === 'line' || p.t === 'mid') bad = gone[p.a] || gone[p.b]; else if (p.t === 'tcen' || p.t === 'tcirc') bad = gone[p.a] || gone[p.b] || gone[p.c]; else if (p.t === 'angle') bad = (p.am !== 'xy' && gone[p.a]) || (p.bm !== 'xy' && gone[p.b]) || (p.cm !== 'xy' && gone[p.c]);
+            if (p.t === 'seg' || p.t === 'line' || p.t === 'mid') bad = gone[p.a] || gone[p.b]; else if (p.t === 'tcen' || p.t === 'tcirc') bad = gone[p.a] || gone[p.b] || gone[p.c]; else if (p.t === 'angle') bad = A.some(function(q) { if (!gone[q.id] || !/^(pt|mid|tcen)$/.test(q.t) || !q.name) return false; var n = String(q.name).toLowerCase(); return ['ax', 'ay', 'bx', 'by', 'cx', 'cy'].some(function(k) { var v = p[k]; if (!v || typeof v !== 'object' || typeof v.e !== 'string') return false; var e = v.e.toLowerCase(); return e.indexOf('x(' + n + ')') >= 0 || e.indexOf('y(' + n + ')') >= 0; }); });
             else if (p.t === 'poly') { p.pts = p.pts.filter(function(x) { return !gone[x]; }); bad = p.pts.length < 3; }
             else if (p.t === 'cut') bad = gone[p.poly] || gone[p.by]; else if (p.t === 'circle') { if (gone[p.through]) p.through = 0; bad = gone[p.c]; }
             if (bad) { gone[p.id] = 1; again = true; } }); }

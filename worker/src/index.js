@@ -907,6 +907,7 @@ async function chatList(request, env, url) {
   const before = since === null && beforeRaw !== null && /^\d{1,12}$/.test(beforeRaw) ? Number(beforeRaw) : null;
   if (since === null && before === null) await syncStudioRoles(env);
   await ensureEditedCol(env);
+  await ensureVideoThumbnailColumn(env);
   // around=<メッセージID> のときは、そのメッセージの前後25件ずつを返す（リンクから古いメッセージを開くため）
   const aroundRaw = url.searchParams.get('around');
   const around = since === null && aroundRaw !== null && /^\d{1,12}$/.test(aroundRaw) ? Number(aroundRaw) : null;
@@ -922,11 +923,12 @@ async function chatList(request, env, url) {
             rp.reply_to, p.username AS reply_username, p.content AS reply_content,
             p.deleted AS reply_deleted, p.hidden AS reply_hidden,
             v.id AS video_id, v.object_key AS video_key, v.content_type AS video_type, v.created_at AS video_created,
-            v.size AS video_size, n.name AS video_name
+            v.size AS video_size, n.name AS video_name, vt.object_key AS video_thumbnail_key
        FROM chat_messages m
        LEFT JOIN chat_replies rp ON rp.message_id = m.id
        LEFT JOIN chat_messages p ON p.id = rp.reply_to
        LEFT JOIN chat_videos v ON v.message_id = m.id AND v.state = 'ready'
+       LEFT JOIN chat_videos vt ON vt.id = v.thumbnail_id AND vt.state = 'ready'
        LEFT JOIN chat_video_names n ON n.video_id = v.id
       WHERE m.room = ? ${since !== null ? 'AND m.id > ?' : ''} ${before !== null ? 'AND m.id < ?' : ''} ${lo !== null ? 'AND m.id BETWEEN ? AND ?' : ''} AND m.deleted = 0 ${admin ? '' : 'AND m.hidden = 0'}
       ORDER BY m.id ${since !== null ? 'ASC' : 'DESC'} LIMIT ?`
@@ -1510,6 +1512,7 @@ async function notifSettingsPut(request, env) {
 const VIDEO_MAX_BYTES = 20 * 1024 * 1024;   // B2を使うときの上限。このPCに保存するときは FILE_MAX_MB（既定50）
 const VIDEO_PER_DAY = 3;
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024;     // ブラウザ側で縮小してから送るので、実際は数百KB程度
+const VIDEO_THUMB_MAX_BYTES = 256 * 1024;   // 動画の冒頭から作る小さなJPEGサムネイル
 const IMAGE_PER_DAY = 10;
 const SB3_TYPE = 'application/x.scratch.sb3';
 const SB3_PER_DAY = 5;
@@ -1549,9 +1552,25 @@ function videoTtlMs(env) {
   return (Number.isFinite(d) && d > 0 ? d : (env.LOCAL_FILES ? 30 : 14)) * 24 * 3600 * 1000;
 }
 // B2のライフサイクル設定で消えた後は、再生できないことを知らせる
+let _videoThumbColumn = false;
+async function ensureVideoThumbnailColumn(env) {
+  if (_videoThumbColumn) return;
+  const info = await env.DB.prepare('PRAGMA table_info(chat_videos)').all();
+  if (!(info.results || []).some(c => c.name === 'thumbnail_id')) {
+    try {
+      await env.DB.prepare('ALTER TABLE chat_videos ADD COLUMN thumbnail_id TEXT').run();
+    } catch (e) {
+      const check = await env.DB.prepare('PRAGMA table_info(chat_videos)').all();
+      if (!(check.results || []).some(c => c.name === 'thumbnail_id')) throw e;
+    }
+  }
+  _videoThumbColumn = true;
+}
 function videoInfo(r, env) {
   if (Date.now() - r.video_created > videoTtlMs(env)) return { id: r.video_id, type: r.video_type, expired: true };
-  return { id: r.video_id, type: r.video_type, _key: r.video_key };   // url は mediaUrl() であとから付ける
+  const o = { id: r.video_id, type: r.video_type, _key: r.video_key };
+  if (r.video_thumbnail_key) o._thumbnail_key = r.video_thumbnail_key;
+  return o;
 }
 
 // 閲覧URL。公開バケットならそのまま、非公開なら署名つき。
@@ -1578,6 +1597,7 @@ async function attachMediaUrls(env, rows) {
     for (const k of ['video', 'image', 'file']) {
       const x = m[k];
       if (x && x._key) { x.url = await mediaUrl(env, x._key); delete x._key; }
+      if (x && x._thumbnail_key) { x.thumbnail_url = await mediaUrl(env, x._thumbnail_key); delete x._thumbnail_key; }
     }
   }
   return rows;
@@ -1649,23 +1669,33 @@ async function b2Delete(env, key) {
   try { await s3Fetch(env, 'DELETE', key); } catch (e) { console.error('b2 delete failed', key, e); }
 }
 
+async function deleteVideoThumbnail(env, id) {
+  if (!id) return;
+  const t = await env.DB.prepare("SELECT object_key FROM chat_videos WHERE id = ?").bind(id).first();
+  if (t && videoEnabled(env)) await b2Delete(env, t.object_key);
+  await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
+}
 async function deleteVideosOfMessage(env, messageId) {
   if (!videoEnabled(env)) return;
-  const rows = await env.DB.prepare("SELECT id, object_key FROM chat_videos WHERE message_id = ? AND state != 'deleted'").bind(messageId).all();
+  await ensureVideoThumbnailColumn(env);
+  const rows = await env.DB.prepare("SELECT id, object_key, thumbnail_id FROM chat_videos WHERE message_id = ? AND state != 'deleted'").bind(messageId).all();
   for (const v of rows.results) {
     await b2Delete(env, v.object_key);
-    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(v.id).run();
+    if (v.thumbnail_id) await deleteVideoThumbnail(env, v.thumbnail_id);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted', thumbnail_id = NULL WHERE id = ?").bind(v.id).run();
   }
 }
 
 async function videoStart(request, env) {
   const user = await requireUser(request, env);
   requireVideo(env);
+  await ensureVideoThumbnailColumn(env);
   const body = await readJson(request);
   const type = String(body.type || '');
   const size = body.size;
   if (!VIDEO_TYPES[type]) throw new HttpError(400, 'bad_video_type');
   const image = isImageType(type), sb3 = isSb3Type(type), gen = type === FILE_TYPE;
+  const hasThumbnail = ['video/mp4', 'video/webm', 'video/quicktime'].includes(type);
   if (!Number.isInteger(size) || size < 1) throw new HttpError(400, 'bad_video_size');
   const maxBytes = image ? IMAGE_MAX_BYTES : (env.LOCAL_FILES ? fileMaxBytes(env) : VIDEO_MAX_BYTES);
   if (size > maxBytes) throw new HttpError(413, image ? 'image_too_big' : sb3 ? 'sb3_too_big' : gen ? 'file_too_big' : 'video_too_big');
@@ -1683,43 +1713,65 @@ async function videoStart(request, env) {
   const now = Date.now();
   const used = await env.DB.prepare(
     `SELECT COUNT(*) AS c FROM chat_videos WHERE user_id = ? AND created_at > ? AND state != 'deleted'
-       AND ${image ? "content_type LIKE 'image/%'" : sb3 ? `content_type = '${SB3_TYPE}'` : gen ? `content_type = '${FILE_TYPE}'` : `content_type NOT LIKE 'image/%' AND content_type != '${SB3_TYPE}' AND content_type != '${FILE_TYPE}'`}`
+       AND ${image ? "content_type LIKE 'image/%' AND id NOT IN (SELECT thumbnail_id FROM chat_videos WHERE thumbnail_id IS NOT NULL)" : sb3 ? `content_type = '${SB3_TYPE}'` : gen ? `content_type = '${FILE_TYPE}'` : `content_type NOT LIKE 'image/%' AND content_type != '${SB3_TYPE}' AND content_type != '${FILE_TYPE}'`}`
   ).bind(user.uid, now - 24 * 3600 * 1000).first();
   if (used && used.c >= (image ? IMAGE_PER_DAY : sb3 ? SB3_PER_DAY : gen ? FILE_PER_DAY : VIDEO_PER_DAY)) throw new HttpError(429, image ? 'image_limit' : sb3 ? 'sb3_limit' : gen ? 'file_limit' : 'video_limit');
 
   const id = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
   const key = `v/${id}.${ext}`;
+  const thumbnailId = hasThumbnail ? [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('') : null;
+  const thumbnailKey = thumbnailId ? `v/${thumbnailId}.jpg` : '';
   await env.DB.prepare(
-    'INSERT INTO chat_videos (id, user_id, username, object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, ?)'
-  ).bind(id, user.uid, user.u, key, type, now).run();
+    'INSERT INTO chat_videos (id, user_id, username, object_key, content_type, created_at, thumbnail_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).bind(id, user.uid, user.u, key, type, now, thumbnailId).run();
+  if (thumbnailId) {
+    await env.DB.prepare(
+      'INSERT INTO chat_videos (id, user_id, username, object_key, content_type, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(thumbnailId, user.uid, user.u, thumbnailKey, 'image/jpeg', now).run();
+  }
   if (sb3 || gen) {
     // 元のファイル名（表示用・ダウンロード時の名前）
     let name = gen ? fname : cleanFileName(body.name, 'project.sb3');
     if (sb3 && !/\.sb3$/i.test(name)) name = (name || 'project') + '.sb3';
     await env.DB.prepare('INSERT OR REPLACE INTO chat_video_names (video_id, name) VALUES (?, ?)').bind(id, name).run();
   }
+  let thumbnailUploadUrl = '';
   if (env.LOCAL_FILES) {
-    // このPCへ直接アップロードするための、10分だけ使える合鍵つきURL（server.mjs の PUT /api/chat/upload が受ける）
     const t = await signToken({ up: key, ty: type, mx: maxBytes, exp: now + VIDEO_PRESIGN_SECONDS * 1000 }, env.SESSION_SECRET);
-    return json({ id, upload_url: String(env.PUBLIC_URL).replace(/\/+$/, '') + '/api/chat/upload?t=' + encodeURIComponent(t), headers: { 'Content-Type': type }, max_bytes: maxBytes });
+    if (thumbnailId) {
+      const tt = await signToken({ up: thumbnailKey, ty: 'image/jpeg', mx: VIDEO_THUMB_MAX_BYTES, exp: now + VIDEO_PRESIGN_SECONDS * 1000 }, env.SESSION_SECRET);
+      thumbnailUploadUrl = String(env.PUBLIC_URL).replace(/\/+$/, '') + '/api/chat/upload?t=' + encodeURIComponent(tt);
+    }
+    return json({
+      id, upload_url: String(env.PUBLIC_URL).replace(/\/+$/, '') + '/api/chat/upload?t=' + encodeURIComponent(t),
+      headers: { 'Content-Type': type }, max_bytes: maxBytes,
+      ...(thumbnailUploadUrl ? { thumbnail_upload_url: thumbnailUploadUrl, thumbnail_headers: { 'Content-Type': 'image/jpeg' }, thumbnail_max_bytes: VIDEO_THUMB_MAX_BYTES } : {}),
+    });
   }
 
   const uploadUrl = await presignUrl({
-    method: 'PUT',
-    host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`,
-    path: '/' + key,
-    region: regionOf(env.B2_ENDPOINT),
-    keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
-    now, expires: VIDEO_PRESIGN_SECONDS,
-    signHeaders: { 'content-type': type },
+    method: 'PUT', host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`, path: '/' + key,
+    region: regionOf(env.B2_ENDPOINT), keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+    now, expires: VIDEO_PRESIGN_SECONDS, signHeaders: { 'content-type': type },
   });
-  return json({ id, upload_url: uploadUrl, headers: { 'Content-Type': type }, max_bytes: maxBytes });
+  if (thumbnailId) {
+    thumbnailUploadUrl = await presignUrl({
+      method: 'PUT', host: `${env.B2_BUCKET}.${env.B2_ENDPOINT}`, path: '/' + thumbnailKey,
+      region: regionOf(env.B2_ENDPOINT), keyId: env.B2_KEY_ID, secret: env.B2_APP_KEY,
+      now, expires: VIDEO_PRESIGN_SECONDS, signHeaders: { 'content-type': 'image/jpeg' },
+    });
+  }
+  return json({
+    id, upload_url: uploadUrl, headers: { 'Content-Type': type }, max_bytes: maxBytes,
+    ...(thumbnailUploadUrl ? { thumbnail_upload_url: thumbnailUploadUrl, thumbnail_headers: { 'Content-Type': 'image/jpeg' }, thumbnail_max_bytes: VIDEO_THUMB_MAX_BYTES } : {}),
+  });
 }
 
 // アップロードされたものを確認する。署名ではサイズを縛れないので、ここで実サイズを調べる
 async function videoComplete(request, env, id) {
   const user = await requireUser(request, env);
   requireVideo(env);
+  await ensureVideoThumbnailColumn(env);
   const v = await env.DB.prepare("SELECT * FROM chat_videos WHERE id = ? AND user_id = ? AND state != 'deleted'").bind(id, user.uid).first();
   if (!v) throw new HttpError(404, 'not_found');
   // 大きさと種類を確かめる（B2: 先頭だけ読む。HEADが拒否されたため、GETの範囲指定で代用 / このPC: ファイルを直接調べる）
@@ -1750,20 +1802,56 @@ async function videoComplete(request, env, id) {
   if (sb3) magicOk = head.length >= 4 && head[0] === 0x50 && head[1] === 0x4b && head[2] === 3 && head[3] === 4;
   if (!size || size > maxBytes || type !== v.content_type || !magicOk) {
     await b2Delete(env, v.object_key);
-    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
+    if (v.thumbnail_id) await deleteVideoThumbnail(env, v.thumbnail_id);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted', thumbnail_id = NULL WHERE id = ?").bind(id).run();
     throw new HttpError(size > maxBytes ? 413 : 400, size > maxBytes ? (image ? 'image_too_big' : sb3 ? 'sb3_too_big' : gen ? 'file_too_big' : 'video_too_big') : 'bad_video');
   }
-  await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ? WHERE id = ?").bind(size, id).run();
-  return json({ id, type, url: await mediaUrl(env, v.object_key) });
+
+  let thumbnailReady = false, thumbnailUrl = '';
+  if (v.thumbnail_id && v.content_type.indexOf('video/') === 0) {
+    const thumb = await env.DB.prepare("SELECT * FROM chat_videos WHERE id = ? AND user_id = ? AND state = 'pending'")
+      .bind(v.thumbnail_id, user.uid).first();
+    if (thumb && thumb.content_type === 'image/jpeg') {
+      let ts = 0, th = new Uint8Array(0), ttype = 'image/jpeg';
+      try {
+        if (env.LOCAL_FILES) {
+          const st = await env.LOCAL_FILES.stat(thumb.object_key);
+          if (st) { ts = st.size; th = await env.LOCAL_FILES.head(thumb.object_key, 3); }
+        } else {
+          const tr = await s3Fetch(env, 'GET', thumb.object_key, { Range: 'bytes=0-2' });
+          if (tr.ok) {
+            const total = String(tr.headers.get('content-range') || '').split('/').pop();
+            ts = Number(total) || Number(tr.headers.get('content-length') || 0);
+            ttype = String(tr.headers.get('content-type') || '').split(';')[0].trim();
+            th = new Uint8Array(await tr.arrayBuffer());
+          }
+        }
+      } catch (e) { console.warn('video thumbnail check failed', e); }
+      thumbnailReady = ts > 0 && ts <= VIDEO_THUMB_MAX_BYTES && ttype === 'image/jpeg' && th.length >= 3 && th[0] === 0xff && th[1] === 0xd8 && th[2] === 0xff;
+      if (thumbnailReady) {
+        await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ? WHERE id = ?").bind(ts, thumb.id).run();
+        thumbnailUrl = await mediaUrl(env, thumb.object_key);
+      } else {
+        await b2Delete(env, thumb.object_key);
+        await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(thumb.id).run();
+      }
+    }
+    if (!thumbnailReady && thumb) await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(thumb.id).run();
+  }
+  await env.DB.prepare("UPDATE chat_videos SET state = 'ready', size = ?, thumbnail_id = ? WHERE id = ?")
+    .bind(size, thumbnailReady ? v.thumbnail_id : null, id).run();
+  return json({ id, type, url: await mediaUrl(env, v.object_key), ...(thumbnailUrl ? { thumbnail_url: thumbnailUrl } : {}) });
 }
 
 async function videoDiscard(request, env, id) {
   const user = await requireUser(request, env);
-  const v = await env.DB.prepare("SELECT object_key FROM chat_videos WHERE id = ? AND user_id = ? AND message_id IS NULL AND state != 'deleted'")
+  await ensureVideoThumbnailColumn(env);
+  const v = await env.DB.prepare("SELECT object_key, thumbnail_id FROM chat_videos WHERE id = ? AND user_id = ? AND message_id IS NULL AND state != 'deleted'")
     .bind(id, user.uid).first();
   if (!v) throw new HttpError(404, 'not_found');
   if (videoEnabled(env)) await b2Delete(env, v.object_key);
-  await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(id).run();
+  if (v.thumbnail_id) await deleteVideoThumbnail(env, v.thumbnail_id);
+  await env.DB.prepare("UPDATE chat_videos SET state = 'deleted', thumbnail_id = NULL WHERE id = ?").bind(id).run();
   return json({ deleted: true });
 }
 
@@ -1820,16 +1908,18 @@ const pgUpdateFileOk = (ty) => isImageType(ty) || isSb3Type(ty) || pgIsVideo(ty)
 async function pgFilesOf(env, ids) {
   const out = {};
   if (!ids.length) return out;
+  await ensureVideoThumbnailColumn(env);
   const rows = await env.DB.prepare(
-    `SELECT f.update_id AS uid, f.pos, v.id, v.object_key, v.content_type, v.size, n.name
+    `SELECT f.update_id AS uid, f.pos, v.id, v.object_key, v.content_type, v.size, v.thumbnail_id, vt.object_key AS thumbnail_key, n.name
        FROM progress_files f JOIN chat_videos v ON v.id = f.video_id AND v.state = 'ready'
+       LEFT JOIN chat_videos vt ON vt.id = v.thumbnail_id AND vt.state = 'ready'
        LEFT JOIN chat_video_names n ON n.video_id = v.id
       WHERE f.update_id IN (${ids.map(() => '?').join(',')}) ORDER BY f.update_id, f.pos`
   ).bind(...ids).all();
   const items = [];
   for (const r of rows.results) {
     const o = { _uid: r.uid };
-    const info = { id: r.id, type: r.content_type, _key: r.object_key };
+    const info = { id: r.id, type: r.content_type, _key: r.object_key, ...(r.thumbnail_key ? { _thumbnail_key: r.thumbnail_key } : {}) };
     if (isImageType(r.content_type)) o.image = info;
     else if (pgIsVideo(r.content_type)) o.video = info;
     else o.file = Object.assign(info, { name: r.name || 'project.sb3', size: r.size || 0 });
@@ -1838,7 +1928,7 @@ async function pgFilesOf(env, ids) {
   await attachMediaUrls(env, items);
   for (const o of items) {
     const f = o.image ? { kind: 'image', id: o.image.id, url: o.image.url }
-      : o.video ? { kind: 'video', id: o.video.id, url: o.video.url }
+      : o.video ? { kind: 'video', id: o.video.id, url: o.video.url, ...(o.video.thumbnail_url ? { thumbnail_url: o.video.thumbnail_url } : {}) }
       : { kind: isSb3Type(o.file.type) ? 'sb3' : 'file', id: o.file.id, url: o.file.url, name: o.file.name, size: o.file.size };
     (out[o._uid] = out[o._uid] || []).push(f);
   }
@@ -1926,10 +2016,12 @@ async function pgCreateThread(request, env) {
   return json({ thread: await pgThreadRow(env, t, true) }, 201);
 }
 async function pgDeleteFilesWhere(env, where, bind) {
-  const rows = await env.DB.prepare(`SELECT id, object_key FROM chat_videos WHERE state != 'deleted' AND ${where}`).bind(...bind).all();
+  await ensureVideoThumbnailColumn(env);
+  const rows = await env.DB.prepare(`SELECT id, object_key, thumbnail_id FROM chat_videos WHERE state != 'deleted' AND ${where}`).bind(...bind).all();
   for (const v of rows.results) {
     if (videoEnabled(env)) await b2Delete(env, v.object_key);
-    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted' WHERE id = ?").bind(v.id).run();
+    if (v.thumbnail_id) await deleteVideoThumbnail(env, v.thumbnail_id);
+    await env.DB.prepare("UPDATE chat_videos SET state = 'deleted', thumbnail_id = NULL WHERE id = ?").bind(v.id).run();
   }
 }
 async function pgDeleteThread(request, env, id) {
@@ -2089,15 +2181,25 @@ const gdMediaOk = (ty) => isImageType(ty) || isSb3Type(ty) || /^video\/(mp4|webm
 async function gdImageUrls(env, ids) {
   const out = {};
   if (!ids.length) return out;
+  await ensureVideoThumbnailColumn(env);
   const rows = await env.DB.prepare(
-    `SELECT v.id, v.object_key, v.content_type, v.size, n.name FROM chat_videos v LEFT JOIN chat_video_names n ON n.video_id = v.id
+    `SELECT v.id, v.object_key, v.content_type, v.size, v.thumbnail_id, vt.object_key AS thumbnail_key, n.name
+       FROM chat_videos v
+       LEFT JOIN chat_videos vt ON vt.id = v.thumbnail_id AND vt.state = 'ready'
+       LEFT JOIN chat_video_names n ON n.video_id = v.id
       WHERE v.state = 'ready' AND v.id IN (${ids.map(() => '?').join(',')})`
   ).bind(...ids).all();
-  const items = rows.results.filter(r => gdMediaOk(r.content_type)).map(r => ({ _r: r, file: { _key: r.object_key } }));
+  const items = rows.results.filter(r => gdMediaOk(r.content_type)).map(r => ({
+    _r: r, file: { _key: r.object_key, ...(r.thumbnail_key ? { _thumbnail_key: r.thumbnail_key } : {}) }
+  }));
   await attachMediaUrls(env, items);
   for (const o of items) {
     const ty = o._r.content_type;
-    out[o._r.id] = { kind: isImageType(ty) ? 'image' : isSb3Type(ty) ? 'sb3' : 'video', url: o.file.url, name: o._r.name || '', size: o._r.size || 0 };
+    out[o._r.id] = {
+      kind: isImageType(ty) ? 'image' : isSb3Type(ty) ? 'sb3' : 'video',
+      url: o.file.url, ...(o.file.thumbnail_url ? { thumbnail_url: o.file.thumbnail_url } : {}),
+      name: o._r.name || '', size: o._r.size || 0
+    };
   }
   return out;
 }

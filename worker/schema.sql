@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS chat_videos (
   size INTEGER NOT NULL DEFAULT 0,   -- アップロード確認後の実サイズ
   state TEXT NOT NULL DEFAULT 'pending' CHECK (state IN ('pending', 'ready', 'deleted')),
   message_id INTEGER,                -- 投稿に紐づいたら入る
+  thumbnail_id TEXT,                 -- 動画の冒頭サムネイル（別のchat_videos行）
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_videos_user_time ON chat_videos(user_id, created_at);

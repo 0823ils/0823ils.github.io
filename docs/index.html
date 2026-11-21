@@ -1281,6 +1281,16 @@
         .gd-run iframe { display: block; width: 100%; height: 320px; border: 0; resize: vertical; overflow: auto; }
         .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
         .gd-vid { display: block; max-width: 100%; border-radius: 10px; margin: 0 auto; background: #000; }
+        .twc-video-lazy { position: relative; display: block; width: min(100%, 640px); aspect-ratio: 16 / 9; max-height: 340px; overflow: hidden; border-radius: 10px; background: #101522; }
+        .twc-video-lazy .twc-video-el { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; margin: 0; border: 0; object-fit: contain; background: #000; }
+        .twc-video-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #fff; font-size: 38px; text-shadow: 0 2px 8px #000; cursor: pointer; }
+        .twc-video-play::before { content: ''; position: absolute; width: 68px; height: 68px; border-radius: 50%; background: rgba(0,0,0,.62); z-index: -1; }
+        .twc-video-lazy.is-started .twc-video-play { display: none; }
+        .gd-vid.twc-video-lazy { width: min(100%, 640px); margin: 0 auto; }
+        .chat-video.twc-video-lazy { width: min(100%, 400px); max-height: 320px; min-height: 112px; margin-top: 6px; }
+        .pg-list-video.twc-video-lazy { width: 100%; max-height: none; aspect-ratio: 4 / 3; margin: 0; }
+        .pg-update-media-video .pg-video.twc-video-lazy { width: 100%; height: 100%; max-height: none; aspect-ratio: 4 / 3; margin: 0; }
+        #chat-section.pg-list .pg-list-video.twc-video-lazy { height: 100%; }
         .gd-sb3 { margin: 0 0 1em; } .gd-sb3 .sb3-card { width: min(100%, 560px); }
         .gd-tbl { overflow-x: auto; margin: 0 0 1em; }
         .gd-md table { border-collapse: collapse; font-size: 14.5px; min-width: 50%; }
@@ -3569,7 +3579,7 @@ function gdFileHTML(f, alt) {
     if (!f) return '';
     var cap = alt ? '<figcaption>' + esc(alt) + '</figcaption>' : '';
     if (f.kind === 'image') return '<figure class="gd-fig"><img class="gd-img" loading="lazy" src="' + esc(f.url) + '" alt="' + esc(alt) + '" onclick="gdZoom(this.src)">' + cap + '</figure>';
-    if (f.kind === 'video') return '<figure class="gd-fig"><video class="gd-vid" src="' + esc(String(f.url).replace(/#.*$/, '')) + '" autoplay muted loop playsinline controls preload="metadata"></video>' + cap + '</figure>';
+    if (f.kind === 'video') return '<figure class="gd-fig">' + twcVideoHTML(String(f.url).replace(/#.*$/, ''), f.thumbnail_url || '', 'gd-vid', gt('bVid')) + cap + '</figure>';
     if (f.kind === 'sb3') return '<div class="gd-sb3">' + chatSb3CardHTML({ url: f.url, name: alt || f.name || 'project.sb3', size: f.size || 0 }, chatFmtSize(f.size || 0)) + '</div>';
     return '';
 }
@@ -4056,9 +4066,21 @@ async function gdSave(publish) {
 
 // ===== 記事を書くときの道具: 貼り付け・ドロップ・動画・sb3・図形（アニメ付き） =====
 // ファイルを上げて、{ id, url }（プレビュー用の仮のURL）を返す
+async function chatUploadVideoThumbnail(st, file) {
+    if (!st || !st.thumbnail_upload_url || !file) return '';
+    try {
+        var dataUrl = await chatVideoFirstFrame(file);
+        if (!dataUrl) return '';
+        var blob = await (await fetch(dataUrl)).blob();
+        if (!blob || !blob.size || blob.size > (st.thumbnail_max_bytes || 262144)) return '';
+        await chatPutFile(st.thumbnail_upload_url, st.thumbnail_headers || { 'Content-Type': 'image/jpeg' }, blob, function() {});
+        return dataUrl;
+    } catch (e) { return ''; }
+}
 async function gdUploadBlob(blob, type, name) {
     var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: name });
     await chatPutFile(st.upload_url, st.headers, blob, function() {});
+    if (type.indexOf('video/') === 0) await chatUploadVideoThumbnail(st, blob);
     await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
     return { id: st.id, url: URL.createObjectURL(blob) };
 }
@@ -6771,12 +6793,68 @@ function chatImageOpen(src) {
     document.body.appendChild(box);
 }
 
+function twcVideoHTML(src, thumbnail, className, label) {
+    var poster = thumbnail ? ' poster="' + esc(thumbnail) + '"' : '';
+    var name = label || '動画を再生';
+    return '<div class="twc-video-lazy ' + esc(className || '') + '"><video class="twc-video-el" preload="none" playsinline data-src="' + esc(String(src).replace(/#.*$/, '')) + '"' + poster + ' aria-label="' + esc(name) + '"></video><button class="twc-video-play" type="button" onclick="twcVideoPlay(this)" aria-label="' + esc(name) + '">▶</button></div>';
+}
+var twcVideoObserver = null;
+function twcVideoWatch(root) {
+    if (!window.IntersectionObserver) return;
+    if (!twcVideoObserver) {
+        twcVideoObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (!entry.isIntersecting) return;
+                var v = entry.target;
+                twcVideoObserver.unobserve(v);
+                if (!v.getAttribute('src') && v.dataset.src) {
+                    v.preload = 'metadata';
+                    v.src = v.dataset.src;
+                    v.load();
+                }
+            });
+        }, { rootMargin: '600px 0px' });
+    }
+    var list = [];
+    if (root && root.matches && root.matches('video.twc-video-el')) list.push(root);
+    if (root && root.querySelectorAll) list = list.concat(Array.prototype.slice.call(root.querySelectorAll('video.twc-video-el')));
+    list.forEach(function(v) {
+        if (v.dataset.src && !v.dataset.videoWatched) {
+            v.dataset.videoWatched = '1';
+            twcVideoObserver.observe(v);
+        }
+    });
+}
+function twcVideoPlay(button) {
+    var box = button && button.closest('.twc-video-lazy');
+    var v = box && box.querySelector('video.twc-video-el');
+    if (!v) return;
+    if (!v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
+    v.preload = 'auto';
+    v.controls = true;
+    box.classList.add('is-started');
+    if (!v.getAttribute('src')) return;
+    var p = v.play();
+    if (p && p.catch) p.catch(function() { box.classList.remove('is-started'); });
+}
+(function() {
+    if (!document.body) return;
+    twcVideoWatch(document);
+    if (window.MutationObserver) {
+        var mo = new MutationObserver(function(records) {
+            records.forEach(function(rec) {
+                Array.prototype.forEach.call(rec.addedNodes, function(node) {
+                    if (node && node.nodeType === 1) twcVideoWatch(node);
+                });
+            });
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+    }
+})();
 function chatVideoHTML(v) {
     if (!v) return '';
     if (v.expired || !v.url) return '<div class="chat-video-gone">' + esc(ct('videoGone')) + '</div>';
-    // preload="metadata" と #t=0.001 で、再生前も、動画の一番最初のコマが表示される（サムネイル代わり）
-    var src = String(v.url).replace(/#.*$/, '') + '#t=0.001';
-    return '<video class="chat-video" controls preload="metadata" playsinline onloadedmetadata="chatVideoLoaded(this)" src="' + esc(src) + '"></video>';
+    return twcVideoHTML(v.url, v.thumbnail_url || '', 'chat-video', ct('pg_video'));
 }
 
 // 動画の大きさが分かると、メッセージの高さが変わる。一番下を見ていたときは、一番下に合わせ直す
@@ -7026,11 +7104,14 @@ async function chatVideoChosen(inp) {
     chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3, other: isOther };
     renderAttachBar();
     var mine = chatAttach;
-    if (isVideo) chatVideoFirstFrame(f).then(function(u) { if (u && chatAttach === mine) { mine.preview = u; renderAttachBar(); } });
     try {
         var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype, name: (isSb3 || isOther) ? f.name : undefined });
         mine.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
+        if (isVideo) {
+            var thumbData = await chatUploadVideoThumbnail(st, f);
+            if (thumbData && chatAttach === mine) { mine.preview = thumbData; renderAttachBar(); }
+        }
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
         mine.status = 'ready';
     } catch (e) {
@@ -7281,7 +7362,7 @@ function pgListMediaHTML(files, threadId) {
         if (file.kind === 'image') {
             media.push('<div class="pg-media-item pg-media-image"><div class="pg-list-image">' + chatImageHTML(file) + '</div></div>');
         } else if (file.kind === 'video') {
-            media.push('<div class="pg-media-item pg-media-video"><video class="pg-list-video" controls playsinline preload="metadata" src="' + esc(file.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video></div>');
+            media.push('<div class="pg-media-item pg-media-video">' + twcVideoHTML(file.url, file.thumbnail_url || '', 'pg-list-video', ct('pg_video')) + '</div>');
         } else if (file.kind === 'sb3') {
             media.push('<div class="pg-media-item pg-media-sb3">' + pgListSB3Embed(file) + '</div>');
         }
@@ -7332,7 +7413,7 @@ function pgSb3Open(key) {
 function pgMediaHTML(files, key) {
     return (files || []).map(function(f, i) {
         if (f.kind === 'image') return '<div class="pg-update-media-frame pg-update-media-image">' + chatImageHTML({ url: f.url }) + '</div>';
-        if (f.kind === 'video') return '<div class="pg-update-media-frame pg-update-media-video"><video class="pg-video" controls playsinline preload="metadata" src="' + esc(f.url) + '" aria-label="' + esc(ct('pg_video')) + '"></video></div>';
+        if (f.kind === 'video') return '<div class="pg-update-media-frame pg-update-media-video">' + twcVideoHTML(f.url, f.thumbnail_url || '', 'pg-video', ct('pg_video')) + '</div>';
         if (f.kind === 'sb3') return '<div class="pg-update-media-sb3">' + pgSb3Embed(f, key + '-' + i) + '</div>';
         return chatFileHTML({ url: f.url, name: f.name, size: f.size });
     }).join('');
@@ -7503,6 +7584,7 @@ async function pgPick(inp) {
         var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: (isSb3 || isVideo) ? f.name : undefined });
         item.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
+        if (isVideo) await chatUploadVideoThumbnail(st, blob);
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
         item.status = 'ready';
         if (item.removed || pgForm !== form || form.files.indexOf(item) < 0) {

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<link rel="preconnect" href="https://elite2.tailde34d5.ts.net" crossorigin>
+<link rel="preconnect" href="https://twc-api.twc-scratch.workers.dev" crossorigin>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
     <title>Technical Works Collection ｜スクラッチ技術作品集</title>
@@ -3733,22 +3735,29 @@ function gdGridPaint() {
     else if (gd.more) f = '<button class="gd-btn" onclick="gdLoad(false)">' + esc(gt('more')) + '</button>';
     foot.innerHTML = f;
 }
+// 前に見た一覧・記事は、先に出して、裏で新しくする（待ち時間をなくす）
+var gdCache = { list: {}, art: {} };
 async function gdLoad(reset) {
     var seq = ++gd.seq;
+    var cur = reset ? [] : gd.items, key = null, warm = null;
     if (reset) { gd.items = []; gd.more = false; }
-    gd.state = 'load'; gdGridPaint();
+    var qs = '';
+    if (!gd.mine && !gd.saved) qs = '?sort=' + gd.sort + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
+    if (reset && !gd.mine && !gd.saved) { key = qs; warm = gdCache.list[key]; }
+    if (warm) { gd.items = warm.items.slice(); gd.more = warm.more; gd.state = 'done'; } else gd.state = 'load';
+    gdGridPaint();
     try {
         var d;
         if (gd.mine) d = await apiCall('GET', '/api/chat/guides/mine');
-        else if (gd.saved) d = await apiCall('GET', '/api/chat/guides/saved' + (gd.items.length ? '?offset=' + gd.items.length : ''));
+        else if (gd.saved) d = await apiCall('GET', '/api/chat/guides/saved' + (cur.length ? '?offset=' + cur.length : ''));
         else {
-            var qs = '?sort=' + gd.sort + (gd.tag ? '&tag=' + encodeURIComponent(gd.tag) : '') + (gd.q ? '&q=' + encodeURIComponent(gd.q) : '');
-            if (gd.items.length) qs += gd.sort === 'hot' ? '&offset=' + gd.items.length : '&before=' + gd.items[gd.items.length - 1].id;
+            if (cur.length) qs += gd.sort === 'hot' ? '&offset=' + cur.length : '&before=' + cur[cur.length - 1].id;
             d = await apiCall('GET', '/api/chat/guides' + qs);
         }
         if (seq !== gd.seq) return;
-        gd.items = gd.items.concat(d.items || []); gd.more = !!d.has_more; gd.state = 'done';
-    } catch (e) { if (seq !== gd.seq) return; gd.state = 'err'; }
+        gd.items = cur.concat(d.items || []); gd.more = !!d.has_more; gd.state = 'done';
+        if (key !== null) gdCache.list[key] = { items: gd.items.slice(), more: gd.more };
+    } catch (e) { if (seq !== gd.seq) return; if (warm) return; gd.state = 'err'; }
     gdGridPaint();
 }
 function gdSetSort(s) { gd.sort = s; gdListPaint(); gdLoad(true); updateUrl(); }
@@ -3763,15 +3772,28 @@ async function gdOpen(id) {
     gd.view = 'read'; gd.cur = null; gd.comments = []; gd.keep = true; gd.openId = id;
     if (currentMode !== 'guide') setMode('guide', true);
     gd.keep = false;
-    gdBox().innerHTML = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
-    updateUrl(true);
-    try {
-        var d = await apiCall('GET', '/api/chat/guides/' + id);
-        gd.cur = d.guide; gd.can = { edit: !!d.can_edit, del: !!d.can_delete };
-        var c = await apiCall('GET', '/api/chat/guides/' + id + '/comments').catch(function() { return { comments: [] }; });
-        gd.comments = c.comments || [];
-    } catch (e) { gdBox().innerHTML = '<button class="gd-back" onclick="gdList()">' + esc(gt('back')) + '</button><div class="gd-note">' + esc(gdErr(e)) + '</div>'; return; }
-    updateUrl(); gdReadPaint(); window.scrollTo(0, 0);
+    var warm = gdCache.art[id];
+    // 記事と、コメントを、同時に取りにいく（順番に待たない）
+    var pd = apiCall('GET', '/api/chat/guides/' + id);
+    var pc = apiCall('GET', '/api/chat/guides/' + id + '/comments').catch(function() { return { comments: [] }; });
+    pd.catch(function() {});
+    if (warm) {
+        gd.cur = warm.guide; gd.can = warm.can; gd.comments = warm.comments;
+        updateUrl(true); gdReadPaint(); window.scrollTo(0, 0);
+        try { document.title = gd.cur.title + ' - scratch-TWC'; } catch (e) {}
+    } else {
+        gdBox().innerHTML = '<div class="gd-note">' + esc(gt('loading')) + '</div>';
+        updateUrl(true);
+    }
+    var d, c;
+    try { d = await pd; c = await pc; }
+    catch (e) { if (warm || gd.openId !== id) return; gdBox().innerHTML = '<button class="gd-back" onclick="gdList()">' + esc(gt('back')) + '</button><div class="gd-note">' + esc(gdErr(e)) + '</div>'; return; }
+    var fresh = { guide: d.guide, can: { edit: !!d.can_edit, del: !!d.can_delete }, comments: c.comments || [] };
+    var same = warm && JSON.stringify(warm) === JSON.stringify(fresh);
+    gdCache.art[id] = fresh;
+    if (gd.openId !== id || gd.view !== 'read' || same) return;
+    gd.cur = fresh.guide; gd.can = fresh.can; gd.comments = fresh.comments;
+    updateUrl(); gdReadPaint(); if (!warm) window.scrollTo(0, 0);
     try { document.title = gd.cur.title + ' - scratch-TWC'; } catch (e) {}
 }
 function gdReadPaint() {

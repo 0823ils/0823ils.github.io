@@ -7093,55 +7093,63 @@ async function chatCompressVideo(file, onProgress) {
         (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') || MediaRecorder.isTypeSupported('video/webm;codecs=vp8') || MediaRecorder.isTypeSupported('video/webm'));
     if (!canRecord || file.size > CHAT_VIDEO_SOURCE_MAX) return { blob: file, type: file.type, name: file.name, compressed: false };
     var url = URL.createObjectURL(file), video = document.createElement('video');
-    var canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { alpha: false });
+    var canvas = document.createElement('canvas'), ctx = null;
     var audioContext = null, sourceNode = null, audioDestination = null, stream = null, recorder = null;
     var raf = 0, stopped = false;
     function cleanup() {
         if (raf) cancelAnimationFrame(raf);
-        try { if (video.pause) video.pause(); } catch (e) {}
+        try { video.pause(); } catch (e) {}
         video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
         if (audioContext && audioContext.state !== 'closed') audioContext.close().catch(function() {});
         if (stream) stream.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} });
     }
     try {
-        await new Promise(function(resolve, reject) {
-            video.preload = 'auto'; video.playsInline = true; video.muted = false;
+        video.preload = 'auto'; video.playsInline = true; video.muted = false;
+        // 再生許可とAudioContextの再開は、ファイル選択直後のユーザー操作中に開始する。
+        var AC = window.AudioContext || window.webkitAudioContext;
+        var resumePromise = Promise.resolve();
+        try {
+            if (AC) {
+                audioContext = new AC();
+                sourceNode = audioContext.createMediaElementSource(video);
+                audioDestination = audioContext.createMediaStreamDestination();
+                sourceNode.connect(audioDestination); // スピーカーへは接続しない
+                resumePromise = audioContext.resume();
+            }
+        } catch (audioError) { audioContext = null; audioDestination = null; }
+        var metadataPromise = new Promise(function(resolve, reject) {
             video.onloadedmetadata = resolve;
             video.onerror = function() { reject(new Error('video_decode')); };
-            video.src = url;
         });
+        video.src = url;
+        var playPromise = video.play();
+        await metadataPromise;
+        await resumePromise;
+        await playPromise;
         if (!video.videoWidth || !video.videoHeight || !isFinite(video.duration) || video.duration <= 0 || video.duration > 600) {
             cleanup(); return { blob: file, type: file.type, name: file.name, compressed: false };
         }
         var scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
         canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
         canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        ctx = canvas.getContext('2d', { alpha: false });
         stream = canvas.captureStream(24);
-        // 音声はAudioContext経由で録音ストリームへ接続し、スピーカーには流さない。
-        try {
-            var AC = window.AudioContext || window.webkitAudioContext;
-            if (AC && video.captureStream) {
-                audioContext = new AC();
-                sourceNode = audioContext.createMediaElementSource(video);
-                audioDestination = audioContext.createMediaStreamDestination();
-                sourceNode.connect(audioDestination);
-                audioDestination.stream.getAudioTracks().forEach(function(t) { stream.addTrack(t); });
-                await audioContext.resume();
-            }
-        } catch (audioError) { /* 音声経路が作れない環境では映像のみで続行 */ }
+        if (audioDestination) audioDestination.stream.getAudioTracks().forEach(function(t) { stream.addTrack(t); });
+        video.currentTime = 0;
+        await new Promise(function(resolve) {
+            if (video.currentTime === 0) return resolve();
+            video.onseeked = resolve;
+        });
         var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
             (MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm');
         var audioRate = audioDestination && audioDestination.stream.getAudioTracks().length ? 96000 : 0;
         var videoRate = Math.max(250000, Math.min(1800000, Math.floor((CHAT_VIDEO_OUTPUT_TARGET * 8 / video.duration) - audioRate)));
         recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: videoRate, audioBitsPerSecond: audioRate || 64000 });
         var chunks = [];
-        var result = await new Promise(async function(resolve, reject) {
+        var result = await new Promise(function(resolve, reject) {
             recorder.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
             recorder.onerror = function() { reject(new Error('video_encode')); };
-            recorder.onstop = function() {
-                var out = new Blob(chunks, { type: 'video/webm' });
-                resolve(out);
-            };
+            recorder.onstop = function() { resolve(new Blob(chunks, { type: 'video/webm' })); };
             function draw() {
                 if (stopped) return;
                 try { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (e) {}
@@ -7150,12 +7158,10 @@ async function chatCompressVideo(file, onProgress) {
             }
             video.onended = function() { stopped = true; if (recorder.state !== 'inactive') recorder.stop(); };
             recorder.start(1000);
-            try { await video.play(); } catch (e) { reject(e); return; }
             draw();
         });
         cleanup();
         if (!result || !result.size || result.size >= file.size || result.size > CHAT_VIDEO_MAX) {
-            // 圧縮しても小さくならない・上限を超える場合は元ファイルを使い、既存の上限判定に任せる。
             return { blob: file, type: file.type, name: file.name, compressed: false };
         }
         if (onProgress) onProgress(1);

@@ -4079,11 +4079,18 @@ async function chatUploadVideoThumbnail(st, file) {
     } catch (e) { return ''; }
 }
 async function gdUploadBlob(blob, type, name) {
-    var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: name });
-    await chatPutFile(st.upload_url, st.headers, blob, function() {});
-    var thumbData = type.indexOf('video/') === 0 ? await chatUploadVideoThumbnail(st, blob) : '';
+    var uploadBlob = blob, uploadType = type, uploadName = name;
+    if (type.indexOf('video/') === 0) {
+        var compressed = await chatCompressVideo(blob);
+        uploadBlob = compressed.blob; uploadType = compressed.type || type;
+        if (compressed.compressed) uploadName = compressed.name;
+    }
+    if (uploadBlob.size > CHAT_VIDEO_MAX) throw new Error('video_too_big');
+    var st = await apiCall('POST', '/api/chat/videos/start', { size: uploadBlob.size, type: uploadType, name: uploadName });
+    await chatPutFile(st.upload_url, st.headers, uploadBlob, function() {});
+    var thumbData = uploadType.indexOf('video/') === 0 ? await chatUploadVideoThumbnail(st, uploadBlob) : '';
     var completed = await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
-    return { id: st.id, url: URL.createObjectURL(blob), thumbnail_url: completed.thumbnail_url || '', thumbnail_preview: thumbData };
+    return { id: st.id, url: URL.createObjectURL(uploadBlob), thumbnail_url: completed.thumbnail_url || '', thumbnail_preview: thumbData, size: uploadBlob.size, type: uploadType };
 }
 // 本文のカーソル位置に、1行ぶんの添付を入れる
 function gdInsertToken(tok) {
@@ -4098,8 +4105,9 @@ async function gdAddFile(f) {
     var isMov = !isSb3 && !isImage && (f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name)));
     var isVid = !isSb3 && !isImage && (isMov || f.type === 'video/mp4' || f.type === 'video/webm');
     if (!isSb3 && !isImage && !isVid) { e.err = gt('e_bad_file'); gdEditSync(); return false; }
-    if ((isSb3 || isVid) && f.size > CHAT_VIDEO_MAX) { e.err = ct(isSb3 ? 'e_sb3_too_big' : 'e_video_too_big'); gdEditSync(); return false; }
-    e.err = ''; e.note = gt('upl'); gdEditSync();
+    if (isSb3 && f.size > CHAT_VIDEO_MAX) { e.err = ct('e_sb3_too_big'); gdEditSync(); return false; }
+    if (isVid && f.size > CHAT_VIDEO_SOURCE_MAX) { e.err = ct('e_video_too_big'); gdEditSync(); return false; }
+    e.err = ''; e.note = isVid ? '動画を圧縮中…' : gt('upl'); gdEditSync();
     try {
         if (isImage) {
             var im = await gdUploadImage(f);
@@ -4107,7 +4115,7 @@ async function gdAddFile(f) {
         } else {
             var up = await gdUploadBlob(f, isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type), isSb3 ? f.name : undefined);
             var nm = isSb3 ? f.name.replace(/[\[\]\n]/g, '') : '';
-            e.files[up.id] = { kind: isSb3 ? 'sb3' : 'video', url: up.url, thumbnail_url: up.thumbnail_url || '', name: nm, size: f.size };
+            e.files[up.id] = { kind: isSb3 ? 'sb3' : 'video', url: up.url, thumbnail_url: up.thumbnail_url || '', name: nm, size: up.size || f.size };
             gdInsertToken('![' + nm + '](' + (isSb3 ? 'sb3' : 'vid') + ':' + up.id + ')');
         }
         e.note = '';
@@ -7037,7 +7045,7 @@ function renderAttachBar() {
     var up = chatAttach.status === 'uploading';
     bar.style.display = 'flex';
     bar.innerHTML = (chatAttach.preview ? '<img class="ab-thumb" alt="" src="' + esc(chatAttach.preview) + '">' : '<span>' + (chatAttach.sb3 ? '📦' : chatAttach.other ? '📎' : '🎞') + '</span>') + '<span class="ab-text">' + esc(chatAttach.name) + '（' + mb + '）</span>' +
-        (up ? '<span class="ab-prog"><i style="width:' + Math.round(chatAttach.progress * 100) + '%"></i></span><span>' + esc(ct('uploading')) + '</span>'
+        (up ? '<span class="ab-prog"><i style="width:' + Math.round(chatAttach.progress * 100) + '%"></i></span><span>' + esc(chatAttach.phase === 'compressing' ? '圧縮中' : ct('uploading')) + '</span>'
             : '<span>' + esc(ct('attached')) + '</span><button onclick="chatDiscardAttach()" title="' + esc(ct('cancel')) + '">✕</button>');
 }
 
@@ -7075,6 +7083,96 @@ async function chatCompressImage(file) {
     });
 }
 
+// 動画はアップロード前にブラウザでWebMへ縮小・再エンコードする。
+// WebCodecs/FFmpegなどの追加配布物は不要。非対応環境では元ファイルにフォールバックする。
+var CHAT_VIDEO_SOURCE_MAX = 200 * 1048576;
+var CHAT_VIDEO_OUTPUT_TARGET = 18 * 1048576;
+async function chatCompressVideo(file, onProgress) {
+    var canRecord = typeof MediaRecorder !== 'undefined' &&
+        HTMLCanvasElement.prototype.captureStream &&
+        (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') || MediaRecorder.isTypeSupported('video/webm;codecs=vp8') || MediaRecorder.isTypeSupported('video/webm'));
+    if (!canRecord || file.size > CHAT_VIDEO_SOURCE_MAX) return { blob: file, type: file.type, name: file.name, compressed: false };
+    var url = URL.createObjectURL(file), video = document.createElement('video');
+    var canvas = document.createElement('canvas'), ctx = null;
+    var audioContext = null, sourceNode = null, audioDestination = null, stream = null, recorder = null;
+    var raf = 0, stopped = false;
+    function cleanup() {
+        if (raf) cancelAnimationFrame(raf);
+        try { video.pause(); } catch (e) {}
+        video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
+        if (audioContext && audioContext.state !== 'closed') audioContext.close().catch(function() {});
+        if (stream) stream.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} });
+    }
+    try {
+        video.preload = 'auto'; video.playsInline = true; video.muted = false;
+        // 再生許可とAudioContextの再開は、ファイル選択直後のユーザー操作中に開始する。
+        var AC = window.AudioContext || window.webkitAudioContext;
+        var resumePromise = Promise.resolve();
+        try {
+            if (AC) {
+                audioContext = new AC();
+                sourceNode = audioContext.createMediaElementSource(video);
+                audioDestination = audioContext.createMediaStreamDestination();
+                sourceNode.connect(audioDestination); // スピーカーへは接続しない
+                resumePromise = audioContext.resume();
+            }
+        } catch (audioError) { audioContext = null; audioDestination = null; }
+        var metadataPromise = new Promise(function(resolve, reject) {
+            video.onloadedmetadata = resolve;
+            video.onerror = function() { reject(new Error('video_decode')); };
+        });
+        video.src = url;
+        var playPromise = video.play();
+        await metadataPromise;
+        await resumePromise;
+        await playPromise;
+        if (!video.videoWidth || !video.videoHeight || !isFinite(video.duration) || video.duration <= 0 || video.duration > 600) {
+            cleanup(); return { blob: file, type: file.type, name: file.name, compressed: false };
+        }
+        var scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        ctx = canvas.getContext('2d', { alpha: false });
+        stream = canvas.captureStream(24);
+        if (audioDestination) audioDestination.stream.getAudioTracks().forEach(function(t) { stream.addTrack(t); });
+        video.currentTime = 0;
+        await new Promise(function(resolve) {
+            if (video.currentTime === 0) return resolve();
+            video.onseeked = resolve;
+        });
+        var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
+            (MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm');
+        var audioRate = audioDestination && audioDestination.stream.getAudioTracks().length ? 96000 : 0;
+        var videoRate = Math.max(100000, Math.min(1800000, Math.floor((CHAT_VIDEO_OUTPUT_TARGET * 8 / video.duration) - audioRate)));
+        recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: videoRate, audioBitsPerSecond: audioRate || 64000 });
+        var chunks = [];
+        var result = await new Promise(function(resolve, reject) {
+            recorder.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
+            recorder.onerror = function() { reject(new Error('video_encode')); };
+            recorder.onstop = function() { resolve(new Blob(chunks, { type: 'video/webm' })); };
+            function draw() {
+                if (stopped) return;
+                try { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (e) {}
+                if (onProgress && video.duration) onProgress(Math.min(0.99, video.currentTime / video.duration));
+                if (!video.ended && !video.paused) raf = requestAnimationFrame(draw);
+            }
+            video.onended = function() { stopped = true; if (recorder.state !== 'inactive') recorder.stop(); };
+            recorder.start(1000);
+            draw();
+        });
+        cleanup();
+        if (!result || !result.size || result.size >= file.size || result.size > CHAT_VIDEO_MAX) {
+            return { blob: file, type: file.type, name: file.name, compressed: false };
+        }
+        if (onProgress) onProgress(1);
+        var base = file.name.replace(/\.[^.]+$/, '');
+        return { blob: result, type: 'video/webm', name: base + '.webm', compressed: true };
+    } catch (e) {
+        cleanup();
+        return { blob: file, type: file.type, name: file.name, compressed: false };
+    }
+}
+
 async function chatVideoChosen(inp) {
     var f = inp.files && inp.files[0];
     inp.value = '';
@@ -7085,7 +7183,7 @@ async function chatVideoChosen(inp) {
     var isMov = !isSb3 && (f.type === 'video/quicktime' || (!f.type && /\.mov$/i.test(f.name)));
     var vtype = isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type);
     var isVideo = vtype === 'video/mp4' || vtype === 'video/webm' || vtype === 'video/quicktime';
-    var isOther = !isImage && !isVideo && !isSb3;      // zip・pdf・音声・テキストなど、ほかのファイルはダウンロード形式で送る
+    var isOther = !isImage && !isVideo && !isSb3;
     if (isOther) {
         var ext = (/\.([A-Za-z0-9]{1,8})$/.exec(f.name) || [])[1];
         if (ext && CHAT_FILE_DENY.test(ext)) { setChatMsg(ct('e_bad_file_type')); return; }
@@ -7093,25 +7191,34 @@ async function chatVideoChosen(inp) {
     }
     if (f.size < 1) { setChatMsg(ct('e_bad_video_type')); return; }
     if (isSb3 && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_sb3_too_big')); return; }
-    if (isVideo && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_video_too_big')); return; }
+    if (isVideo && f.size > CHAT_VIDEO_SOURCE_MAX) { setChatMsg(ct('e_video_too_big')); return; }
     if (isOther && f.size > CHAT_VIDEO_MAX) { setChatMsg(ct('e_file_too_big')); return; }
     if (isImage && f.size > 30 * 1048576) { setChatMsg(ct('e_image_too_big')); return; }
     if (chatAttach) await chatDiscardAttach();
-    var blob = f, preview = '';
-    if (isImage) {
-        try { blob = await chatCompressImage(f); }
-        catch (e) { setChatMsg(ct('e_bad_image')); return; }
-        preview = URL.createObjectURL(blob);
-    }
-    chatAttach = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3, other: isOther };
+    var blob = f, preview = '', uploadName = f.name, phase = 'uploading';
+    chatAttach = { name: f.name, size: f.size, status: 'uploading', phase: isVideo ? 'compressing' : 'uploading', progress: 0, id: '', preview: '', sb3: isSb3, other: isOther };
     renderAttachBar();
     var mine = chatAttach;
     try {
+        if (isVideo) {
+            var compressed = await chatCompressVideo(f, function(p) {
+                if (chatAttach !== mine) return;
+                mine.progress = p; mine.phase = 'compressing'; renderAttachBar();
+            });
+            blob = compressed.blob; vtype = compressed.type || vtype; uploadName = compressed.name || f.name;
+            if (blob.size > CHAT_VIDEO_MAX) throw new Error('video_too_big');
+            mine.name = uploadName; mine.size = blob.size; mine.phase = 'uploading'; mine.progress = 0;
+        } else if (isImage) {
+            blob = await chatCompressImage(f);
+            preview = URL.createObjectURL(blob);
+            mine.preview = preview; mine.size = blob.size;
+        }
+        renderAttachBar();
         var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: isImage ? 'image/jpeg' : vtype, name: (isSb3 || isOther) ? f.name : undefined });
         mine.id = st.id;
-        await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; renderAttachBar(); });
+        await chatPutFile(st.upload_url, st.headers, blob, function(p) { mine.progress = p; mine.phase = 'uploading'; renderAttachBar(); });
         if (isVideo) {
-            var thumbData = await chatUploadVideoThumbnail(st, f);
+            var thumbData = await chatUploadVideoThumbnail(st, blob);
             if (thumbData && chatAttach === mine) { mine.preview = thumbData; renderAttachBar(); }
         }
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');

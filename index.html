@@ -254,11 +254,12 @@
 
 
         /* ===== 技術力評価 ===== */
-        .project-rating { font-size: 0.78em; color: #888; margin-top: 3px; cursor: pointer; display: inline-block; padding: 1px 6px; margin-left: -6px; border-radius: 10px; transition: background 0.2s; }
+        .project-rating { white-space: nowrap; font-size: 0.78em; color: #888; margin-top: 3px; cursor: pointer; display: inline-block; padding: 1px 6px; margin-left: -6px; border-radius: 10px; transition: background 0.2s; }
         .project-rating:hover { background: #fff7e0; }
         .project-rating .rate-star { color: #f5b301; }
-        .project-rating .rate-cta { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 10px; background: #fff3cf; color: #9a6a00; font-weight: 700; border: 1px solid #f3d27a; }
-        .project-rating:hover .rate-cta { background: #ffe08a; }
+        .project-rating .rate-cta { margin-left: 6px; color: #4c97ff; font-weight: 700; white-space: nowrap; }
+        .project-rating:hover .rate-cta { text-decoration: underline; }
+        .project-rating.rated .rate-cta { color: #b07d00; }
         .project-rating.rated { color: #b07d00; font-weight: bold; }
         .rate-stars { display: flex; justify-content: center; gap: 4px; margin: 6px 0 10px; }
         .rate-star-btn { font-size: 36px; line-height: 1; border: none; background: transparent; color: #ddd; cursor: pointer; padding: 2px 4px; transition: transform 0.1s, color 0.1s; }
@@ -5255,7 +5256,7 @@ function renderRatingEl(el) {
     var r = ratingCache[id];
     el.classList.toggle('rated', !!(r && r.mine));
     el.title = t('rateTip');
-    var cta = '<span class="rate-cta">' + (r && r.mine ? esc(t('rateMine')) + ' <span class="rate-star">★</span>' + Number(r.mine) : '★ ' + esc(t('rateCta'))) + '</span>';
+    var cta = '<span class="rate-cta">' + (r && r.mine ? esc(t('rateMine')) + ' <span class="rate-star">★</span>' + Number(r.mine) : esc(t('rateCta')) + ' ›') + '</span>';
     if (!r) { el.innerHTML = esc(t('rateLabel')) + ' ' + cta; return; }
     if (r.count) {
         el.innerHTML = esc(t('rateLabel')) + ' <span class="rate-star">★</span>' + r.avg.toFixed(1) + ' (' + r.count + ') ' + cta;

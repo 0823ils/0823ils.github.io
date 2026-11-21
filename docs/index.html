@@ -257,6 +257,8 @@
         .project-rating { font-size: 0.78em; color: #888; margin-top: 3px; cursor: pointer; display: inline-block; padding: 1px 6px; margin-left: -6px; border-radius: 10px; transition: background 0.2s; }
         .project-rating:hover { background: #fff7e0; }
         .project-rating .rate-star { color: #f5b301; }
+        .project-rating .rate-cta { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 10px; background: #fff3cf; color: #9a6a00; font-weight: 700; border: 1px solid #f3d27a; }
+        .project-rating:hover .rate-cta { background: #ffe08a; }
         .project-rating.rated { color: #b07d00; font-weight: bold; }
         .rate-stars { display: flex; justify-content: center; gap: 4px; margin: 6px 0 10px; }
         .rate-star-btn { font-size: 36px; line-height: 1; border: none; background: transparent; color: #ddd; cursor: pointer; padding: 2px 4px; transition: transform 0.1s, color 0.1s; }
@@ -1676,7 +1678,7 @@ const LANG = {
         loginSuccess: function(n) { return n + ' としてログインしました'; },
         loginErrTooMany: 'コードの発行回数が多すぎます。しばらく待ってからやり直してください。',
         rateLabel: '技術力',
-        rateNone: '未評価',
+        rateNone: '未評価', rateCta: '評価する', rateTip: 'ここをクリックして評価する', rateMine: 'あなた',
         rateTitle: '技術力を評価',
         rateNeedLogin: '評価するにはログインが必要です。',
         rateRemove: '評価を取り消す',
@@ -1801,7 +1803,7 @@ const LANG = {
         loginSuccess: function(n) { return 'Logged in as ' + n; },
         loginErrTooMany: 'Too many codes requested. Please wait a while and try again.',
         rateLabel: 'Skill',
-        rateNone: 'Not rated',
+        rateNone: 'Not rated', rateCta: 'Rate', rateTip: 'Click here to rate', rateMine: 'You',
         rateTitle: 'Rate technical skill',
         rateNeedLogin: 'Log in to rate this project.',
         rateRemove: 'Remove my rating',
@@ -5252,11 +5254,13 @@ function renderRatingEl(el) {
     var id = el.getAttribute('data-rate-id');
     var r = ratingCache[id];
     el.classList.toggle('rated', !!(r && r.mine));
-    if (!r) { el.innerText = t('rateLabel'); return; }
+    el.title = t('rateTip');
+    var cta = '<span class="rate-cta">' + (r && r.mine ? esc(t('rateMine')) + ' <span class="rate-star">★</span>' + Number(r.mine) : '★ ' + esc(t('rateCta'))) + '</span>';
+    if (!r) { el.innerHTML = esc(t('rateLabel')) + ' ' + cta; return; }
     if (r.count) {
-        el.innerHTML = esc(t('rateLabel')) + ' <span class="rate-star">★</span>' + r.avg.toFixed(1) + ' (' + r.count + ')';
+        el.innerHTML = esc(t('rateLabel')) + ' <span class="rate-star">★</span>' + r.avg.toFixed(1) + ' (' + r.count + ') ' + cta;
     } else {
-        el.innerText = t('rateLabel') + ' ' + t('rateNone');
+        el.innerHTML = esc(t('rateLabel')) + ' ' + esc(t('rateNone')) + ' ' + cta;
     }
 }
 

@@ -4152,7 +4152,8 @@ function gdJsxOpen() {
         var ins = (hit ? '' : '\n\n') + '```jsxgraph\n' + code + '\n```' + (hit ? '' : '\n\n');
         cur.value = cur.value.slice(0, a) + ins + cur.value.slice(b);
         cur.focus();
-        cur.setSelectionRange(a + ins.length, a + ins.length);
+        var inside = a + (hit ? 0 : 2) + '```jsxgraph\n'.length;   // 保存した図のコードの中にカーソルを置く（gdMbOpen はカーソルのある図を開く）
+        cur.setSelectionRange(inside, inside);
         gdBodyInput(cur);
         close();
         gdMbOpen(true);
@@ -4198,7 +4199,7 @@ function mbClean(a) {
     var m = mbNew(); if (!a || typeof a !== 'object') return m;
     if (Array.isArray(a.box) && a.box.length === 4) { var b = a.box.map(function(x, i) { return mbNn(x, m.box[i]); }); if (b[2] > b[0] && b[1] > b[3]) m.box = b; }
     m.dur = Math.max(0.5, Math.min(120, mbNn(a.dur, 4))); m.loop = a.loop !== false; m.auto = a.auto !== false; m.ease = a.ease === 'lin' ? 'lin' : 'io'; m.dark = !!a.dark; m.axis = a.axis !== false; m.grid = !!a.grid; m.h = Math.max(160, Math.min(900, Math.round(mbNn(a.h, 380)))); m.n = Math.max(1, Math.round(mbNn(a.n, 1)));
-    var ok = { cpoly: 1, tcen: 1, tcirc: 1, cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
+    var ok = { angle: 1, cpoly: 1, tcen: 1, tcirc: 1, cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
     (Array.isArray(a.parts) ? a.parts : []).slice(0, 80).forEach(function(p) {
         if (!p || !ok[p.t]) return; var o = { id: Math.round(mbNn(p.id, 0)), t: p.t }; if (o.id < 1) return; if (o.id >= m.n) m.n = o.id + 1;
         o.color = mbCol(p.color, '#333333'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 3))); o.dash = !!p.dash; if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t)) o.name = mbStr(p.name, 8);
@@ -4668,7 +4669,7 @@ function mbPaint() {
     m.parts.forEach(function(p) { if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) && !p.name) p.name = mbNextName(); });
     h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['cseg', 'aCSeg'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['angle', 'aAng'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
     h += m.parts.length ? m.parts.map(function(p) {
-        return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
+        return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="if(mb)mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
             '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';
     }).join('') : '<div class="mb-note">' + esc(mbt('empty')) + '</div>';
     var B = m.box, bx = function(i, l) { return mbRow(l, '<input type="number" class="mb-in n" step="any" value="' + B[i] + '" onchange="mbBox(' + i + ',this.value)">'); };

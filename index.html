@@ -4670,18 +4670,7 @@ function gdMbOpen(force) {
         blocks.push(m);
         if (s >= m.index && s <= m.index + m[0].length) hit = m;
     }
-    // カーソルがコードブロック外でも、数学図が1つだけならそれを再編集対象にする。
-    // 複数ある場合はカーソルに最も近い図を選ぶ（追加直後のカーソル位置も考慮）。
-    if (!hit && blocks.length === 1) hit = blocks[0];
-    if (!hit && blocks.length > 1) {
-        var near = null, nearDist = Infinity;
-        blocks.forEach(function(x) {
-            var end = x.index + x[0].length;
-            var dist = s < x.index ? x.index - s : (s > end ? s - end : 0);
-            if (dist < nearDist) { nearDist = dist; near = x; }
-        });
-        if (near && nearDist <= 160) hit = near;
-    }
+    // 「数学図」ボタンは、カーソルが図のコードの中にあるときだけその図を直す。それ以外は新しい図を作る（既存の図の再編集は、図の編集ボタンから）。
     if (hit) { var mm = /^\/\/@ model (.*)$/m.exec(hit[1]); if (mm) { try { model = mbClean(JSON.parse(mm[1])); } catch (x) {} }
         if (!model) { if (!force) { gdJsxOpen(); return; } if (!window.confirm(mbt('over'))) return; } }
     var a = hit ? hit.index : s, b = hit ? hit.index + hit[0].length : ta.selectionEnd;

@@ -1282,9 +1282,10 @@
         .gd-md .gd-code pre.gd-blocks { background: #fff; color: #333; }
         .gd-vid { display: block; max-width: 100%; border-radius: 10px; margin: 0 auto; background: #000; }
         .twc-video-lazy { position: relative; display: block; width: min(100%, 640px); aspect-ratio: 16 / 9; max-height: 340px; overflow: hidden; border-radius: 10px; background: #101522; }
-        .twc-video-lazy .twc-video-el { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; margin: 0; border: 0; object-fit: contain; background: #000; }
-        .twc-video-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: #fff; font-size: 38px; text-shadow: 0 2px 8px #000; cursor: pointer; }
-        .twc-video-play::before { content: ''; position: absolute; width: 68px; height: 68px; border-radius: 50%; background: rgba(0,0,0,.62); z-index: -1; }
+        .twc-video-lazy .twc-video-el { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; margin: 0; border: 0; object-fit: contain; background: #000; }
+        .twc-video-poster { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+        .twc-video-lazy.is-started .twc-video-poster { display: none; }
+        .twc-video-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border: 0; background: radial-gradient(circle at center, rgba(0,0,0,.62) 0 34px, transparent 35px); color: #fff; font-size: 38px; text-shadow: 0 2px 8px #000; cursor: pointer; }
         .twc-video-lazy.is-started .twc-video-play { display: none; }
         .gd-vid.twc-video-lazy { width: min(100%, 640px); margin: 0 auto; }
         .chat-video.twc-video-lazy { width: min(100%, 400px); max-height: 320px; min-height: 112px; margin-top: 6px; }
@@ -4080,9 +4081,9 @@ async function chatUploadVideoThumbnail(st, file) {
 async function gdUploadBlob(blob, type, name) {
     var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: name });
     await chatPutFile(st.upload_url, st.headers, blob, function() {});
-    if (type.indexOf('video/') === 0) await chatUploadVideoThumbnail(st, blob);
-    await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
-    return { id: st.id, url: URL.createObjectURL(blob) };
+    var thumbData = type.indexOf('video/') === 0 ? await chatUploadVideoThumbnail(st, blob) : '';
+    var completed = await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
+    return { id: st.id, url: URL.createObjectURL(blob), thumbnail_url: completed.thumbnail_url || '', thumbnail_preview: thumbData };
 }
 // 本文のカーソル位置に、1行ぶんの添付を入れる
 function gdInsertToken(tok) {
@@ -4106,7 +4107,7 @@ async function gdAddFile(f) {
         } else {
             var up = await gdUploadBlob(f, isSb3 ? 'application/x.scratch.sb3' : (isMov ? 'video/quicktime' : f.type), isSb3 ? f.name : undefined);
             var nm = isSb3 ? f.name.replace(/[\[\]\n]/g, '') : '';
-            e.files[up.id] = { kind: isSb3 ? 'sb3' : 'video', url: up.url, name: nm, size: f.size };
+            e.files[up.id] = { kind: isSb3 ? 'sb3' : 'video', url: up.url, thumbnail_url: up.thumbnail_url || '', name: nm, size: f.size };
             gdInsertToken('![' + nm + '](' + (isSb3 ? 'sb3' : 'vid') + ':' + up.id + ')');
         }
         e.note = '';
@@ -6794,9 +6795,10 @@ function chatImageOpen(src) {
 }
 
 function twcVideoHTML(src, thumbnail, className, label) {
-    var poster = thumbnail ? ' poster="' + esc(thumbnail) + '"' : '';
+    var poster = thumbnail ? '<img class="twc-video-poster" loading="lazy" decoding="async" alt="" src="' + esc(thumbnail) + '">' : '';
     var name = label || '動画を再生';
-    return '<div class="twc-video-lazy ' + esc(className || '') + '"><video class="twc-video-el" preload="none" playsinline data-src="' + esc(String(src).replace(/#.*$/, '')) + '"' + poster + ' aria-label="' + esc(name) + '"></video><button class="twc-video-play" type="button" onclick="twcVideoPlay(this)" aria-label="' + esc(name) + '">▶</button></div>';
+    var meta = className === 'chat-video' ? ' onloadedmetadata="chatVideoLoaded(this)"' : '';
+    return '<div class="twc-video-lazy ' + esc(className || '') + '">' + poster + '<video class="twc-video-el" preload="none" playsinline data-src="' + esc(String(src).replace(/#.*$/, '')) + '" aria-label="' + esc(name) + '"' + meta + '></video><button class="twc-video-play" type="button" onclick="twcVideoPlay(this)" aria-label="' + esc(name) + '">▶</button></div>';
 }
 var twcVideoObserver = null;
 function twcVideoWatch(root) {
@@ -7584,7 +7586,7 @@ async function pgPick(inp) {
         var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: (isSb3 || isVideo) ? f.name : undefined });
         item.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
-        if (isVideo) await chatUploadVideoThumbnail(st, blob);
+        if (isVideo) item.preview = await chatUploadVideoThumbnail(st, blob);
         await apiCall('POST', '/api/chat/videos/' + st.id + '/complete');
         item.status = 'ready';
         if (item.removed || pgForm !== form || form.files.indexOf(item) < 0) {

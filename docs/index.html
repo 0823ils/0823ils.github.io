@@ -4129,6 +4129,75 @@ var JX_SN = [
     ['jxSnBounce', "var M# = board.create('point', [0, 0], { name: '', size: 5, fixed: true, color: '#e8590c' });\nanimate(function(t) {\n  M#.setPosition(JXG.COORDS_BY_USER, [0, 3 * Math.abs(Math.sin(t * 2))]);\n});"]
 ];
 var jxN = 0;
+
+// ---- 画像・GIFの書き出し（図のiframeの中で動く） ----
+function mbGifEncode(frames, w, h, delay, loop) {
+    var out = [], i, j, k;
+    function b(v) { out.push(v & 255); }
+    function s(v) { b(v); b(v >> 8); }
+    'GIF89a'.split('').forEach(function(c) { b(c.charCodeAt(0)); });
+    s(w); s(h); b(0xF7); b(0); b(0);
+    for (i = 0; i < 6; i++) for (j = 0; j < 6; j++) for (k = 0; k < 6; k++) { b(i * 51); b(j * 51); b(k * 51); }
+    for (i = 0; i < 40; i++) { var gv = Math.round(i * 255 / 39); b(gv); b(gv); b(gv); }
+    if (loop) { b(0x21); b(0xFF); b(11); 'NETSCAPE2.0'.split('').forEach(function(c) { b(c.charCodeAt(0)); }); b(3); b(1); s(0); b(0); }
+    frames.forEach(function(px, fi) {
+        b(0x21); b(0xF9); b(4); b(0); s(delay + (fi === frames.length - 1 && !loop ? 100 : 0)); b(0); b(0);
+        b(0x2C); s(0); s(0); s(w); s(h); b(0); b(8);
+        var bytes = [], buf = 0, cnt = 0, bits = 9, next = 258, dict = new Map(), cur = -1;
+        function emit(c) { buf |= c << cnt; cnt += bits; while (cnt >= 8) { bytes.push(buf & 255); buf >>>= 8; cnt -= 8; } }
+        emit(256);
+        for (var n = 0; n < w * h; n++) {
+            var r = px[n * 4], g = px[n * 4 + 1], bl = px[n * 4 + 2], mx = Math.max(r, g, bl), mn = Math.min(r, g, bl), idx;
+            if (mx - mn < 10) idx = 216 + Math.round((r + g + bl) / 3 * 39 / 255); else idx = Math.round(r / 51) * 36 + Math.round(g / 51) * 6 + Math.round(bl / 51);
+            if (cur < 0) { cur = idx; continue; }
+            var key = cur * 256 + idx, v = dict.get(key);
+            if (v !== undefined) { cur = v; continue; }
+            emit(cur);
+            if (next < 4096) { dict.set(key, next++); if (next - 1 > (1 << bits) - 1 + 0 && bits < 12) bits++; }
+            else { emit(256); dict.clear(); next = 258; bits = 9; }
+            cur = idx;
+        }
+        if (cur >= 0) emit(cur);
+        emit(257);
+        if (cnt > 0) bytes.push(buf & 255);
+        for (var z = 0; z < bytes.length; z += 255) { var ch = bytes.slice(z, z + 255); b(ch.length); ch.forEach(b); }
+        b(0);
+    });
+    b(0x3B);
+    return new Uint8Array(out);
+}
+function mbFrameExport() {
+    function toImg(scale, maxW, cb) {
+        var box = document.getElementById('jxgbox'), svg = box && box.querySelector('svg');
+        if (!svg) { parent.postMessage({ mbxerr: 1 }, '*'); return; }
+        var r = svg.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height), c = svg.cloneNode(true), fo = c.querySelectorAll('foreignObject'), i;
+        for (i = 0; i < fo.length; i++) fo[i].parentNode.removeChild(fo[i]);
+        c.setAttribute('xmlns', 'http://www.w3.org/2000/svg'); c.setAttribute('width', w); c.setAttribute('height', h); c.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        var bg = getComputedStyle(box).backgroundColor; if (!bg || bg === 'rgba(0, 0, 0, 0)') bg = '#fff';
+        var im = new Image();
+        im.onload = function() {
+            var s = Math.min(scale, maxW / w), cv = document.createElement('canvas'); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
+            var x = cv.getContext('2d'); x.fillStyle = bg; x.fillRect(0, 0, cv.width, cv.height); x.drawImage(im, 0, 0, cv.width, cv.height); cb(cv, x);
+        };
+        im.onerror = function() { parent.postMessage({ mbxerr: 1 }, '*'); };
+        im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c));
+    }
+    addEventListener('message', function(e) {
+        var d = e.data; if (e.source !== parent || !d || !d.mbx) return;
+        try {
+            if (d.mbx === 'png') toImg(2, 2000, function(cv) { cv.toBlob(function(bl) { parent.postMessage({ mbxres: 'png', blob: bl }, '*'); }, 'image/png'); });
+            else if (d.mbx === 'gif') {
+                if (!window.mbSeek) { parent.postMessage({ mbxerr: 'noanim' }, '*'); return; }
+                var frames = [], W = 0, H = 0, i = 0;
+                (function next() {
+                    if (i >= d.n) { var u8 = mbGifEncode(frames, W, H, Math.round(100 / d.fps), d.loop); parent.postMessage({ mbxres: 'gif', blob: new Blob([u8], { type: 'image/gif' }) }, '*'); return; }
+                    window.mbSeek(i / d.fps);
+                    toImg(1, 640, function(cv, x) { W = cv.width; H = cv.height; frames.push(x.getImageData(0, 0, W, H).data); i++; parent.postMessage({ mbxp: i / d.n }, '*'); setTimeout(next, 0); });
+                })();
+            }
+        } catch (err) { parent.postMessage({ mbxerr: 1 }, '*'); }
+    });
+}
 function gdJsxDoc(code, editableMathIndex) {
     var box = [-6, 4.5, 6, -4.5], axis = false, grid = false, height = 360, body = [];
     String(code || '').split('\n').forEach(function(l) {
@@ -4145,9 +4214,10 @@ function gdJsxDoc(code, editableMathIndex) {
     var csp = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' " + org + "; style-src 'unsafe-inline' " + org + "; img-src data: blob:; font-src " + org + " data:";
     var safe = body.join('\n').replace(/<\//g, '<\\/');
     var helper = "function animate(f){var t0=Date.now();(function l(){f((Date.now()-t0)/1000);board.update();requestAnimationFrame(l)})()}";
-    var init = "var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});" + helper;
+    var init = "JXG.Options.text.display='internal';var board=JXG.JSXGraph.initBoard('jxgbox',{boundingbox:" + JSON.stringify(box) + ",axis:" + axis + ",grid:" + grid + ",showCopyright:false,showNavigation:false,keepAspectRatio:true,pan:{enabled:false},zoom:{wheel:false,pinch:false}});" + helper;
     var rep = "function r(){parent.postMessage({gdh:Math.ceil(document.documentElement.scrollHeight)},'*')}addEventListener('load',r);" +
         (Number.isInteger(editableMathIndex) ? "document.addEventListener('dblclick',function(){parent.postMessage({gdMathEdit:" + editableMathIndex + "},'*');});" : "");
+    rep += (';' + mbGifEncode.toString() + ';(' + mbFrameExport.toString() + ')();').replace(/<\//g, '<\\/');
     var err = "window.onerror=function(m){var e=document.getElementById('jxerr');e.textContent=String(m);e.style.display='block';};";
     return '<!doctype html><meta http-equiv="Content-Security-Policy" content="' + csp + '"><meta charset="utf-8"><base target="_blank">' +
         '<link rel="stylesheet" href="' + base + 'jsxgraph.css"><style>html,body{margin:0;background:#fff}#jxgbox{width:100%;height:' + height + 'px;border:1px solid #d9e2f3;border-radius:10px;box-sizing:border-box}#jxerr{display:none;font:12px monospace;color:#b3261e;background:#fdecea;padding:6px 10px;white-space:pre-wrap}</style>' +
@@ -4220,7 +4290,7 @@ function gdJsxOpen() {
 var MBT = {
     ja: { title: '数学図をつくる（コード不要）', export: '書き出し', import: '読み込み', exported: '数学図をJSONファイルに書き出しました', imported: '数学図を読み込みました', importError: 'JSONファイルを読み込めませんでした。正しい数学図ファイルか確認してください。', importLarge: 'ファイルが大きすぎます（2MB以下にしてください）', ins: '記事に入れる', upd: '更新する', close: '閉じる', undo: '元に戻す', redo: 'やり直し', code: 'コードで見る・直す', over: 'コードで書いた図を、ボタンで作る図に置き換えます。よいですか？',
         tpl: '例から始める', tCut: '座標の線で三角形を分割', tSeg: '点と線分', tBlank: '空から', add: '部品を足す',
-        aPt: '点', aAng: '角度', k_angle: '角度', angP1: '始点', angV: '頂点', angP2: '終点', shape: '形', sAuto: '自動（90°なら直角記号）', sSector: '扇形（塗る）', sArc: '弧だけ', sSquare: '直角記号', rev: '反対側（大きい方）を測る', alabel: '文字（θ・αなど）', showVal: '角度の値(°)を出す', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
+        aPt: '点', aAng: '角度', k_angle: '角度', aFn: '関数グラフ y=f(x)', k_fn: '関数グラフ', fnf: 'y =', fnLo: 'xの左端（空ならずっと）', fnHi: 'xの右端（空ならずっと）', fnRad: '三角関数をラジアンで（オフなら度数法）', fnNote: '式の中で x を使います。例: x^2-2*x、sin(x)、sqrt(x+1)、a*x（aはスライダー）。', angName: '名前（式で ang(名前) と書くと、この角度の値(°)が使えます）', expPng: '画像(PNG)', expGif: 'GIF動画', gifBusy: 'GIFを作っています…', gifNo: 'GIFにはキーフレームで動くスライダーが必要です', expFail: '書き出しに失敗しました', angP1: '始点', angV: '頂点', angP2: '終点', shape: '形', sAuto: '自動（90°なら直角記号）', sSector: '扇形（塗る）', sArc: '弧だけ', sSquare: '直角記号', rev: '反対側（大きい方）を測る', alabel: '文字（θ・αなど）', showVal: '角度の値(°)を出す', aSeg: '線分', aLine: '直線', aH: '水平線', aV: '垂直線', aPoly: '多角形', aCut: '線で切り分け', aCir: '円', aTxt: '文字', aVar: 'スライダー', aMid: '中点', aCPoly: '座標で多角形', aTCen: '内心・外心・重心', aTCirc: '内接円・外接円', k_cpoly: '座標の多角形', k_tcen: '三角形の中心', k_tcirc: '三角形の円', kIn: '内心／内接円', kOut: '外心／外接円', kG: '重心', p3: '点3', vtx: '頂点', dark: '暗い背景', edge: '切り口に線を引く', ec: '切り口の色', ew: '切り口の太さ', tTri: '三角形と内接円・外接円（暗い背景）', kind: '種類', aCSeg: '座標で線', play: '▶ 再生', pause: '⏸ 止める', k_cseg: '座標の線', x1: '始点 横', y1: '始点 縦', x2: '終点 横', y2: '終点 縦', inf: '直線にする（のばす）', showSl: 'スライダーを表示', kfs: 'キーフレーム（時間で値を変える）', kfAdd: 'キーフレームを足す', time: '時間(秒)', anim: 'アニメーション', dur: '長さ（秒）', loop: 'くり返す', auto: '自動で再生', ease: 'なめらかに動かす', constv: '足す数', needPts: '点が2つ必要です',
         k_pt: '点', k_mid: '中点', k_seg: '線分', k_line: '直線', k_hline: '水平線', k_vline: '垂直線', k_poly: '多角形', k_cut: '切り分け', k_circle: '円', k_text: '文字', k_var: 'スライダー',
         name: '名前', x: '横', y: '縦', drag: '動かせる', show: '表示', color: '色', width: '太さ', dash: '点線', size: '大きさ', p1: '点1', p2: '点2', verts: '頂点', addV: '頂点を足す', fill: '塗り', op: '濃さ(0〜1)', lineC: '線の色',
         poly: '切る図形', by: '切る線', c1: '上・右側の色', c2: '下・左側の色', r: '半径', center: '中心', through: '通る点（半径の代わり）', none: 'なし', text: '文字（{スライダー名} で値、{x(A)}・{y(A)} で点Aの座標を表示）', fs: '文字の大きさ',
@@ -4228,7 +4298,7 @@ var MBT = {
         range: '表示範囲', xmin: '左', xmax: '右', ymin: '下', ymax: '上', axis: '軸を出す', grid: '目盛り線を出す', all: '全体', front: '手前へ', back: '奥へ', del: '消す', hint: '点はプレビューで直接ドラッグして位置を決められます。', empty: '部品がありません', unnamed: '（名前なし）' },
     en: { title: 'Build a math figure (no code)', export: 'Export', import: 'Import', exported: 'Math figure exported as JSON', imported: 'Math figure imported', importError: 'Could not read this JSON file. Check that it is a valid math figure file.', importLarge: 'File is too large (maximum 2 MB)', ins: 'Insert', upd: 'Update', close: 'Close', undo: 'Undo', redo: 'Redo', code: 'View / edit code', over: 'This replaces the hand-written code with a figure built by buttons. OK?',
         tpl: 'Start from', tCut: 'Split a triangle with a coordinate line', tSeg: 'Points and a segment', tBlank: 'Blank', add: 'Add parts',
-        aPt: 'Point', aAng: 'Angle', k_angle: 'Angle', angP1: 'Start', angV: 'Vertex', angP2: 'End', shape: 'Shape', sAuto: 'Auto (right-angle mark at 90°)', sSector: 'Sector (filled)', sArc: 'Arc only', sSquare: 'Right-angle mark', rev: 'Measure the other side (larger)', alabel: 'Label (θ, α …)', showVal: 'Show value (°)', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
+        aPt: 'Point', aAng: 'Angle', k_angle: 'Angle', aFn: 'Function graph y=f(x)', k_fn: 'Function graph', fnf: 'y =', fnLo: 'Left end of x (blank = unlimited)', fnHi: 'Right end of x (blank = unlimited)', fnRad: 'Trig in radians (off = degrees)', fnNote: 'Use x in the formula. e.g. x^2-2*x, sin(x), sqrt(x+1), a*x (a is a slider).', angName: 'Name (write ang(name) in a formula to use this angle in degrees)', expPng: 'Image (PNG)', expGif: 'GIF animation', gifBusy: 'Making GIF…', gifNo: 'GIF needs a slider animated with keyframes', expFail: 'Export failed', angP1: 'Start', angV: 'Vertex', angP2: 'End', shape: 'Shape', sAuto: 'Auto (right-angle mark at 90°)', sSector: 'Sector (filled)', sArc: 'Arc only', sSquare: 'Right-angle mark', rev: 'Measure the other side (larger)', alabel: 'Label (θ, α …)', showVal: 'Show value (°)', aSeg: 'Segment', aLine: 'Line', aH: 'Horizontal', aV: 'Vertical', aPoly: 'Polygon', aCut: 'Cut by line', aCir: 'Circle', aTxt: 'Text', aVar: 'Slider', aMid: 'Midpoint', aCPoly: 'Polygon by coordinates', aTCen: 'Incenter / circumcenter / centroid', aTCirc: 'Incircle / circumcircle', k_cpoly: 'Coordinate polygon', k_tcen: 'Triangle center', k_tcirc: 'Triangle circle', kIn: 'Incenter / incircle', kOut: 'Circumcenter / circumcircle', kG: 'Centroid', p3: 'Point 3', vtx: 'Vertex', dark: 'Dark background', edge: 'Draw a line along the cut', ec: 'Cut line color', ew: 'Cut line width', tTri: 'Triangle with incircle & circumcircle (dark)', kind: 'Kind', aCSeg: 'Line by coordinates', play: '▶ Play', pause: '⏸ Pause', k_cseg: 'Coordinate line', x1: 'Start X', y1: 'Start Y', x2: 'End X', y2: 'End Y', inf: 'Extend as a line', showSl: 'Show slider', kfs: 'Keyframes (change value over time)', kfAdd: 'Add keyframe', time: 'Time (s)', anim: 'Animation', dur: 'Length (s)', loop: 'Loop', auto: 'Autoplay', ease: 'Smooth motion', constv: 'Plus', needPts: 'Needs two points',
         k_pt: 'Point', k_mid: 'Midpoint', k_seg: 'Segment', k_line: 'Line', k_hline: 'Horizontal line', k_vline: 'Vertical line', k_poly: 'Polygon', k_cut: 'Cut', k_circle: 'Circle', k_text: 'Text', k_var: 'Slider',
         name: 'Name', x: 'X', y: 'Y', drag: 'Draggable', show: 'Visible', color: 'Color', width: 'Width', dash: 'Dashed', size: 'Size', p1: 'Point 1', p2: 'Point 2', verts: 'Vertices', addV: 'Add vertex', fill: 'Fill', op: 'Opacity (0-1)', lineC: 'Line color',
         poly: 'Polygon to cut', by: 'Cutting line', c1: 'Upper / right color', c2: 'Lower / left color', r: 'Radius', center: 'Center', through: 'Through point (instead of radius)', none: 'None', text: 'Text ({slider name} shows its value; {x(A)} / {y(A)} show point coordinates)', fs: 'Font size',
@@ -4247,7 +4317,7 @@ function mbClean(a) {
     var m = mbNew(); if (!a || typeof a !== 'object') return m;
     if (Array.isArray(a.box) && a.box.length === 4) { var b = a.box.map(function(x, i) { return mbNn(x, m.box[i]); }); if (b[2] > b[0] && b[1] > b[3]) m.box = b; }
     m.dur = Math.max(0.5, Math.min(120, mbNn(a.dur, 4))); m.loop = a.loop !== false; m.auto = a.auto !== false; m.ease = a.ease === 'lin' ? 'lin' : 'io'; m.dark = !!a.dark; m.axis = a.axis !== false; m.grid = !!a.grid; m.h = Math.max(160, Math.min(900, Math.round(mbNn(a.h, 380)))); m.n = Math.max(1, Math.round(mbNn(a.n, 1)));
-    var ok = { angle: 1, cpoly: 1, tcen: 1, tcirc: 1, cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
+    var ok = { fn: 1, angle: 1, cpoly: 1, tcen: 1, tcirc: 1, cseg: 1, pt: 1, mid: 1, seg: 1, line: 1, hline: 1, vline: 1, poly: 1, cut: 1, circle: 1, text: 1, 'var': 1 };
     (Array.isArray(a.parts) ? a.parts : []).slice(0, 80).forEach(function(p) {
         if (!p || !ok[p.t]) return; var o = { id: Math.round(mbNn(p.id, 0)), t: p.t }; if (o.id < 1) return; if (o.id >= m.n) m.n = o.id + 1;
         o.color = mbCol(p.color, '#333333'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 3))); o.dash = !!p.dash; if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t)) o.name = mbStr(p.name, 8);
@@ -4263,7 +4333,8 @@ function mbClean(a) {
         else if (p.t === 'poly') { o.pts = (Array.isArray(p.pts) ? p.pts : []).slice(0, 12).map(function(x) { return Math.round(mbNn(x, 0)); }); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0.4); o.line = mbCol(p.line, '#555555'); }
         else if (p.t === 'cut') { o.poly = Math.round(mbNn(p.poly, 0)); o.by = Math.round(mbNn(p.by, 0)); o.c1 = mbCol(p.c1, '#4d97ff'); o.c2 = mbCol(p.c2, '#ff6680'); o.op = mbNum(p.op, 1); o.edge = !!p.edge; o.ec = mbCol(p.ec, '#ff4d4d'); o.ew = Math.max(1, Math.min(12, mbNn(p.ew, 3))); }
         else if (p.t === 'circle') { o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 2); o.through = Math.round(mbNn(p.through, 0)); o.fill = mbCol(p.fill, '#4d97ff'); o.op = mbNum(p.op, 0); o.color = mbCol(p.color, '#555555'); }
-        else if (p.t === 'angle') { o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 0.8); ['a', 'b', 'c'].forEach(function(k) { o[k + 'm'] = p[k + 'm'] === 'pt' || (p[k + 'm'] == null && p[k + 'x'] == null && p[k + 'y'] == null) ? 'pt' : 'xy'; o[k + 'x'] = mbNum(p[k + 'x'], 0); o[k + 'y'] = mbNum(p[k + 'y'], 0); }); o.shape = /^(auto|sector|arc|square)$/.test(p.shape) ? p.shape : 'auto'; o.color = mbCol(p.color, '#d9480f'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 2))); o.fill = mbCol(p.fill, '#ffa94d'); o.op = mbNum(p.op, 0.35); o.rev = !!p.rev; o.text = mbStr(p.text, 12); o.showVal = p.showVal !== false; o.fs = Math.max(8, Math.min(40, mbNn(p.fs, 15))); }
+        else if (p.t === 'fn') { o.f = mbStr(p.f, 180) || 'x'; o.rad = p.rad !== false; o.color = mbCol(p.color, '#1971c2'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 2))); o.dash = !!p.dash; ['lo', 'hi'].forEach(function(k) { o[k] = (p[k] === '' || p[k] == null || !isFinite(Number(p[k]))) ? '' : Number(p[k]); }); }
+        else if (p.t === 'angle') { o.name = mbStr(p.name, 12).replace(/[^A-Za-z0-9_]/g, ''); o.a = Math.round(mbNn(p.a, 0)); o.b = Math.round(mbNn(p.b, 0)); o.c = Math.round(mbNn(p.c, 0)); o.r = mbNum(p.r, 0.8); ['a', 'b', 'c'].forEach(function(k) { o[k + 'm'] = p[k + 'm'] === 'pt' || (p[k + 'm'] == null && p[k + 'x'] == null && p[k + 'y'] == null) ? 'pt' : 'xy'; o[k + 'x'] = mbNum(p[k + 'x'], 0); o[k + 'y'] = mbNum(p[k + 'y'], 0); }); o.shape = /^(auto|sector|arc|square)$/.test(p.shape) ? p.shape : 'auto'; o.color = mbCol(p.color, '#d9480f'); o.w = Math.max(1, Math.min(12, mbNn(p.w, 2))); o.fill = mbCol(p.fill, '#ffa94d'); o.op = mbNum(p.op, 0.35); o.rev = !!p.rev; o.text = mbStr(p.text, 12); o.showVal = p.showVal !== false; o.fs = Math.max(8, Math.min(40, mbNn(p.fs, 15))); }
         else if (p.t === 'text') { o.x = mbNum(p.x, 0); o.y = mbNum(p.y, 0); o.text = mbStr(p.text, 120); o.fs = Math.max(8, Math.min(60, mbNn(p.fs, 16))); o.color = mbCol(p.color, '#222222'); }
         else if (p.t === 'var') { o.label = mbStr(p.label, 20); o.mode = p.mode === 'expr' ? 'expr' : 'slider'; o.min = mbNn(p.min, 0); o.max = mbNn(p.max, 1); if (o.max <= o.min) o.max = o.min + 1; o.v = Math.min(o.max, Math.max(o.min, mbNn(p.v, o.min))); o.formula = mbStr(p.formula, 180) || String(o.v); o.step = Math.max(0, mbNn(p.step, 0)); o.show = p.show !== false;
             o.kf = (Array.isArray(p.kf) ? p.kf : []).slice(0, 20).map(function(q) { return { t: Math.max(0, mbNn(q && q.t, 0)), v: mbNn(q && q.v, o.min) }; }).sort(function(x, y) { return x.t - y.t; }); }
@@ -4286,7 +4357,7 @@ function mbClean(a) {
     return m;
 }
 // ---- データからJSXGraphのコードを作る ----
-function mgExprCode(src, m, ownerId, strict) {
+function mgExprCode(src, m, ownerId, strict, fx) {
     src = String(src == null ? '' : src).trim();
     if (!src || src.length > 180) throw new Error('式は1〜180文字で入力してください');
     var tokens = [], i = 0, reNum = /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i, reId = /^[A-Za-z_][A-Za-z0-9_]*/;
@@ -4372,7 +4443,12 @@ function mgExprCode(src, m, ownerId, strict) {
             if (peek('(')) {
                 at++;
                 var coordMatch = /^([xy])([1-9][0-9]*)$/i.exec(low);
-                if (low === 'x' || low === 'y') {
+                if (low === 'ang') {
+                    if (!peek('id')) throw new Error('ang(名前) のように角度の名前を指定してください');
+                    var an = tokens[at++].v; take(')');
+                    var ap = named(parts.filter(function(q) { return q.t === 'angle' && q.name; }), an, function(q) { return q.name; }, '角度');
+                    out = '(typeof G' + ap.id + "==='undefined'||!G" + ap.id + '?0:G' + ap.id + '.Value())';
+                } else if (low === 'x' || low === 'y') {
                     if (!peek('id')) throw new Error('x(A) / y(A) のように点名を指定してください');
                     var pn = tokens[at++].v; take(')'); var point = pointByName(pn); out = 'P' + point.id + (low === 'x' ? '.X()' : '.Y()');
                 } else if (coordMatch) {
@@ -4385,12 +4461,14 @@ function mgExprCode(src, m, ownerId, strict) {
                     if (!peek(')')) { args.push(add()); while (peek(',')) { at++; args.push(add()); } }
                     take(')');
                     if ((f[1] > 0 && args.length !== f[1]) || (f[1] === 1 && args.length !== 1) || (f[1] === -1 && args.length < 1)) throw new Error(name + ' の引数の数が違います');
-                    if (low === 'sin' || low === 'cos' || low === 'tan') out = 'Math.' + low + '((' + args[0] + ')*Math.PI/180)';
+                    if (fx && fx.rad && /^(sin|cos|tan|asin|acos|atan)$/.test(low)) out = 'Math.' + low + '(' + args[0] + ')';
+                    else if (low === 'sin' || low === 'cos' || low === 'tan') out = 'Math.' + low + '((' + args[0] + ')*Math.PI/180)';
                     else if (low === 'asin' || low === 'acos' || low === 'atan') out = '(Math.' + low + '(' + args[0] + ')*180/Math.PI)';
                     else out = 'Math.' + f[0] + '(' + args.join(',') + ')';
                 }
             } else if (low === 'pi') out = 'Math.PI';
             else if (low === 'e') out = 'Math.E';
+            else if (fx && low === 'x') out = 'x';
             else { var v = variableByName(name); out = 'V' + v.id + '.Value()'; }
         } else throw new Error('数値、変数、点座標、または括弧が必要です');
         depth--; return out;
@@ -4416,6 +4494,7 @@ var MB_ANG = "function mbAngle(A,B,C,Rf,shape,color,w,fill,op,txt,sv,fs,tc){var 
     "if(sh==='square'){var u=[Math.cos(s.a1),Math.sin(s.a1)],v=[Math.cos(s.a1+s.d),Math.sin(s.a1+s.d)],r=s.r*0.7;X=[bx,bx+r*u[0],bx+r*(u[0]+v[0]),bx+r*v[0],bx];Y=[by,by+r*u[1],by+r*(u[1]+v[1]),by+r*v[1],by];}" +
     "else{for(k=0;k<=48;k++){t=s.a1+s.d*k/48;X.push(bx+s.r*Math.cos(t));Y.push(by+s.r*Math.sin(t));}if(sh==='sector'){X.push(bx);Y.push(by);X.push(X[0]);Y.push(Y[0]);}}" +
     "this.dataX=X;this.dataY=Y;this.visProp.fillopacity=(sh==='arc')?0:(typeof op==='function'?op():op);};" +
+    "var bz=0;cv.Value=function(){if(bz)return 0;bz=1;try{return g().d*180/Math.PI;}finally{bz=0;}};" +
     "if(txt||sv){board.create('text',[function(){var s=g(),m=s.a1+s.d/2,r=s.r+0.5;return B.X()+r*Math.cos(m)-0.15;},function(){var s=g(),m=s.a1+s.d/2,r=s.r+0.5;return B.Y()+r*Math.sin(m);},function(){var s=g(),dg=+(s.d*180/Math.PI).toFixed(1);return (txt||'')+(txt&&sv?' = ':'')+(sv?dg+'\u00b0':'');}],{fontSize:fs,strokeColor:tc,fixed:true,highlight:false});}return cv;}";
 function mbGen(m, edit) {
     var o = [], B = m.box, W = B[2] - B[0], H = B[1] - B[3], vi = 0, by = {}, q = mgQ, hasCut = false;
@@ -4487,7 +4566,10 @@ function mbGen(m, edit) {
         } else if (p.t === 'angle') {
             var xyo = function(k) { return '{X:function(){return ' + mgJ(p[k + 'x'], m, p.id, false) + ';},Y:function(){return ' + mgJ(p[k + 'y'], m, p.id, false) + ';}}'; };
             var ga = xyo('a'), gb = xyo('b'), gc = xyo('c');
-            o.push('mbAngle(' + (p.rev ? gc : ga) + ', ' + gb + ', ' + (p.rev ? ga : gc) + ', ' + mgF(p.r, m, p.id, false) + ', ' + q(p.shape) + ', ' + q(p.color) + ', ' + p.w + ', ' + q(p.fill) + ', ' + mgF(p.op, m, p.id, false) + ', ' + q(p.text) + ', ' + !!p.showVal + ', ' + p.fs + ', ' + q(m.dark ? '#d8dbe6' : '#222222') + ');');
+            o.push((p.name ? 'var G' + p.id + ' = ' : '') + 'mbAngle(' + (p.rev ? gc : ga) + ', ' + gb + ', ' + (p.rev ? ga : gc) + ', ' + mgF(p.r, m, p.id, false) + ', ' + q(p.shape) + ', ' + q(p.color) + ', ' + p.w + ', ' + q(p.fill) + ', ' + mgF(p.op, m, p.id, false) + ', ' + q(p.text) + ', ' + !!p.showVal + ', ' + p.fs + ', ' + q(m.dark ? '#d8dbe6' : '#222222') + ');');
+        } else if (p.t === 'fn') {
+            var fcode = mgExprCode(p.f, m, p.id, false, { rad: p.rad !== false }), lo = p.lo === '' ? null : p.lo, hi = p.hi === '' ? null : p.hi;
+            o.push("board.create('functiongraph', [function(x){var _v=" + fcode + ';return isFinite(_v)?_v:NaN;}' + (lo != null || hi != null ? ', ' + (lo != null ? lo : -1e6) + ', ' + (hi != null ? hi : 1e6) : '') + '], { strokeColor: ' + q(p.color) + ', strokeWidth: ' + p.w + ', dash: ' + (p.dash ? 2 : 0) + ', highlight: false, fixed: true });');
         } else if (p.t === 'text') {
             var lab = {}; m.parts.forEach(function(v) { if (v.t === 'var') lab[v.label] = v.id; });
             var ex = String(p.text).split(/\{([^}]*)\}/).map(function(s, i) {
@@ -4507,6 +4589,9 @@ function mbGen(m, edit) {
         o.push("var mbBtn = board.create('button', [" + (B[0] + W * 0.04) + ', ' + (B[1] - H * 0.07 - vi * H * 0.1) + ', ' + q(m.auto ? mbt('pause') : mbt('play')) + ', function(){mbOn=!mbOn;mbBtn.rendNodeButton.textContent=mbOn?' + q(mbt('pause')) + ':' + q(mbt('play')) + ';}], {});');
         o.push('animate(function(t){if(mbL==null)mbL=t;var dt=t-mbL;mbL=t;if(mbOn){mbT+=dt;if(mbT>MBD){if(MBLOOP)mbT=mbT%MBD;else{mbT=MBD;mbOn=false;mbBtn.rendNodeButton.textContent=' + q(mbt('play')) + ';}}}if(mbOn||mbF){MBK.forEach(function(o){o.v.setValue(mbInt(o.k,mbT));});mbF=false;}});');
     }
+    if (m.parts.some(function(p) { return p.t === 'angle' && p.name; })) o.push('board.update();');
+    var anim2 = m.parts.some(function(p) { return p.t === 'var' && p.mode !== 'expr' && p.kf && p.kf.length > 1; });
+    if (anim2) o.push('window.mbSeek=function(t){mbOn=false;mbT=Math.min(MBD,Math.max(0,t));MBK.forEach(function(o){o.v.setValue(mbInt(o.k,mbT));});board.update();};');
     return o.join('\n') + '\n';
 }
 // ---- 作る画面 ----
@@ -4546,8 +4631,9 @@ function mbAdd(kind) {
     }
     else if (kind === 'angle') {
         // 始点・頂点・終点の座標を直接入力する独立した角度部品
-        base('angle', { ax: -2, ay: 0, bx: 0, by: 0, cx: 0, cy: 2, r: 0.8, shape: 'auto', color: '#d9480f', w: 2, fill: '#ffa94d', op: 0.35, rev: false, text: '', showVal: true, fs: 15 });
+        base('angle', { name: 'ang' + (mbOf(['angle']).length + 1), ax: -2, ay: 0, bx: 0, by: 0, cx: 0, cy: 2, r: 0.8, shape: 'auto', color: '#d9480f', w: 2, fill: '#ffa94d', op: 0.35, rev: false, text: '', showVal: true, fs: 15 });
     }
+    else if (kind === 'fn') base('fn', { f: 'x^2', rad: true, color: '#1971c2', w: 2, dash: false, lo: '', hi: '' });
     else if (kind === 'circle') { a = mbPt(); base('circle', { c: a.id, r: 2, through: 0, color: '#555555', w: 2, fill: '#4d97ff', op: 0 }); }
     else if (kind === 'text') base('text', { x: cx, y: cy, text: '文字', fs: 18, color: '#222222' });
     else if (kind === 'var') { var n = mbOf(['var']).length; base('var', { label: n ? 'kmnpqrs'.charAt((n - 1) % 7) : 't', min: 0, max: 1, v: 0.5, step: 0, show: true, kf: [] }); }
@@ -4589,6 +4675,24 @@ function mbTpl(kind) {
     mbPaint(); mbDraw(true);
 }
 function mbSnap(key) { var nw = Date.now(); if (nw - mb.lp > 700 || mb.lk !== key) { mb.u.push(JSON.stringify(mb.m)); if (mb.u.length > 80) mb.u.shift(); mb.r = []; } mb.lp = nw; mb.lk = key; }
+function mbExportImg(kind) {
+    var f = document.getElementById('mb-if'); if (!mb || !f || !f.contentWindow) return;
+    mb.busy = kind;
+    if (kind === 'gif') {
+        var dur = Math.max(0.5, Math.min(60, mb.m.dur || 5)), fps = dur > 12 ? 8 : dur > 6 ? 12 : 15, n = Math.min(240, Math.ceil(dur * fps));
+        showToast(mbt('gifBusy')); f.contentWindow.postMessage({ mbx: 'gif', n: n, fps: fps, loop: !!mb.m.loop }, '*');
+    } else f.contentWindow.postMessage({ mbx: 'png' }, '*');
+}
+function mbExportMsg(d) {
+    if (d.mbxp != null) { showToast(mbt('gifBusy') + ' ' + Math.round(d.mbxp * 100) + '%'); return; }
+    if (d.mbxerr) { showToast(d.mbxerr === 'noanim' ? mbt('gifNo') : mbt('expFail')); return; }
+    if (d.mbxres && d.blob) {
+        var url = URL.createObjectURL(d.blob), a = document.createElement('a'), dt = new Date();
+        a.href = url; a.download = 'math-figure-' + dt.getFullYear() + String(dt.getMonth() + 1).padStart(2, '0') + String(dt.getDate()).padStart(2, '0') + '-' + String(dt.getHours()).padStart(2, '0') + String(dt.getMinutes()).padStart(2, '0') + '.' + d.mbxres;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+        if (mb && d.mbxres === 'gif') mbDraw(true);
+    }
+}
 function mbExportFile() {
     if (!mb || !mb.m) return;
     try {
@@ -4631,9 +4735,9 @@ function mbDraw(now) { clearTimeout(mb.tm); mb.tm = setTimeout(function() { var 
 function mbFxHelp() { return currentLang === 'en' ? 'Formulas: + - * / ^, sin/cos/tan, sqrt, abs, log, pi, slider names, x(A), y(A), x1(A), y1(A), x2(A), y2(A). For polygons, the number is the vertex order. Horizontal/vertical line coordinates use the current view edges. Trig uses degrees (sin(90)=1).' : '式: + - * / ^、sin/cos/tan、sqrt、abs、log、pi、変数名、点は x(A)・y(A)、線や多角形は x1(A)・y1(A)〜xN(A)・yN(A)。多角形の番号は頂点順です。水平線・垂直線の1・2番は現在の表示範囲の端です。三角関数は度数法（sin(90)=1）。'; }
 function mbSetExpr(id, k, raw) {
     var p = mbGet(id); if (!p) return; raw = mbStr(raw, 180).trim();
-    try { mgExprCode(raw, mb.m, p.id, p.t === 'pt' || (p.t === 'var' && k === 'formula')); }
+    try { mgExprCode(raw, mb.m, p.id, p.t === 'pt' || (p.t === 'var' && k === 'formula'), p.t === 'fn' ? { rad: p.rad !== false } : undefined); }
     catch (e) { showToast((currentLang === 'en' ? 'Formula error: ' : '数式エラー: ') + e.message); mbPaint(); return; }
-    mbSnap(id + k); if (p.t === 'var' && k === 'formula') p.formula = raw; else { var r = mbR(p, k); r.o[r.k] = { e: raw }; }
+    mbSnap(id + k); if (p.t === 'fn') p.f = raw; else if (p.t === 'var' && k === 'formula') p.formula = raw; else { var r = mbR(p, k); r.o[r.k] = { e: raw }; }
     mbDraw(); mbPaint();
 }
 function mbSet(id, k, v, kind) {
@@ -4642,7 +4746,7 @@ function mbSet(id, k, v, kind) {
     if (p.t === 'var' && k === 'mode' && v === 'expr' && p.mode !== 'expr') p.formula = String(p.v);
     p[k] = v;
     if (p.t === 'var') { if (p.max <= p.min) p.max = p.min + 1; p.v = Math.min(p.max, Math.max(p.min, p.v)); }
-    mbDraw(); if (kind === 'b' || kind === 'i' || k === 'name' || k === 'label' || k === 'min' || k === 'max' || k === 'mode') mbPaint();
+    mbDraw(); if (kind === 'b' || kind === 'i' || k === 'name' || k === 'label' || k === 'rad' || k === 'min' || k === 'max' || k === 'mode') mbPaint();
 }
 function mbR(p, k) { var a = String(k).split('.'); return a.length === 1 ? { o: p, k: k } : { o: p[a[0]][+a[1]], k: a[2] }; }
 function mbSetNv(id, k, w, v) {
@@ -4680,7 +4784,7 @@ function mbDel(id) {
     mbPaint(); mbDraw();
 }
 function mbVerts(id, j, v) { var p = mbGet(id); if (!p) return; mbSnap('vt'); if (v === 'del') p.pts.splice(j, 1); else if (v === 'add') { if (p.pts.length >= 12) return; var P = mbOf(['pt']); p.pts.push(P.length ? P[P.length - 1].id : 0); } else p.pts[j] = Math.round(Number(v)); mbPaint(); mbDraw(); }
-function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : /^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) ? (p.name || mbt('unnamed')) : ''; }
+function mbName(p) { return p.t === 'pt' || p.t === 'mid' || p.t === 'tcen' ? (p.name || mbt('unnamed')) : p.t === 'var' ? p.label : p.t === 'angle' ? (p.name || '') : /^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) ? (p.name || mbt('unnamed')) : ''; }
 function mbRow(l, inner) { return '<label class="mb-r"><span>' + esc(l) + '</span>' + inner + '</label>'; }
 function mbSelPt(p, k, withNone) { return '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'i\')">' + (withNone ? '<option value="0">' + esc(mbt('none')) + '</option>' : '') + mbPtsAll().filter(function(x) { return x.id !== p.id; }).map(function(x) { return '<option value="' + x.id + '"' + (x.id === p[k] ? ' selected' : '') + '>' + esc(mbName(x)) + '</option>'; }).join('') + '</select>'; }
 function mbSel(p, k, opts) { return mbRow(mbt('kind'), '<select class="mb-in" onchange="mbSet(' + p.id + ',\'' + k + '\',this.value,\'s\')">' + opts.map(function(o) { return '<option value="' + o[0] + '"' + (p[k] === o[0] ? ' selected' : '') + '>' + esc(mbt(o[1])) + '</option>'; }).join('') + '</select>'); }
@@ -4720,7 +4824,10 @@ function mbBody(p) {
         '<button class="mb-ab" onclick="mbVerts(' + p.id + ',0,\'add\')">+ ' + esc(mbt('addV')) + '</button>' + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op')) + mbFC(p, 'line', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1);
     else if (p.t === 'cut') h = mbRow(mbt('poly'), mbSelOf(p, 'poly', ['poly', 'cpoly'])) + mbRow(mbt('by'), mbSelOf(p, 'by', ['line', 'hline', 'vline', 'cseg'])) + mbFC(p, 'c1', mbt('c1')) + mbFC(p, 'c2', mbt('c2')) + mbFL(p, 'op', mbt('op')) + mbFB(p, 'edge', mbt('edge')) + mbFC(p, 'ec', mbt('ec')) + mbFN(p, 'ew', mbt('ew'), 1);
     else if (p.t === 'circle') h = mbRow(mbt('center'), mbSelPt(p, 'c')) + mbFL(p, 'r', mbt('r')) + mbRow(mbt('through'), mbSelPt(p, 'through', true)) + mbFC(p, 'color', mbt('lineC')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash')) + mbFC(p, 'fill', mbt('fill')) + mbFL(p, 'op', mbt('op'));
-    else if (p.t === 'angle') h = [['a', 'angP1'], ['b', 'angV'], ['c', 'angP2']].map(function(z) {
+    else if (p.t === 'fn') h = '<div class="mb-note">' + esc(mbt('fnNote')) + '</div>' + mbFormulaInput(p, 'f', mbt('fnf')) + mbFB(p, 'rad', mbt('fnRad')) +
+        mbRow(mbt('fnLo'), '<input class="mb-in n" value="' + esc(p.lo) + '" onchange="mbSet(' + p.id + ',\'lo\',this.value,\'s\')">') + mbRow(mbt('fnHi'), '<input class="mb-in n" value="' + esc(p.hi) + '" onchange="mbSet(' + p.id + ',\'hi\',this.value,\'s\')">') +
+        mbFC(p, 'color', mbt('color')) + mbFN(p, 'w', mbt('width'), 1) + mbFB(p, 'dash', mbt('dash'));
+    else if (p.t === 'angle') h = mbRow(mbt('angName'), '<input class="mb-in" maxlength="12" value="' + esc(p.name || '') + '" onchange="mbSet(' + p.id + ',\'name\',this.value.replace(/[^A-Za-z0-9_]/g,\'\'),\'s\')">') + [['a', 'angP1'], ['b', 'angV'], ['c', 'angP2']].map(function(z) {
             var k = z[0];
             return '<div class="mb-h">' + esc(mbt(z[1])) + '</div>' + mbFL(p, k + 'x', mbt('x')) + mbFL(p, k + 'y', mbt('y'));
         }).join('') + mbFB(p, 'rev', mbt('rev')) + mbFL(p, 'r', mbt('r')) +
@@ -4733,7 +4840,7 @@ function mbBody(p) {
 function mbPaint() {
     var pn = document.getElementById('mb-side'); if (!pn || !mb) return; var m = mb.m, h = '';
     m.parts.forEach(function(p) { if (/^(seg|line|cseg|hline|vline|poly|cpoly)$/.test(p.t) && !p.name) p.name = mbNextName(); });
-    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['cseg', 'aCSeg'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['angle', 'aAng'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
+    h += '<div class="mb-sec"><div class="mb-h">' + esc(mbt('add')) + '</div><div class="mb-add">' + [['pt', 'aPt'], ['cseg', 'aCSeg'], ['cpoly', 'aCPoly'], ['cut', 'aCut'], ['circle', 'aCir'], ['angle', 'aAng'], ['fn', 'aFn'], ['text', 'aTxt'], ['var', 'aVar']].map(function(x) { return '<button class="mb-ab" onclick="mbAdd(\'' + x[0] + '\')">+ ' + esc(mbt(x[1])) + '</button>'; }).join('') + '</div><div class="mb-note">' + esc(mbt('hint')) + '</div><div class="mb-note">' + esc(mbFxHelp()) + '</div></div>';
     h += m.parts.length ? m.parts.map(function(p) {
         return '<details class="mb-card"' + (mb.open[p.id] ? ' open' : '') + ' ontoggle="if(mb)mb.open[' + p.id + ']=this.open"><summary><b>' + esc(mbt('k_' + p.t)) + '</b> <span>' + esc(mbName(p)) + '</span><i></i>' +
             '<button class="mb-ib" title="' + esc(mbt('back')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',-1)">&uarr;</button><button class="mb-ib" title="' + esc(mbt('front')) + '" onclick="event.preventDefault();mbMove(' + p.id + ',1)">&darr;</button><button class="mb-ib" title="' + esc(mbt('del')) + '" onclick="event.preventDefault();mbDel(' + p.id + ')">x</button></summary><div class="mb-body">' + mbBody(p) + '</div></details>';
@@ -4764,12 +4871,13 @@ function gdMbOpen(force) {
     var ov = document.createElement('div'); ov.id = 'mb-ov';
     ov.innerHTML = '<div class="mb-box"><div class="mb-top"><b>' + esc(mbt('title')) + '</b><span class="mb-sp"></span>' +
         '<span class="mb-tpl">' + esc(mbt('tpl')) + ': <button class="gd-btn" data-tpl="cut">' + esc(mbt('tCut')) + '</button><button class="gd-btn" data-tpl="seg">' + esc(mbt('tSeg')) + '</button><button class="gd-btn" data-tpl="blank">' + esc(mbt('tBlank')) + '</button></span>' +
-        '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-export">' + esc(mbt('export')) + '</button><button class="gd-btn" id="mb-import">' + esc(mbt('import')) + '</button><input type="file" id="mb-import-file" accept=".json,application/json" style="display:none">' + '<button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
+        '<button class="gd-btn" onclick="mbUndo()">' + esc(mbt('undo')) + '</button><button class="gd-btn" onclick="mbRedo()">' + esc(mbt('redo')) + '</button><button class="gd-btn" id="mb-export">' + esc(mbt('export')) + '</button><button class="gd-btn" onclick="mbExportImg(\'png\')">' + esc(mbt('expPng')) + '</button><button class="gd-btn" onclick="mbExportImg(\'gif\')">' + esc(mbt('expGif')) + '</button><button class="gd-btn" id="mb-import">' + esc(mbt('import')) + '</button><input type="file" id="mb-import-file" accept=".json,application/json" style="display:none">' + '<button class="gd-btn" id="mb-code">' + esc(mbt('code')) + '</button>' +
         '<button class="gd-btn" id="mb-close">' + esc(mbt('close')) + '</button><button class="gd-btn primary" id="mb-ins">' + esc(mbt(hit ? 'upd' : 'ins')) + '</button></div>' +
         '<div class="mb-main"><div class="mb-prev"><iframe id="mb-if" sandbox="allow-scripts" referrerpolicy="no-referrer" title="' + esc(mbt('title')) + '"></iframe></div><div class="mb-side" id="mb-side"></div></div></div>';
     document.body.appendChild(ov);
     function onMsg(ev) {
-        var f = document.getElementById('mb-if'), d = ev.data; if (!mb || !f || ev.source !== f.contentWindow || !d || typeof d.mbp !== 'number') return;
+        var f = document.getElementById('mb-if'), d = ev.data; if (mb && f && ev.source === f.contentWindow && d && (d.mbxres || d.mbxerr || d.mbxp != null)) { mbExportMsg(d); return; }
+        if (!mb || !f || ev.source !== f.contentWindow || !d || typeof d.mbp !== 'number') return;
         var p = mbGet(d.mbp); if (!p || p.t !== 'pt') return; mbSnap('drag' + d.mbp); p.x = Math.round(d.x * 100) / 100; p.y = Math.round(d.y * 100) / 100;
         [['x', p.x], ['y', p.y]].forEach(function(z) { var i = document.querySelector('[data-f="' + p.id + '.' + z[0] + '"]'); if (i) i.value = z[1]; });
     }

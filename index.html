@@ -7158,6 +7158,7 @@ async function chatCompressVideo(file, onProgress) {
             }
             video.onended = function() { stopped = true; if (recorder.state !== 'inactive') recorder.stop(); };
             recorder.start(1000);
+            if (video.ended) { stopped = true; recorder.stop(); return; }
             draw();
         });
         cleanup();

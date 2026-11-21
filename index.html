@@ -1211,7 +1211,19 @@
         .gd-jsx[data-math-index] iframe { cursor:default; }
         @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
         .gd-sc { margin: 0 0 1em; }
-        .gd-md .sb3-card { width: min(100%, 560px); margin-top: 0; }
+        /* 記事の中の実行カード: 実行前も実行中も、上に画面・下に名前と操作。幅も同じ */
+        .gd-md .sb3-card, .gd-md .sb3-card.open { width: min(100%, 560px); margin-top: 0; display: flex; flex-direction: column; background: #fff; border-color: #dbe5f6; padding: 10px; }
+        .gd-md .sb3-card .sc-thumb, .gd-md .sb3-card .sc-stage { order: 1; }
+        .gd-md .sb3-card .sc-head, .gd-md .sb3-card .sc-meta { order: 2; }
+        .gd-md .sb3-card .sc-actions { order: 3; }
+        .gd-md .sb3-card .sc-stage { margin: 0 0 10px; border-radius: 12px; background: #000; }
+        .gd-md .sb3-card .sc-thumb { margin: 0; border-radius: 12px; }
+        .gd-md .sb3-card .sc-head { padding: 2px 2px 0; }
+        .gd-md .sb3-card .sc-meta { margin: 10px 2px 0; }
+        .gd-md .sb3-card .sc-actions { margin-top: 8px; }
+        .gd-md .sb3-card .sc-actions .sc-run { padding: 8px 20px; }
+        .gd-md .sb3-card.open .sc-run { background: #fff; border: 1px solid #c9d7f2; color: #3d5a94; }
+        .gd-md .sb3-card.open .sc-run:hover { background: #eef4ff; }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }

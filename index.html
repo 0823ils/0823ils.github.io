@@ -1102,6 +1102,18 @@
         .set-notif { display: none; border-top: 1px solid #f0f0f0; max-width: 270px; padding: 4px 0; }
         .set-notif .notif-mode, .set-notif .notif-push { padding: 8px 0; border-bottom: none; }
         .set-notif .notif-mode + .notif-push { border-top: 1px solid #f6f6f6; }
+        .sl-wrap { padding: 6px 0 8px; border-top: 1px solid #f6f6f6; font-size: 12px; color: #555; }
+        .sl-wrap summary { cursor: pointer; font-weight: 700; color: #444; }
+        .sl-wrap label { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0; line-height: 1.5; }
+        .sl-wrap .sl-p { border: 1px solid #e6ebf5; border-radius: 8px; padding: 6px 8px; margin: 6px 0; }
+        .sl-wrap .sl-p b a { color: #4c97ff; text-decoration: none; }
+        .sl-wrap .sl-v { font-family: monospace; font-size: 11px; color: #333; line-height: 1.5; word-break: break-all; }
+        .sl-wrap .sl-s { color: #999; font-size: 11px; }
+        .sl-wrap .sl-add { display: flex; gap: 6px; margin-top: 6px; }
+        .sl-wrap input[type=text] { flex: 1; min-width: 0; border: 1px solid #d9e2f3; border-radius: 8px; padding: 5px 8px; font-size: 12px; }
+        .sl-wrap button { border: none; background: #4D97FF; color: #fff; border-radius: 14px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+        .sl-wrap button.off { background: #eef1f6; color: #555; }
+        .sl-wrap .sl-n { color: #888; line-height: 1.5; margin-top: 6px; font-size: 11px; }
         .set-notif .notif-mode:empty, .set-notif .notif-push:empty { display: none; }
         /* サイトを開いてすぐ出す「通知をオンにしますか？」 */
         .push-banner { position: fixed; top: 98px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
@@ -1345,6 +1357,7 @@
                 <div class="set-notif" id="set-notif">
                     <div class="notif-mode" id="notif-mode"></div>
                     <div class="notif-push" id="notif-push"></div>
+                    <div class="sl-wrap" id="sl-wrap"></div>
                 </div>
             </div>
         </div>
@@ -9001,6 +9014,7 @@ async function pushKeyFresh(sub, info) {
 }
 
 async function renderPushRow() {
+    renderScratchLink();
     var el = document.getElementById('notif-push');
     if (!el) return;
     if (!loginUser || !apiEnabled()) { el.style.display = 'none'; return; }
@@ -9022,6 +9036,50 @@ async function renderPushRow() {
     } else {
         el.innerHTML = '<button onclick="pushEnable()">' + esc(pt('on')) + '</button>';
     }
+}
+// ===== Scratch連携（Scratchの通知を知らせる／クラウド変数を保存する。家のサーバーが動かす） =====
+var SL_T = {
+    ja: { h: 'Scratch連携（通知・クラウド変数）', notify: 'Scratchに通知が来たら、TWCの通知（プッシュ）でも知らせる', projects: 'クラウド変数を保存する作品', none: 'まだ登録した作品はありません', ph: '作品のID（数字）', add: '登録', del: '外す', sync: '最終の保存', never: 'まだ保存されていません',
+        note: '自分の作品だけ登録できます。保存は家のサーバーが数分おきに行い、履歴はずっと残ります。通知の送り先は、上の「この端末に通知」をオンにした端末です。', bad: '作品のIDは数字で入れてください',
+        not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています', not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました' },
+    en: { h: 'Scratch link (messages & cloud variables)', notify: 'Also notify me through TWC push when Scratch sends me a message', projects: 'Projects whose cloud variables are saved', none: 'No projects yet', ph: 'Project ID (number)', add: 'Add', del: 'Remove', sync: 'Last saved', never: 'Not saved yet',
+        note: 'Only your own projects can be added. The home server saves every few minutes and keeps the history forever. Push goes to devices with "Notify this device" turned on above.', bad: 'Enter the project ID as a number',
+        not_your_project: 'You can only add your own projects', too_many_projects: 'You can add up to 10 projects', already_registered: 'This project is already registered', not_found: 'Project not found', full: 'Registration is full right now', fail: 'Failed', ok: 'Added', rm: 'Removed' }
+};
+function slt(k) { return (SL_T[currentLang] || SL_T.ja)[k]; }
+async function renderScratchLink() {
+    var el = document.getElementById('sl-wrap');
+    if (!el) return;
+    if (!loginUser || !apiEnabled()) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = '';
+    var d;
+    try { d = await apiCall('GET', '/api/scratchlink/mine'); } catch (e) { el.style.display = 'none'; return; }
+    var open = el.querySelector('details') && el.querySelector('details').open;
+    el.innerHTML = '<details' + (open ? ' open' : '') + '><summary>' + esc(slt('h')) + '</summary>' +
+        '<label><input type="checkbox" id="sl-notify"' + (d.notify ? ' checked' : '') + ' onchange="slNotify(this.checked)"> <span>' + esc(slt('notify')) + '</span></label>' +
+        '<div><b>' + esc(slt('projects')) + '</b></div>' +
+        (d.projects.length ? d.projects.map(function(p) {
+            var vs = p.vars.length ? p.vars.map(function(v) { return esc(v.name) + ' = ' + esc(v.value); }).join('<br>') : esc(slt('never'));
+            return '<div class="sl-p"><b><a href="https://scratch.mit.edu/projects/' + p.id + '/" target="_blank" rel="noopener">' + p.id + '</a></b> <button class="off" style="float:right" onclick="slRemove(' + p.id + ')">' + esc(slt('del')) + '</button>' +
+                '<div class="sl-v">' + vs + '</div><div class="sl-s">' + esc(slt('sync')) + ': ' + (p.last_sync ? new Date(p.last_sync).toLocaleString() : '—') + '</div></div>';
+        }).join('') : '<div class="sl-s">' + esc(slt('none')) + '</div>') +
+        '<div class="sl-add"><input type="text" id="sl-pid" inputmode="numeric" placeholder="' + esc(slt('ph')) + '" onkeydown="if(event.key===\'Enter\')slAdd()"><button onclick="slAdd()">' + esc(slt('add')) + '</button></div>' +
+        '<div class="sl-n">' + esc(slt('note')) + '</div></details>';
+}
+async function slNotify(on) {
+    try { await apiCall('PUT', '/api/scratchlink/notify', { enabled: !!on }); } catch (e) { showToast(slt('fail')); renderScratchLink(); }
+}
+async function slAdd() {
+    var inp = document.getElementById('sl-pid'), raw = inp ? inp.value.trim() : '';
+    var m = /(\d{3,12})/.exec(raw);   // URLを貼っても、IDだけ拾う
+    if (!m) { showToast(slt('bad')); return; }
+    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('ok')); }
+    catch (e) { showToast(slt(e.message) || slt('fail')); }
+    renderScratchLink();
+}
+async function slRemove(id) {
+    try { await apiCall('POST', '/api/cloudsave/remove', { id: id }); showToast(slt('rm')); } catch (e) { showToast(slt('fail')); }
+    renderScratchLink();
 }
 // 同じ端末で別のアカウントに切り替えたときも、いまのアカウントに届くようにする
 var pushSynced = '';

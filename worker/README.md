@@ -217,3 +217,6 @@ npx wrangler deploy
 - Worker の反映: `npx wrangler deploy`
 
 GAS 側は日本語・英語の翻訳に対応し、1回の要求で最大20件、各1,000文字まで処理します。Worker 側ではログイン必須・ユーザーごとの利用回数制限・サイト全体の日次上限を適用します。
+
+## Scratch連携（通知・クラウド変数の保存）
+家のサーバーと連携する機能です。`migrate_scratchlink.sql` を実行し、シークレット `HOME_SECRET` を登録してからデプロイします。手順は `../homeserver/README.md` にあります。

@@ -1210,6 +1210,8 @@
         .gd-math-hint { margin:0 2px; color:#8793a5; font-size:11px; user-select:none; }
         .gd-jsx[data-math-index] iframe { cursor:default; }
         @media (max-width: 760px) { .jx-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }
+        .gd-sc { margin: 0 0 1em; }
+        .gd-md .sb3-card { width: min(100%, 560px); margin-top: 0; }
         .gd-scratch { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 1em; padding: 12px 16px; border-radius: 12px; background: #fff7e8; border: 1px solid #ffd9a0; color: #8a5a00; text-decoration: none; }
         .gd-scratch span { font-size: 13px; }
         .gd-none { color: #8a94a8; }
@@ -3625,8 +3627,17 @@ function gdMd(src, imgs) {
             while (i < lines.length && re.test(lines[i])) li.push('<li>' + gdInline(lines[i++].replace(re, ''), imgs) + '</li>');
             out.push((ol ? '<ol>' : '<ul>') + li.join('') + (ol ? '</ol>' : '</ul>')); continue;
         }
-        if ((m = /^\s*https?:\/\/(?:www\.)?scratch\.mit\.edu\/projects\/(\d{1,12})\/?\s*$/i.exec(l))) {
-            flush(); out.push('<a href="#" class="gd-scratch" onclick="return gdOpenScratch(' + Number(m[1]) + ')"><b>Scratch #' + Number(m[1]) + '</b><span>' + esc(gt('openScratch')) + ' →</span></a>'); i++; continue;
+        // 作品のURL・.sb3のURLだけの行は、その場で実行できるカードにする（「実行」で、TurboWarpが記事の中で動く）
+        if ((m = /^\s*(?:\[[^\]\n]*\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/\S+))\s*$/.exec(l))) {
+            var lu = (m[1] || m[2]).replace(/[)\]、。，．!?,.]+$/, ''), card = '';
+            if (/^https?:\/\/[^?#\s]+\.sb3(?:[?#]\S*)?$/i.test(lu) && /^https:/i.test(lu)) {
+                var nm = decodeURIComponent((lu.split(/[?#]/)[0].split('/').pop() || 'project.sb3')).slice(0, 80);
+                card = chatSb3CardHTML({ url: lu, name: nm, size: 0 }, '');
+            } else if (/^https?:\/\/(?:www\.)?scratch\.mit\.edu\/projects\/\d{1,12}/i.test(lu) || chatEmbedOf(lu)) {
+                var ce = chatEmbedOf(lu);
+                if (ce && ce.k === 'scratch') card = chatEmbedsHTML(lu);
+            }
+            if (card) { flush(); out.push('<div class="gd-sc">' + card + '</div>'); i++; continue; }
         }
         para.push(l); i++;
     }
@@ -3816,6 +3827,7 @@ function gdReadPaint() {
     box.innerHTML = h;
     if (g.published) { gdCommentsPaint(); gdCommentForm(); }
     gdScratchBlocks(box);
+    if (typeof chatCardsMeta === 'function') chatCardsMeta(box);
 }
 function gdUser(e, name) { if (e.metaKey || e.ctrlKey || e.shiftKey) return true; openProfile(name); return false; }
 async function gdLike() {
@@ -3940,6 +3952,7 @@ function gdEditTab(p) {
     document.getElementById('gd-e-body').style.display = p ? 'none' : '';
     var pv = document.getElementById('gd-e-prev'); pv.style.display = p ? '' : 'none';
     if (p) pv.innerHTML = '<h1 class="gd-h1">' + esc(e.title) + '</h1>' + gdMd(e.body, e.files);
+    if (p && typeof chatCardsMeta === 'function') chatCardsMeta(pv);
     document.getElementById('gd-t-w').classList.toggle('on', !p); document.getElementById('gd-t-p').classList.toggle('on', p);
 }
 function gdEditBack() {

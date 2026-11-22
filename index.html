@@ -9267,7 +9267,7 @@ var SL_T = {
         pickP: '左から作品を選んでください', vars: '変数', value: '現在の値', upd: '更新', hist: '変更の履歴', pickV: '変数を選ぶと、値の移り変わりが見られます', csv: 'CSVで保存', hCnt: '件', time: '時刻', who: '変更した人', nHist: '履歴がまだありません',
         note: '自分の作品だけ登録できます。保存は家のサーバーが1分ごとに行い、履歴はずっと残ります（Scratch側の履歴は短いので、残しておきたい作品向きです）。',
         bad: '作品のIDは数字で入れてください', not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています',
-        not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
+        not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', wait: '登録しました。サーバーが最初の保存をするまで、数秒から1分ほどかかります。この画面は自動で更新されます。', emptyV: 'まだ変数の記録がありません。この作品で、クラウド変数が変わると記録が始まります（遊んでみてください）。サーバーが止まっている場合も、ここは空のままです。', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
     en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
         rHead: 'Write rules', rNone: 'No rules yet', rKind: 'Type', kLoad: 'Load (return data for an ID)', kSave: 'Save (store data per ID)', kCalc: 'Calculate (return a computed value)', rIn: 'Variable to receive', rOut: 'Variable to write back', rOutOpt: 'Variable to write back (optional)', rF: 'Formula (v = received value)', rEcho: 'Also return the received value (digit count + value in front)', rAdd: 'Add rule', rDel: 'Delete', rHits: 'Runs', rLast: 'Last', rStore: 'Saved data', rStoreNone: 'No saved data yet', rKey: 'ID', rData: 'Data', rNoWriter: 'No Scratch account for writing is set on the home server. Put SCRATCH_USER and SCRATCH_SESSION in its .env (use a dedicated account).', rNeedP: 'Register a project in the Cloud variables tab first',
         dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes (1 digit = ID length) + ID + saved data. If nothing is saved, only the ID part.', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. If you set a reply variable, the same value is written back as an acknowledgement.', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
@@ -9279,7 +9279,7 @@ var SL_T = {
         pickP: 'Pick a project on the left', vars: 'Variables', value: 'Value', upd: 'Updated', hist: 'History', pickV: 'Pick a variable to see how its value changed', csv: 'Save as CSV', hCnt: ' rows', time: 'Time', who: 'Changed by', nHist: 'No history yet',
         note: 'Only your own projects can be added. The home server saves every minute and keeps history forever (Scratch itself keeps only a short history).',
         bad: 'Enter the project ID as a number', not_your_project: 'You can only add your own projects', too_many_projects: 'You can add up to 10 projects', already_registered: 'This project is already registered',
-        not_found: 'Project not found', full: 'Registration is full right now', fail: 'Failed', ok: 'Added', rm: 'Removed', unsupported: 'The server does not support this yet. Install "Scratch link" on the home server.', confirmDel: 'Remove this project? (Its saved values disappear from this screen)' }
+        not_found: 'Project not found', full: 'Registration is full right now', fail: 'Failed', ok: 'Added', rm: 'Removed', wait: 'Added. The server needs a few seconds to a minute for the first save. This screen refreshes by itself.', emptyV: 'No variable records yet. Recording starts when a cloud variable changes in this project (try playing it). It also stays empty while the server is stopped.', unsupported: 'The server does not support this yet. Install "Scratch link" on the home server.', confirmDel: 'Remove this project? (Its saved values disappear from this screen)' }
 };
 function slt(k) { return (SL_T[currentLang] || SL_T.ja)[k]; }
 var sl = null;   // { tab, mine, pid, vname, hist }
@@ -9295,9 +9295,17 @@ async function slOpen() {
     if (!ov) { ov = document.createElement('div'); ov.id = 'sl-ov'; ov.onclick = function(e) { if (e.target === ov) slClose(); }; document.body.appendChild(ov); }
     sl = { tab: (sl && sl.tab) || 'notify', mine: null, pid: null, vname: null, hist: null, err: '' };
     slPaint();
+    clearInterval(window.slTimer);
+    window.slTimer = setInterval(function() {    // 開いている間は、数秒ごとに最新にする（入力中は止める）
+        var a = document.activeElement;
+        if (!sl || !document.getElementById('sl-ov')) { clearInterval(window.slTimer); return; }
+        if (a && (a.tagName === 'INPUT' || a.tagName === 'SELECT')) return;
+        if (sl.tab === 'rules') return;
+        slLoad();
+    }, 5000);
     await slLoad();
 }
-function slClose() { var ov = document.getElementById('sl-ov'); if (ov) ov.remove(); sl = null; }
+function slClose() { var ov = document.getElementById('sl-ov'); if (ov) ov.remove(); sl = null; clearInterval(window.slTimer); }
 async function slLoad() {
     try { sl.mine = await apiCall('GET', '/api/scratchlink/mine'); sl.err = ''; }
     catch (e) { sl.err = slt('unsupported'); }
@@ -9337,7 +9345,7 @@ function slCloudHtml() {
     else {
         var rows = cur.vars.length ? cur.vars.map(function(v) {
             return '<tr class="var' + (v.name === sl.vname ? ' on' : '') + '" data-n="' + esc(v.name) + '" onclick="slVar(this.dataset.n)"><td>' + esc(v.name) + '</td><td class="num">' + esc(v.value) + '</td><td>' + esc(slFmt(v.updated_at)) + '</td></tr>';
-        }).join('') : '<tr><td colspan="3" class="sl-sub">' + esc(slt('never')) + '</td></tr>';
+        }).join('') : '<tr><td colspan="3" class="sl-sub">' + esc(cur.last_sync ? slt('emptyV') : slt('wait')) + '</td></tr>';
         right = '<div><div class="sl-row"><b class="grow">' + cur.id + ' <a href="https://scratch.mit.edu/projects/' + cur.id + '/" target="_blank" rel="noopener" style="font-size:12px;color:#4c97ff">scratch.mit.edu ↗</a></b><button class="sl-b off" onclick="slRemove(' + cur.id + ')">' + esc(slt('del')) + '</button></div>' +
             '<div class="sl-card"><table><tr><th>' + esc(slt('vars')) + '</th><th>' + esc(slt('value')) + '</th><th>' + esc(slt('upd')) + '</th></tr>' + rows + '</table></div>' +
             '<div class="sl-card"><h3>' + esc(slt('hist')) + (sl.vname ? ' — ' + esc(sl.vname) : '') + '</h3>' + slHistHtml() + '</div></div>';
@@ -9420,7 +9428,7 @@ async function slAdd() {
     var inp = document.getElementById('sl-pid'), raw = inp ? inp.value.trim() : '';
     var m = /(\d{3,12})/.exec(raw);   // URLを貼っても、IDだけ拾う
     if (!m) { showToast(slt('bad')); return; }
-    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('ok')); sl.pid = Number(m[1]); }
+    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('wait')); sl.pid = Number(m[1]); }
     catch (e) { showToast(slt(e.message) || slt('fail')); }
     slLoad();
 }

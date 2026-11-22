@@ -1102,18 +1102,42 @@
         .set-notif { display: none; border-top: 1px solid #f0f0f0; max-width: 270px; padding: 4px 0; }
         .set-notif .notif-mode, .set-notif .notif-push { padding: 8px 0; border-bottom: none; }
         .set-notif .notif-mode + .notif-push { border-top: 1px solid #f6f6f6; }
-        .sl-wrap { padding: 6px 0 8px; border-top: 1px solid #f6f6f6; font-size: 12px; color: #555; }
-        .sl-wrap summary { cursor: pointer; font-weight: 700; color: #444; }
-        .sl-wrap label { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0; line-height: 1.5; }
-        .sl-wrap .sl-p { border: 1px solid #e6ebf5; border-radius: 8px; padding: 6px 8px; margin: 6px 0; }
-        .sl-wrap .sl-p b a { color: #4c97ff; text-decoration: none; }
-        .sl-wrap .sl-v { font-family: monospace; font-size: 11px; color: #333; line-height: 1.5; word-break: break-all; }
-        .sl-wrap .sl-s { color: #999; font-size: 11px; }
-        .sl-wrap .sl-add { display: flex; gap: 6px; margin-top: 6px; }
-        .sl-wrap input[type=text] { flex: 1; min-width: 0; border: 1px solid #d9e2f3; border-radius: 8px; padding: 5px 8px; font-size: 12px; }
-        .sl-wrap button { border: none; background: #4D97FF; color: #fff; border-radius: 14px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
-        .sl-wrap button.off { background: #eef1f6; color: #555; }
-        .sl-wrap .sl-n { color: #888; line-height: 1.5; margin-top: 6px; font-size: 11px; }
+        .sl-wrap { padding: 8px 0; border-top: 1px solid #f6f6f6; }
+        .sl-open { width: 100%; border: none; background: #eef4ff; color: #3d7fe6; font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 12px; cursor: pointer; text-align: left; }
+        .sl-open:hover { background: #e0ecff; }
+        #sl-ov { position: fixed; inset: 0; z-index: 100000; background: rgba(20, 28, 48, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        #sl-ov .sl-box { background: #fff; color: #333; width: min(960px, 100%); height: min(680px, 100%); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, .35); }
+        #sl-ov .sl-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #eef0f4; }
+        #sl-ov .sl-head h2 { font-size: 17px; margin: 0; flex: 1; }
+        #sl-ov .sl-x { border: none; background: #f1f3f7; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+        #sl-ov .sl-tabs { display: flex; gap: 6px; padding: 10px 18px 0; border-bottom: 1px solid #eef0f4; }
+        #sl-ov .sl-tab { border: none; background: none; padding: 9px 14px; font-size: 14px; font-weight: 700; color: #888; cursor: pointer; border-bottom: 3px solid transparent; }
+        #sl-ov .sl-tab.on { color: #3d7fe6; border-bottom-color: #4D97FF; }
+        #sl-ov .sl-body { flex: 1; overflow: auto; padding: 18px; }
+        #sl-ov .sl-card { border: 1px solid #e6ebf5; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; background: #fbfcff; }
+        #sl-ov .sl-card h3 { margin: 0 0 8px; font-size: 14px; }
+        #sl-ov .sl-sw { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+        #sl-ov .sl-sw input { width: 44px; height: 24px; accent-color: #4D97FF; cursor: pointer; }
+        #sl-ov .sl-sub { color: #777; font-size: 12.5px; line-height: 1.7; margin-top: 8px; }
+        #sl-ov .sl-cv { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
+        @media (max-width: 720px) { #sl-ov { padding: 0; } #sl-ov .sl-box { height: 100%; border-radius: 0; } #sl-ov .sl-cv { grid-template-columns: 1fr; } }
+        #sl-ov .sl-pl { display: flex; flex-direction: column; gap: 8px; }
+        #sl-ov .sl-pi { border: 2px solid #e6ebf5; border-radius: 12px; padding: 10px 12px; cursor: pointer; background: #fff; }
+        #sl-ov .sl-pi.on { border-color: #4D97FF; background: #f2f7ff; }
+        #sl-ov .sl-pi b { font-size: 14px; }
+        #sl-ov .sl-s { color: #999; font-size: 11.5px; margin-top: 2px; }
+        #sl-ov .sl-add { display: flex; gap: 6px; margin-top: 4px; }
+        #sl-ov input[type=text] { flex: 1; min-width: 0; border: 1px solid #d9e2f3; border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+        #sl-ov button.sl-b { border: none; background: #4D97FF; color: #fff; border-radius: 16px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        #sl-ov button.sl-b.off { background: #eef1f6; color: #555; }
+        #sl-ov table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        #sl-ov th, #sl-ov td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #eef0f4; }
+        #sl-ov td.num { font-family: monospace; word-break: break-all; }
+        #sl-ov tr.var { cursor: pointer; } #sl-ov tr.var:hover td { background: #f5f8ff; } #sl-ov tr.var.on td { background: #eaf2ff; }
+        #sl-ov .sl-chart { width: 100%; height: 180px; background: #fff; border: 1px solid #e6ebf5; border-radius: 10px; }
+        #sl-ov .sl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        #sl-ov .sl-row .grow { flex: 1; }
+        #sl-ov .sl-err { color: #d6336c; font-size: 13px; padding: 12px; }
         .set-notif .notif-mode:empty, .set-notif .notif-push:empty { display: none; }
         /* サイトを開いてすぐ出す「通知をオンにしますか？」 */
         .push-banner { position: fixed; top: 98px; left: 50%; transform: translateX(-50%); width: calc(100% - 24px); max-width: 560px; box-sizing: border-box; z-index: 90; display: none; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; color: #333; border: 1px solid #cfe0ff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); padding: 12px 14px; font-size: 13px; line-height: 1.5; }
@@ -9231,48 +9255,136 @@ async function renderPushRow() {
 }
 // ===== Scratch連携（Scratchの通知を知らせる／クラウド変数を保存する。家のサーバーが動かす） =====
 var SL_T = {
-    ja: { h: 'Scratch連携（通知・クラウド変数）', notify: 'Scratchに通知が来たら、TWCの通知（プッシュ）でも知らせる', projects: 'クラウド変数を保存する作品', none: 'まだ登録した作品はありません', ph: '作品のID（数字）', add: '登録', del: '外す', sync: '最終の保存', never: 'まだ保存されていません',
-        note: '自分の作品だけ登録できます。保存は家のサーバーが数分おきに行い、履歴はずっと残ります。通知の送り先は、上の「この端末に通知」をオンにした端末です。', bad: '作品のIDは数字で入れてください',
-        not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています', not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました' },
-    en: { h: 'Scratch link (messages & cloud variables)', notify: 'Also notify me through TWC push when Scratch sends me a message', projects: 'Projects whose cloud variables are saved', none: 'No projects yet', ph: 'Project ID (number)', add: 'Add', del: 'Remove', sync: 'Last saved', never: 'Not saved yet',
-        note: 'Only your own projects can be added. The home server saves every few minutes and keeps the history forever. Push goes to devices with "Notify this device" turned on above.', bad: 'Enter the project ID as a number',
-        not_your_project: 'You can only add your own projects', too_many_projects: 'You can add up to 10 projects', already_registered: 'This project is already registered', not_found: 'Project not found', full: 'Registration is full right now', fail: 'Failed', ok: 'Added', rm: 'Removed' }
+    ja: { open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', close: '閉じる',
+        nTitle: 'Scratchの通知をお知らせ', nSw: 'Scratchに通知が来たら、TWCのプッシュ通知で知らせる', nOn: 'オン', nOff: 'オフ',
+        nHow: '家のサーバーが1分ごとにScratchの通知の数を見て、増えていたら知らせます。先に、設定の「この端末に通知」をオンにした端末に届きます。',
+        nLast: '最後に確認した通知の数', nAt: '確認した時刻', nNone: 'まだ確認されていません（オンにして、1〜2分待ってください）',
+        projects: '保存する作品', none: 'まだ登録した作品はありません', ph: '作品のIDか、URL', add: '登録', del: 'この作品を外す', sync: '最終の保存', never: 'まだ保存されていません',
+        pickP: '左から作品を選んでください', vars: '変数', value: '現在の値', upd: '更新', hist: '変更の履歴', pickV: '変数を選ぶと、値の移り変わりが見られます', csv: 'CSVで保存', hCnt: '件', time: '時刻', who: '変更した人', nHist: '履歴がまだありません',
+        note: '自分の作品だけ登録できます。保存は家のサーバーが1分ごとに行い、履歴はずっと残ります（Scratch側の履歴は短いので、残しておきたい作品向きです）。',
+        bad: '作品のIDは数字で入れてください', not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています',
+        not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
+    en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', close: 'Close',
+        nTitle: 'Scratch message alerts', nSw: 'Notify me through TWC push when Scratch sends me a message', nOn: 'On', nOff: 'Off',
+        nHow: 'The home server checks your Scratch message count every minute and notifies you when it grows. It goes to devices that have "Notify this device" turned on in settings.',
+        nLast: 'Last message count seen', nAt: 'Checked at', nNone: 'Not checked yet (turn it on and wait a minute or two)',
+        projects: 'Saved projects', none: 'No projects yet', ph: 'Project ID or URL', add: 'Add', del: 'Remove this project', sync: 'Last saved', never: 'Not saved yet',
+        pickP: 'Pick a project on the left', vars: 'Variables', value: 'Value', upd: 'Updated', hist: 'History', pickV: 'Pick a variable to see how its value changed', csv: 'Save as CSV', hCnt: ' rows', time: 'Time', who: 'Changed by', nHist: 'No history yet',
+        note: 'Only your own projects can be added. The home server saves every minute and keeps history forever (Scratch itself keeps only a short history).',
+        bad: 'Enter the project ID as a number', not_your_project: 'You can only add your own projects', too_many_projects: 'You can add up to 10 projects', already_registered: 'This project is already registered',
+        not_found: 'Project not found', full: 'Registration is full right now', fail: 'Failed', ok: 'Added', rm: 'Removed', unsupported: 'The server does not support this yet. Install "Scratch link" on the home server.', confirmDel: 'Remove this project? (Its saved values disappear from this screen)' }
 };
 function slt(k) { return (SL_T[currentLang] || SL_T.ja)[k]; }
+var sl = null;   // { tab, mine, pid, vname, hist }
 async function renderScratchLink() {
     var el = document.getElementById('sl-wrap');
     if (!el) return;
     if (!loginUser || !apiEnabled()) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = '';
-    var d;
-    try { d = await apiCall('GET', '/api/scratchlink/mine'); } catch (e) { el.style.display = 'none'; return; }
-    var open = el.querySelector('details') && el.querySelector('details').open;
-    el.innerHTML = '<details' + (open ? ' open' : '') + '><summary>' + esc(slt('h')) + '</summary>' +
-        '<label><input type="checkbox" id="sl-notify"' + (d.notify ? ' checked' : '') + ' onchange="slNotify(this.checked)"> <span>' + esc(slt('notify')) + '</span></label>' +
-        '<div><b>' + esc(slt('projects')) + '</b></div>' +
-        (d.projects.length ? d.projects.map(function(p) {
-            var vs = p.vars.length ? p.vars.map(function(v) { return esc(v.name) + ' = ' + esc(v.value); }).join('<br>') : esc(slt('never'));
-            return '<div class="sl-p"><b><a href="https://scratch.mit.edu/projects/' + p.id + '/" target="_blank" rel="noopener">' + p.id + '</a></b> <button class="off" style="float:right" onclick="slRemove(' + p.id + ')">' + esc(slt('del')) + '</button>' +
-                '<div class="sl-v">' + vs + '</div><div class="sl-s">' + esc(slt('sync')) + ': ' + (p.last_sync ? new Date(p.last_sync).toLocaleString() : '—') + '</div></div>';
-        }).join('') : '<div class="sl-s">' + esc(slt('none')) + '</div>') +
-        '<div class="sl-add"><input type="text" id="sl-pid" inputmode="numeric" placeholder="' + esc(slt('ph')) + '" onkeydown="if(event.key===\'Enter\')slAdd()"><button onclick="slAdd()">' + esc(slt('add')) + '</button></div>' +
-        '<div class="sl-n">' + esc(slt('note')) + '</div></details>';
+    el.innerHTML = '<button class="sl-open" onclick="slOpen()">🔗 ' + esc(slt('open')) + ' ›</button>';
+}
+async function slOpen() {
+    var ov = document.getElementById('sl-ov');
+    if (!ov) { ov = document.createElement('div'); ov.id = 'sl-ov'; ov.onclick = function(e) { if (e.target === ov) slClose(); }; document.body.appendChild(ov); }
+    sl = { tab: (sl && sl.tab) || 'notify', mine: null, pid: null, vname: null, hist: null, err: '' };
+    slPaint();
+    await slLoad();
+}
+function slClose() { var ov = document.getElementById('sl-ov'); if (ov) ov.remove(); sl = null; }
+async function slLoad() {
+    try { sl.mine = await apiCall('GET', '/api/scratchlink/mine'); sl.err = ''; }
+    catch (e) { sl.err = slt('unsupported'); }
+    if (sl.mine && sl.pid != null && !sl.mine.projects.some(function(p) { return p.id === sl.pid; })) { sl.pid = null; sl.vname = null; sl.hist = null; }
+    if (sl.mine && sl.pid == null && sl.mine.projects.length) sl.pid = sl.mine.projects[0].id;
+    slPaint();
+}
+function slTab(k) { sl.tab = k; slPaint(); }
+function slFmt(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
+function slPaint() {
+    var ov = document.getElementById('sl-ov');
+    if (!ov || !sl) return;
+    var body;
+    if (sl.err) body = '<div class="sl-err">' + esc(sl.err) + '</div>';
+    else if (!sl.mine) body = '<div class="sl-sub">…</div>';
+    else body = sl.tab === 'notify' ? slNotifyHtml() : slCloudHtml();
+    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>🔗 ' + esc(slt('h')) + '</h2><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">✕</button></div>' +
+        '<div class="sl-tabs"><button class="sl-tab' + (sl.tab === 'notify' ? ' on' : '') + '" onclick="slTab(\'notify\')">🔔 ' + esc(slt('tNotify')) + '</button><button class="sl-tab' + (sl.tab === 'cloud' ? ' on' : '') + '" onclick="slTab(\'cloud\')">☁ ' + esc(slt('tCloud')) + '</button></div>' +
+        '<div class="sl-body">' + body + '</div></div>';
+    if (sl.tab === 'cloud') { var c = ov.querySelector('.sl-chart'); if (c && sl.hist) slChart(c); }
+}
+function slNotifyHtml() {
+    var m = sl.mine;
+    return '<div class="sl-card"><h3>' + esc(slt('nTitle')) + '</h3><label class="sl-sw"><input type="checkbox" ' + (m.notify ? 'checked ' : '') + 'onchange="slNotify(this.checked)"> <span>' + esc(slt('nSw')) + '</span></label>' +
+        '<div class="sl-sub">' + esc(slt('nHow')) + '</div></div>' +
+        '<div class="sl-card"><table><tr><th>' + esc(slt('nLast')) + '</th><td class="num">' + (m.notify && m.last_count != null ? esc(m.last_count) : '—') + '</td></tr>' +
+        '<tr><th>' + esc(slt('nAt')) + '</th><td>' + (m.notify && m.checked_at ? esc(slFmt(m.checked_at)) : esc(slt('nNone'))) + '</td></tr></table></div>';
+}
+function slCloudHtml() {
+    var m = sl.mine, cur = m.projects.filter(function(p) { return p.id === sl.pid; })[0];
+    var list = m.projects.length ? m.projects.map(function(p) {
+        return '<div class="sl-pi' + (p.id === sl.pid ? ' on' : '') + '" onclick="slPick(' + p.id + ')"><b>' + p.id + '</b><div class="sl-s">' + esc(slt('sync')) + ': ' + esc(slFmt(p.last_sync)) + '</div></div>';
+    }).join('') : '<div class="sl-sub">' + esc(slt('none')) + '</div>';
+    var left = '<div><div class="sl-pl">' + list + '</div><div class="sl-add"><input type="text" id="sl-pid" placeholder="' + esc(slt('ph')) + '" onkeydown="if(event.key===\'Enter\')slAdd()"><button class="sl-b" onclick="slAdd()">' + esc(slt('add')) + '</button></div><div class="sl-sub">' + esc(slt('note')) + '</div></div>';
+    var right;
+    if (!cur) right = '<div class="sl-sub">' + esc(slt('pickP')) + '</div>';
+    else {
+        var rows = cur.vars.length ? cur.vars.map(function(v) {
+            return '<tr class="var' + (v.name === sl.vname ? ' on' : '') + '" data-n="' + esc(v.name) + '" onclick="slVar(this.dataset.n)"><td>☁ ' + esc(v.name) + '</td><td class="num">' + esc(v.value) + '</td><td>' + esc(slFmt(v.updated_at)) + '</td></tr>';
+        }).join('') : '<tr><td colspan="3" class="sl-sub">' + esc(slt('never')) + '</td></tr>';
+        right = '<div><div class="sl-row"><b class="grow">' + cur.id + ' <a href="https://scratch.mit.edu/projects/' + cur.id + '/" target="_blank" rel="noopener" style="font-size:12px;color:#4c97ff">scratch.mit.edu ↗</a></b><button class="sl-b off" onclick="slRemove(' + cur.id + ')">' + esc(slt('del')) + '</button></div>' +
+            '<div class="sl-card"><table><tr><th>' + esc(slt('vars')) + '</th><th>' + esc(slt('value')) + '</th><th>' + esc(slt('upd')) + '</th></tr>' + rows + '</table></div>' +
+            '<div class="sl-card"><h3>' + esc(slt('hist')) + (sl.vname ? ' — ☁ ' + esc(sl.vname) : '') + '</h3>' + slHistHtml() + '</div></div>';
+    }
+    return '<div class="sl-cv">' + left + right + '</div>';
+}
+function slHistHtml() {
+    if (!sl.vname) return '<div class="sl-sub">' + esc(slt('pickV')) + '</div>';
+    if (!sl.hist) return '<div class="sl-sub">…</div>';
+    if (!sl.hist.length) return '<div class="sl-sub">' + esc(slt('nHist')) + '</div>';
+    var rows = sl.hist.slice(0, 30).map(function(r) { return '<tr><td>' + esc(slFmt(r.ts)) + '</td><td class="num">' + esc(r.value) + '</td><td>' + esc(r.user || '') + '</td></tr>'; }).join('');
+    return '<svg class="sl-chart" viewBox="0 0 600 180" preserveAspectRatio="none"></svg><div class="sl-row" style="margin-top:8px"><span class="grow sl-s">' + sl.hist.length + esc(slt('hCnt')) + '</span><button class="sl-b off" onclick="slCsv()">' + esc(slt('csv')) + '</button></div>' +
+        '<table><tr><th>' + esc(slt('time')) + '</th><th>' + esc(slt('value')) + '</th><th>' + esc(slt('who')) + '</th></tr>' + rows + '</table>';
+}
+function slChart(svg) {
+    var d = sl.hist.slice().reverse(), vals = d.map(function(r) { return Number(r.value); }), t0 = d[0].ts, t1 = d[d.length - 1].ts || t0 + 1;
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals); if (hi === lo) { hi += 1; lo -= 1; }
+    var X = function(ts, i) { return 14 + (t1 === t0 ? i / Math.max(1, d.length - 1) : (ts - t0) / (t1 - t0)) * 572; }, Y = function(v) { return 166 - (v - lo) / (hi - lo) * 150; };
+    var pts = d.map(function(r, i) { return X(r.ts, i).toFixed(1) + ',' + Y(Number(r.value)).toFixed(1); });
+    svg.innerHTML = '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#4D97FF" stroke-width="2" vector-effect="non-scaling-stroke"/>' +
+        '<text x="6" y="12" font-size="11" fill="#999">' + esc(hi) + '</text><text x="6" y="176" font-size="11" fill="#999">' + esc(lo) + '</text>';
+}
+async function slPick(id) { sl.pid = id; sl.vname = null; sl.hist = null; slPaint(); }
+async function slVar(name) {
+    sl.vname = name; sl.hist = null; slPaint();
+    try { var r = await apiCall('GET', '/api/cloudsave/history?id=' + sl.pid + '&name=' + encodeURIComponent(name) + '&limit=500'); if (sl && sl.vname === name) { sl.hist = r.rows || []; slPaint(); } }
+    catch (e) { if (sl) { sl.hist = []; slPaint(); } }
+}
+async function slCsv() {
+    try {
+        var r = await apiCall('GET', '/api/cloudsave/history?id=' + sl.pid + '&name=' + encodeURIComponent(sl.vname) + '&limit=5000'), rows = r.rows || [];
+        var csv = 'time,value,user\n' + rows.slice().reverse().map(function(x) { return new Date(Number(x.ts)).toISOString() + ',' + x.value + ',' + String(x.user || '').replace(/[^\w-]/g, ''); }).join('\n') + '\n';
+        var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'cloud-' + sl.pid + '-' + sl.vname.replace(/[^\w-]/g, '_') + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { showToast(slt('fail')); }
 }
 async function slNotify(on) {
-    try { await apiCall('PUT', '/api/scratchlink/notify', { enabled: !!on }); } catch (e) { showToast(slt('fail')); renderScratchLink(); }
+    try { await apiCall('PUT', '/api/scratchlink/notify', { enabled: !!on }); } catch (e) { showToast(slt('fail')); }
+    slLoad();
 }
 async function slAdd() {
     var inp = document.getElementById('sl-pid'), raw = inp ? inp.value.trim() : '';
     var m = /(\d{3,12})/.exec(raw);   // URLを貼っても、IDだけ拾う
     if (!m) { showToast(slt('bad')); return; }
-    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('ok')); }
+    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('ok')); sl.pid = Number(m[1]); }
     catch (e) { showToast(slt(e.message) || slt('fail')); }
-    renderScratchLink();
+    slLoad();
 }
 async function slRemove(id) {
+    if (!confirm(slt('confirmDel'))) return;
     try { await apiCall('POST', '/api/cloudsave/remove', { id: id }); showToast(slt('rm')); } catch (e) { showToast(slt('fail')); }
-    renderScratchLink();
+    sl.pid = null; slLoad();
 }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('sl-ov')) slClose(); });
 // 同じ端末で別のアカウントに切り替えたときも、いまのアカウントに届くようにする
 var pushSynced = '';
 function pushSync(sub) {

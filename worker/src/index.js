@@ -168,6 +168,7 @@ async function route(request, env) {
   if (path === '/api/scratchlink/notify' && method === 'PUT') return slNotify(request, env);
   if (path === '/api/cloudsave/register' && method === 'POST') return cvRegister(request, env);
   if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);
+  if (path === '/api/cloudsave/history' && method === 'GET') return cvHistory(request, env, url);
   if (path === '/api/home/jobs' && method === 'GET') return homeJobs(request, env);
   if (path === '/api/home/report' && method === 'POST') return homeReport(request, env);
 
@@ -2726,14 +2727,14 @@ const MAX_HOME_WATCH = 300;
 async function slMine(request, env) {
   const user = await requireUser(request, env);
   const me = user.u.toLowerCase();
-  const w = await env.DB.prepare('SELECT enabled FROM sl_watch WHERE username = ?').bind(me).first();
+  const w = await env.DB.prepare('SELECT enabled, last_count, updated_at FROM sl_watch WHERE username = ?').bind(me).first();
   const ps = await env.DB.prepare('SELECT project_id, last_sync FROM cv_projects WHERE owner = ? ORDER BY created_at').bind(me).all();
   const projects = [];
   for (const p of ps.results) {
     const vs = await env.DB.prepare('SELECT name, value, updated_at FROM cv_vars WHERE project_id = ? ORDER BY name LIMIT ?').bind(p.project_id, MAX_CV_VARS).all();
     projects.push({ id: p.project_id, last_sync: p.last_sync, vars: vs.results });
   }
-  return json({ notify: !!(w && w.enabled), projects });
+  return json({ notify: !!(w && w.enabled), last_count: w ? w.last_count : null, checked_at: w ? w.updated_at : null, projects });
 }
 
 async function slNotify(request, env) {
@@ -2773,6 +2774,20 @@ async function cvRegister(request, env) {
   if (author !== me) throw new HttpError(403, 'not_your_project');
   await env.DB.prepare('INSERT INTO cv_projects (project_id, owner, created_at) VALUES (?, ?, ?)').bind(Number(id), me, Date.now()).run();
   return json({ ok: true });
+}
+
+// 1つの変数の変更履歴（新しい順）。自分の作品だけ。history は、家のサーバーの cv_log テーブルにある
+async function cvHistory(request, env, url) {
+  const user = await requireUser(request, env);
+  const id = Number(url.searchParams.get('id')), name = String(url.searchParams.get('name') || '');
+  const limit = Math.max(1, Math.min(5000, Number(url.searchParams.get('limit')) || 200));
+  if (!Number.isInteger(id) || !name || name.length > 100) throw new HttpError(400, 'bad_request');
+  const own = await env.DB.prepare('SELECT 1 AS x FROM cv_projects WHERE project_id = ? AND owner = ?').bind(id, user.u.toLowerCase()).first();
+  if (!own) throw new HttpError(404, 'not_found');
+  let rows;
+  try { rows = await env.DB.prepare('SELECT ts, value, user FROM cv_log WHERE project_id = ? AND name = ? ORDER BY ts DESC LIMIT ?').bind(id, name, limit).all(); }
+  catch (e) { return json({ rows: [] }); }
+  return json({ rows: rows.results.map(r => ({ ts: r.ts, value: r.value, user: r.user })) });
 }
 
 async function cvRemove(request, env) {

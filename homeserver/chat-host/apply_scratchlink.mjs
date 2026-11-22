@@ -31,6 +31,9 @@ if (!sv.includes('scratchlink.mjs')) {
 
 // ---- worker/index.js ----
 let wk = read('worker/index.js');
+const MARK = '// ---------- Scratchの通知・クラウド変数の保存';
+const block = fs.readFileSync(path.join(here, 'worker-block.js'), 'utf8');
+const histRoute = "  if (path === '/api/cloudsave/history' && method === 'GET') return cvHistory(request, env, url);\n";
 if (!wk.includes('slMine')) {
   const route = "  if (path === '/api/push/test' && method === 'POST') return pushTest(request, env);\n";
   must(wk, route, 'push/test の道');
@@ -38,13 +41,21 @@ if (!wk.includes('slMine')) {
     "  if (path === '/api/scratchlink/mine' && method === 'GET') return slMine(request, env);\n" +
     "  if (path === '/api/scratchlink/notify' && method === 'PUT') return slNotify(request, env);\n" +
     "  if (path === '/api/cloudsave/register' && method === 'POST') return cvRegister(request, env);\n" +
-    "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n" +
+    "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n" + histRoute +
     "  if (path === '/api/home/jobs' && method === 'GET') return homeJobs(request, env);\n" +
     "  if (path === '/api/home/report' && method === 'POST') return homeReport(request, env);\n");
-  wk = wk.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'worker-block.js'), 'utf8');
+  wk = wk.replace(/\s*$/, '\n') + '\n' + block;
   save('worker/index.js', wk);
   console.log('worker/index.js: 変更しました');
-} else console.log('worker/index.js: すでに変更済み');
+} else if (!wk.includes('cvHistory')) {
+  // 前の版が入っている → 履歴の道を足し、Scratch連携の部分を新しい版に入れ替える
+  const rm = "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n";
+  must(wk, rm, 'cloudsave/remove の道'); must(wk, MARK, 'Scratch連携の部分');
+  wk = wk.replace(rm, () => rm + histRoute);
+  wk = wk.slice(0, wk.indexOf(MARK)) + block;
+  save('worker/index.js', wk);
+  console.log('worker/index.js: 新しい版に入れ替えました');
+} else console.log('worker/index.js: すでに最新');
 
 // ---- schema.sql ----
 let sc = read('schema.sql');

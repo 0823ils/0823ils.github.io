@@ -2765,7 +2765,7 @@ async function cvRegister(request, env) {
   if (exists) { if (exists.owner === me) return json({ ok: true }); throw new HttpError(409, 'already_registered'); }
   // 自分の作品だけ登録できる（作者をScratchに問い合わせる）
   let r;
-  try { r = await fetch(`${SCRATCH_API}/projects/${id}`, { headers: { 'User-Agent': 'scratch-TWC' } }); }
+  try { r = await fetch(`${env.SCRATCH_API || SCRATCH_API}/projects/${id}`, { headers: { 'User-Agent': 'scratch-TWC' } }); }
   catch (e) { throw new HttpError(502, 'scratch_unreachable'); }
   if (!r.ok) throw new HttpError(r.status === 404 ? 404 : 502, 'scratch_error');
   const j = await r.json();

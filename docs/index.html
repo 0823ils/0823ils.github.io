@@ -5229,7 +5229,7 @@ var TWC_API = 'https://twc-api.twc-scratch.workers.dev';
 // 切り替える前に、D1 のチャットのデータを自前サーバーに取り込んでおくこと（tools/import-d1.mjs）。
 var TWC_CHAT_API = 'https://elite2.tailde34d5.ts.net';
 function apiBase(path) {
-    return (TWC_CHAT_API && /^\/api\/(chat|admin\/chat|notifications|push)(\/|$)/.test(path)) ? TWC_CHAT_API : TWC_API;
+    return (TWC_CHAT_API && /^\/api\/(chat|admin\/chat|notifications|push|scratchlink|cloudsave)(\/|$)/.test(path)) ? TWC_CHAT_API : TWC_API;
 }
 
 function apiEnabled() { return !!TWC_API; }

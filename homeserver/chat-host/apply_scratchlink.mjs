@@ -30,39 +30,39 @@ if (!sv.includes('scratchlink.mjs')) {
 } else console.log('server.mjs: すでに変更済み');
 
 // ---- worker/index.js ----
+// 足りない道だけを足し、Scratch連携の部分は新しい版に入れ替える（前の版が入っていても、入っていなくても同じ手順）
 let wk = read('worker/index.js');
 const MARK = '// ---------- Scratchの通知・クラウド変数の保存';
 const block = fs.readFileSync(path.join(here, 'worker-block.js'), 'utf8');
-const histRoute = "  if (path === '/api/cloudsave/history' && method === 'GET') return cvHistory(request, env, url);\n";
-if (!wk.includes('slMine')) {
-  const route = "  if (path === '/api/push/test' && method === 'POST') return pushTest(request, env);\n";
-  must(wk, route, 'push/test の道');
-  wk = wk.replace(route, () => route +
-    "  if (path === '/api/scratchlink/mine' && method === 'GET') return slMine(request, env);\n" +
-    "  if (path === '/api/scratchlink/notify' && method === 'PUT') return slNotify(request, env);\n" +
-    "  if (path === '/api/cloudsave/register' && method === 'POST') return cvRegister(request, env);\n" +
-    "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n" + histRoute +
-    "  if (path === '/api/home/jobs' && method === 'GET') return homeJobs(request, env);\n" +
-    "  if (path === '/api/home/report' && method === 'POST') return homeReport(request, env);\n");
-  wk = wk.replace(/\s*$/, '\n') + '\n' + block;
+const ROUTES = [
+  "  if (path === '/api/scratchlink/mine' && method === 'GET') return slMine(request, env);\n",
+  "  if (path === '/api/scratchlink/notify' && method === 'PUT') return slNotify(request, env);\n",
+  "  if (path === '/api/cloudsave/register' && method === 'POST') return cvRegister(request, env);\n",
+  "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n",
+  "  if (path === '/api/cloudsave/history' && method === 'GET') return cvHistory(request, env, url);\n",
+  "  if (path === '/api/cloudsave/rules' && method === 'GET') return cvRules(request, env, url);\n",
+  "  if (path === '/api/cloudsave/rule' && method === 'POST') return cvRuleAdd(request, env);\n",
+  "  if (path === '/api/cloudsave/rule/remove' && method === 'POST') return cvRuleRemove(request, env);\n",
+  "  if (path === '/api/cloudsave/store' && method === 'GET') return cvStore(request, env, url);\n",
+  "  if (path === '/api/cloudsave/store/remove' && method === 'POST') return cvStoreRemove(request, env);\n",
+  "  if (path === '/api/home/jobs' && method === 'GET') return homeJobs(request, env);\n",
+  "  if (path === '/api/home/report' && method === 'POST') return homeReport(request, env);\n",
+];
+if (!wk.includes('cvRuleAdd')) {
+  const anchor = "  if (path === '/api/push/test' && method === 'POST') return pushTest(request, env);\n";
+  must(wk, anchor, 'push/test の道');
+  const missing = ROUTES.filter(r => !wk.includes(r.trim()));
+  wk = wk.replace(anchor, () => anchor + missing.join(''));
+  const at = wk.indexOf(MARK);
+  wk = (at >= 0 ? wk.slice(0, at) : wk.replace(/\s*$/, '\n') + '\n') + block;
   save('worker/index.js', wk);
   console.log('worker/index.js: 変更しました');
-} else if (!wk.includes('cvHistory')) {
-  // 前の版が入っている → 履歴の道を足し、Scratch連携の部分を新しい版に入れ替える
-  const rm = "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n";
-  must(wk, rm, 'cloudsave/remove の道'); must(wk, MARK, 'Scratch連携の部分');
-  wk = wk.replace(rm, () => rm + histRoute);
-  wk = wk.slice(0, wk.indexOf(MARK)) + block;
-  save('worker/index.js', wk);
-  console.log('worker/index.js: 新しい版に入れ替えました');
 } else console.log('worker/index.js: すでに最新');
 
 // ---- schema.sql ----
 let sc = read('schema.sql');
-if (!sc.includes('sl_watch')) {
-  save('schema.sql', sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink.sql'), 'utf8'));
-  console.log('schema.sql: 変更しました');
-} else console.log('schema.sql: すでに変更済み');
+if (!sc.includes('sl_watch')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 通知・保存の表を足しました'); }
+if (!sc.includes('cv_rules')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink2.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 書き込みルールの表を足しました'); }
 
 fs.copyFileSync(path.join(here, 'scratchlink.mjs'), f('scratchlink.mjs'));
 console.log('scratchlink.mjs: 置きました');

@@ -78,6 +78,111 @@ async function cvHistory(request, env, url) {
   return json({ rows: rows.results.map(r => ({ ts: r.ts, value: r.value, user: r.user })) });
 }
 
+
+// 安全な計算（eval は使わない）。v = 受け取った値。+ - * / % ^ と ( )、floor ceil round abs sqrt min max mod が使える
+function cvCalc(src, v) {
+  const s = String(src || '');
+  if (!s || s.length > 120) throw new Error('bad_formula');
+  const tk = []; const re = /\s*(\d+\.?\d*|[A-Za-z_]\w*|[-+*\/%^(),])/y; let pos = 0, m;
+  while (pos < s.length && /\S/.test(s.slice(pos))) { re.lastIndex = pos; m = re.exec(s); if (!m) throw new Error('bad_formula'); tk.push(m[1]); pos = re.lastIndex; }
+  let i = 0;
+  const F = { floor: Math.floor, ceil: Math.ceil, round: Math.round, abs: Math.abs, sqrt: Math.sqrt, min: Math.min, max: Math.max, mod: (a, b) => ((a % b) + b) % b };
+  const peek = () => tk[i], eat = t => { if (tk[i] !== t) throw new Error('bad_formula'); i++; };
+  function expr() { let a = term(); while (peek() === '+' || peek() === '-') { const o = tk[i++], b = term(); a = o === '+' ? a + b : a - b; } return a; }
+  function term() { let a = unary(); while (peek() === '*' || peek() === '/' || peek() === '%') { const o = tk[i++], b = unary(); a = o === '*' ? a * b : o === '/' ? a / b : a % b; } return a; }
+  function unary() { if (peek() === '-') { i++; return -unary(); } if (peek() === '+') { i++; return unary(); } return pow(); }
+  function pow() { const a = atom(); if (peek() === '^') { i++; return Math.pow(a, unary()); } return a; }
+  function atom() {
+    const t = tk[i++];
+    if (t === undefined) throw new Error('bad_formula');
+    if (/^\d/.test(t)) return Number(t);
+    if (t === '(') { const a = expr(); eat(')'); return a; }
+    if (t === 'v') return v;
+    if (F[t] && peek() === '(') { i++; const args = []; if (peek() !== ')') { args.push(expr()); while (peek() === ',') { i++; args.push(expr()); } } eat(')'); return F[t](...args); }
+    throw new Error('bad_formula');
+  }
+  const r = expr(); if (i !== tk.length) throw new Error('bad_formula');
+  return r;
+}
+
+const MAX_CV_RULES = 20;      // 1作品あたりのルールの数
+const CV_KINDS = ['load', 'save', 'calc'];
+function cvVarName(s) {
+  s = String(s || '').replace(/^☁\s*/, '').trim();
+  if (!s || s.length > 100 || /[\u0000-\u001f]/.test(s)) throw new HttpError(400, 'bad_var');
+  return s;
+}
+async function cvOwned(env, user, id) {
+  if (!Number.isInteger(id)) throw new HttpError(400, 'bad_id');
+  const own = await env.DB.prepare('SELECT 1 AS x FROM cv_projects WHERE project_id = ? AND owner = ?').bind(id, user.u.toLowerCase()).first();
+  if (!own) throw new HttpError(404, 'not_found');
+}
+
+// 書き込みルール。「変数Aが変わったら、変数Bに○○を書く」
+//   load: A=ID → B=「IDの桁数(1桁)+ID+保存してあるデータ」   save: A=「IDの桁数+ID+データ」→ データだけをIDごとに保存（Bがあれば同じ値を返事に書く）
+//   calc: A=値 → B=式（vは受け取った値）の結果。echo をオンにすると、先頭に「桁数+受け取った値」を付ける
+async function cvRules(request, env, url) {
+  const user = await requireUser(request, env);
+  const id = Number(url.searchParams.get('id'));
+  await cvOwned(env, user, id);
+  const rs = await env.DB.prepare('SELECT id, kind, trigger_var, target_var, formula, echo, hits, last_at FROM cv_rules WHERE project_id = ? ORDER BY id').bind(id).all();
+  const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_store WHERE project_id = ?').bind(id).first();
+  return json({ rules: rs.results, store_count: n ? n.c : 0, writer: !!env.SCRATCH_SESSION });
+}
+
+async function cvRuleAdd(request, env) {
+  const user = await requireUser(request, env);
+  const b = await readJson(request) || {};
+  const id = Number(b.id);
+  await cvOwned(env, user, id);
+  const kind = String(b.kind || '');
+  if (!CV_KINDS.includes(kind)) throw new HttpError(400, 'bad_kind');
+  const trig = cvVarName(b.trigger);
+  const target = (kind === 'save' && !String(b.target || '').trim()) ? null : cvVarName(b.target);
+  if (target === trig) throw new HttpError(400, 'same_var');
+  let formula = null;
+  if (kind === 'calc') {
+    formula = String(b.formula || '').trim();
+    try { const r = cvCalc(formula, 7); if (!Number.isFinite(r)) { /* 0で割るなど。式の形は正しい */ } } catch (e) { throw new HttpError(400, 'bad_formula'); }
+  }
+  const all = await env.DB.prepare('SELECT trigger_var, target_var FROM cv_rules WHERE project_id = ?').bind(id).all();
+  if (all.results.length >= MAX_CV_RULES) throw new HttpError(409, 'too_many_rules');
+  // 返事が別のルールの受付になると、ぐるぐる回って止まらなくなるので、禁止する
+  if (target && all.results.some(r => r.trigger_var === target)) throw new HttpError(409, 'loop');
+  if (all.results.some(r => r.target_var === trig)) throw new HttpError(409, 'loop');
+  if (all.results.some(r => r.trigger_var === trig)) throw new HttpError(409, 'dup_trigger');
+  await env.DB.prepare('INSERT INTO cv_rules (project_id, kind, trigger_var, target_var, formula, echo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(id, kind, trig, target, formula, b.echo ? 1 : 0, Date.now()).run();
+  return json({ ok: true });
+}
+
+async function cvRuleRemove(request, env) {
+  const user = await requireUser(request, env);
+  const b = await readJson(request) || {};
+  const r = await env.DB.prepare('SELECT project_id FROM cv_rules WHERE id = ?').bind(Number(b.rid)).first();
+  if (!r) throw new HttpError(404, 'not_found');
+  await cvOwned(env, user, r.project_id);
+  await env.DB.prepare('DELETE FROM cv_rules WHERE id = ?').bind(Number(b.rid)).run();
+  return json({ ok: true });
+}
+
+async function cvStore(request, env, url) {
+  const user = await requireUser(request, env);
+  const id = Number(url.searchParams.get('id'));
+  await cvOwned(env, user, id);
+  const rows = await env.DB.prepare('SELECT store_key, data, updated_at FROM cv_store WHERE project_id = ? ORDER BY updated_at DESC LIMIT 200').bind(id).all();
+  return json({ items: rows.results.map(r => ({ key: r.store_key, data: r.data, updated_at: r.updated_at })) });
+}
+
+async function cvStoreRemove(request, env) {
+  const user = await requireUser(request, env);
+  const b = await readJson(request) || {};
+  const id = Number(b.id);
+  await cvOwned(env, user, id);
+  await env.DB.prepare('DELETE FROM cv_store WHERE project_id = ? AND store_key = ?').bind(id, String(b.key || '')).run();
+  return json({ ok: true });
+}
+
 async function cvRemove(request, env) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
@@ -88,6 +193,7 @@ async function cvRemove(request, env) {
   if (!own) throw new HttpError(404, 'not_found');
   await env.DB.prepare('DELETE FROM cv_projects WHERE project_id = ?').bind(id).run();
   await env.DB.prepare('DELETE FROM cv_vars WHERE project_id = ?').bind(id).run();
+  try { await env.DB.prepare('DELETE FROM cv_rules WHERE project_id = ?').bind(id).run(); await env.DB.prepare('DELETE FROM cv_store WHERE project_id = ?').bind(id).run(); } catch (e) { /* 表がまだ無いとき */ }
   return json({ ok: true });
 }
 

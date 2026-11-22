@@ -9255,7 +9255,10 @@ async function renderPushRow() {
 }
 // ===== Scratch連携（Scratchの通知を知らせる／クラウド変数を保存する。家のサーバーが動かす） =====
 var SL_T = {
-    ja: { open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', close: '閉じる',
+    ja: { open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
+        rHead: '書き込みルール', rNone: 'ルールはまだありません', rKind: '種類', kLoad: '読み込み（IDからデータを返す）', kSave: '保存（データをIDごとに保存）', kCalc: '計算（値を計算して返す）', rIn: '受け取る変数', rOut: '返事を書く変数', rOutOpt: '返事を書く変数（空でもよい）', rF: '式（v が受け取った値）', rEcho: '受け取った値も一緒に返す（先頭に、桁数と値が付く）', rAdd: 'ルールを追加', rDel: '削除', rHits: '実行', rLast: '最後', rStore: '保存されたデータ', rStoreNone: '保存されたデータはまだありません', rKey: 'ID', rData: 'データ', rNoWriter: '家のサーバーに、書き込み用のScratchアカウントが設定されていません。サーバーの .env に SCRATCH_USER と SCRATCH_SESSION を入れてください（専用アカウントを使ってください）。', rNeedP: '先に「クラウド変数」タブで、作品を登録してください',
+        dLoad: 'プレイヤーが「受け取る変数」にIDを入れると、「返事を書く変数」が（IDの桁数1桁 + ID + 保存してあるデータ）になります。データが無いときは、IDまでです。どのIDを読み込んだかは、返事の頭を見れば分かります。', dSave: 'プレイヤーが「受け取る変数」に（IDの桁数1桁 + ID + データ）を入れると、データだけをIDごとに保存します。「返事を書く変数」を決めると、保存できたしるしに、同じ値を書きます。', dCalc: 'プレイヤーが「受け取る変数」に値を入れると、式で計算した結果を「返事を書く変数」に書きます。例: v*2+1　使えるもの: + - * / % ^ ( ) floor ceil round abs sqrt min max mod',
+        bad_var: '変数の名前を入れてください', same_var: '受け取る変数と返事の変数は、別にしてください', loop: 'ほかのルールとつながって、ぐるぐる回るので追加できません', dup_trigger: '同じ変数を受け取るルールが、すでにあります', bad_formula: '式が正しくありません', too_many_rules: 'ルールは1作品に20個までです', bad_kind: '種類が正しくありません',
         nTitle: 'Scratchの通知をお知らせ', nSw: 'Scratchに通知が来たら、TWCのプッシュ通知で知らせる', nOn: 'オン', nOff: 'オフ',
         nHow: '家のサーバーが1分ごとにScratchの通知の数を見て、増えていたら知らせます。先に、設定の「この端末に通知」をオンにした端末に届きます。',
         nLast: '最後に確認した通知の数', nAt: '確認した時刻', nNone: 'まだ確認されていません（オンにして、1〜2分待ってください）',
@@ -9264,7 +9267,10 @@ var SL_T = {
         note: '自分の作品だけ登録できます。保存は家のサーバーが1分ごとに行い、履歴はずっと残ります（Scratch側の履歴は短いので、残しておきたい作品向きです）。',
         bad: '作品のIDは数字で入れてください', not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています',
         not_found: '作品が見つかりません', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
-    en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', close: 'Close',
+    en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
+        rHead: 'Write rules', rNone: 'No rules yet', rKind: 'Type', kLoad: 'Load (return data for an ID)', kSave: 'Save (store data per ID)', kCalc: 'Calculate (return a computed value)', rIn: 'Variable to receive', rOut: 'Variable to write back', rOutOpt: 'Variable to write back (optional)', rF: 'Formula (v = received value)', rEcho: 'Also return the received value (digit count + value in front)', rAdd: 'Add rule', rDel: 'Delete', rHits: 'Runs', rLast: 'Last', rStore: 'Saved data', rStoreNone: 'No saved data yet', rKey: 'ID', rData: 'Data', rNoWriter: 'No Scratch account for writing is set on the home server. Put SCRATCH_USER and SCRATCH_SESSION in its .env (use a dedicated account).', rNeedP: 'Register a project in the Cloud variables tab first',
+        dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes (1 digit = ID length) + ID + saved data. If nothing is saved, only the ID part.', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. If you set a reply variable, the same value is written back as an acknowledgement.', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
+        bad_var: 'Enter a variable name', same_var: 'Use different variables', loop: 'It would loop with another rule', dup_trigger: 'A rule for that variable already exists', bad_formula: 'Invalid formula', too_many_rules: 'Up to 20 rules per project', bad_kind: 'Invalid type',
         nTitle: 'Scratch message alerts', nSw: 'Notify me through TWC push when Scratch sends me a message', nOn: 'On', nOff: 'Off',
         nHow: 'The home server checks your Scratch message count every minute and notifies you when it grows. It goes to devices that have "Notify this device" turned on in settings.',
         nLast: 'Last message count seen', nAt: 'Checked at', nNone: 'Not checked yet (turn it on and wait a minute or two)',
@@ -9281,7 +9287,7 @@ async function renderScratchLink() {
     if (!el) return;
     if (!loginUser || !apiEnabled()) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = '';
-    el.innerHTML = '<button class="sl-open" onclick="slOpen()">🔗 ' + esc(slt('open')) + ' ›</button>';
+    el.innerHTML = '<button class="sl-open" onclick="slOpen()">' + esc(slt('open')) + ' ›</button>';
 }
 async function slOpen() {
     var ov = document.getElementById('sl-ov');
@@ -9298,7 +9304,7 @@ async function slLoad() {
     if (sl.mine && sl.pid == null && sl.mine.projects.length) sl.pid = sl.mine.projects[0].id;
     slPaint();
 }
-function slTab(k) { sl.tab = k; slPaint(); }
+function slTab(k) { sl.tab = k; slPaint(); if (k === 'rules') slLoadRules(); }
 function slFmt(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
 function slPaint() {
     var ov = document.getElementById('sl-ov');
@@ -9306,9 +9312,9 @@ function slPaint() {
     var body;
     if (sl.err) body = '<div class="sl-err">' + esc(sl.err) + '</div>';
     else if (!sl.mine) body = '<div class="sl-sub">…</div>';
-    else body = sl.tab === 'notify' ? slNotifyHtml() : slCloudHtml();
-    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>🔗 ' + esc(slt('h')) + '</h2><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">✕</button></div>' +
-        '<div class="sl-tabs"><button class="sl-tab' + (sl.tab === 'notify' ? ' on' : '') + '" onclick="slTab(\'notify\')">🔔 ' + esc(slt('tNotify')) + '</button><button class="sl-tab' + (sl.tab === 'cloud' ? ' on' : '') + '" onclick="slTab(\'cloud\')">☁ ' + esc(slt('tCloud')) + '</button></div>' +
+    else body = sl.tab === 'notify' ? slNotifyHtml() : sl.tab === 'rules' ? slRulesHtml() : slCloudHtml();
+    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">×</button></div>' +
+        '<div class="sl-tabs">' + [['notify', 'tNotify'], ['cloud', 'tCloud'], ['rules', 'tRules']].map(function(z) { return '<button class="sl-tab' + (sl.tab === z[0] ? ' on' : '') + '" onclick="slTab(\'' + z[0] + '\')">' + esc(slt(z[1])) + '</button>'; }).join('') + '</div>' +
         '<div class="sl-body">' + body + '</div></div>';
     if (sl.tab === 'cloud') { var c = ov.querySelector('.sl-chart'); if (c && sl.hist) slChart(c); }
 }
@@ -9329,11 +9335,11 @@ function slCloudHtml() {
     if (!cur) right = '<div class="sl-sub">' + esc(slt('pickP')) + '</div>';
     else {
         var rows = cur.vars.length ? cur.vars.map(function(v) {
-            return '<tr class="var' + (v.name === sl.vname ? ' on' : '') + '" data-n="' + esc(v.name) + '" onclick="slVar(this.dataset.n)"><td>☁ ' + esc(v.name) + '</td><td class="num">' + esc(v.value) + '</td><td>' + esc(slFmt(v.updated_at)) + '</td></tr>';
+            return '<tr class="var' + (v.name === sl.vname ? ' on' : '') + '" data-n="' + esc(v.name) + '" onclick="slVar(this.dataset.n)"><td>' + esc(v.name) + '</td><td class="num">' + esc(v.value) + '</td><td>' + esc(slFmt(v.updated_at)) + '</td></tr>';
         }).join('') : '<tr><td colspan="3" class="sl-sub">' + esc(slt('never')) + '</td></tr>';
         right = '<div><div class="sl-row"><b class="grow">' + cur.id + ' <a href="https://scratch.mit.edu/projects/' + cur.id + '/" target="_blank" rel="noopener" style="font-size:12px;color:#4c97ff">scratch.mit.edu ↗</a></b><button class="sl-b off" onclick="slRemove(' + cur.id + ')">' + esc(slt('del')) + '</button></div>' +
             '<div class="sl-card"><table><tr><th>' + esc(slt('vars')) + '</th><th>' + esc(slt('value')) + '</th><th>' + esc(slt('upd')) + '</th></tr>' + rows + '</table></div>' +
-            '<div class="sl-card"><h3>' + esc(slt('hist')) + (sl.vname ? ' — ☁ ' + esc(sl.vname) : '') + '</h3>' + slHistHtml() + '</div></div>';
+            '<div class="sl-card"><h3>' + esc(slt('hist')) + (sl.vname ? ' — ' + esc(sl.vname) : '') + '</h3>' + slHistHtml() + '</div></div>';
     }
     return '<div class="sl-cv">' + left + right + '</div>';
 }
@@ -9353,7 +9359,7 @@ function slChart(svg) {
     svg.innerHTML = '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#4D97FF" stroke-width="2" vector-effect="non-scaling-stroke"/>' +
         '<text x="6" y="12" font-size="11" fill="#999">' + esc(hi) + '</text><text x="6" y="176" font-size="11" fill="#999">' + esc(lo) + '</text>';
 }
-async function slPick(id) { sl.pid = id; sl.vname = null; sl.hist = null; slPaint(); }
+async function slPick(id) { sl.pid = id; sl.vname = null; sl.hist = null; sl.rules = null; slPaint(); if (sl.tab === 'rules') slLoadRules(); }
 async function slVar(name) {
     sl.vname = name; sl.hist = null; slPaint();
     try { var r = await apiCall('GET', '/api/cloudsave/history?id=' + sl.pid + '&name=' + encodeURIComponent(name) + '&limit=500'); if (sl && sl.vname === name) { sl.hist = r.rows || []; slPaint(); } }
@@ -9367,6 +9373,44 @@ async function slCsv() {
         document.body.appendChild(a); a.click(); a.remove();
     } catch (e) { showToast(slt('fail')); }
 }
+async function slLoadRules() {
+    if (!sl || sl.pid == null) return;
+    var pid = sl.pid;
+    try {
+        var r = await apiCall('GET', '/api/cloudsave/rules?id=' + pid), s = await apiCall('GET', '/api/cloudsave/store?id=' + pid);
+        if (sl && sl.pid === pid) { sl.rules = r; sl.store = s.items || []; slPaint(); }
+    } catch (e) { if (sl) { sl.rules = { rules: [], store_count: 0, writer: true }; sl.store = []; slPaint(); } }
+}
+function slRulesHtml() {
+    var m = sl.mine;
+    if (!m.projects.length || sl.pid == null) return '<div class="sl-sub">' + esc(slt('rNeedP')) + '</div>';
+    var sel = '<div class="sl-row"><b>' + esc(slt('rHead')) + '</b><select onchange="slPick(Number(this.value))" style="border:1px solid #d9e2f3;border-radius:10px;padding:6px 10px">' + m.projects.map(function(p) { return '<option value="' + p.id + '"' + (p.id === sl.pid ? ' selected' : '') + '>' + p.id + '</option>'; }).join('') + '</select></div>';
+    if (!sl.rules) return sel + '<div class="sl-sub">…</div>';
+    var R = sl.rules, kind = sl.kind || 'load';
+    var warn = R.writer ? '' : '<div class="sl-card" style="border-color:#f3c9d6;background:#fff5f8"><div class="sl-sub" style="margin:0;color:#c2255c">' + esc(slt('rNoWriter')) + '</div></div>';
+    var lab = { load: slt('kLoad'), save: slt('kSave'), calc: slt('kCalc') };
+    var list = R.rules.length ? '<table><tr><th>' + esc(slt('rKind')) + '</th><th>' + esc(slt('rIn')) + '</th><th>' + esc(slt('rOut')) + '</th><th>' + esc(slt('rHits')) + '</th><th></th></tr>' + R.rules.map(function(r) {
+        return '<tr><td>' + esc(lab[r.kind] || r.kind) + (r.formula ? '<div class="sl-s">v → ' + esc(r.formula) + (r.echo ? ' (+echo)' : '') + '</div>' : '') + '</td><td class="num">' + esc(r.trigger_var) + '</td><td class="num">' + esc(r.target_var || '—') + '</td><td>' + r.hits + (r.last_at ? '<div class="sl-s">' + esc(slFmt(r.last_at)) + '</div>' : '') + '</td><td><button class="sl-b off" onclick="slRuleDel(' + r.id + ')">' + esc(slt('rDel')) + '</button></td></tr>';
+    }).join('') + '</table>' : '<div class="sl-sub">' + esc(slt('rNone')) + '</div>';
+    var form = '<div class="sl-card"><h3>' + esc(slt('rAdd')) + '</h3>' +
+        '<div class="sl-row"><select id="sl-k" onchange="sl.kind=this.value;slPaint()" style="border:1px solid #d9e2f3;border-radius:10px;padding:8px 10px">' + ['load', 'save', 'calc'].map(function(k) { return '<option value="' + k + '"' + (k === kind ? ' selected' : '') + '>' + esc(lab[k]) + '</option>'; }).join('') + '</select></div>' +
+        '<div class="sl-sub" style="margin:0 0 10px">' + esc(slt(kind === 'load' ? 'dLoad' : kind === 'save' ? 'dSave' : 'dCalc')) + '</div>' +
+        '<div class="sl-row"><input type="text" id="sl-in" placeholder="' + esc(slt('rIn')) + '" value="' + esc(sl.fIn || '') + '" oninput="sl.fIn=this.value"><input type="text" id="sl-out" placeholder="' + esc(slt(kind === 'save' ? 'rOutOpt' : 'rOut')) + '" value="' + esc(sl.fOut || '') + '" oninput="sl.fOut=this.value"></div>' +
+        (kind === 'calc' ? '<div class="sl-row"><input type="text" id="sl-f" placeholder="' + esc(slt('rF')) + '" value="' + esc(sl.fF || '') + '" oninput="sl.fF=this.value"></div><label class="sl-sw" style="font-weight:400;font-size:13px;margin:6px 0"><input type="checkbox" ' + (sl.fE ? 'checked ' : '') + 'onchange="sl.fE=this.checked" style="width:auto;height:auto"> <span>' + esc(slt('rEcho')) + '</span></label>' : '') +
+        '<button class="sl-b" onclick="slRuleAdd()">' + esc(slt('rAdd')) + '</button></div>';
+    var st = '<div class="sl-card"><h3>' + esc(slt('rStore')) + ' (' + R.store_count + ')</h3>' + (sl.store && sl.store.length ? '<table><tr><th>' + esc(slt('rKey')) + '</th><th>' + esc(slt('rData')) + '</th><th>' + esc(slt('upd')) + '</th><th></th></tr>' + sl.store.map(function(x) {
+        return '<tr><td class="num">' + esc(x.key) + '</td><td class="num">' + esc(x.data) + '</td><td>' + esc(slFmt(x.updated_at)) + '</td><td><button class="sl-b off" data-k="' + esc(x.key) + '" onclick="slStoreDel(this.dataset.k)">' + esc(slt('rDel')) + '</button></td></tr>';
+    }).join('') + '</table>' : '<div class="sl-sub">' + esc(slt('rStoreNone')) + '</div>') + '</div>';
+    return sel + warn + '<div class="sl-card">' + list + '</div>' + form + st;
+}
+async function slRuleAdd() {
+    var kind = sl.kind || 'load';
+    try { await apiCall('POST', '/api/cloudsave/rule', { id: sl.pid, kind: kind, trigger: sl.fIn || '', target: sl.fOut || '', formula: sl.fF || '', echo: !!sl.fE }); sl.fIn = sl.fOut = sl.fF = ''; sl.fE = false; showToast(slt('ok')); }
+    catch (e) { showToast(slt(e.message) || slt('fail')); }
+    slLoadRules();
+}
+async function slRuleDel(rid) { try { await apiCall('POST', '/api/cloudsave/rule/remove', { rid: rid }); } catch (e) { showToast(slt('fail')); } slLoadRules(); }
+async function slStoreDel(key) { try { await apiCall('POST', '/api/cloudsave/store/remove', { id: sl.pid, key: key }); } catch (e) { showToast(slt('fail')); } slLoadRules(); }
 async function slNotify(on) {
     try { await apiCall('PUT', '/api/scratchlink/notify', { enabled: !!on }); } catch (e) { showToast(slt('fail')); }
     slLoad();

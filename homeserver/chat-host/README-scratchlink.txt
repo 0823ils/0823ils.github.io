@@ -8,7 +8,7 @@ C:\twc-chat-host に足す手順
      node apply_scratchlink.mjs C:\twc-chat-host
    server.mjs / worker\index.js / schema.sql に数行だけ足し、scratchlink.mjs を置きます（上書きではありません）。
    変えたファイルの控えは「○○.bak-scratchlink」に残ります。何度実行しても二重には足しません
-4. start.bat で起動する。表示に「scratch-link: 60秒ごとに…」が出れば成功
+4. start.bat で起動する。表示に「scratch-link: 通知は15秒ごと…」が出れば成功
 
 使い方
 - TWC にログイン → 設定（右上） → 「Scratch連携を開く」（大きな画面が開きます。通知タブとクラウド変数タブがあります）
@@ -19,7 +19,10 @@ C:\twc-chat-host に足す手順
 - 履歴は chat.db の cv_log テーブルに入ります
 
 メモ
-- 変更履歴は1回40件ずつ読みます。60秒のあいだに40回より多く変わる変数は、取りこぼします（.env の SCRATCH_LINK_INTERVAL=20 で短くできます。最短20秒）
+- 速さ
+    ・通知: 15秒ごとにScratchの通知の数を見ます（.env の SCRATCH_NOTIFY_INTERVAL=秒 で変えられます。最短5秒）。Scratchは「新着を教えてくれる」仕組みを持っていないため、これが最短です
+    ・クラウド変数: 書き込み用アカウント（SCRATCH_USER / SCRATCH_SESSION）を設定していれば、登録した作品にずっとつないで、変更をその場で記録します（待ち時間なし、取りこぼしもなし）
+    ・設定していないときは、SCRATCH_LINK_INTERVAL 秒ごと（既定60秒）に、Scratchの変更履歴を読みます。このときは、1回に40件までなので、間に40回より多く変わる変数は取りこぼします
 - Cloudflare 側（wrangler deploy）は、この機能には不要です
 - 外からは /api/scratchlink と /api/cloudsave だけ呼べます。サーバー内部用の /api/home/* は、外からは届きません
 

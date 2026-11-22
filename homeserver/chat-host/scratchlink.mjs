@@ -37,12 +37,14 @@ function cvCalc(src, v) {
 // ---- 書き込み（ルール）----
 // 変数Aが変わったら変数Bを書く。Scratchのクラウドサーバーに、専用アカウントでつないだまま待つ（外向きの通信だけ）。
 // .env に SCRATCH_USER（ユーザー名）と SCRATCH_SESSION（scratchsessionsid の値）が要る。専用アカウントを使うこと
-function startLive(env, db) {
+function startLive(env, db, hooks) {
   const USER = env.SCRATCH_USER, SESSION = env.SCRATCH_SESSION;
   if (!USER || !SESSION) { console.log('scratch-link: 書き込みルールは動きません（.env に SCRATCH_USER と SCRATCH_SESSION がありません）'); return null; }
   const WS = env.CLOUD_WS || 'wss://clouddata.scratch.mit.edu';
   const rulesOf = db.prepare('SELECT * FROM cv_rules WHERE project_id = ?');
-  const projects = db.prepare('SELECT DISTINCT project_id AS p FROM cv_rules');
+  const projects = db.prepare('SELECT project_id AS p FROM cv_projects UNION SELECT project_id FROM cv_rules');
+  const insLog = db.prepare('INSERT OR IGNORE INTO cv_log (project_id, ts, name, value, user) VALUES (?,?,?,?,NULL)');
+  const lastVal = db.prepare('SELECT value FROM cv_log WHERE project_id = ? AND name = ? ORDER BY ts DESC LIMIT 1');
   const getStore = db.prepare('SELECT data FROM cv_store WHERE project_id = ? AND store_key = ?');
   const putStore = db.prepare('INSERT INTO cv_store (project_id, store_key, data, updated_at) VALUES (?,?,?,?) ON CONFLICT(project_id, store_key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at');
   const countStore = db.prepare('SELECT COUNT(*) AS c FROM cv_store WHERE project_id = ?');
@@ -57,12 +59,15 @@ function startLive(env, db) {
       try { ws = new WebSocket(WS, { headers: { Cookie: 'scratchsessionsid=' + SESSION + ';', Origin: 'https://scratch.mit.edu', 'User-Agent': UA } }); }
       catch (e) { console.error('scratch-link: 接続できません', e.message); c.timer = setTimeout(c.open, c.backoff); return; }
       c.ws = ws;
-      ws.onopen = () => { c.backoff = 3000; c.settleUntil = Date.now() + 2500; ws.send(JSON.stringify({ method: 'handshake', user: USER, project_id: String(pid) }) + '\n'); console.log('scratch-link: 作品', pid, 'につなぎました'); };
+      ws.onopen = () => { c.backoff = 3000; c.settleUntil = Date.now() + 2500; if (hooks && hooks.sync) hooks.sync(pid).catch(() => {}); ws.send(JSON.stringify({ method: 'handshake', user: USER, project_id: String(pid) }) + '\n'); console.log('scratch-link: 作品', pid, 'につなぎました'); };
       ws.onmessage = ev => {
         for (const line of String(ev.data).split('\n')) {
           if (!line.trim()) continue;
           let m; try { m = JSON.parse(line); } catch { continue; }
-          if (m.method === 'set' && Date.now() >= c.settleUntil) handle(c, clean(m.name), String(m.value));
+          if (m.method !== 'set') continue;
+          const nm = clean(m.name), val = String(m.value);
+          if (Date.now() < c.settleUntil) record(c, nm, val, true);      // つないだ直後に届く「いまの値」。ルールは動かさず、記録だけ
+          else { record(c, nm, val, false); handle(c, nm, val); }
         }
       };
       ws.onclose = () => { c.ws = null; if (!c.closed) { c.timer = setTimeout(c.open, c.backoff); c.backoff = Math.min(60000, c.backoff * 2); } };
@@ -77,6 +82,15 @@ function startLive(env, db) {
     c.close = () => { c.closed = true; clearTimeout(c.timer); clearInterval(c.pump); try { c.ws && c.ws.close(); } catch {} };
     c.open();
     return c;
+  }
+
+  // つないでいる間の変更は、その場で記録する（1分待たない）。最初に届く現在値は、前と違うときだけ記録する
+  function record(c, name, v, initial) {
+    if (!hooks) return;
+    const last = lastVal.get(c.pid, name);
+    if (initial && last && last.value === v) return;
+    insLog.run(c.pid, Date.now(), name, v);
+    if (hooks.report) hooks.report(c.pid);
   }
 
   function reply(c, name, value) {
@@ -117,15 +131,17 @@ function startLive(env, db) {
     for (const p of want) if (!conns.has(p)) conns.set(p, connect(p));
     for (const [p, c] of conns) if (!want.has(p)) { c.close(); conns.delete(p); }
   }
-  const t = setInterval(sync, 10000); sync();
+  const t = setInterval(sync, 5000); sync();
   console.log('scratch-link: 書き込みルールを待ち受けます（アカウント: ' + USER + '）');
-  return { sync, stop() { clearInterval(t); for (const c of conns.values()) c.close(); conns.clear(); } };
+  const isLive = pid => { const c = conns.get(pid); return !!(c && c.ws && c.ws.readyState === 1 && Date.now() >= c.settleUntil); };
+  return { sync, isLive, stop() { clearInterval(t); for (const c of conns.values()) c.close(); conns.clear(); } };
 }
 
 export function startScratchLink(env, db, srv) {
   const API = String(env.SCRATCH_API || 'https://api.scratch.mit.edu').replace(/\/+$/, '');
   const LOGS = env.CLOUD_LOGS || 'https://clouddata.scratch.mit.edu/logs';
-  const every = Math.max(20, Number(env.SCRATCH_LINK_INTERVAL || 60)) * 1000;
+  const every = Math.max(20, Number(env.SCRATCH_LINK_INTERVAL || 60)) * 1000;          // 履歴を読みに行く間隔（つながっていない作品用）
+  const notifyEvery = Math.max(5, Number(env.SCRATCH_NOTIFY_INTERVAL || 15)) * 1000;   // 通知の数を見る間隔
   if (!env.HOME_SECRET || !srv || !srv.workerFetch) { console.log('scratch-link: 使えません（HOME_SECRET / workerFetch がありません）'); return null; }
   db.exec(`CREATE TABLE IF NOT EXISTS cv_log (
     project_id INTEGER NOT NULL, ts INTEGER NOT NULL, name TEXT NOT NULL, value TEXT NOT NULL, user TEXT,
@@ -169,18 +185,38 @@ export function startScratchLink(env, db, srv) {
     return added;
   }
 
-  let running = false;
-  async function cycle() {
-    if (running) return; running = true;
+  // 通知は軽いので、短い間隔で見る。クラウド変数は、書き込み用アカウントでつないでいれば、変更をその場で記録する（つながっていない作品だけ、履歴を読みに行く）
+  const pend = new Map();
+  function reportVars(pid) {
+    if (pend.has(pid)) return;
+    pend.set(pid, setTimeout(async () => {
+      pend.delete(pid);
+      try { await home('POST', '/api/home/report', { vars: { [String(pid)]: Object.fromEntries(cur.all(pid).map(r => [r.name, r.value])) } }); } catch (e) { console.error('scratch-link:', e.message); }
+    }, 1500));
+  }
+  let busyN = false, busyV = false;
+  async function cycleNotify() {
+    if (busyN) return; busyN = true;
     try {
-      const jobs = await home('GET', '/api/home/jobs');
-      const counts = {}, vars = {};
+      const jobs = await home('GET', '/api/home/jobs'), counts = {};
       for (const w of jobs.watchers || []) {
         try { counts[w.u] = Number((await getJson(`${API}/users/${encodeURIComponent(w.u)}/messages/count`)).count); }
         catch (e) { console.error('scratch-link: 通知数の取得に失敗', w.u, e.message); }
-        await sleep(400);
+        await sleep(300);
       }
+      if (Object.keys(counts).length) {
+        const res = await home('POST', '/api/home/report', { counts });
+        if (res && res.notified) console.log('scratch-link: 通知を', res.notified, '台に送りました');
+      }
+    } catch (e) { console.error('scratch-link:', e.message); }
+    finally { busyN = false; }
+  }
+  async function cycleVars() {
+    if (busyV) return; busyV = true;
+    try {
+      const jobs = await home('GET', '/api/home/jobs'), vars = {};
       for (const p of jobs.projects || []) {
+        if (live && live.isLive(Number(p.id))) continue;   // つながっている作品は、その場で記録している
         try {
           const n = await syncProject(Number(p.id));
           vars[String(p.id)] = Object.fromEntries(cur.all(Number(p.id)).map(r => [r.name, r.value]));
@@ -188,15 +224,12 @@ export function startScratchLink(env, db, srv) {
         } catch (e) { console.error('scratch-link: クラウド変数の取得に失敗', p.id, e.message); }
         await sleep(400);
       }
-      if (Object.keys(counts).length || Object.keys(vars).length) {
-        const res = await home('POST', '/api/home/report', { counts, vars });
-        if (res && res.notified) console.log('scratch-link: 通知を', res.notified, '台に送りました');
-      }
+      if (Object.keys(vars).length) await home('POST', '/api/home/report', { vars });
     } catch (e) { console.error('scratch-link:', e.message); }
-    finally { running = false; }
+    finally { busyV = false; }
   }
-  const live = startLive(env, db);
-  const t1 = setTimeout(cycle, 8000), t2 = setInterval(cycle, every);
-  console.log(`scratch-link: ${every / 1000}秒ごとに、Scratchの通知とクラウド変数を確認します`);
-  return { cycle, stop() { clearTimeout(t1); clearInterval(t2); if (live) live.stop(); } };
+  const live = startLive(env, db, { report: reportVars, sync: async pid => { if (await syncProject(pid)) reportVars(pid); } });
+  const t1 = setTimeout(() => { cycleNotify(); cycleVars(); }, 8000), t2 = setInterval(cycleNotify, notifyEvery), t3 = setInterval(cycleVars, every);
+  console.log(`scratch-link: 通知は${notifyEvery / 1000}秒ごと、${live ? 'クラウド変数はその場で（つながらないときは' + every / 1000 + '秒ごと）' : 'クラウド変数は' + every / 1000 + '秒ごと'}に確認します`);
+  return { cycleNotify, cycleVars, stop() { clearTimeout(t1); clearInterval(t2); clearInterval(t3); if (live) live.stop(); } };
 }

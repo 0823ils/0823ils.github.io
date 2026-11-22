@@ -6830,7 +6830,7 @@ function twcVideoHTML(src, thumbnail, className, label) {
     var poster = thumbnail ? '<img class="twc-video-poster" loading="lazy" decoding="async" alt="" src="' + esc(thumbnail) + '">' : '';
     var name = label || '動画を再生';
     var meta = className === 'chat-video' ? ' onloadedmetadata="chatVideoLoaded(this)"' : '';
-    return '<div class="twc-video-lazy ' + esc(className || '') + '">' + poster + '<video class="twc-video-el" preload="none" playsinline data-src="' + esc(String(src).replace(/#.*$/, '')) + '" aria-label="' + esc(name) + '"' + meta + '></video><button class="twc-video-play" type="button" onclick="twcVideoPlay(this)" aria-label="' + esc(name) + '">▶</button></div>';
+    return '<div class="twc-video-lazy ' + esc(className || '') + '">' + poster + '<video class="twc-video-el" preload="none" playsinline' + (thumbnail ? ' data-poster="1"' : '') + ' data-src="' + esc(String(src).replace(/#.*$/, '')) + '" aria-label="' + esc(name) + '"' + meta + '></video><button class="twc-video-play" type="button" onclick="twcVideoPlay(this)" aria-label="' + esc(name) + '">▶</button></div>';
 }
 var twcVideoObserver = null;
 function twcVideoWatch(root) {
@@ -6841,6 +6841,7 @@ function twcVideoWatch(root) {
                 if (!entry.isIntersecting) return;
                 var v = entry.target;
                 twcVideoObserver.unobserve(v);
+                if (v.dataset.poster) return;   // サムネイルがある動画は、再生を押すまで読み込まない
                 if (!v.getAttribute('src') && v.dataset.src) {
                     v.preload = 'metadata';
                     v.src = v.dataset.src;

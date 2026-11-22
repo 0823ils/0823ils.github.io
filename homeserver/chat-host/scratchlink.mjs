@@ -38,8 +38,23 @@ function cvCalc(src, v) {
 // 変数Aが変わったら変数Bを書く。Scratchのクラウドサーバーに、専用アカウントでつないだまま待つ（外向きの通信だけ）。
 // .env に SCRATCH_USER（ユーザー名）と SCRATCH_SESSION（scratchsessionsid の値）が要る。専用アカウントを使うこと
 function startLive(env, db, hooks) {
-  const USER = env.SCRATCH_USER, SESSION = env.SCRATCH_SESSION;
-  if (!USER || !SESSION) { console.log('scratch-link: 書き込みルールは動きません（.env に SCRATCH_USER と SCRATCH_SESSION がありません）'); return null; }
+  const USER = env.SCRATCH_USER, PASS = env.SCRATCH_PASS;
+  let SESSION = env.SCRATCH_SESSION || '', lastLogin = 0;
+  if (!USER || !(SESSION || PASS)) { console.log('scratch-link: 書き込みルールは動きません（.env に SCRATCH_USER と SCRATCH_PASS がありません）'); return null; }
+  const LOGIN = env.SCRATCH_LOGIN_URL || 'https://scratch.mit.edu/login/';
+  const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+  // パスワードでログインして、セッションを得る（Scratchのログインと同じ手順。10分に1回までしか試さない）
+  async function login() {
+    if (Date.now() - lastLogin < 600000) return !!SESSION;
+    lastLogin = Date.now();
+    try {
+      const r = await fetch(LOGIN, { method: 'POST', headers: { 'x-csrftoken': 'a', 'x-requested-with': 'XMLHttpRequest', Cookie: 'scratchcsrftoken=a;scratchlanguage=en;', Referer: 'https://scratch.mit.edu', 'Content-Type': 'application/json', 'User-Agent': BROWSER_UA }, body: JSON.stringify({ username: USER, password: PASS }), signal: AbortSignal.timeout(25000) });
+      const sc = typeof r.headers.getSetCookie === 'function' ? r.headers.getSetCookie() : [String(r.headers.get('set-cookie') || '')];
+      const m = sc.join('\n').match(/scratchsessionsid=("[^"]*"|[^;\s]+)/);
+      if (!m) { console.error('scratch-link: ログインできませんでした（ユーザー名かパスワードが違うか、Scratchに断られました）HTTP', r.status); return false; }
+      SESSION = m[1]; console.log('scratch-link: ' + USER + ' でログインしました'); return true;
+    } catch (e) { console.error('scratch-link: ログインに失敗', e.message); return false; }
+  }
   const WS = env.CLOUD_WS || 'wss://clouddata.scratch.mit.edu';
   const rulesOf = db.prepare('SELECT * FROM cv_rules WHERE project_id = ?');
   const projects = db.prepare('SELECT project_id AS p FROM cv_projects UNION SELECT project_id FROM cv_rules');
@@ -53,24 +68,27 @@ function startLive(env, db, hooks) {
 
   function connect(pid) {
     const c = { pid, ws: null, queue: [], settleUntil: 0, backoff: 3000, timer: null, closed: false };
-    c.open = () => {
+    c.open = async () => {
+      if (c.closed) return;
+      if (!SESSION && !(await login())) { c.timer = setTimeout(c.open, 300000); return; }
       if (c.closed) return;
       let ws;
       try { ws = new WebSocket(WS, { headers: { Cookie: 'scratchsessionsid=' + SESSION + ';', Origin: 'https://scratch.mit.edu', 'User-Agent': UA } }); }
       catch (e) { console.error('scratch-link: 接続できません', e.message); c.timer = setTimeout(c.open, c.backoff); return; }
       c.ws = ws;
-      ws.onopen = () => { c.backoff = 3000; c.settleUntil = Date.now() + 2500; if (hooks && hooks.sync) hooks.sync(pid).catch(() => {}); ws.send(JSON.stringify({ method: 'handshake', user: USER, project_id: String(pid) }) + '\n'); console.log('scratch-link: 作品', pid, 'につなぎました'); };
+      ws.onopen = () => { c.got = false; c.backoff = 3000; c.settleUntil = Date.now() + 2500; if (hooks && hooks.sync) hooks.sync(pid).catch(() => {}); ws.send(JSON.stringify({ method: 'handshake', user: USER, project_id: String(pid) }) + '\n'); console.log('scratch-link: 作品', pid, 'につなぎました'); };
       ws.onmessage = ev => {
         for (const line of String(ev.data).split('\n')) {
           if (!line.trim()) continue;
           let m; try { m = JSON.parse(line); } catch { continue; }
+          c.got = true;
           if (m.method !== 'set') continue;
           const nm = clean(m.name), val = String(m.value);
           if (Date.now() < c.settleUntil) record(c, nm, val, true);      // つないだ直後に届く「いまの値」。ルールは動かさず、記録だけ
           else { record(c, nm, val, false); handle(c, nm, val); }
         }
       };
-      ws.onclose = () => { c.ws = null; if (!c.closed) { c.timer = setTimeout(c.open, c.backoff); c.backoff = Math.min(60000, c.backoff * 2); } };
+      ws.onclose = () => { c.ws = null; if (PASS && !c.got && !env.SCRATCH_SESSION) SESSION = ''; if (!c.closed) { c.timer = setTimeout(c.open, c.backoff); c.backoff = Math.min(60000, c.backoff * 2); } };
       ws.onerror = () => {};
     };
     // 1秒に8回まで

@@ -9308,7 +9308,7 @@ async function slOpen() {
 function slClose() { var ov = document.getElementById('sl-ov'); if (ov) ov.remove(); sl = null; clearInterval(window.slTimer); }
 async function slLoad() {
     try { sl.mine = await apiCall('GET', '/api/scratchlink/mine'); sl.err = ''; }
-    catch (e) { sl.err = slt('unsupported'); }
+    catch (e) { sl.err = slt('unsupported') + '　[' + e.message + (e.status ? ' / HTTP ' + e.status : '') + ']'; }
     if (sl.mine && sl.pid != null && !sl.mine.projects.some(function(p) { return p.id === sl.pid; })) { sl.pid = null; sl.vname = null; sl.hist = null; }
     if (sl.mine && sl.pid == null && sl.mine.projects.length) sl.pid = sl.mine.projects[0].id;
     slPaint();
@@ -9322,7 +9322,7 @@ function slPaint() {
     if (sl.err) body = '<div class="sl-err">' + esc(sl.err) + '</div>';
     else if (!sl.mine) body = '<div class="sl-sub">…</div>';
     else body = sl.tab === 'notify' ? slNotifyHtml() : sl.tab === 'rules' ? slRulesHtml() : slCloudHtml();
-    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">×</button></div>' +
+    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><span class="sl-s">v2026-11-22b</span><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">×</button></div>' +
         '<div class="sl-tabs">' + [['notify', 'tNotify'], ['cloud', 'tCloud'], ['rules', 'tRules']].map(function(z) { return '<button class="sl-tab' + (sl.tab === z[0] ? ' on' : '') + '" onclick="slTab(\'' + z[0] + '\')">' + esc(slt(z[1])) + '</button>'; }).join('') + '</div>' +
         '<div class="sl-body">' + body + '</div></div>';
     if (sl.tab === 'cloud') { var c = ov.querySelector('.sl-chart'); if (c && sl.hist) slChart(c); }
@@ -9339,7 +9339,7 @@ function slCloudHtml() {
     var list = m.projects.length ? m.projects.map(function(p) {
         return '<div class="sl-pi' + (p.id === sl.pid ? ' on' : '') + '" onclick="slPick(' + p.id + ')"><b>' + p.id + '</b><div class="sl-s">' + esc(slt('sync')) + ': ' + esc(slFmt(p.last_sync)) + '</div></div>';
     }).join('') : '<div class="sl-sub">' + esc(slt('none')) + '</div>';
-    var left = '<div><div class="sl-pl">' + list + '</div><div class="sl-add"><input type="text" id="sl-pid" placeholder="' + esc(slt('ph')) + '" onkeydown="if(event.key===\'Enter\')slAdd()"><button class="sl-b" onclick="slAdd()">' + esc(slt('add')) + '</button></div><div class="sl-sub">' + esc(slt('note')) + '</div></div>';
+    var left = '<div><div class="sl-pl">' + list + '</div><div class="sl-add"><input type="text" id="sl-pid" placeholder="' + esc(slt('ph')) + '" onkeydown="if(event.key===\'Enter\')slAdd()"><button class="sl-b" onclick="slAdd()">' + esc(slt('add')) + '</button></div><div class="sl-sub">' + esc(slt('note')) + '</div>' + (sl.msg ? '<div class="sl-sub" style="color:' + (sl.msg.ok ? '#2b8a3e' : '#c2255c') + ';font-weight:700">' + esc(sl.msg.text) + '</div>' : '') + '</div>';
     var right;
     if (!cur) right = '<div class="sl-sub">' + esc(slt('pickP')) + '</div>';
     else {
@@ -9428,8 +9428,9 @@ async function slAdd() {
     var inp = document.getElementById('sl-pid'), raw = inp ? inp.value.trim() : '';
     var m = /(\d{3,12})/.exec(raw);   // URLを貼っても、IDだけ拾う
     if (!m) { showToast(slt('bad')); return; }
-    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('wait')); sl.pid = Number(m[1]); }
-    catch (e) { showToast(slt(e.message) || slt('fail')); }
+    sl.msg = { ok: true, text: '…' }; slPaint();
+    try { await apiCall('POST', '/api/cloudsave/register', { id: m[1] }); showToast(slt('wait')); sl.pid = Number(m[1]); sl.msg = { ok: true, text: slt('wait') }; }
+    catch (e) { var tx = (slt(e.message) || slt('fail')) + '　[' + e.message + (e.status ? ' / HTTP ' + e.status : '') + ']'; showToast(tx); sl.msg = { ok: false, text: tx }; }
     slLoad();
 }
 async function slRemove(id) {

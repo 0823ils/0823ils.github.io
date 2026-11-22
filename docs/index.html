@@ -7117,6 +7117,8 @@ async function chatCompressVideo(file, onProgress) {
         HTMLCanvasElement.prototype.captureStream &&
         (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') || MediaRecorder.isTypeSupported('video/webm;codecs=vp8') || MediaRecorder.isTypeSupported('video/webm'));
     if (!canRecord || file.size > CHAT_VIDEO_SOURCE_MAX) return { blob: file, type: file.type, name: file.name, compressed: false };
+    // 上限に収まる大きさなら、ここでは縮めない（縮めるには、動画の長さと同じだけ時間がかかる）。自宅のサーバーが、送ったあとに裏で小さくする
+    if (file.size <= CHAT_VIDEO_MAX) return { blob: file, type: file.type, name: file.name, compressed: false };
     var url = URL.createObjectURL(file), video = document.createElement('video');
     var canvas = document.createElement('canvas'), ctx = null;
     var audioContext = null, sourceNode = null, audioDestination = null, stream = null, recorder = null;

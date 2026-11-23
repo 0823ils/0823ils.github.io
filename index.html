@@ -9258,7 +9258,8 @@ async function renderPushRow() {
 var SL_T = {
     ja: { open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
         rHead: '書き込みルール', rNone: 'ルールはまだありません', rKind: '種類', kLoad: '読み込み（IDからデータを返す）', kSave: '保存（データをIDごとに保存）', kCalc: '計算（値を計算して返す）', rIn: '受け取る変数', rOut: '返事を書く変数', rOutOpt: '返事を書く変数（空でもよい）', rF: '式（v が受け取った値）', rEcho: '受け取った値も一緒に返す（先頭に、桁数と値が付く）', rAdd: 'ルールを追加', rDel: '削除', rHits: '実行', rLast: '最後', rStore: '保存されたデータ', rStoreNone: '保存されたデータはまだありません', rKey: 'ID', rData: 'データ', rNoWriter: '家のサーバーに、書き込み用のScratchアカウントが設定されていません。サーバーの .env に SCRATCH_USER と SCRATCH_SESSION を入れてください（専用アカウントを使ってください）。', rNeedP: '先に「クラウド変数」タブで、作品を登録してください',
-        dLoad: 'プレイヤーが「受け取る変数」にIDを入れると、「返事を書く変数」が（IDの桁数1桁 + ID + 保存してあるデータ）になります。データが無いときは、IDまでです。どのIDを読み込んだかは、返事の頭を見れば分かります。', dSave: 'プレイヤーが「受け取る変数」に（IDの桁数1桁 + ID + データ）を入れると、データだけをIDごとに保存します。「返事を書く変数」を決めると、保存できたしるしに、同じ値を書きます。', dCalc: 'プレイヤーが「受け取る変数」に値を入れると、式で計算した結果を「返事を書く変数」に書きます。例: v*2+1　使えるもの: + - * / % ^ ( ) floor ceil round abs sqrt min max mod',
+        dLoad: 'プレイヤーが「受け取る変数」にIDを入れると、「返事を書く変数」が（IDの桁数1桁 + ID + 保存してあるデータ）になります。データが無いときは、IDまでです。どのIDを読み込んだかは、返事の頭を見れば分かります。', dSave: 'プレイヤーが「受け取る変数」に（IDの桁数1桁 + ID + データ）を入れると、データだけをIDごとに保存します。「返事を書く変数」は、空のままでもよいです。',
+        pairH: '2つの変数で、セーブとロード', pairD: '変数2つだけで、保存も読み込みもできる、かんたん設定です。ロード: 変数Aに ID を入れると、変数Bが（桁数 + ID + 保存データ）になります。セーブ: 変数Bに（桁数 + ID + データ）を入れると、データだけが保存されます。', pairA: '変数A（IDを入れる。例 SAVE）', pairB: '変数B（データの出し入れ。例 SAVEDATA）', pairAdd: 'この2つで、ルールを作る', dCalc: 'プレイヤーが「受け取る変数」に値を入れると、式で計算した結果を「返事を書く変数」に書きます。例: v*2+1　使えるもの: + - * / % ^ ( ) floor ceil round abs sqrt min max mod',
         bad_var: '変数の名前を入れてください', same_var: '受け取る変数と返事の変数は、別にしてください', loop: 'ほかのルールとつながって、ぐるぐる回るので追加できません', dup_trigger: '同じ変数を受け取るルールが、すでにあります', bad_formula: '式が正しくありません', too_many_rules: 'ルールは1作品に20個までです', bad_kind: '種類が正しくありません',
         nTitle: 'Scratchの通知をお知らせ', nSw: 'Scratchに通知が来たら、TWCのプッシュ通知で知らせる', nOn: 'オン', nOff: 'オフ',
         nHow: '家のサーバーが1分ごとにScratchの通知の数を見て、増えていたら知らせます。先に、設定の「この端末に通知」をオンにした端末に届きます。',
@@ -9270,7 +9271,8 @@ var SL_T = {
         not_found: '作品が見つかりません', scratch_error: 'Scratchで、この作品が見つかりませんでした。共有している作品のIDか、確認してください（共有していない作品や、存在しないIDは、見つかりません）', scratch_unreachable: '家のサーバーから、Scratchに繋がりませんでした。少し待ってから、もう一度試してください', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', wait: '登録しました。サーバーが最初の保存をするまで、数秒から1分ほどかかります。この画面は自動で更新されます。', emptyV: 'まだ変数の記録がありません。この作品で、クラウド変数が変わると記録が始まります（遊んでみてください）。サーバーが止まっている場合も、ここは空のままです。', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
     en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
         rHead: 'Write rules', rNone: 'No rules yet', rKind: 'Type', kLoad: 'Load (return data for an ID)', kSave: 'Save (store data per ID)', kCalc: 'Calculate (return a computed value)', rIn: 'Variable to receive', rOut: 'Variable to write back', rOutOpt: 'Variable to write back (optional)', rF: 'Formula (v = received value)', rEcho: 'Also return the received value (digit count + value in front)', rAdd: 'Add rule', rDel: 'Delete', rHits: 'Runs', rLast: 'Last', rStore: 'Saved data', rStoreNone: 'No saved data yet', rKey: 'ID', rData: 'Data', rNoWriter: 'No Scratch account for writing is set on the home server. Put SCRATCH_USER and SCRATCH_SESSION in its .env (use a dedicated account).', rNeedP: 'Register a project in the Cloud variables tab first',
-        dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes (1 digit = ID length) + ID + saved data. If nothing is saved, only the ID part.', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. If you set a reply variable, the same value is written back as an acknowledgement.', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
+        dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes (1 digit = ID length) + ID + saved data. If nothing is saved, only the ID part.', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. The reply variable can be left empty.',
+        pairH: 'Save and load with two variables', pairD: 'Quick setup with just two variables. Load: put an ID into variable A and variable B becomes (length + ID + saved data). Save: put (length + ID + data) into variable B and only the data is stored.', pairA: 'Variable A (put the ID here, e.g. SAVE)', pairB: 'Variable B (data in and out, e.g. SAVEDATA)', pairAdd: 'Create both rules', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
         bad_var: 'Enter a variable name', same_var: 'Use different variables', loop: 'It would loop with another rule', dup_trigger: 'A rule for that variable already exists', bad_formula: 'Invalid formula', too_many_rules: 'Up to 20 rules per project', bad_kind: 'Invalid type',
         nTitle: 'Scratch message alerts', nSw: 'Notify me through TWC push when Scratch sends me a message', nOn: 'On', nOff: 'Off',
         nHow: 'The home server checks your Scratch message count every minute and notifies you when it grows. It goes to devices that have "Notify this device" turned on in settings.',
@@ -9407,15 +9409,27 @@ function slRulesHtml() {
         '<div class="sl-row"><input type="text" id="sl-in" placeholder="' + esc(slt('rIn')) + '" value="' + esc(sl.fIn || '') + '" oninput="sl.fIn=this.value"><input type="text" id="sl-out" placeholder="' + esc(slt(kind === 'save' ? 'rOutOpt' : 'rOut')) + '" value="' + esc(sl.fOut || '') + '" oninput="sl.fOut=this.value"></div>' +
         (kind === 'calc' ? '<div class="sl-row"><input type="text" id="sl-f" placeholder="' + esc(slt('rF')) + '" value="' + esc(sl.fF || '') + '" oninput="sl.fF=this.value"></div><label class="sl-sw" style="font-weight:400;font-size:13px;margin:6px 0"><input type="checkbox" ' + (sl.fE ? 'checked ' : '') + 'onchange="sl.fE=this.checked" style="width:auto;height:auto"> <span>' + esc(slt('rEcho')) + '</span></label>' : '') +
         '<button class="sl-b" onclick="slRuleAdd()">' + esc(slt('rAdd')) + '</button></div>';
+    var pair = '<div class="sl-card"><h3>' + esc(slt('pairH')) + '</h3><div class="sl-sub" style="margin:0 0 10px">' + esc(slt('pairD')) + '</div>' +
+        '<div class="sl-row"><input type="text" placeholder="' + esc(slt('pairA')) + '" value="' + esc(sl.pA || '') + '" oninput="sl.pA=this.value"><input type="text" placeholder="' + esc(slt('pairB')) + '" value="' + esc(sl.pB || '') + '" oninput="sl.pB=this.value"></div>' +
+        '<button class="sl-b" onclick="slRulePair()">' + esc(slt('pairAdd')) + '</button></div>';
     var st = '<div class="sl-card"><h3>' + esc(slt('rStore')) + ' (' + R.store_count + ')</h3>' + (sl.store && sl.store.length ? '<table><tr><th>' + esc(slt('rKey')) + '</th><th>' + esc(slt('rData')) + '</th><th>' + esc(slt('upd')) + '</th><th></th></tr>' + sl.store.map(function(x) {
         return '<tr><td class="num">' + esc(x.key) + '</td><td class="num">' + esc(x.data) + '</td><td>' + esc(slFmt(x.updated_at)) + '</td><td><button class="sl-b off" data-k="' + esc(x.key) + '" onclick="slStoreDel(this.dataset.k)">' + esc(slt('rDel')) + '</button></td></tr>';
     }).join('') + '</table>' : '<div class="sl-sub">' + esc(slt('rStoreNone')) + '</div>') + '</div>';
-    return sel + warn + '<div class="sl-card">' + list + '</div>' + form + st;
+    return sel + warn + '<div class="sl-card">' + list + '</div>' + pair + form + st;
 }
 async function slRuleAdd() {
     var kind = sl.kind || 'load';
     try { await apiCall('POST', '/api/cloudsave/rule', { id: sl.pid, kind: kind, trigger: sl.fIn || '', target: sl.fOut || '', formula: sl.fF || '', echo: !!sl.fE }); sl.fIn = sl.fOut = sl.fF = ''; sl.fE = false; showToast(slt('ok')); }
     catch (e) { showToast(slt(e.message) || slt('fail')); }
+    slLoadRules();
+}
+async function slRulePair() {
+    var a = (sl.pA || '').trim(), b = (sl.pB || '').trim();
+    try {
+        await apiCall('POST', '/api/cloudsave/rule', { id: sl.pid, kind: 'load', trigger: a, target: b });
+        await apiCall('POST', '/api/cloudsave/rule', { id: sl.pid, kind: 'save', trigger: b, target: '' });
+        sl.pA = sl.pB = ''; showToast(slt('ok'));
+    } catch (e) { showToast((slt(e.message) || slt('fail')) + ' [' + e.message + ']'); }
     slLoadRules();
 }
 async function slRuleDel(rid) { try { await apiCall('POST', '/api/cloudsave/rule/remove', { rid: rid }); } catch (e) { showToast(slt('fail')); } slLoadRules(); }

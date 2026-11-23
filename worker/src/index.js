@@ -2864,9 +2864,7 @@ async function cvRuleAdd(request, env) {
   }
   const all = await env.DB.prepare('SELECT trigger_var, target_var FROM cv_rules WHERE project_id = ?').bind(id).all();
   if (all.results.length >= MAX_CV_RULES) throw new HttpError(409, 'too_many_rules');
-  // 返事が別のルールの受付になると、ぐるぐる回って止まらなくなるので、禁止する
-  if (target && all.results.some(r => r.trigger_var === target)) throw new HttpError(409, 'loop');
-  if (all.results.some(r => r.target_var === trig)) throw new HttpError(409, 'loop');
+  // 返事の変数を、別のルールの受付にしてもよい（変数2つで、セーブもロードもできる）。ぐるぐる回らないよう、家のサーバー側で守っている
   if (all.results.some(r => r.trigger_var === trig)) throw new HttpError(409, 'dup_trigger');
   await env.DB.prepare('INSERT INTO cv_rules (project_id, kind, trigger_var, target_var, formula, echo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
     .bind(id, kind, trig, target, formula, b.echo ? 1 : 0, Date.now()).run();

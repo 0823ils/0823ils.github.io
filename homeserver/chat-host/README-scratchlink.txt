@@ -1,14 +1,14 @@
 Scratch連携（Scratchの通知をプッシュで知らせる／クラウド変数の履歴をずっと保存する）
 
-C:\twc-chat-host に足す手順
+~/twc-chat-host に足す手順
 1. サーバーを止める（Ctrl+C）。念のため、フォルダと data\chat.db の控えを取る
-2. このZIPを、C:\twc-chat-host とは別の場所（例: デスクトップ）に展開する
+2. このZIPを、~/twc-chat-host とは別の場所（例: デスクトップ）に展開する
 3. コマンドプロンプトで:
      cd 展開した場所
-     node apply_scratchlink.mjs C:\twc-chat-host
+     node apply_scratchlink.mjs ~/twc-chat-host
    server.mjs / worker\index.js / schema.sql に数行だけ足し、scratchlink.mjs を置きます（上書きではありません）。
    変えたファイルの控えは「○○.bak-scratchlink」に残ります。何度実行しても二重には足しません
-4. start.bat で起動する。表示に「scratch-link: 通知は15秒ごと…」が出れば成功
+4. start.command（Macは README-mac.txt） で起動する。表示に「scratch-link: 通知は15秒ごと…」が出れば成功
 
 使い方
 - TWC にログイン → 設定（右上） → 「Scratch連携を開く」（大きな画面が開きます。通知タブとクラウド変数タブがあります）
@@ -28,9 +28,9 @@ C:\twc-chat-host に足す手順
 
 保存した値を自分の作品に書き戻す（任意）
   Python と scratchattach が要ります（uv が入っていれば）:
-    set SCRATCH_USER=ユーザー名
-    set SCRATCH_PASS=パスワード
-    set TWC_HOME_DB=C:\twc-chat-host\data\chat.db
+    export SCRATCH_USER='ユーザー名'
+    export SCRATCH_PASS='パスワード'
+    export TWC_HOME_DB="$HOME/twc-chat-host/data/chat.db"
     uv run --python 3.12 --with scratchattach python twc_home.py restore 作品ID
   （twc_home.py はこのZIPに入っています。専用アカウントで使ってください）
 

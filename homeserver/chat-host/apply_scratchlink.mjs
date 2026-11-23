@@ -66,4 +66,4 @@ if (!sc.includes('cv_rules')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFi
 
 fs.copyFileSync(path.join(here, 'scratchlink.mjs'), f('scratchlink.mjs'));
 console.log('scratchlink.mjs: 置きました');
-console.log('\n完了。サーバーを起動し直してください（start.bat）。起動の表示に「scratch-link: 60秒ごとに…」が出れば成功です。');
+console.log('\n完了。サーバーを起動し直してください（start.command（Windowsは start.bat））。起動の表示に「scratch-link: 60秒ごとに…」が出れば成功です。');

@@ -67,7 +67,7 @@ function startLive(env, db, hooks) {
   const conns = new Map();
 
   function connect(pid) {
-    const c = { pid, ws: null, queue: [], settleUntil: 0, backoff: 3000, timer: null, closed: false };
+    const c = { pid, ws: null, queue: [], sent: new Map(), fires: [], pausedUntil: 0, settleUntil: 0, backoff: 3000, timer: null, closed: false };
     c.open = async () => {
       if (c.closed) return;
       if (!SESSION && !(await login())) { c.timer = setTimeout(c.open, 300000); return; }
@@ -114,12 +114,21 @@ function startLive(env, db, hooks) {
   function reply(c, name, value) {
     value = String(value);
     if (!/^-?\d{1,256}$/.test(value)) return;
+    c.sent.set(name + '\u0000' + value, Date.now() + 3000);   // 自分が書いた値が、もし返ってきても無視する（ぐるぐる回らないように）
     if (c.queue.length < 200) c.queue.push([name, value]);
   }
 
   function handle(c, name, v) {
+    const key = name + '\u0000' + v, exp = c.sent.get(key);
+    if (exp) { c.sent.delete(key); if (exp > Date.now()) return; }
+    for (const [k, e] of c.sent) if (e < Date.now()) c.sent.delete(k);
     const rules = rulesOf.all(c.pid).filter(r => r.trigger_var === name);
     if (!rules.length || !/^-?\d{1,256}$/.test(v)) return;
+    // 暴走ガード: 10秒に40回より多く動くときは、30秒止める
+    const now = Date.now();
+    if (now < c.pausedUntil) return;
+    c.fires = c.fires.filter(x => x > now - 10000); c.fires.push(now);
+    if (c.fires.length > 40) { c.pausedUntil = now + 30000; c.fires = []; console.error('scratch-link: 作品', c.pid, 'のルールが動きすぎているので、30秒止めます'); return; }
     for (const r of rules) {
       try {
         if (r.kind === 'load') {

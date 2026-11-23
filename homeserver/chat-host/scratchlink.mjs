@@ -4,7 +4,8 @@
 const UA = 'scratch-TWC-home/1.0';
 const MIGRATE2 = `CREATE TABLE IF NOT EXISTS cv_rules (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL, kind TEXT NOT NULL, trigger_var TEXT NOT NULL, target_var TEXT, formula TEXT, echo INTEGER NOT NULL DEFAULT 0, hits INTEGER NOT NULL DEFAULT 0, last_at INTEGER, created_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_cv_rules_p ON cv_rules(project_id);
-CREATE TABLE IF NOT EXISTS cv_store (project_id INTEGER NOT NULL, store_key TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, store_key));`;
+CREATE TABLE IF NOT EXISTS cv_store (project_id INTEGER NOT NULL, store_key TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, store_key));
+CREATE TABLE IF NOT EXISTS cv_ustore (project_id INTEGER NOT NULL, var_name TEXT NOT NULL, username TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, var_name, username));`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clean = n => { n = String(n); return n.startsWith('☁ ') ? n.slice(2) : n; };
 
@@ -63,6 +64,10 @@ function startLive(env, db, hooks) {
   const getStore = db.prepare('SELECT data FROM cv_store WHERE project_id = ? AND store_key = ?');
   const putStore = db.prepare('INSERT INTO cv_store (project_id, store_key, data, updated_at) VALUES (?,?,?,?) ON CONFLICT(project_id, store_key) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at');
   const countStore = db.prepare('SELECT COUNT(*) AS c FROM cv_store WHERE project_id = ?');
+  const putU = db.prepare('INSERT INTO cv_ustore (project_id, var_name, username, data, updated_at) VALUES (?,?,?,?,?) ON CONFLICT(project_id, var_name, username) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at');
+  const getU = db.prepare('SELECT data FROM cv_ustore WHERE project_id = ? AND var_name = ? AND username = ?');
+  const hasU = db.prepare('SELECT 1 FROM cv_ustore WHERE project_id = ? AND var_name = ? AND username = ?');
+  const countU = db.prepare('SELECT COUNT(*) AS c FROM cv_ustore WHERE project_id = ?');
   const hit = db.prepare('UPDATE cv_rules SET hits = hits + 1, last_at = ? WHERE id = ?');
   const conns = new Map();
 
@@ -118,6 +123,20 @@ function startLive(env, db, hooks) {
     if (c.queue.length < 200) c.queue.push([name, value]);
   }
 
+  // 変えたユーザーは、WebSocketでは分からないので、変更履歴（logs）から探す。履歴に出るまで少しかかるので、数回待って読み直す
+  async function whoSet(pid, name, v) {
+    for (let i = 0; i < 5; i++) {
+      await sleep(i === 0 ? 350 : 700);
+      try {
+        const rows = await hooks.logs(pid);
+        if (Array.isArray(rows)) for (const r of rows) {
+          if (r.verb === 'set_var' && clean(r.name) === name && String(r.value) === v && r.user != null) return String(r.user);
+        }
+      } catch {}
+    }
+    return null;
+  }
+
   function handle(c, name, v) {
     const key = name + '\u0000' + v, exp = c.sent.get(key);
     if (exp) { c.sent.delete(key); if (exp > Date.now()) return; }
@@ -141,6 +160,19 @@ function startLive(env, db, hooks) {
           if (!getStore.get(c.pid, id) && countStore.get(c.pid).c >= 10000) continue;
           putStore.run(c.pid, id, data, Date.now());
           if (r.target_var) reply(c, r.target_var, v);   // 保存できたことを、同じ値で返す
+        } else if (r.kind === 'usave' || r.kind === 'uload') {
+          const rule = r;
+          whoSet(c.pid, name, v).then(who => {
+            if (!who || !/^[A-Za-z0-9_-]{1,40}$/.test(who)) return;
+            if (rule.kind === 'usave') {
+              if (!hasU.get(c.pid, name, who) && countU.get(c.pid).c >= 20000) return;
+              putU.run(c.pid, name, who, v, Date.now());
+              if (rule.target_var) reply(c, rule.target_var, v);
+            } else {
+              const row = getU.get(c.pid, clean(rule.formula || ''), who);
+              reply(c, rule.target_var || name, row ? row.data : '0');
+            }
+          }).catch(() => {});
         } else if (r.kind === 'calc') {
           const out = cvCalc(r.formula, Number(v));
           if (!Number.isFinite(out)) continue;
@@ -255,7 +287,7 @@ export function startScratchLink(env, db, srv) {
     } catch (e) { console.error('scratch-link:', e.message); }
     finally { busyV = false; }
   }
-  const live = startLive(env, db, { report: reportVars, sync: async pid => { if (await syncProject(pid)) reportVars(pid); } });
+  const live = startLive(env, db, { logs: pid => getJson(`${LOGS}?projectid=${pid}&limit=20&offset=0`), report: reportVars, sync: async pid => { if (await syncProject(pid)) reportVars(pid); } });
   const t1 = setTimeout(() => { cycleNotify(); cycleVars(); }, 8000), t2 = setInterval(cycleNotify, notifyEvery), t3 = setInterval(cycleVars, every);
   console.log(`scratch-link: 通知は${notifyEvery / 1000}秒ごと、${live ? 'クラウド変数はその場で（つながらないときは' + every / 1000 + '秒ごと）' : 'クラウド変数は' + every / 1000 + '秒ごと'}に確認します`);
   return { cycleNotify, cycleVars, stop() { clearTimeout(t1); clearInterval(t2); clearInterval(t3); if (live) live.stop(); } };

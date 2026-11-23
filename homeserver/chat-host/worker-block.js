@@ -106,7 +106,7 @@ function cvCalc(src, v) {
 }
 
 const MAX_CV_RULES = 20;      // 1作品あたりのルールの数
-const CV_KINDS = ['load', 'save', 'calc'];
+const CV_KINDS = ['load', 'save', 'calc', 'usave', 'uload'];
 function cvVarName(s) {
   s = String(s || '').replace(/^☁\s*/, '').trim();
   if (!s || s.length > 100 || /[\u0000-\u001f]/.test(s)) throw new HttpError(400, 'bad_var');
@@ -138,9 +138,11 @@ async function cvRuleAdd(request, env) {
   const kind = String(b.kind || '');
   if (!CV_KINDS.includes(kind)) throw new HttpError(400, 'bad_kind');
   const trig = cvVarName(b.trigger);
-  const target = (kind === 'save' && !String(b.target || '').trim()) ? null : cvVarName(b.target);
-  if (target === trig) throw new HttpError(400, 'same_var');
+  const optTarget = kind === 'save' || kind === 'usave' || kind === 'uload';   // 返事の変数は、空でもよい
+  const target = (optTarget && !String(b.target || '').trim()) ? null : cvVarName(b.target);
+  if (target === trig && kind !== 'uload') throw new HttpError(400, 'same_var');
   let formula = null;
+  if (kind === 'uload') formula = cvVarName(b.formula);   // 取り出す元の変数（変数A）の名前
   if (kind === 'calc') {
     formula = String(b.formula || '').trim();
     try { const r = cvCalc(formula, 7); if (!Number.isFinite(r)) { /* 0で割るなど。式の形は正しい */ } } catch (e) { throw new HttpError(400, 'bad_formula'); }
@@ -170,6 +172,15 @@ async function cvStore(request, env, url) {
   await cvOwned(env, user, id);
   const rows = await env.DB.prepare('SELECT store_key, data, updated_at FROM cv_store WHERE project_id = ? ORDER BY updated_at DESC LIMIT 200').bind(id).all();
   return json({ items: rows.results.map(r => ({ key: r.store_key, data: r.data, updated_at: r.updated_at })) });
+}
+
+async function cvUStore(request, env, url) {
+  const user = await requireUser(request, env);
+  const id = Number(url.searchParams.get('id'));
+  await cvOwned(env, user, id);
+  const rows = await env.DB.prepare('SELECT var_name, username, data, updated_at FROM cv_ustore WHERE project_id = ? ORDER BY updated_at DESC LIMIT 200').bind(id).all();
+  const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_ustore WHERE project_id = ?').bind(id).first();
+  return json({ items: rows.results.map(r => ({ name: r.var_name, user: r.username, data: r.data, updated_at: r.updated_at })), count: n ? n.c : 0 });
 }
 
 async function cvStoreRemove(request, env) {

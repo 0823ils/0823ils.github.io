@@ -44,25 +44,29 @@ const ROUTES = [
   "  if (path === '/api/cloudsave/rule' && method === 'POST') return cvRuleAdd(request, env);\n",
   "  if (path === '/api/cloudsave/rule/remove' && method === 'POST') return cvRuleRemove(request, env);\n",
   "  if (path === '/api/cloudsave/store' && method === 'GET') return cvStore(request, env, url);\n",
+  "  if (path === '/api/cloudsave/ustore' && method === 'GET') return cvUStore(request, env, url);\n",
   "  if (path === '/api/cloudsave/store/remove' && method === 'POST') return cvStoreRemove(request, env);\n",
   "  if (path === '/api/home/jobs' && method === 'GET') return homeJobs(request, env);\n",
   "  if (path === '/api/home/report' && method === 'POST') return homeReport(request, env);\n",
 ];
-if (!wk.includes('cvRuleAdd')) {
+{
+  // 道（ルート）は足りないものだけ足す。Scratch連携の部分は、毎回、新しい版に入れ替える
   const anchor = "  if (path === '/api/push/test' && method === 'POST') return pushTest(request, env);\n";
   must(wk, anchor, 'push/test の道');
   const missing = ROUTES.filter(r => !wk.includes(r.trim()));
-  wk = wk.replace(anchor, () => anchor + missing.join(''));
+  if (missing.length) wk = wk.replace(anchor, () => anchor + missing.join(''));
   const at = wk.indexOf(MARK);
   wk = (at >= 0 ? wk.slice(0, at) : wk.replace(/\s*$/, '\n') + '\n') + block;
   save('worker/index.js', wk);
-  console.log('worker/index.js: 変更しました');
-} else console.log('worker/index.js: すでに最新');
+  console.log('worker/index.js: 最新の版にしました');
+}
 
 // ---- schema.sql ----
 let sc = read('schema.sql');
 if (!sc.includes('sl_watch')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 通知・保存の表を足しました'); }
 if (!sc.includes('cv_rules')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink2.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 書き込みルールの表を足しました'); }
+
+if (!sc.includes('cv_ustore')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink3.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: ユーザー別の保存の表を足しました'); }
 
 fs.copyFileSync(path.join(here, 'scratchlink.mjs'), f('scratchlink.mjs'));
 console.log('scratchlink.mjs: 置きました');

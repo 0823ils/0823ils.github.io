@@ -1105,22 +1105,22 @@
         .sl-wrap { padding: 8px 0; border-top: 1px solid #f6f6f6; }
         .sl-open { width: 100%; border: none; background: #eef4ff; color: #3d7fe6; font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 12px; cursor: pointer; text-align: left; }
         .sl-open:hover { background: #e0ecff; }
-        #sl-ov { position: fixed; inset: 0; z-index: 100000; background: rgba(20, 28, 48, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
-        #sl-ov .sl-box { background: #fff; color: #333; width: min(960px, 100%); height: min(680px, 100%); border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, .35); }
+        #sl-ov { max-width: 1040px; margin: 0 auto; padding: 8px 0 40px; }
+        #sl-ov .sl-box { background: #fff; color: #333; width: 100%; min-height: 70vh; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; box-shadow: none; border: 1px solid #e6ebf5; }
         #sl-ov .sl-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #eef0f4; }
         #sl-ov .sl-head h2 { font-size: 17px; margin: 0; flex: 1; }
         #sl-ov .sl-x { border: none; background: #f1f3f7; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; }
         #sl-ov .sl-tabs { display: flex; gap: 6px; padding: 10px 18px 0; border-bottom: 1px solid #eef0f4; }
         #sl-ov .sl-tab { border: none; background: none; padding: 9px 14px; font-size: 14px; font-weight: 700; color: #888; cursor: pointer; border-bottom: 3px solid transparent; }
         #sl-ov .sl-tab.on { color: #3d7fe6; border-bottom-color: #4D97FF; }
-        #sl-ov .sl-body { flex: 1; overflow: auto; padding: 18px; }
+        #sl-ov .sl-body { flex: 1; padding: 18px; }
         #sl-ov .sl-card { border: 1px solid #e6ebf5; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; background: #fbfcff; }
         #sl-ov .sl-card h3 { margin: 0 0 8px; font-size: 14px; }
         #sl-ov .sl-sw { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
         #sl-ov .sl-sw input { width: 44px; height: 24px; accent-color: #4D97FF; cursor: pointer; }
         #sl-ov .sl-sub { color: #777; font-size: 12.5px; line-height: 1.7; margin-top: 8px; }
         #sl-ov .sl-cv { display: grid; grid-template-columns: 280px 1fr; gap: 16px; }
-        @media (max-width: 720px) { #sl-ov { padding: 0; } #sl-ov .sl-box { height: 100%; border-radius: 0; } #sl-ov .sl-cv { grid-template-columns: 1fr; } }
+        @media (max-width: 720px) { #sl-ov { padding: 0; } #sl-ov .sl-box { min-height: 80vh; border-radius: 0; } #sl-ov .sl-cv { grid-template-columns: 1fr; } }
         #sl-ov .sl-pl { display: flex; flex-direction: column; gap: 8px; }
         #sl-ov .sl-pi { border: 2px solid #e6ebf5; border-radius: 12px; padding: 10px 12px; cursor: pointer; background: #fff; }
         #sl-ov .sl-pi.on { border-color: #4D97FF; background: #f2f7ff; }
@@ -1417,6 +1417,7 @@
     <button type="button" class="drawer-category-btn active" onclick="selectDrawerCategory('explore')" data-i18n="navExploreGroup">見る・探す</button>
     <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('talk')" data-i18n="navTalkGroup">話す</button>
     <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('guide')" data-i18n="navGuideGroup">作り方・解説</button>
+    <button type="button" class="drawer-category-btn" id="drawer-link-btn" style="display:none" onclick="selectDrawerCategory('link')" data-i18n="navLinkGroup">Scratch連携</button>
 </nav>
 
 <!-- サイトを開いてすぐ出す「通知をオンにしますか？」（ログイン中で、まだ設定していない端末だけ） -->
@@ -1624,6 +1625,7 @@
 
         <!-- 作り方・解説 -->
         <div id="guide-section" style="display:none"><div id="gd-body"></div></div>
+        <div id="link-section" style="display:none"><div id="sl-ov"></div></div>
 
         <!-- 作品ページ -->
         <div id="project-section" style="display:none">
@@ -1672,7 +1674,7 @@ const LANG = {
         twToggleLabel: 'TurboWarp で開く',
         trAutoLabel: 'チャットを自動翻訳',
         soundLabel: '通知音（新着・通話）',
-        navExploreGroup: '見る・探す', navTalkGroup: '話す', navGuideGroup: '作り方・解説',
+        navExploreGroup: '見る・探す', navTalkGroup: '話す', navGuideGroup: '作り方・解説', navLinkGroup: 'Scratch連携',
         modeSearch: '検索',
         modeHome: 'ホーム', homeTitle: 'Technical Works Collection', homeSub: 'スクラッチ技術作品集',
         homeRated: '技術力が高い作品', homeLoved: 'いいねの多い作品', homeNew: '新しい作品', homeRandom: 'ランダムおすすめ', homeShuffle: '🔄 入れ替え', homeMore: 'もっと見る ›',
@@ -1797,7 +1799,7 @@ const LANG = {
         twToggleLabel: 'Open in TurboWarp',
         trAutoLabel: 'Auto-translate chat',
         soundLabel: 'Notification sounds',
-        navExploreGroup: 'Explore & Discover', navTalkGroup: 'Talk', navGuideGroup: 'How-tos & Guides',
+        navExploreGroup: 'Explore & Discover', navTalkGroup: 'Talk', navGuideGroup: 'How-tos & Guides', navLinkGroup: 'Scratch link',
         modeSearch: 'Search',
         modeHome: 'Home', homeTitle: 'Technical Works Collection', homeSub: 'A collection of technical Scratch projects',
         homeRated: 'Top-rated for skill', homeLoved: 'Most loved', homeNew: 'Newest', homeRandom: 'Random picks', homeShuffle: '🔄 Shuffle', homeMore: 'See more ›',
@@ -2538,7 +2540,7 @@ function toggleFilter(prefix) {
 let currentMode = 'search';
 let browseInitialized = false;
 
-var MODE_SECTIONS = { home: 'home-section', search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', guide: 'guide-section', short: 'short-section', admin: 'admin-section' };
+var MODE_SECTIONS = { home: 'home-section', search: 'search-section', browse: 'browse-section', rank: 'rank-section', chat: 'chat-section', saved: 'saved-section', user: 'user-section', project: 'project-section', guide: 'guide-section', link: 'link-section', short: 'short-section', admin: 'admin-section' };
 var MODE_TABS = { home: 'mode-home-btn', search: 'mode-search-btn', browse: 'mode-browse-btn', rank: 'mode-rank-btn', short: 'mode-short-btn', guide: 'mode-guide-btn', chat: 'mode-chat-btn', saved: 'mode-saved-btn', admin: 'mode-admin-btn' };
 var prevMode = 'browse';
 
@@ -2546,7 +2548,7 @@ function setMode(mode, forcePush) {
     var changedMode = mode !== currentMode;
     if ((mode === 'user' || mode === 'project') && currentMode !== 'user' && currentMode !== 'project') prevMode = currentMode;
     currentMode = mode;
-    var modeCategory = ({ home:'explore', search:'explore', browse:'explore', rank:'explore', short:'explore', saved:'explore', chat:'talk', guide:'guide', admin:'talk' })[mode];
+    var modeCategory = ({ home:'explore', search:'explore', browse:'explore', rank:'explore', short:'explore', saved:'explore', chat:'talk', guide:'guide', link:'link', admin:'talk' })[mode];
     if (modeCategory) setHeaderCategory(modeCategory);
     Object.keys(MODE_SECTIONS).forEach(function(k) { document.getElementById(MODE_SECTIONS[k]).style.display = k === mode ? '' : 'none'; });
     Object.keys(MODE_TABS).forEach(function(k) { document.getElementById(MODE_TABS[k]).classList.toggle('active', k === mode); });
@@ -2557,6 +2559,7 @@ function setMode(mode, forcePush) {
     if (mode === 'short') enterShort(); else leaveShort();
     if (mode === 'chat') enterChat(); else leaveChat();
     if (mode === 'guide') enterGuide();
+    if (mode === 'link') enterLink(); else leaveLink();
     if (mode === 'home') renderHome();
     if (mode === 'browse' && !browseInitialized) {
         browseInitialized = true;
@@ -5887,6 +5890,7 @@ async function applyDefaultView() {
     if (st && st.m === 'p') { prevMode = 'browse'; openProjectPage(st.id); return; }
     if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); return; }
     if (st && st.m === 'g' && apiEnabled()) { gdFromUrl(st); return; }
+    if (st && st.m === 'l' && apiEnabled()) { slPending = st; setMode('link'); return; }
     if (st && st.m === 'c' && apiEnabled()) {
         if (st.room) { chatRoom = st.room; try { localStorage.setItem('twc_chat_room', st.room); } catch (e) {} }
         if (st.msg) { chatJumpTo = st.msg; chatAround = st.msg; }
@@ -5963,6 +5967,11 @@ function shareParams() {
         p.set('m', 'g');
         if (gd.view === 'read' && gd.openId) p.set('id', gd.openId);
         else if (gd.view === 'list') { if (gd.sort === 'hot') p.set('sort', 'hot'); put('tag', gd.tag); put('q', gd.q); }
+    } else if (currentMode === 'link') {
+        p.set('m', 'l');
+        if (sl && sl.tab && sl.tab !== 'notify') p.set('tab', sl.tab);
+        if (sl && sl.pid) p.set('pid', sl.pid);
+        if (sl && sl.tab === 'cloud' && sl.vname) p.set('var', sl.vname);
     } else if (currentMode === 'chat') {
         p.set('m', 'c'); p.set('room', chatRoom);
     } else {
@@ -6004,6 +6013,7 @@ window.addEventListener('popstate', function() {
         else if (st && st.m === 'u') openProfile(st.u);
         else if (st && st.m === 'r') { rankPeriod = st.p; setMode('rank'); }
         else if (st && st.m === 'g' && apiEnabled()) gdFromUrl(st);
+        else if (st && st.m === 'l' && apiEnabled()) { slPending = st; setMode('link'); }
         else if (st && st.m === 'c' && apiEnabled()) setMode('chat');
         else if (st && st.m === 's') setMode('search');
         else if (st && st.m === 'b') setMode('browse');
@@ -6038,6 +6048,7 @@ function readUrlState() {
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
     if (m === 'g') return { m: 'g', id: /^\d{1,9}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0, sort: p.get('sort') === 'hot' ? 'hot' : 'new', tag: (p.get('tag') || '').slice(0, 20), q: (p.get('q') || '').slice(0, 60) };
+    if (m === 'l') return { m: 'l', tab: ['cloud', 'rules'].indexOf(p.get('tab')) >= 0 ? p.get('tab') : 'notify', pid: /^\d{1,12}$/.test(p.get('pid') || '') ? Number(p.get('pid')) : 0, vname: (p.get('var') || '').slice(0, 100) };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
     if (m === 'c') return { m: 'c', room: chatRoomOK(p.get('room') || '') ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
     if (m !== 's' && m !== 'b') return null;
@@ -6111,11 +6122,11 @@ function updateSortOptions() {
 // ===== ヘッダーの設定メニュー =====
 var currentHeaderCategory = 'explore';
 function setHeaderCategory(category) {
-    if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
+    if (['explore', 'talk', 'guide', 'link'].indexOf(category) < 0) return;
     currentHeaderCategory = category;
     var headerNav = document.getElementById('header-mode-nav');
-    if (headerNav) headerNav.style.display = category === 'guide' ? 'none' : '';
-    document.body.classList.toggle('header-no-subnav', category === 'guide');
+    if (headerNav) headerNav.style.display = (category === 'guide' || category === 'link') ? 'none' : '';
+    document.body.classList.toggle('header-no-subnav', category === 'guide' || category === 'link');
     ['explore', 'talk', 'guide'].forEach(function(key) {
         var tabs = document.getElementById('header-mode-tabs-' + key);
         if (tabs) tabs.style.display = key === category && key !== 'guide' ? '' : 'none';
@@ -6124,12 +6135,13 @@ function setHeaderCategory(category) {
     var chatRooms = document.getElementById('chat-tabs');
     if (chatRooms) chatRooms.style.display = chatActive ? 'contents' : 'none';
     document.querySelectorAll('.drawer-category-btn').forEach(function(btn, i) {
-        btn.classList.toggle('active', ['explore', 'talk', 'guide'][i] === category);
+        btn.classList.toggle('active', ['explore', 'talk', 'guide', 'link'][i] === category);
     });
 }
 function selectDrawerCategory(category) {
-    if (['explore', 'talk', 'guide'].indexOf(category) < 0) return;
+    if (['explore', 'talk', 'guide', 'link'].indexOf(category) < 0) return;
     closeHeaderMenus();
+    if (category === 'link') { setHeaderCategory('link'); setMode('link', true); return; }
     if (category === 'explore') {
         setMode('browse', true);
         return;
@@ -9293,7 +9305,7 @@ async function renderPushRow() {
 }
 // ===== Scratch連携（Scratchの通知を知らせる／クラウド変数を保存する。家のサーバーが動かす） =====
 var SL_T = {
-    ja: { open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
+    ja: { needLogin: 'Scratch連携を使うには、ログインしてください。', open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
         rHead: '書き込みルール', rNone: 'ルールはまだありません', rKind: '種類', kLoad: '読み込み（IDからデータを返す）', kSave: '保存（データをIDごとに保存）', kCalc: '計算（値を計算して返す）', rIn: '受け取る変数', rOut: '返事を書く変数', rOutOpt: '返事を書く変数（空でもよい）', rF: '式（v が受け取った値）', rEcho: '受け取った値も一緒に返す（先頭に、桁数と値が付く）', rAdd: 'ルールを追加', rDel: '削除', rHits: '実行', rLast: '最後', rStore: '保存されたデータ', rStoreNone: '保存されたデータはまだありません', rKey: 'ID', rData: 'データ', rNoWriter: '家のサーバーに、書き込み用のScratchアカウントが設定されていません。サーバーの .env に SCRATCH_USER と SCRATCH_PASS（パスワード）を入れてください（専用アカウントを使ってください）。', rNeedP: '先に「クラウド変数」タブで、作品を登録してください',
         dLoad: 'プレイヤーが「受け取る変数」にIDを入れると、「返事を書く変数」が、保存してあるデータだけになります。データが無いときは 0 になります。', dSave: 'プレイヤーが「受け取る変数」に（IDの桁数1桁 + ID + データ）を入れると、データだけをIDごとに保存します。「返事を書く変数」は、空のままでもよいです。',
         pairH: '2つの変数で、セーブとロード', pairD: '変数2つだけで、保存も読み込みもできる、かんたん設定です。ロード: 変数Aに ID を入れると、変数Bが保存データだけになります。セーブ: 変数Bに（桁数 + ID + データ）を入れると、データだけが保存されます。', pairA: '変数A（IDを入れる。例 SAVE）', pairB: '変数B（データの出し入れ。例 SAVEDATA）', pairAdd: 'この2つで、ルールを作る', dCalc: 'プレイヤーが「受け取る変数」に値を入れると、式で計算した結果を「返事を書く変数」に書きます。例: v*2+1　使えるもの: + - * / % ^ ( ) floor ceil round abs sqrt min max mod',
@@ -9306,7 +9318,7 @@ var SL_T = {
         note: '自分の作品だけ登録できます。保存は家のサーバーが1分ごとに行い、履歴はずっと残ります（Scratch側の履歴は短いので、残しておきたい作品向きです）。',
         bad: '作品のIDは数字で入れてください', not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています',
         not_found: '作品が見つかりません', scratch_error: 'Scratchで、この作品が見つかりませんでした。共有している作品のIDか、確認してください（共有していない作品や、存在しないIDは、見つかりません）', scratch_unreachable: '家のサーバーから、Scratchに繋がりませんでした。少し待ってから、もう一度試してください', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', wait: '登録しました。サーバーが最初の保存をするまで、数秒から1分ほどかかります。この画面は自動で更新されます。', emptyV: 'まだ変数の記録がありません。この作品で、クラウド変数が変わると記録が始まります（遊んでみてください）。サーバーが止まっている場合も、ここは空のままです。', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
-    en: { open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
+    en: { needLogin: 'Log in to use the Scratch link.', open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
         rHead: 'Write rules', rNone: 'No rules yet', rKind: 'Type', kLoad: 'Load (return data for an ID)', kSave: 'Save (store data per ID)', kCalc: 'Calculate (return a computed value)', rIn: 'Variable to receive', rOut: 'Variable to write back', rOutOpt: 'Variable to write back (optional)', rF: 'Formula (v = received value)', rEcho: 'Also return the received value (digit count + value in front)', rAdd: 'Add rule', rDel: 'Delete', rHits: 'Runs', rLast: 'Last', rStore: 'Saved data', rStoreNone: 'No saved data yet', rKey: 'ID', rData: 'Data', rNoWriter: 'No Scratch account for writing is set on the home server. Put SCRATCH_USER and SCRATCH_PASS (password) in its .env (use a dedicated account).', rNeedP: 'Register a project in the Cloud variables tab first',
         dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes just the saved data (0 if nothing is saved).', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. The reply variable can be left empty.',
         pairH: 'Save and load with two variables', pairD: 'Quick setup with just two variables. Load: put an ID into variable A and variable B becomes the saved data only. Save: put (length + ID + data) into variable B and only the data is stored.', pairA: 'Variable A (put the ID here, e.g. SAVE)', pairB: 'Variable B (data in and out, e.g. SAVEDATA)', pairAdd: 'Create both rules', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
@@ -9325,26 +9337,40 @@ var sl = null;   // { tab, mine, pid, vname, hist }
 async function renderScratchLink() {
     var el = document.getElementById('sl-wrap');
     if (!el) return;
+    var db = document.getElementById('drawer-link-btn'); if (db) db.style.display = (loginUser && apiEnabled()) ? '' : 'none';
+    if (currentMode === 'link' && loginUser && apiEnabled() && !sl) enterLink();
     if (!loginUser || !apiEnabled()) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = '';
     el.innerHTML = '<button class="sl-open" onclick="slOpen()">' + esc(slt('open')) + ' ›</button>';
 }
-async function slOpen() {
+var slPending = null;
+// 設定メニューのボタンからは、専用ページへ移る
+function slOpen() { setHeaderCategory('link'); setMode('link', true); }
+function slLinkUrl() { return shareUrl(); }
+async function enterLink() {
     var ov = document.getElementById('sl-ov');
-    if (!ov) { ov = document.createElement('div'); ov.id = 'sl-ov'; ov.onclick = function(e) { if (e.target === ov) slClose(); }; document.body.appendChild(ov); }
-    sl = { tab: (sl && sl.tab) || 'notify', mine: null, pid: null, vname: null, hist: null, err: '' };
+    if (!ov) return;
+    if (!loginUser || !apiEnabled()) {
+        ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2></div><div class="sl-body"><div class="sl-err" style="color:#666">' + esc(slt('needLogin')) + '</div></div></div>';
+        return;
+    }
+    var pend = slPending; slPending = null;
+    sl = { tab: pend ? pend.tab : ((sl && sl.tab) || 'notify'), mine: null, pid: pend && pend.pid ? pend.pid : null, vname: pend && pend.vname ? pend.vname : null, hist: null, err: '' };
     slPaint();
     clearInterval(window.slTimer);
     window.slTimer = setInterval(function() {    // 開いている間は、数秒ごとに最新にする（入力中は止める）
         var a = document.activeElement;
-        if (!sl || !document.getElementById('sl-ov')) { clearInterval(window.slTimer); return; }
+        if (!sl || currentMode !== 'link') { clearInterval(window.slTimer); return; }
         if (a && (a.tagName === 'INPUT' || a.tagName === 'SELECT')) return;
         if (sl.tab === 'rules') return;
         slLoad();
     }, 5000);
     await slLoad();
+    if (sl && sl.vname && sl.tab === 'cloud' && sl.hist == null) slVar(sl.vname);
+    if (sl && sl.tab === 'rules') slLoadRules();
 }
-function slClose() { var ov = document.getElementById('sl-ov'); if (ov) ov.remove(); sl = null; clearInterval(window.slTimer); }
+function leaveLink() { clearInterval(window.slTimer); }
+function slClose() { setHeaderCategory('explore'); setMode('home', true); }
 async function slLoad() {
     try { sl.mine = await apiCall('GET', '/api/scratchlink/mine'); sl.err = ''; }
     catch (e) { sl.err = slt('unsupported') + '　[' + e.message + (e.status ? ' / HTTP ' + e.status : '') + ']'; }
@@ -9352,7 +9378,7 @@ async function slLoad() {
     if (sl.mine && sl.pid == null && sl.mine.projects.length) sl.pid = sl.mine.projects[0].id;
     slPaint();
 }
-function slTab(k) { sl.tab = k; slPaint(); if (k === 'rules') slLoadRules(); }
+function slTab(k) { sl.tab = k; slPaint(); updateUrl(); if (k === 'rules') slLoadRules(); }
 function slFmt(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
 function slPaint() {
     var ov = document.getElementById('sl-ov');
@@ -9361,7 +9387,7 @@ function slPaint() {
     if (sl.err) body = '<div class="sl-err">' + esc(sl.err) + '</div>';
     else if (!sl.mine) body = '<div class="sl-sub">…</div>';
     else body = sl.tab === 'notify' ? slNotifyHtml() : sl.tab === 'rules' ? slRulesHtml() : slCloudHtml();
-    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><span class="sl-s">v2026-11-22b</span><button class="sl-x" onclick="slClose()" title="' + esc(slt('close')) + '">×</button></div>' +
+    ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><span class="sl-s">v2026-11-23</span></div>' +
         '<div class="sl-tabs">' + [['notify', 'tNotify'], ['cloud', 'tCloud'], ['rules', 'tRules']].map(function(z) { return '<button class="sl-tab' + (sl.tab === z[0] ? ' on' : '') + '" onclick="slTab(\'' + z[0] + '\')">' + esc(slt(z[1])) + '</button>'; }).join('') + '</div>' +
         '<div class="sl-body">' + body + '</div></div>';
     if (sl.tab === 'cloud') { var c = ov.querySelector('.sl-chart'); if (c && sl.hist) slChart(c); }
@@ -9407,9 +9433,9 @@ function slChart(svg) {
     svg.innerHTML = '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#4D97FF" stroke-width="2" vector-effect="non-scaling-stroke"/>' +
         '<text x="6" y="12" font-size="11" fill="#999">' + esc(hi) + '</text><text x="6" y="176" font-size="11" fill="#999">' + esc(lo) + '</text>';
 }
-async function slPick(id) { sl.pid = id; sl.vname = null; sl.hist = null; sl.rules = null; slPaint(); if (sl.tab === 'rules') slLoadRules(); }
+async function slPick(id) { sl.pid = id; sl.vname = null; sl.hist = null; sl.rules = null; slPaint(); updateUrl(); if (sl.tab === 'rules') slLoadRules(); }
 async function slVar(name) {
-    sl.vname = name; sl.hist = null; slPaint();
+    sl.vname = name; sl.hist = null; slPaint(); updateUrl();
     try { var r = await apiCall('GET', '/api/cloudsave/history?id=' + sl.pid + '&name=' + encodeURIComponent(name) + '&limit=500'); if (sl && sl.vname === name) { sl.hist = r.rows || []; slPaint(); } }
     catch (e) { if (sl) { sl.hist = []; slPaint(); } }
 }
@@ -9489,7 +9515,6 @@ async function slRemove(id) {
     try { await apiCall('POST', '/api/cloudsave/remove', { id: id }); showToast(slt('rm')); } catch (e) { showToast(slt('fail')); }
     sl.pid = null; slLoad();
 }
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('sl-ov')) slClose(); });
 // 同じ端末で別のアカウントに切り替えたときも、いまのアカウントに届くようにする
 var pushSynced = '';
 function pushSync(sub) {

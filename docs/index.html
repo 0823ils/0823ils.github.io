@@ -7112,7 +7112,44 @@ async function chatCompressImage(file) {
 // WebCodecs/FFmpegなどの追加配布物は不要。非対応環境では元ファイルにフォールバックする。
 var CHAT_VIDEO_SOURCE_MAX = 200 * 1048576;
 var CHAT_VIDEO_OUTPUT_TARGET = 18 * 1048576;
+// 速い方式: ブラウザの動画エンコーダ（WebCodecs。GPU対応）で、再生せずに一気に変換する。動画の長さを待たない。
+// うまくいかないとき（非対応のブラウザ・ライブラリが読めない等）は、下の「再生しながら録画」方式に自動で切り替える。
+var MEDIABUNNY_URL = 'https://cdn.jsdelivr.net/npm/mediabunny@1.63.0/dist/bundles/mediabunny.min.mjs';
+var mediabunnyLoad = null;
+async function chatCompressVideoFast(file, onProgress) {
+    if (typeof VideoEncoder === 'undefined' || typeof VideoDecoder === 'undefined') return null;
+    if (!mediabunnyLoad) mediabunnyLoad = import(MEDIABUNNY_URL).catch(function(e) { mediabunnyLoad = null; throw e; });
+    var mb = await mediabunnyLoad;
+    var input = new mb.Input({ source: new mb.BlobSource(file), formats: mb.ALL_FORMATS });
+    try {
+        var vt = await input.getPrimaryVideoTrack();
+        var dur = await input.computeDuration();
+        if (!vt || !isFinite(dur) || dur <= 0 || dur > 600) return null;
+        if (!(await mb.canEncodeVideo('avc'))) return null;
+        var hasAudio = !!(await input.getPrimaryAudioTrack());
+        var audioRate = hasAudio ? 96000 : 0;
+        var videoRate = Math.max(150000, Math.min(5000000, Math.floor(CHAT_VIDEO_OUTPUT_TARGET * 8 / dur - audioRate)));
+        var w = vt.displayWidth, h = vt.displayHeight, big = Math.max(w, h);
+        var video = { codec: 'avc', bitrate: videoRate, hardwareAcceleration: 'prefer-hardware', frameRate: 30 };
+        if (big > 1280) { if (w >= h) video.width = 1280; else video.height = 1280; }
+        var output = new mb.Output({ format: new mb.Mp4OutputFormat({ fastStart: 'in-memory' }), target: new mb.BufferTarget() });
+        var conv = await mb.Conversion.init({ input: input, output: output, video: video, audio: hasAudio ? { codec: 'aac', bitrate: audioRate } : undefined });
+        if (!conv.isValid) return null;
+        conv.onProgress = function(p) { if (onProgress) onProgress(Math.min(0.99, p)); };
+        await conv.execute();
+        var blob = new Blob([output.target.buffer], { type: 'video/mp4' });
+        if (!blob.size || blob.size >= file.size || blob.size > CHAT_VIDEO_MAX) return null;
+        if (onProgress) onProgress(1);
+        return { blob: blob, type: 'video/mp4', name: file.name.replace(/\.[^.]+$/, '') + '.mp4', compressed: true };
+    } finally { try { input.dispose && input.dispose(); } catch (e) {} }
+}
 async function chatCompressVideo(file, onProgress) {
+    if (file.size <= CHAT_VIDEO_SOURCE_MAX) {
+        try { var fast = await chatCompressVideoFast(file, onProgress); if (fast) return fast; } catch (e) { console.warn('fast video compress failed, using recorder', e); }
+    }
+    return chatCompressVideoRec(file, onProgress);
+}
+async function chatCompressVideoRec(file, onProgress) {
     var canRecord = typeof MediaRecorder !== 'undefined' &&
         HTMLCanvasElement.prototype.captureStream &&
         (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') || MediaRecorder.isTypeSupported('video/webm;codecs=vp8') || MediaRecorder.isTypeSupported('video/webm'));

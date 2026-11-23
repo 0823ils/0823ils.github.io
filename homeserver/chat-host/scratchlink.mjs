@@ -134,7 +134,7 @@ function startLive(env, db, hooks) {
         if (r.kind === 'load') {
           if (!/^\d{1,9}$/.test(v)) continue;
           const row = getStore.get(c.pid, v);
-          reply(c, r.target_var, String(v.length) + v + (row ? row.data : ''));
+          reply(c, r.target_var, r.echo ? String(v.length) + v + (row ? row.data : '') : (row ? row.data : '0'));   // 既定は、データだけを返す（無いときは 0）。echoのときだけ、桁数+ID を頭に付ける
         } else if (r.kind === 'save') {
           const L = Number(v[0]), id = v.slice(1, 1 + L), data = v.slice(1 + L);
           if (!(L >= 1 && L <= 9) || id.length !== L || !data || data.length > 240) continue;

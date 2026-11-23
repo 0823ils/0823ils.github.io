@@ -141,7 +141,7 @@ function startLive(env, db, hooks) {
     const key = name + '\u0000' + v, exp = c.sent.get(key);
     if (exp) { c.sent.delete(key); if (exp > Date.now()) return; }
     for (const [k, e] of c.sent) if (e < Date.now()) c.sent.delete(k);
-    const rules = rulesOf.all(c.pid).filter(r => r.trigger_var === name);
+    const rules = rulesOf.all(c.pid).filter(r => r.trigger_var === name || (r.kind === 'user' && r.target_var === name));
     if (!rules.length || !/^-?\d{1,256}$/.test(v)) return;
     // 暴走ガード: 10秒に40回より多く動くときは、30秒止める
     const now = Date.now();
@@ -160,8 +160,10 @@ function startLive(env, db, hooks) {
           if (!getStore.get(c.pid, id) && countStore.get(c.pid).c >= 10000) continue;
           putStore.run(c.pid, id, data, Date.now());
           if (r.target_var) reply(c, r.target_var, v);   // 保存できたことを、同じ値で返す
-        } else if (r.kind === 'usave' || r.kind === 'uload') {
-          const rule = r;
+        } else if (r.kind === 'usave' || r.kind === 'uload' || r.kind === 'user') {
+          const rule = r.kind === 'user'
+            ? (name === r.trigger_var ? { kind: 'usave', target_var: null } : { kind: 'uload', target_var: r.target_var, formula: r.trigger_var })   // 変数Aなら保存、変数Bなら取り出し
+            : r;
           whoSet(c.pid, name, v).then(who => {
             if (!who || !/^[A-Za-z0-9_-]{1,40}$/.test(who)) return;
             if (rule.kind === 'usave') {

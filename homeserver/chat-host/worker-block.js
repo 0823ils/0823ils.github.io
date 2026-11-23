@@ -106,7 +106,7 @@ function cvCalc(src, v) {
 }
 
 const MAX_CV_RULES = 20;      // 1作品あたりのルールの数
-const CV_KINDS = ['load', 'save', 'calc', 'usave', 'uload'];
+const CV_KINDS = ['load', 'save', 'calc', 'usave', 'uload', 'user'];
 function cvVarName(s) {
   s = String(s || '').replace(/^☁\s*/, '').trim();
   if (!s || s.length > 100 || /[\u0000-\u001f]/.test(s)) throw new HttpError(400, 'bad_var');
@@ -147,10 +147,11 @@ async function cvRuleAdd(request, env) {
     formula = String(b.formula || '').trim();
     try { const r = cvCalc(formula, 7); if (!Number.isFinite(r)) { /* 0で割るなど。式の形は正しい */ } } catch (e) { throw new HttpError(400, 'bad_formula'); }
   }
-  const all = await env.DB.prepare('SELECT trigger_var, target_var FROM cv_rules WHERE project_id = ?').bind(id).all();
+  const all = await env.DB.prepare('SELECT kind, trigger_var, target_var FROM cv_rules WHERE project_id = ?').bind(id).all();
   if (all.results.length >= MAX_CV_RULES) throw new HttpError(409, 'too_many_rules');
   // 返事の変数を、別のルールの受付にしてもよい（変数2つで、セーブもロードもできる）。ぐるぐる回らないよう、家のサーバー側で守っている
-  if (all.results.some(r => r.trigger_var === trig)) throw new HttpError(409, 'dup_trigger');
+  const names = kind === 'user' ? [trig, target] : [trig];   // ユーザー別セーブは、変数AもBも受付になる
+  if (all.results.some(r => names.includes(r.trigger_var) || (r.kind === 'user' && names.includes(r.target_var)))) throw new HttpError(409, 'dup_trigger');
   await env.DB.prepare('INSERT INTO cv_rules (project_id, kind, trigger_var, target_var, formula, echo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
     .bind(id, kind, trig, target, formula, b.echo ? 1 : 0, Date.now()).run();
   return json({ ok: true });

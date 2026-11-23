@@ -13,6 +13,7 @@ cat > "$PL" <<PLIST
 <key>ProgramArguments</key><array>
 <string>/usr/bin/caffeinate</string><string>-i</string><string>$NODE</string>
 <string>--env-file=.env</string><string>--disable-warning=ExperimentalWarning</string><string>server.mjs</string></array>
+<key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
 <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
 <key>StandardOutPath</key><string>$DIR/data/server.log</string>
 <key>StandardErrorPath</key><string>$DIR/data/server.log</string>

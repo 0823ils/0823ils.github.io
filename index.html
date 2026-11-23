@@ -1417,7 +1417,7 @@
     <button type="button" class="drawer-category-btn active" onclick="selectDrawerCategory('explore')" data-i18n="navExploreGroup">見る・探す</button>
     <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('talk')" data-i18n="navTalkGroup">話す</button>
     <button type="button" class="drawer-category-btn" onclick="selectDrawerCategory('guide')" data-i18n="navGuideGroup">作り方・解説</button>
-    <button type="button" class="drawer-category-btn" id="drawer-link-btn" style="display:none" onclick="selectDrawerCategory('link')" data-i18n="navLinkGroup">Scratch連携</button>
+    <button type="button" class="drawer-category-btn" id="drawer-link-btn" onclick="selectDrawerCategory('link')" data-i18n="navLinkGroup">Scratch連携</button>
 </nav>
 
 <!-- サイトを開いてすぐ出す「通知をオンにしますか？」（ログイン中で、まだ設定していない端末だけ） -->
@@ -9337,7 +9337,6 @@ var sl = null;   // { tab, mine, pid, vname, hist }
 async function renderScratchLink() {
     var el = document.getElementById('sl-wrap');
     if (!el) return;
-    var db = document.getElementById('drawer-link-btn'); if (db) db.style.display = (loginUser && apiEnabled()) ? '' : 'none';
     if (currentMode === 'link' && loginUser && apiEnabled() && !sl) enterLink();
     if (!loginUser || !apiEnabled()) { el.style.display = 'none'; el.innerHTML = ''; return; }
     el.style.display = '';

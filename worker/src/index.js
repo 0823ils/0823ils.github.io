@@ -2844,7 +2844,7 @@ async function cvRules(request, env, url) {
   await cvOwned(env, user, id);
   const rs = await env.DB.prepare('SELECT id, kind, trigger_var, target_var, formula, echo, hits, last_at FROM cv_rules WHERE project_id = ? ORDER BY id').bind(id).all();
   const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_store WHERE project_id = ?').bind(id).first();
-  return json({ rules: rs.results, store_count: n ? n.c : 0, writer: !!env.SCRATCH_SESSION });
+  return json({ rules: rs.results, store_count: n ? n.c : 0, writer: !!(env.SCRATCH_SESSION || (env.SCRATCH_USER && env.SCRATCH_PASS)) });
 }
 
 async function cvRuleAdd(request, env) {

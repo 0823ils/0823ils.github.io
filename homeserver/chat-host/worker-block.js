@@ -12,15 +12,136 @@ const MAX_CV_TOTAL = 300;       // 全体の上限
 const MAX_CV_VARS = 40;         // 1作品あたり保存する変数の数
 const MAX_HOME_WATCH = 300;
 
+// ---------- サブアカウント連携 ----------
+// 1つの本垢に、Scratchのサブ垢をひも付ける。サブ垢が自分のものであることは、ログインと同じ「コードをコメントする」方法で確かめる。
+//   GET  /api/scratchlink/subs          -> { me, is_sub, owner, subs:[{name}] }
+//   POST /api/scratchlink/subs/start    { username, verifier } -> { code }        （本垢でログイン中）
+//   POST /api/scratchlink/subs/verify   { code, secret }       -> { ok, name }
+//   POST /api/scratchlink/subs/remove   { name }               -> { ok }          （本垢、または、そのサブ垢本人）
+//   POST /api/scratchlink/subs/switch   { name }               -> { token, username, id, expires_at }   （同じグループの垢へ切り替える）
+// グループ（本垢+サブ垢）は、Scratch連携の作品の登録・履歴・書き込みルール・通知で、まとめて「自分」として扱われる。
+const MAX_SUBS = 5;
+async function scGroup(env, uLower) {
+  let owner = uLower;
+  try {
+    const row = await env.DB.prepare('SELECT owner FROM sub_accounts WHERE sub = ?').bind(uLower).first();
+    if (row) owner = row.owner;
+    const subs = await env.DB.prepare('SELECT sub FROM sub_accounts WHERE owner = ?').bind(owner).all();
+    return { owner, names: [owner, ...subs.results.map(r => r.sub)] };
+  } catch (e) { return { owner, names: [uLower] }; }
+}
+const scIn = names => names.map(() => '?').join(',');
+
+async function scSubs(request, env) {
+  const user = await requireUser(request, env);
+  const me = user.u.toLowerCase();
+  const g = await scGroup(env, me);
+  const rows = await env.DB.prepare('SELECT sub_name, owner_name, created_at FROM sub_accounts WHERE owner = ? ORDER BY created_at').bind(g.owner).all();
+  return json({
+    me: user.u, is_sub: g.owner !== me,
+    owner: rows.results[0] ? rows.results[0].owner_name : user.u,
+    subs: rows.results.map(r => ({ name: r.sub_name, created_at: r.created_at })),
+  });
+}
+
+async function scSubStart(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request) || {};
+  const username = String(body.username || '');
+  if (!/^[A-Za-z0-9_-]{3,20}$/.test(username)) throw new HttpError(400, 'bad_username');
+  const lower = username.toLowerCase();
+  const verifier = String(body.verifier || '');
+  if (!/^[A-Za-z0-9_-]{43}$/.test(verifier)) throw new HttpError(400, 'bad_verifier');
+  const me = user.u.toLowerCase();
+  if (lower === me) throw new HttpError(400, 'same_account');
+  const g = await scGroup(env, me);
+  if (g.owner !== me) throw new HttpError(403, 'sub_cannot_link');            // サブ垢からは足せない（本垢でログインして足す）
+  if (g.names.length - 1 >= MAX_SUBS) throw new HttpError(409, 'too_many_subs');
+  const taken = await env.DB.prepare('SELECT 1 AS x FROM sub_accounts WHERE sub = ? OR owner = ?').bind(lower, lower).first();
+  if (taken) throw new HttpError(409, 'already_linked');
+  const now = Date.now();
+  await env.DB.prepare('DELETE FROM auth_challenges WHERE created_at < ?').bind(now - CODE_TTL).run();
+  const pending = await env.DB.prepare('SELECT COUNT(*) AS c FROM auth_challenges WHERE username = ?').bind(lower).first();
+  if (pending && pending.c >= MAX_PENDING_PER_USER) throw new HttpError(429, 'too_many_requests');
+  const code = genCode();
+  await env.DB.prepare('INSERT INTO auth_challenges (code, username, created_at, verifier) VALUES (?, ?, ?, ?)').bind(code, lower, now, verifier).run();
+  return json({ code, expires_in: CODE_TTL / 1000 });
+}
+
+async function scSubVerify(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request) || {};
+  const code = String(body.code || '').toUpperCase();
+  if (!/^TWC-[A-Z2-9]{8}$/.test(code)) throw new HttpError(400, 'bad_code');
+  const ch = await env.DB.prepare('SELECT username, created_at, verifier FROM auth_challenges WHERE code = ?').bind(code).first();
+  if (!ch) throw new HttpError(404, 'no_challenge');
+  if (Date.now() - ch.created_at > CODE_TTL) { await env.DB.prepare('DELETE FROM auth_challenges WHERE code = ?').bind(code).run(); throw new HttpError(410, 'expired'); }
+  const secret = String(body.secret || '');
+  if (!/^[A-Za-z0-9_-]{22,128}$/.test(secret)) throw new HttpError(403, 'bad_secret');
+  if (!ch.verifier || !timingSafeEqualStr(await sha256B64u(secret), ch.verifier)) throw new HttpError(403, 'bad_secret');
+  const me = user.u.toLowerCase();
+  const g = await scGroup(env, me);
+  if (g.owner !== me) throw new HttpError(403, 'sub_cannot_link');
+  if (g.names.length - 1 >= MAX_SUBS) throw new HttpError(409, 'too_many_subs');
+  const e2 = env.AUTH_PROJECT_ID ? env : { ...env, AUTH_PROJECT_ID: '1410118669' };   // 家のサーバーには、認証用の作品IDの設定が無いので、既定の値を使う
+  const owner = await getAuthOwner(e2);
+  const found = await findComment(e2, owner, ch.username, code, ch.created_at - CLOCK_SKEW);
+  if (!found) throw new HttpError(404, 'comment_not_found');
+  await env.DB.prepare('DELETE FROM auth_challenges WHERE code = ?').bind(code).run();
+  const sub = found.author.username.toLowerCase();
+  if (sub === me) throw new HttpError(400, 'same_account');
+  const taken = await env.DB.prepare('SELECT 1 AS x FROM sub_accounts WHERE sub = ? OR owner = ?').bind(sub, sub).first();
+  if (taken) throw new HttpError(409, 'already_linked');
+  await env.DB.prepare('INSERT INTO sub_accounts (sub, sub_uid, sub_name, owner, owner_uid, owner_name, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(sub, found.author.id, found.author.username, me, user.uid, user.u, Date.now()).run();
+  const w = await env.DB.prepare('SELECT enabled FROM sl_watch WHERE username = ?').bind(me).first();   // 本垢が通知をオンにしていたら、サブ垢の通知も見る
+  if (w && w.enabled) await env.DB.prepare('INSERT INTO sl_watch (username, last_count, enabled, updated_at) VALUES (?, NULL, 1, ?) ON CONFLICT(username) DO UPDATE SET enabled = 1').bind(sub, Date.now()).run();
+  return json({ ok: true, name: found.author.username });
+}
+
+async function scSubRemove(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request) || {};
+  const sub = String(body.name || '').toLowerCase();
+  const row = await env.DB.prepare('SELECT owner FROM sub_accounts WHERE sub = ?').bind(sub).first();
+  if (!row) throw new HttpError(404, 'not_found');
+  const me = user.u.toLowerCase();
+  if (me !== row.owner && me !== sub) throw new HttpError(403, 'forbidden');
+  await env.DB.prepare('DELETE FROM sub_accounts WHERE sub = ?').bind(sub).run();
+  return json({ ok: true });
+}
+
+async function scSwitch(request, env) {
+  const user = await requireUser(request, env);
+  const body = await readJson(request) || {};
+  const target = String(body.name || '').toLowerCase();
+  const me = user.u.toLowerCase();
+  if (!target || target === me) throw new HttpError(400, 'same_account');
+  const g = await scGroup(env, me);
+  let t = null;
+  const s = await env.DB.prepare('SELECT sub_uid, sub_name FROM sub_accounts WHERE sub = ? AND owner = ?').bind(target, g.owner).first();
+  if (s) t = { uid: s.sub_uid, u: s.sub_name };
+  else {
+    const o = await env.DB.prepare('SELECT owner, owner_uid, owner_name FROM sub_accounts WHERE owner = ? LIMIT 1').bind(g.owner).first();
+    if (o && target === o.owner) t = { uid: o.owner_uid, u: o.owner_name };
+  }
+  if (!t) throw new HttpError(404, 'not_found');
+  const expiresAt = Date.now() + SESSION_TTL;
+  const token = await signToken({ uid: t.uid, u: t.u, exp: expiresAt }, env.SESSION_SECRET);
+  return json({ token, username: t.u, id: t.uid, expires_at: expiresAt });
+}
+
+
 async function slMine(request, env) {
   const user = await requireUser(request, env);
   const me = user.u.toLowerCase();
   const w = await env.DB.prepare('SELECT enabled, last_count, updated_at FROM sl_watch WHERE username = ?').bind(me).first();
-  const ps = await env.DB.prepare('SELECT project_id, last_sync FROM cv_projects WHERE owner = ? ORDER BY created_at').bind(me).all();
+  const g = await scGroup(env, me);
+  const ps = await env.DB.prepare('SELECT project_id, last_sync, owner FROM cv_projects WHERE owner IN (' + scIn(g.names) + ') ORDER BY created_at').bind(...g.names).all();
   const projects = [];
   for (const p of ps.results) {
     const vs = await env.DB.prepare('SELECT name, value, updated_at FROM cv_vars WHERE project_id = ? ORDER BY name LIMIT ?').bind(p.project_id, MAX_CV_VARS).all();
-    projects.push({ id: p.project_id, last_sync: p.last_sync, vars: vs.results });
+    projects.push({ id: p.project_id, last_sync: p.last_sync, owner: p.owner, vars: vs.results });
   }
   return json({ notify: !!(w && w.enabled), last_count: w ? w.last_count : null, checked_at: w ? w.updated_at : null, projects });
 }
@@ -29,13 +150,14 @@ async function slNotify(request, env) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
   const me = user.u.toLowerCase();
+  const g = await scGroup(env, me);   // 本垢とサブ垢の通知を、まとめてオン・オフする
   if (body && body.enabled) {
-    await env.DB.prepare(
+    for (const nm of g.names) await env.DB.prepare(
       `INSERT INTO sl_watch (username, last_count, enabled, updated_at) VALUES (?, NULL, 1, ?)
        ON CONFLICT(username) DO UPDATE SET enabled = 1, last_count = NULL, updated_at = excluded.updated_at`
-    ).bind(me, Date.now()).run();
+    ).bind(nm, Date.now()).run();
   } else {
-    await env.DB.prepare('DELETE FROM sl_watch WHERE username = ?').bind(me).run();
+    for (const nm of g.names) await env.DB.prepare('DELETE FROM sl_watch WHERE username = ?').bind(nm).run();
   }
   return json({ ok: true });
 }
@@ -46,12 +168,13 @@ async function cvRegister(request, env) {
   const id = String(body && body.id || '').trim();
   if (!/^\d{1,12}$/.test(id)) throw new HttpError(400, 'bad_id');
   const me = user.u.toLowerCase();
-  const mine = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_projects WHERE owner = ?').bind(me).first();
+  const g = await scGroup(env, me);
+  const mine = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_projects WHERE owner IN (' + scIn(g.names) + ')').bind(...g.names).first();
   if (mine && mine.c >= MAX_CV_PER_USER) throw new HttpError(409, 'too_many_projects');
   const all = await env.DB.prepare('SELECT COUNT(*) AS c FROM cv_projects').first();
   if (all && all.c >= MAX_CV_TOTAL) throw new HttpError(409, 'full');
   const exists = await env.DB.prepare('SELECT owner FROM cv_projects WHERE project_id = ?').bind(Number(id)).first();
-  if (exists) { if (exists.owner === me) return json({ ok: true }); throw new HttpError(409, 'already_registered'); }
+  if (exists) { if (g.names.includes(exists.owner)) return json({ ok: true }); throw new HttpError(409, 'already_registered'); }
   // 自分の作品だけ登録できる（作者をScratchに問い合わせる）
   let r;
   try { r = await fetch(`${env.SCRATCH_API || SCRATCH_API}/projects/${id}`, { headers: { 'User-Agent': 'scratch-TWC' } }); }
@@ -59,8 +182,8 @@ async function cvRegister(request, env) {
   if (!r.ok) throw new HttpError(r.status === 404 ? 404 : 502, 'scratch_error');
   const j = await r.json();
   const author = String(j && j.author && j.author.username || '').toLowerCase();
-  if (author !== me) throw new HttpError(403, 'not_your_project');
-  await env.DB.prepare('INSERT INTO cv_projects (project_id, owner, created_at) VALUES (?, ?, ?)').bind(Number(id), me, Date.now()).run();
+  if (!g.names.includes(author)) throw new HttpError(403, 'not_your_project');   // 本垢か、ひも付けたサブ垢の作品なら登録できる
+  await env.DB.prepare('INSERT INTO cv_projects (project_id, owner, created_at) VALUES (?, ?, ?)').bind(Number(id), author, Date.now()).run();
   return json({ ok: true });
 }
 
@@ -70,8 +193,7 @@ async function cvHistory(request, env, url) {
   const id = Number(url.searchParams.get('id')), name = String(url.searchParams.get('name') || '');
   const limit = Math.max(1, Math.min(5000, Number(url.searchParams.get('limit')) || 200));
   if (!Number.isInteger(id) || !name || name.length > 100) throw new HttpError(400, 'bad_request');
-  const own = await env.DB.prepare('SELECT 1 AS x FROM cv_projects WHERE project_id = ? AND owner = ?').bind(id, user.u.toLowerCase()).first();
-  if (!own) throw new HttpError(404, 'not_found');
+  await cvOwned(env, user, id);
   let rows;
   try { rows = await env.DB.prepare('SELECT ts, value, user FROM cv_log WHERE project_id = ? AND name = ? ORDER BY ts DESC LIMIT ?').bind(id, name, limit).all(); }
   catch (e) { return json({ rows: [] }); }
@@ -114,8 +236,9 @@ function cvVarName(s) {
 }
 async function cvOwned(env, user, id) {
   if (!Number.isInteger(id)) throw new HttpError(400, 'bad_id');
-  const own = await env.DB.prepare('SELECT 1 AS x FROM cv_projects WHERE project_id = ? AND owner = ?').bind(id, user.u.toLowerCase()).first();
-  if (!own) throw new HttpError(404, 'not_found');
+  const row = await env.DB.prepare('SELECT owner FROM cv_projects WHERE project_id = ?').bind(id).first();
+  const g = await scGroup(env, user.u.toLowerCase());
+  if (!row || !g.names.includes(row.owner)) throw new HttpError(404, 'not_found');
 }
 
 // 書き込みルール。「変数Aが変わったら、変数Bに○○を書く」
@@ -198,9 +321,7 @@ async function cvRemove(request, env) {
   const body = await readJson(request);
   const id = Number(body && body.id);
   if (!Number.isInteger(id)) throw new HttpError(400, 'bad_id');
-  const me = user.u.toLowerCase();
-  const own = await env.DB.prepare('SELECT 1 AS x FROM cv_projects WHERE project_id = ? AND owner = ?').bind(id, me).first();
-  if (!own) throw new HttpError(404, 'not_found');
+  await cvOwned(env, user, id);
   await env.DB.prepare('DELETE FROM cv_projects WHERE project_id = ?').bind(id).run();
   await env.DB.prepare('DELETE FROM cv_vars WHERE project_id = ?').bind(id).run();
   try { await env.DB.prepare('DELETE FROM cv_rules WHERE project_id = ?').bind(id).run(); await env.DB.prepare('DELETE FROM cv_store WHERE project_id = ?').bind(id).run(); } catch (e) { /* 表がまだ無いとき */ }
@@ -241,10 +362,12 @@ async function homeReport(request, env) {
     if (!row) continue;
     await env.DB.prepare('UPDATE sl_watch SET last_count = ?, updated_at = ? WHERE username = ?').bind(n, now, String(u).toLowerCase()).run();
     if (row.last_count != null && n > row.last_count) {
-      notified += await pushToUser(env, String(u).toLowerCase(), {
-        title: 'Scratch', body: 'Scratchに新しい通知が ' + (n - row.last_count) + ' 件あります（合計 ' + n + ' 件）',
-        url: 'https://scratch.mit.edu/messages/', tag: 'scratch-messages',
-      });
+      const who = String(u).toLowerCase(), grp = await scGroup(env, who);   // 本垢・サブ垢のどの端末にも届ける
+      const payload = {
+        title: 'Scratch', body: (grp.names.length > 1 ? who + ': ' : '') + 'Scratchに新しい通知が ' + (n - row.last_count) + ' 件あります（合計 ' + n + ' 件）',
+        url: 'https://scratch.mit.edu/messages/', tag: 'scratch-messages-' + who,
+      };
+      for (const nm of grp.names) notified += await pushToUser(env, nm, payload);
     }
   }
   const vars = body && typeof body.vars === 'object' && body.vars ? body.vars : {};

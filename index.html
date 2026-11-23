@@ -6048,7 +6048,7 @@ function readUrlState() {
     if (m === 'p' && /^\d{1,12}$/.test(p.get('id') || '')) return { m: 'p', id: Number(p.get('id')) };
     if (m === 'h') return { m: 'h', id: /^\d{1,12}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0 };
     if (m === 'g') return { m: 'g', id: /^\d{1,9}$/.test(p.get('id') || '') ? Number(p.get('id')) : 0, sort: p.get('sort') === 'hot' ? 'hot' : 'new', tag: (p.get('tag') || '').slice(0, 20), q: (p.get('q') || '').slice(0, 60) };
-    if (m === 'l') return { m: 'l', tab: ['cloud', 'rules'].indexOf(p.get('tab')) >= 0 ? p.get('tab') : 'notify', pid: /^\d{1,12}$/.test(p.get('pid') || '') ? Number(p.get('pid')) : 0, vname: (p.get('var') || '').slice(0, 100) };
+    if (m === 'l') return { m: 'l', tab: ['cloud', 'rules', 'subs'].indexOf(p.get('tab')) >= 0 ? p.get('tab') : 'notify', pid: /^\d{1,12}$/.test(p.get('pid') || '') ? Number(p.get('pid')) : 0, vname: (p.get('var') || '').slice(0, 100) };
     if (m === 'r') return { m: 'r', p: p.get('p') === 'all' ? 'all' : 'week' };
     if (m === 'c') return { m: 'c', room: chatRoomOK(p.get('room') || '') ? p.get('room') : '', msg: /^\d{1,12}$/.test(p.get('msg') || '') ? Number(p.get('msg')) : 0 };
     if (m !== 's' && m !== 'b') return null;
@@ -9305,7 +9305,7 @@ async function renderPushRow() {
 }
 // ===== Scratch連携（Scratchの通知を知らせる／クラウド変数を保存する。家のサーバーが動かす） =====
 var SL_T = {
-    ja: { needLogin: 'Scratch連携を使うには、ログインしてください。', open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
+    ja: { tSubs: 'サブ垢', sTitle: 'アカウント', sHow: '本垢にサブ垢をひも付けると、作品の登録・履歴・書き込みルール・通知を、まとめて使えます。サブ垢は、ワンタップで切り替えられます。', sMain: '本垢', sSub: 'サブ垢', sNow: '使用中', sSwitch: '切り替える', sRemove: '外す', sAddT: 'サブ垢を追加', sName: 'サブ垢のScratchユーザー名', sIssue: 'コードを出す', sStep: 'このコードを、サブ垢のScratchでログインして、認証用の作品にコメントしてください。コメントしたら、下の「確認する」を押します。', sOpen: '認証用の作品を開く', sVerify: '確認する', sCancel: 'やめる', sBadName: 'ユーザー名が正しくありません（英数字・_・-、3〜20文字）', sTaken: 'このアカウントは、すでにひも付いています', sMany: 'サブ垢は、5つまでです', sSame: '本垢と同じアカウントは、追加できません', sErr: 'うまくいきませんでした。少し待って、もう一度試してください', sDone: 'サブ垢を追加しました', sNotFound: 'コメントが見つかりません。サブ垢で、コードをコメントしましたか？', sExpired: 'コードの期限が切れました。もう一度、コードを出してください', sSubLogin: 'いまはサブ垢でログインしています。サブ垢の追加は、本垢に切り替えて行ってください。', sConfirmRm: 'このサブ垢を外しますか？（作品などのデータは消えません）', needLogin: 'Scratch連携を使うには、ログインしてください。', open: 'Scratch連携を開く', h: 'Scratch連携', tNotify: '通知', tCloud: 'クラウド変数', tRules: '書き込み', close: '閉じる',
         rHead: '書き込みルール', rNone: 'ルールはまだありません', rKind: '種類', kLoad: '読み込み（IDからデータを返す）', kSave: '保存（データをIDごとに保存）', kCalc: '計算（値を計算して返す）', kUser: 'ユーザー別セーブ（変数Aで保存、変数Bで取り出し）', dUser: '変数Aに値を入れると、その値と、入れたユーザーを保存します（同じ人は、いちばん新しい値で上書き）。変数Bを変えると、変えたユーザーが保存した値が、変数Bに返ります。保存が無いときは 0 です。', rUA: '変数A（保存する。例 SAVE）', rUB: '変数B（取り出す。例 LOAD。ここに値が返る）', kUSave: 'ユーザー別に保存（変数Aが変わったら、値と変えた人を保存）', kULoad: 'ユーザー別に取り出し（変数Bが変わったら、その人の保存値を返す）', dUSave: '変数Aが変わるたびに、変わった値と、変えたユーザーを保存します。同じユーザーは、いちばん新しい値で上書きされます。', dULoad: '変数Bが変わると、変えたユーザーが変数Aに入れた値を取り出して、返事の変数に書きます。返事の変数が空のときは、変数B自身に書きます。保存が無いときは 0 です。', rSrc: '取り出す元の変数（変数A）', rInA: '保存する変数（変数A）', rInB: '受け取る変数（変数B）', rOutB: '返事を書く変数（空なら変数B自身）', rUStore: 'ユーザー別の保存', rUStoreNone: 'ユーザー別の保存は、まだありません', rUser: 'ユーザー', rVarN: '変数', rIn: '受け取る変数', rOut: '返事を書く変数', rOutOpt: '返事を書く変数（空でもよい）', rF: '式（v が受け取った値）', rEcho: '受け取った値も一緒に返す（先頭に、桁数と値が付く）', rAdd: 'ルールを追加', rDel: '削除', rHits: '実行', rLast: '最後', rStore: '保存されたデータ', rStoreNone: '保存されたデータはまだありません', rKey: 'ID', rData: 'データ', rNoWriter: '家のサーバーに、書き込み用のScratchアカウントが設定されていません。サーバーの .env に SCRATCH_USER と SCRATCH_PASS（パスワード）を入れてください（専用アカウントを使ってください）。', rNeedP: '先に「クラウド変数」タブで、作品を登録してください',
         dLoad: 'プレイヤーが「受け取る変数」にIDを入れると、「返事を書く変数」が、保存してあるデータだけになります。データが無いときは 0 になります。', dSave: 'プレイヤーが「受け取る変数」に（IDの桁数1桁 + ID + データ）を入れると、データだけをIDごとに保存します。「返事を書く変数」は、空のままでもよいです。',
         pairH: '2つの変数で、セーブとロード', pairD: '変数2つだけで、保存も読み込みもできる、かんたん設定です。ロード: 変数Aに ID を入れると、変数Bが保存データだけになります。セーブ: 変数Bに（桁数 + ID + データ）を入れると、データだけが保存されます。', pairA: '変数A（IDを入れる。例 SAVE）', pairB: '変数B（データの出し入れ。例 SAVEDATA）', pairAdd: 'この2つで、ルールを作る', dCalc: 'プレイヤーが「受け取る変数」に値を入れると、式で計算した結果を「返事を書く変数」に書きます。例: v*2+1　使えるもの: + - * / % ^ ( ) floor ceil round abs sqrt min max mod',
@@ -9318,7 +9318,7 @@ var SL_T = {
         note: '自分の作品だけ登録できます。保存は家のサーバーが1分ごとに行い、履歴はずっと残ります（Scratch側の履歴は短いので、残しておきたい作品向きです）。',
         bad: '作品のIDは数字で入れてください', not_your_project: '自分の作品だけ登録できます', too_many_projects: '登録できる作品は10個までです', already_registered: 'この作品は、すでに登録されています',
         not_found: '作品が見つかりません', scratch_error: 'Scratchで、この作品が見つかりませんでした。共有している作品のIDか、確認してください（共有していない作品や、存在しないIDは、見つかりません）', scratch_unreachable: '家のサーバーから、Scratchに繋がりませんでした。少し待ってから、もう一度試してください', full: 'いまは登録がいっぱいです', fail: '失敗しました', ok: '登録しました', rm: '外しました', wait: '登録しました。サーバーが最初の保存をするまで、数秒から1分ほどかかります。この画面は自動で更新されます。', emptyV: 'まだ変数の記録がありません。この作品で、クラウド変数が変わると記録が始まります（遊んでみてください）。サーバーが止まっている場合も、ここは空のままです。', unsupported: 'この機能は、サーバーが対応していません。家のサーバーに「Scratch連携」を入れてください。', confirmDel: 'この作品を外しますか？（保存した変数の値は、画面からは消えます）' },
-    en: { needLogin: 'Log in to use the Scratch link.', open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
+    en: { tSubs: 'Sub accounts', sTitle: 'Accounts', sHow: 'Link your Scratch sub accounts to your main account to use projects, history, write rules and notifications together. You can switch accounts with one tap.', sMain: 'Main', sSub: 'Sub', sNow: 'in use', sSwitch: 'Switch', sRemove: 'Unlink', sAddT: 'Add a sub account', sName: 'Scratch username of the sub account', sIssue: 'Get a code', sStep: 'Log in to Scratch with the sub account and comment this code on the login project. Then press Verify below.', sOpen: 'Open the login project', sVerify: 'Verify', sCancel: 'Cancel', sBadName: 'Invalid username (letters, digits, _ or -, 3 to 20 chars)', sTaken: 'This account is already linked', sMany: 'Up to 5 sub accounts', sSame: 'You cannot add your own account', sErr: 'Something went wrong. Please try again later', sDone: 'Sub account added', sNotFound: 'Comment not found. Did you comment the code with the sub account?', sExpired: 'The code expired. Please get a new one', sSubLogin: 'You are logged in as a sub account. Switch to the main account to add sub accounts.', sConfirmRm: 'Unlink this sub account? (Your data is kept)', needLogin: 'Log in to use the Scratch link.', open: 'Open Scratch link', h: 'Scratch link', tNotify: 'Messages', tCloud: 'Cloud variables', tRules: 'Write rules', close: 'Close',
         rHead: 'Write rules', rNone: 'No rules yet', rKind: 'Type', kLoad: 'Load (return data for an ID)', kSave: 'Save (store data per ID)', kCalc: 'Calculate (return a computed value)', kUser: 'Per-user save (A saves, B loads)', dUser: 'When a value is put into variable A, the value and the user who set it are saved (each user keeps the latest). When variable B changes, the value that user saved comes back in variable B. 0 if nothing is saved.', rUA: 'Variable A (save. e.g. SAVE)', rUB: 'Variable B (load. e.g. LOAD. The value is returned here)', kUSave: 'Save per user (when variable A changes, save the value and who changed it)', kULoad: 'Load per user (when variable B changes, return that user\'s saved value)', dUSave: 'Every time variable A changes, the new value and the user who changed it are saved. Each user keeps only the latest value.', dULoad: 'When variable B changes, the value that user saved in variable A is written to the reply variable (or to variable B itself if empty). 0 if nothing is saved.', rSrc: 'Source variable (variable A)', rInA: 'Variable to save (variable A)', rInB: 'Variable to receive (variable B)', rOutB: 'Reply variable (empty = variable B itself)', rUStore: 'Saved per user', rUStoreNone: 'Nothing saved per user yet', rUser: 'User', rVarN: 'Variable', rIn: 'Variable to receive', rOut: 'Variable to write back', rOutOpt: 'Variable to write back (optional)', rF: 'Formula (v = received value)', rEcho: 'Also return the received value (digit count + value in front)', rAdd: 'Add rule', rDel: 'Delete', rHits: 'Runs', rLast: 'Last', rStore: 'Saved data', rStoreNone: 'No saved data yet', rKey: 'ID', rData: 'Data', rNoWriter: 'No Scratch account for writing is set on the home server. Put SCRATCH_USER and SCRATCH_PASS (password) in its .env (use a dedicated account).', rNeedP: 'Register a project in the Cloud variables tab first',
         dLoad: 'When a player puts an ID into the receiving variable, the other variable becomes just the saved data (0 if nothing is saved).', dSave: 'When a player puts (1 digit = ID length) + ID + data into the receiving variable, only the data is stored per ID. The reply variable can be left empty.',
         pairH: 'Save and load with two variables', pairD: 'Quick setup with just two variables. Load: put an ID into variable A and variable B becomes the saved data only. Save: put (length + ID + data) into variable B and only the data is stored.', pairA: 'Variable A (put the ID here, e.g. SAVE)', pairB: 'Variable B (data in and out, e.g. SAVEDATA)', pairAdd: 'Create both rules', dCalc: 'When a player puts a value into the receiving variable, the computed result is written to the other variable. e.g. v*2+1',
@@ -9367,9 +9367,76 @@ async function enterLink() {
     await slLoad();
     if (sl && sl.vname && sl.tab === 'cloud' && sl.hist == null) slVar(sl.vname);
     if (sl && sl.tab === 'rules') slLoadRules();
+    if (sl && sl.tab === 'subs') slLoadSubs();
 }
 function leaveLink() { clearInterval(window.slTimer); }
 function slClose() { setHeaderCategory('explore'); setMode('home', true); }
+// ---- サブ垢 ----
+function slSubsHtml() {
+    var S = sl.subs;
+    if (!S) return '<div class="sl-sub">' + (sl.subsErr ? esc(slt('sErr')) : '…') + '</div>';
+    var accts = [{ name: S.owner, main: true }].concat(S.subs.map(function(x) { return { name: x.name }; }));
+    var rows = accts.map(function(a) {
+        var cur = a.name.toLowerCase() === String(S.me).toLowerCase();
+        return '<tr><td><b>' + esc(a.name) + '</b> <span class="sl-s">' + esc(slt(a.main ? 'sMain' : 'sSub')) + (cur ? ' / ' + esc(slt('sNow')) : '') + '</span></td><td style="text-align:right">' +
+            (cur ? '' : '<button class="sl-b" onclick="slSwitch(\'' + esc(a.name) + '\')">' + esc(slt('sSwitch')) + '</button> ') +
+            ((!a.main && (!S.is_sub || cur)) ? '<button class="sl-b off" onclick="slSubRemove(\'' + esc(a.name) + '\')">' + esc(slt('sRemove')) + '</button>' : '') + '</td></tr>';
+    }).join('');
+    var add;
+    if (S.is_sub) add = '<div class="sl-card"><div class="sl-sub">' + esc(slt('sSubLogin')) + '</div></div>';
+    else if (sl.subPend) add = '<div class="sl-card"><h3>' + esc(slt('sAddT')) + ': ' + esc(sl.subPend.name) + '</h3><div class="sl-sub">' + esc(slt('sStep')) + '</div>' +
+        '<div style="font:700 22px monospace;letter-spacing:2px;margin:10px 0">' + esc(sl.subPend.code) + '</div>' +
+        '<div class="sl-row"><a href="https://scratch.mit.edu/projects/1410118669/#comments" target="_blank" rel="noopener">' + esc(slt('sOpen')) + '</a></div>' +
+        (sl.subMsg ? '<div class="sl-err">' + esc(sl.subMsg) + '</div>' : '') +
+        '<div class="sl-row"><button class="sl-b" onclick="slSubVerify()">' + esc(slt('sVerify')) + '</button> <button class="sl-b off" onclick="slSubCancel()">' + esc(slt('sCancel')) + '</button></div></div>';
+    else add = '<div class="sl-card"><h3>' + esc(slt('sAddT')) + '</h3>' +
+        '<div class="sl-row"><input type="text" id="sl-sub-name" placeholder="' + esc(slt('sName')) + '" value="' + esc(sl.subName || '') + '" oninput="sl.subName=this.value"></div>' +
+        (sl.subMsg ? '<div class="' + (sl.subOk ? 'sl-sub' : 'sl-err') + '">' + esc(sl.subMsg) + '</div>' : '') +
+        '<button class="sl-b" onclick="slSubStart()">' + esc(slt('sIssue')) + '</button></div>';
+    return '<div class="sl-card"><h3>' + esc(slt('sTitle')) + '</h3><div class="sl-sub">' + esc(slt('sHow')) + '</div><table>' + rows + '</table></div>' + add;
+}
+async function slLoadSubs() {
+    try { sl.subs = await apiCall('GET', '/api/scratchlink/subs'); sl.subsErr = false; } catch (e) { sl.subs = null; sl.subsErr = true; }
+    slPaint();
+}
+async function slSubStart() {
+    var name = String(sl.subName || '').trim();
+    sl.subOk = false;
+    if (!/^[A-Za-z0-9_-]{3,20}$/.test(name)) { sl.subMsg = slt('sBadName'); slPaint(); return; }
+    try {
+        var secret = randomSecret();
+        var d = await apiCall('POST', '/api/scratchlink/subs/start', { username: name, verifier: await sha256B64u(secret) });
+        sl.subPend = { name: name, code: d.code, secret: secret }; sl.subMsg = '';
+    } catch (e) { sl.subMsg = slt(e.message === 'already_linked' ? 'sTaken' : e.message === 'too_many_subs' ? 'sMany' : e.message === 'same_account' ? 'sSame' : e.message === 'bad_username' ? 'sBadName' : 'sErr'); }
+    slPaint();
+}
+function slSubCancel() { sl.subPend = null; sl.subMsg = ''; slPaint(); }
+async function slSubVerify() {
+    if (!sl.subPend) return;
+    try {
+        await apiCall('POST', '/api/scratchlink/subs/verify', { code: sl.subPend.code, secret: sl.subPend.secret });
+        sl.subPend = null; sl.subName = ''; sl.subMsg = slt('sDone'); sl.subOk = true;
+        await slLoadSubs(); slLoad();
+    } catch (e) {
+        if (e.message === 'comment_not_found') sl.subMsg = slt('sNotFound');
+        else if (e.message === 'no_challenge' || e.message === 'expired' || e.message === 'bad_secret') { sl.subPend = null; sl.subMsg = slt('sExpired'); }
+        else sl.subMsg = slt(e.message === 'already_linked' ? 'sTaken' : e.message === 'too_many_subs' ? 'sMany' : 'sErr');
+        slPaint();
+    }
+}
+async function slSwitch(name) {
+    try {
+        var d = await apiCall('POST', '/api/scratchlink/subs/switch', { name: name });
+        loginUser = { username: d.username, id: d.id, token: d.token, expires_at: d.expires_at };
+        try { localStorage.setItem('twc_user', JSON.stringify(loginUser)); } catch (e) {}
+        location.reload();
+    } catch (e) { sl.subMsg = slt('sErr'); sl.subOk = false; slPaint(); }
+}
+async function slSubRemove(name) {
+    if (!confirm(slt('sConfirmRm'))) return;
+    try { await apiCall('POST', '/api/scratchlink/subs/remove', { name: name }); await slLoadSubs(); slLoad(); }
+    catch (e) { sl.subMsg = slt('sErr'); sl.subOk = false; slPaint(); }
+}
 async function slLoad() {
     try { sl.mine = await apiCall('GET', '/api/scratchlink/mine'); sl.err = ''; }
     catch (e) { sl.err = slt('unsupported') + '　[' + e.message + (e.status ? ' / HTTP ' + e.status : '') + ']'; }
@@ -9377,7 +9444,7 @@ async function slLoad() {
     if (sl.mine && sl.pid == null && sl.mine.projects.length) sl.pid = sl.mine.projects[0].id;
     slPaint();
 }
-function slTab(k) { sl.tab = k; slPaint(); updateUrl(); if (k === 'rules') slLoadRules(); }
+function slTab(k) { sl.tab = k; slPaint(); updateUrl(); if (k === 'rules') slLoadRules(); if (k === 'subs') slLoadSubs(); }
 function slFmt(ts) { return ts ? new Date(Number(ts)).toLocaleString() : '—'; }
 function slPaint() {
     var ov = document.getElementById('sl-ov');
@@ -9385,9 +9452,9 @@ function slPaint() {
     var body;
     if (sl.err) body = '<div class="sl-err">' + esc(sl.err) + '</div>';
     else if (!sl.mine) body = '<div class="sl-sub">…</div>';
-    else body = sl.tab === 'notify' ? slNotifyHtml() : sl.tab === 'rules' ? slRulesHtml() : slCloudHtml();
+    else body = sl.tab === 'notify' ? slNotifyHtml() : sl.tab === 'rules' ? slRulesHtml() : sl.tab === 'subs' ? slSubsHtml() : slCloudHtml();
     ov.innerHTML = '<div class="sl-box"><div class="sl-head"><h2>' + esc(slt('h')) + '</h2><span class="sl-s">v2026-11-23</span></div>' +
-        '<div class="sl-tabs">' + [['notify', 'tNotify'], ['cloud', 'tCloud'], ['rules', 'tRules']].map(function(z) { return '<button class="sl-tab' + (sl.tab === z[0] ? ' on' : '') + '" onclick="slTab(\'' + z[0] + '\')">' + esc(slt(z[1])) + '</button>'; }).join('') + '</div>' +
+        '<div class="sl-tabs">' + [['notify', 'tNotify'], ['cloud', 'tCloud'], ['rules', 'tRules'], ['subs', 'tSubs']].map(function(z) { return '<button class="sl-tab' + (sl.tab === z[0] ? ' on' : '') + '" onclick="slTab(\'' + z[0] + '\')">' + esc(slt(z[1])) + '</button>'; }).join('') + '</div>' +
         '<div class="sl-body">' + body + '</div></div>';
     if (sl.tab === 'cloud') { var c = ov.querySelector('.sl-chart'); if (c && sl.hist) slChart(c); }
 }

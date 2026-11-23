@@ -37,6 +37,11 @@ const block = fs.readFileSync(path.join(here, 'worker-block.js'), 'utf8');
 const ROUTES = [
   "  if (path === '/api/scratchlink/mine' && method === 'GET') return slMine(request, env);\n",
   "  if (path === '/api/scratchlink/notify' && method === 'PUT') return slNotify(request, env);\n",
+  "  if (path === '/api/scratchlink/subs' && method === 'GET') return scSubs(request, env);\n",
+  "  if (path === '/api/scratchlink/subs/start' && method === 'POST') return scSubStart(request, env);\n",
+  "  if (path === '/api/scratchlink/subs/verify' && method === 'POST') return scSubVerify(request, env);\n",
+  "  if (path === '/api/scratchlink/subs/remove' && method === 'POST') return scSubRemove(request, env);\n",
+  "  if (path === '/api/scratchlink/subs/switch' && method === 'POST') return scSwitch(request, env);\n",
   "  if (path === '/api/cloudsave/register' && method === 'POST') return cvRegister(request, env);\n",
   "  if (path === '/api/cloudsave/remove' && method === 'POST') return cvRemove(request, env);\n",
   "  if (path === '/api/cloudsave/history' && method === 'GET') return cvHistory(request, env, url);\n",
@@ -66,6 +71,7 @@ let sc = read('schema.sql');
 if (!sc.includes('sl_watch')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 通知・保存の表を足しました'); }
 if (!sc.includes('cv_rules')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink2.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: 書き込みルールの表を足しました'); }
 
+if (!sc.includes('sub_accounts')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink4.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: サブ垢の表を足しました'); }
 if (!sc.includes('cv_ustore')) { sc = sc.replace(/\s*$/, '\n') + '\n' + fs.readFileSync(path.join(here, 'migrate_scratchlink3.sql'), 'utf8'); save('schema.sql', sc); console.log('schema.sql: ユーザー別の保存の表を足しました'); }
 
 fs.copyFileSync(path.join(here, 'scratchlink.mjs'), f('scratchlink.mjs'));

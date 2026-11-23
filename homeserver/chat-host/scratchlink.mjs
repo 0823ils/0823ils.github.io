@@ -5,7 +5,9 @@ const UA = 'scratch-TWC-home/1.0';
 const MIGRATE2 = `CREATE TABLE IF NOT EXISTS cv_rules (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL, kind TEXT NOT NULL, trigger_var TEXT NOT NULL, target_var TEXT, formula TEXT, echo INTEGER NOT NULL DEFAULT 0, hits INTEGER NOT NULL DEFAULT 0, last_at INTEGER, created_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_cv_rules_p ON cv_rules(project_id);
 CREATE TABLE IF NOT EXISTS cv_store (project_id INTEGER NOT NULL, store_key TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, store_key));
-CREATE TABLE IF NOT EXISTS cv_ustore (project_id INTEGER NOT NULL, var_name TEXT NOT NULL, username TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, var_name, username));`;
+CREATE TABLE IF NOT EXISTS cv_ustore (project_id INTEGER NOT NULL, var_name TEXT NOT NULL, username TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (project_id, var_name, username));
+CREATE TABLE IF NOT EXISTS sub_accounts (sub TEXT PRIMARY KEY, sub_uid INTEGER NOT NULL, sub_name TEXT NOT NULL, owner TEXT NOT NULL, owner_uid INTEGER NOT NULL, owner_name TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_sub_owner ON sub_accounts(owner);`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clean = n => { n = String(n); return n.startsWith('☁ ') ? n.slice(2) : n; };
 

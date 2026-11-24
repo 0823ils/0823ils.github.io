@@ -7822,6 +7822,33 @@ async function chatLoadOlder() {
     finally { chatOlderBusy = false; }
 }
 
+// 実行中のメッセージ（.sb3-card.open）の要素は、そのまま残して、ほかの部分だけを描き直す。できなければ false（ふつうに全部描き直す）
+function chatSyncKeep(box, msgs, me, pend) {
+    try {
+        var keep = {}, want = {};
+        box.querySelectorAll('.sb3-card.open').forEach(function(c) { var m = c.closest('.chat-msg'); if (m && m.id) keep[m.id] = 1; });
+        msgs.forEach(function(m) { want['chat-msg-' + m.id] = 1; });
+        for (var k in keep) if (!want[k]) return false;                 // 実行中のものが一覧から消えた（削除など）
+        Array.prototype.slice.call(box.children).forEach(function(el) { if (!keep[el.id]) el.remove(); });
+        var tmp = document.createElement('div'), prev = null;
+        function put(html) {
+            tmp.innerHTML = html;
+            while (tmp.firstChild) {
+                var n = tmp.firstChild;
+                if (prev) box.insertBefore(n, prev.nextSibling); else box.insertBefore(n, box.firstChild);
+                prev = n;
+            }
+        }
+        if (chatHasMore) put('<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>');
+        msgs.forEach(function(m, i) {
+            var id = 'chat-msg-' + m.id;
+            if (keep[id]) { prev = document.getElementById(id); return; }
+            put(chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null));
+        });
+        if (pend.length) put(pend.map(chatPendHTML).join(''));
+        return true;
+    } catch (e) { return false; }
+}
 function renderChat(msgs, forceScroll) {
     var box = document.getElementById('chat-list');
     var atBottom = forceScroll || (box.scrollHeight - box.scrollTop - box.clientHeight < 40);
@@ -7833,9 +7860,13 @@ function renderChat(msgs, forceScroll) {
     var me = loginUser ? loginUser.id : 0;
     var eta = chatEditing ? document.getElementById('chat-edit-text') : null, hadFocus = !!eta && document.activeElement === eta;
     if (eta) chatEditDraft = eta.value;   // 新着で描き直されても、編集中の文字は消さない
+    // 実行中のsb3カードがあるときは、そのメッセージの要素を触らずに、まわりだけ入れ替える
+    // （iframeは、DOMから外すと止まって、読み込み直しになるため）
+    if (!(box.querySelector('.sb3-card.open') && chatSyncKeep(box, msgs, me, pend))) {
     box.innerHTML = (chatHasMore ? '<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>' : '') +
         msgs.map(function(m, i) { return chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null); }).join('') +
         pend.map(chatPendHTML).join('');
+    }
     if (atBottom) box.scrollTop = box.scrollHeight;
     chatCardsMeta(box);
     if (chatEditing) {

@@ -7823,10 +7823,17 @@ async function chatLoadOlder() {
 }
 
 // 実行中のメッセージ（.sb3-card.open）の要素は、そのまま残して、ほかの部分だけを描き直す。できなければ false（ふつうに全部描き直す）
+// 触ってはいけないメッセージ: 実行中の作品、再生中（または再生の途中）の動画
+function chatKeepIds(box) {
+    var keep = {}, any = false;
+    function add(el) { var m = el.closest('.chat-msg'); if (m && m.id) { keep[m.id] = 1; any = true; } }
+    box.querySelectorAll('.sb3-card.open').forEach(add);
+    box.querySelectorAll('video').forEach(function(v) { if (!v.paused || (v.currentTime > 0 && !v.ended)) add(v); });
+    return any ? keep : null;
+}
 function chatSyncKeep(box, msgs, me, pend) {
     try {
-        var keep = {}, want = {};
-        box.querySelectorAll('.sb3-card.open').forEach(function(c) { var m = c.closest('.chat-msg'); if (m && m.id) keep[m.id] = 1; });
+        var keep = chatKeepIds(box) || {}, want = {};
         msgs.forEach(function(m) { want['chat-msg-' + m.id] = 1; });
         for (var k in keep) if (!want[k]) return false;                 // 実行中のものが一覧から消えた（削除など）
         Array.prototype.slice.call(box.children).forEach(function(el) { if (!keep[el.id]) el.remove(); });
@@ -7862,7 +7869,7 @@ function renderChat(msgs, forceScroll) {
     if (eta) chatEditDraft = eta.value;   // 新着で描き直されても、編集中の文字は消さない
     // 実行中のsb3カードがあるときは、そのメッセージの要素を触らずに、まわりだけ入れ替える
     // （iframeは、DOMから外すと止まって、読み込み直しになるため）
-    if (!(box.querySelector('.sb3-card.open') && chatSyncKeep(box, msgs, me, pend))) {
+    if (!(chatKeepIds(box) && chatSyncKeep(box, msgs, me, pend))) {
     box.innerHTML = (chatHasMore ? '<button class="chat-older-btn" id="chat-older" onclick="chatLoadOlder()">' + esc(ct('older')) + '</button>' : '') +
         msgs.map(function(m, i) { return chatMsgHTML(m, me, i > 0 ? msgs[i - 1] : null); }).join('') +
         pend.map(chatPendHTML).join('');

@@ -2266,7 +2266,7 @@ function shortSync() {
         var old = box.querySelector('iframe');
         var fr = document.createElement('iframe');
         fr.setAttribute('data-run', run ? '1' : '0');
-        fr.setAttribute('allow', 'autoplay; fullscreen'); fr.setAttribute('allowfullscreen', '');
+        fr.setAttribute('allow', 'autoplay; fullscreen; local-network-access; local-network; loopback-network'); fr.setAttribute('allowfullscreen', '');
         if (old) fr.style.visibility = 'hidden';
         // 読み込めたら、自分より前（古い）のものだけ外す。後から作った新しいものを消さない
         var done = function() {
@@ -6811,7 +6811,7 @@ function chatEmbedPlay(el) {
     var f = document.createElement('iframe');
     f.src = src;
     f.setAttribute('allowfullscreen', '');
-    f.setAttribute('allow', 'autoplay; fullscreen');
+    f.setAttribute('allow', 'autoplay; fullscreen; local-network-access; local-network; loopback-network');
     f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
     el.onclick = null;
@@ -7016,7 +7016,7 @@ function chatEmbedFrame(el, src) {
     f.src = src;
     f.setAttribute('allowfullscreen', '');
     f.setAttribute('allowtransparency', 'true');
-    f.setAttribute('allow', 'autoplay; fullscreen');
+    f.setAttribute('allow', 'autoplay; fullscreen; local-network-access; local-network; loopback-network');
     f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
     f.style.colorScheme = 'auto';

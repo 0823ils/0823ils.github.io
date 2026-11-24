@@ -7125,7 +7125,7 @@ async function chatCompressImage(file) {
 var CHAT_VIDEO_SOURCE_MAX = 200 * 1048576;
 var CHAT_VIDEO_OUTPUT_TARGET = 18 * 1048576;
 // 速い方式: ブラウザの動画エンコーダ（WebCodecs。GPU対応）で、再生せずに一気に変換する。動画の長さを待たない。
-// うまくいかないとき（非対応のブラウザ・ライブラリが読めない等）は、下の「再生しながら録画」方式に自動で切り替える。
+// うまくいかないとき（非対応のブラウザ・ライブラリが読めない等）は、縮めずにそのまま送る。
 var MEDIABUNNY_URL = 'https://cdn.jsdelivr.net/npm/mediabunny@1.63.0/dist/bundles/mediabunny.min.mjs';
 var mediabunnyLoad = null;
 async function chatCompressVideoFast(file, onProgress) {
@@ -7155,97 +7155,12 @@ async function chatCompressVideoFast(file, onProgress) {
         return { blob: blob, type: 'video/mp4', name: file.name.replace(/\.[^.]+$/, '') + '.mp4', compressed: true };
     } finally { try { input.dispose && input.dispose(); } catch (e) {} }
 }
+// 縮めるのは、速い方式だけ。使えない・失敗したときは、縮めずにそのまま送る（遅い録画方式は使わない）
 async function chatCompressVideo(file, onProgress) {
     if (file.size <= CHAT_VIDEO_SOURCE_MAX) {
-        try { var fast = await chatCompressVideoFast(file, onProgress); if (fast) return fast; } catch (e) { console.warn('fast video compress failed, using recorder', e); }
+        try { var fast = await chatCompressVideoFast(file, onProgress); if (fast) return fast; } catch (e) { console.warn('video compress skipped', e); }
     }
-    return chatCompressVideoRec(file, onProgress);
-}
-async function chatCompressVideoRec(file, onProgress) {
-    var canRecord = typeof MediaRecorder !== 'undefined' &&
-        HTMLCanvasElement.prototype.captureStream &&
-        (MediaRecorder.isTypeSupported('video/webm;codecs=vp9') || MediaRecorder.isTypeSupported('video/webm;codecs=vp8') || MediaRecorder.isTypeSupported('video/webm'));
-    if (!canRecord || file.size > CHAT_VIDEO_SOURCE_MAX) return { blob: file, type: file.type, name: file.name, compressed: false };
-    var url = URL.createObjectURL(file), video = document.createElement('video');
-    var canvas = document.createElement('canvas'), ctx = null;
-    var audioContext = null, sourceNode = null, audioDestination = null, stream = null, recorder = null;
-    var raf = 0, stopped = false;
-    function cleanup() {
-        if (raf) cancelAnimationFrame(raf);
-        try { video.pause(); } catch (e) {}
-        video.removeAttribute('src'); video.load(); URL.revokeObjectURL(url);
-        if (audioContext && audioContext.state !== 'closed') audioContext.close().catch(function() {});
-        if (stream) stream.getTracks().forEach(function(t) { try { t.stop(); } catch (e) {} });
-    }
-    try {
-        video.preload = 'auto'; video.playsInline = true; video.muted = false;
-        // 再生許可とAudioContextの再開は、ファイル選択直後のユーザー操作中に開始する。
-        var AC = window.AudioContext || window.webkitAudioContext;
-        var resumePromise = Promise.resolve();
-        try {
-            if (AC) {
-                audioContext = new AC();
-                sourceNode = audioContext.createMediaElementSource(video);
-                audioDestination = audioContext.createMediaStreamDestination();
-                sourceNode.connect(audioDestination); // スピーカーへは接続しない
-                resumePromise = audioContext.resume();
-            }
-        } catch (audioError) { audioContext = null; audioDestination = null; }
-        var metadataPromise = new Promise(function(resolve, reject) {
-            video.onloadedmetadata = resolve;
-            video.onerror = function() { reject(new Error('video_decode')); };
-        });
-        video.src = url;
-        var playPromise = video.play();
-        await metadataPromise;
-        await resumePromise;
-        await playPromise;
-        if (!video.videoWidth || !video.videoHeight || !isFinite(video.duration) || video.duration <= 0 || video.duration > 600) {
-            cleanup(); return { blob: file, type: file.type, name: file.name, compressed: false };
-        }
-        var scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
-        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
-        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-        ctx = canvas.getContext('2d', { alpha: false });
-        stream = canvas.captureStream(24);
-        if (audioDestination) audioDestination.stream.getAudioTracks().forEach(function(t) { stream.addTrack(t); });
-        video.currentTime = 0;
-        await new Promise(function(resolve) {
-            if (video.currentTime === 0) return resolve();
-            video.onseeked = resolve;
-        });
-        var mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' :
-            (MediaRecorder.isTypeSupported('video/webm;codecs=vp8') ? 'video/webm;codecs=vp8' : 'video/webm');
-        var audioRate = audioDestination && audioDestination.stream.getAudioTracks().length ? 96000 : 0;
-        var videoRate = Math.max(100000, Math.min(1800000, Math.floor((CHAT_VIDEO_OUTPUT_TARGET * 8 / video.duration) - audioRate)));
-        recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: videoRate, audioBitsPerSecond: audioRate || 64000 });
-        var chunks = [];
-        var result = await new Promise(function(resolve, reject) {
-            recorder.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
-            recorder.onerror = function() { reject(new Error('video_encode')); };
-            recorder.onstop = function() { resolve(new Blob(chunks, { type: 'video/webm' })); };
-            function draw() {
-                if (stopped) return;
-                try { ctx.drawImage(video, 0, 0, canvas.width, canvas.height); } catch (e) {}
-                if (onProgress && video.duration) onProgress(Math.min(0.99, video.currentTime / video.duration));
-                if (!video.ended && !video.paused) raf = requestAnimationFrame(draw);
-            }
-            video.onended = function() { stopped = true; if (recorder.state !== 'inactive') recorder.stop(); };
-            recorder.start(1000);
-            if (video.ended) { stopped = true; recorder.stop(); return; }
-            draw();
-        });
-        cleanup();
-        if (!result || !result.size || result.size >= file.size || result.size > CHAT_VIDEO_MAX) {
-            return { blob: file, type: file.type, name: file.name, compressed: false };
-        }
-        if (onProgress) onProgress(1);
-        var base = file.name.replace(/\.[^.]+$/, '');
-        return { blob: result, type: 'video/webm', name: base + '.webm', compressed: true };
-    } catch (e) {
-        cleanup();
-        return { blob: file, type: file.type, name: file.name, compressed: false };
-    }
+    return { blob: file, type: file.type, name: file.name, compressed: false };
 }
 
 async function chatVideoChosen(inp) {

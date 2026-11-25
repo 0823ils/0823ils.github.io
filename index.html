@@ -7696,7 +7696,7 @@ async function pgPick(inp) {
     var videoType = /^video\/(mp4|webm|quicktime)$/.test(f.type) ? f.type : ({ mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime' }[ext] || '');
     var isVideo = !isSb3 && !isImage && !!videoType;
     if (!isImage && !(isSb3 && !thread) && !(isVideo && !thread)) { form.err = ct('pg_e_type'); pgFormPaint(); return; }
-    if ((isSb3 || isVideo) && f.size > CHAT_VIDEO_MAX) { form.err = isSb3 ? ct('e_sb3_too_big') : ct('e_video_too_big'); pgFormPaint(); return; }
+    if ((isSb3 || (isVideo && f.size > CHAT_VIDEO_SOURCE_MAX)) || (isVideo && f.size < 1)) { if (isSb3 && f.size <= CHAT_VIDEO_MAX) {} else { form.err = isSb3 ? ct('e_sb3_too_big') : ct('e_video_too_big'); pgFormPaint(); return; } }
     var blob = f, preview = '';
     if (isImage) {
         try { blob = await chatCompressImage(f); } catch (e) { form.err = ct('e_bad_image'); pgFormPaint(); return; }
@@ -7705,8 +7705,15 @@ async function pgPick(inp) {
     var item = { name: f.name, size: blob.size, status: 'uploading', progress: 0, id: '', preview: preview, sb3: isSb3, video: isVideo };
     form.files.push(item); pgFormPaint();
     try {
-        var type = isImage ? 'image/jpeg' : isSb3 ? 'application/x.scratch.sb3' : videoType;
-        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: (isSb3 || isVideo) ? f.name : undefined });
+        var type = isImage ? 'image/jpeg' : isSb3 ? 'application/x.scratch.sb3' : videoType, upName = f.name;
+        if (isVideo) {   // 動画は、ブラウザ側で高速に縮めてから送る（縮められないときは、そのまま送る）
+            item.compressing = true; pgFormPaint();
+            var cv = await chatCompressVideo(f, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
+            blob = cv.blob; type = cv.type || type; upName = cv.name || f.name;
+            if (blob.size > CHAT_VIDEO_MAX) throw new Error('video_too_big');
+            item.size = blob.size; item.compressing = false; item.progress = 0; pgFormPaint();
+        }
+        var st = await apiCall('POST', '/api/chat/videos/start', { size: blob.size, type: type, name: (isSb3 || isVideo) ? upName : undefined });
         item.id = st.id;
         await chatPutFile(st.upload_url, st.headers, blob, function(p) { item.progress = p; var b = document.querySelector('.pg-prog i[data-i="' + form.files.indexOf(item) + '"]'); if (b) b.style.width = Math.round(p * 100) + '%'; });
         if (isVideo) item.preview = await chatUploadVideoThumbnail(st, blob);

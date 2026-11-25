@@ -9255,8 +9255,8 @@ function markChatSeen() {
 async function pollBackground() {
     if (document.hidden || userIdle() || !apiEnabled()) return;
     try {
-        var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ() + (notifRoomQ() ? '&' : '?') + 'seen=' + encodeURIComponent(chatSeenQ()));
-        chatLatestMap = r.rooms || {}; chatCounts = r.counts || {};
+        var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ());
+        chatLatestMap = r.rooms || {}; chatCounts = r.by_room || {};
         if (typeof r.unread === 'number') setNotifBadge(r.unread);
     } catch (e) { return; }
     updateNavDots();
@@ -9273,7 +9273,7 @@ function updateNavDots() {
         var b = document.querySelector('#chat-tabs [data-r="' + r + '"]');
         if (b) {
             b.classList.toggle('unread', un);
-            var n = un ? (chatCounts[r] || 0) : 0, bd = b.querySelector('.un-n');
+            var n = (!roomMuted(r) && !(currentMode === 'chat' && r === chatRoom)) ? (chatCounts[r] || 0) : 0, bd = b.querySelector('.un-n');   // ベルの数字の内訳
             if (n && !bd) { bd = document.createElement('b'); bd.className = 'un-n'; b.appendChild(bd); }
             if (bd) { if (n) bd.textContent = n >= 99 ? '99+' : String(n); else bd.remove(); }
             b.classList.toggle('has-n', !!n);
@@ -9286,8 +9286,8 @@ function updateNavDots() {
 }
 function initUnread() {
     // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする
-    apiCall('GET', '/api/chat/latest' + (Object.keys(chatSeen).length ? '?seen=' + encodeURIComponent(chatSeenQ()) : '')).then(function(r) {
-        chatLatestMap = r.rooms || {}; chatCounts = r.counts || {};
+    apiCall('GET', '/api/chat/latest').then(function(r) {
+        chatLatestMap = r.rooms || {}; chatCounts = r.by_room || {};
         if (typeof r.unread === 'number') setNotifBadge(r.unread);
         var ch = false;
         CHAT_ROOMS.forEach(function(k) { if (chatSeen[k] === undefined) { chatSeen[k] = chatLatestMap[k] || 0; ch = true; } });

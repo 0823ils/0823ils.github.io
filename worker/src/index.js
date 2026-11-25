@@ -1442,6 +1442,21 @@ async function unreadCount(env, user, prefs, room) {
   return n;
 }
 
+// 部屋ごとの未読の通知の数（ベルの数字の内訳。通知オフの部屋は含めない）
+async function unreadByRoom(env, user, prefs) {
+  const me = user.u.toLowerCase();
+  const mu = await mutedRooms(env, me);
+  const out = {};
+  const a = await env.DB.prepare(`SELECT n.room AS room, COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0 AND n.room NOT IN (${inList(mu)}) GROUP BY n.room`).bind(me, ...mu).all();
+  for (const r of a.results) out[r.room] = r.c;
+  prefs = prefs || await notifPrefs(env, user);
+  if (prefs.mode === 'all') {
+    const b = await env.DB.prepare(`SELECT m.room AS room, COUNT(*) AS c ${NOTIF_MSG_WHERE} AND m.room NOT IN (${inList(mu)}) AND m.id > ? GROUP BY m.room`).bind(me, me, ...mu, prefs.seen).all();
+    for (const r of b.results) out[r.room] = (out[r.room] || 0) + r.c;
+  }
+  return out;
+}
+
 async function notifList(request, env) {
   const user = await requireUser(request, env);
   const me = user.u.toLowerCase();
@@ -2843,7 +2858,7 @@ async function chatLatest(request, env) {
   // ログインしていれば、通知の未読数も一緒に返す（通知の確認を別に行わなくて済む）
   const out = { rooms };
   const user = await getUser(request, env);
-  if (user) out.unread = await unreadCount(env, user, undefined, new URL(request.url).searchParams.get('room'));
+  if (user) { out.unread = await unreadCount(env, user, undefined, new URL(request.url).searchParams.get('room')); out.by_room = await unreadByRoom(env, user); }
   // 部屋ごとの未読の数（seen=部屋:最後に見たID,... を渡されたとき。自分の投稿は数えない。最大99）
   const seenQ = new URL(request.url).searchParams.get('seen');
   if (seenQ) {

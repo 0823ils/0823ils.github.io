@@ -6331,7 +6331,10 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
 // ===== 通知（返信・メンション） =====
 var notifUser = 0;
 
-function setNotifBadge(n) {
+var lastBellN = -1;
+function setNotifBadge(n, quiet) {
+    // ベルの数字が変わったら、部屋のタブの数字も、すぐ一緒に取り直す（ベルとずれないように）
+    if (n !== lastBellN) { lastBellN = n; if (!quiet && typeof chatBgPollSoon === 'function') chatBgPollSoon(); }
     updateAppBadge(n);
     var b = document.getElementById('notif-badge');
     if (!b) return;
@@ -9253,11 +9256,11 @@ function markChatSeen() {
     updateNavDots();
 }
 async function pollBackground() {
-    if (document.hidden || userIdle() || !apiEnabled()) return;
+    if (document.hidden || !apiEnabled()) return;
     try {
         var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ());
         chatLatestMap = r.rooms || {}; chatCounts = r.by_room || {};
-        if (typeof r.unread === 'number') setNotifBadge(r.unread);
+        if (typeof r.unread === 'number') setNotifBadge(r.unread, true);
     } catch (e) { return; }
     updateNavDots();
 }
@@ -9288,13 +9291,13 @@ function initUnread() {
     // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする
     apiCall('GET', '/api/chat/latest').then(function(r) {
         chatLatestMap = r.rooms || {}; chatCounts = r.by_room || {};
-        if (typeof r.unread === 'number') setNotifBadge(r.unread);
+        if (typeof r.unread === 'number') setNotifBadge(r.unread, true);
         var ch = false;
         CHAT_ROOMS.forEach(function(k) { if (chatSeen[k] === undefined) { chatSeen[k] = chatLatestMap[k] || 0; ch = true; } });
         if (ch) try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
         updateNavDots();
     }).catch(function() {});
-    setInterval(pollBackground, 30000);
+    setInterval(function() { if (!userIdle()) pollBackground(); }, 30000);
     document.addEventListener('visibilitychange', function() { if (!document.hidden) pollBackground(); });
 }
 (function() {

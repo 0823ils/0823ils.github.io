@@ -1159,7 +1159,22 @@
         #guide-section { min-height: 40vh; }
         .gd-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 2px 0 12px; }
         .gd-head h2 { margin: 0; font-size: 20px; color: #2b3a55; }
-        .gd-head-btns { display: flex; gap: 8px; }
+        .gd-head-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tut-add { display: flex; gap: 8px; margin: 0 0 12px; }
+        .tut-add input, .tut-q { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 8px 12px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; }
+        .tut-q { width: 100%; box-sizing: border-box; margin: 0 0 14px; }
+        .tut-card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e3ebf7; border-radius: 14px; overflow: hidden; }
+        .tut-th { position: relative; display: block; aspect-ratio: 16 / 9; background: #eef3fc center / cover no-repeat; border: 0; padding: 0; width: 100%; cursor: pointer; }
+        .tut-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .tut-th iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .tut-play { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(0,0,0,.55); }
+        .tut-play::after { content: ''; position: absolute; left: 18px; top: 13px; border-left: 14px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+        .tut-body { padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .tut-t { font-size: 14px; font-weight: 600; line-height: 1.4; color: #222; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .tut-s { font-size: 12px; color: #7a8aa8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tut-act { display: flex; gap: 10px; margin-top: auto; padding-top: 4px; }
+        .tut-act button { border: none; background: none; color: #9aa6bd; font-size: 12px; cursor: pointer; padding: 0; }
+        .tut-act button:hover { color: #e55; }
         .gd-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid #cfdcf5; background: #fff; color: #3a5a99; cursor: pointer; }
         .gd-btn:hover { background: #eef4ff; }
         .gd-btn.primary { background: #4d97ff; border-color: #4d97ff; color: #fff; }
@@ -3549,6 +3564,7 @@ var GT = {
         saveDraft: '下書きを保存', publish: '公開する', update: '更新する', unpublish: '下書きに戻す', saved: '保存しました', published: '公開しました', restored: '前回の書きかけを復元しました。', scratchAsk: 'ScratchのURL（例: https://scratch.mit.edu/projects/123456789）', openScratch: 'Scratch作品を開く', upl: '画像を上げています…',
         e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
         hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新',
+        tutBtn: '外部チュートリアル', tutTitle: '外部チュートリアル', tutSub: 'YouTubeやサイトのチュートリアルを、自動で集めています。', tutBack: '記事の一覧へ', tutAddPh: 'チュートリアルのURLを貼る（YouTubeやサイト）', tutAdd: '追加', tutSearch: '検索', tutEmpty: 'まだありません。URLを貼って追加できます。', tutEmptyQ: '見つかりませんでした。', tutReport: '報告', tutDel: '削除', tutReported: '報告しました。ありがとうございます。', tutAdded: '追加しました。', tutDup: 'すでにあります。', tutNeedLogin: '追加するにはログインしてください。', tutPlay: '再生', tutAuto: '自動', e_bad_url: 'URLが正しくありません（https:// で始まるもの）。', e_tut_not_found: 'ページの情報を取れませんでした。', e_tut_hidden: 'このリンクは、報告で非表示になっています。',
         run: 'スクリプトを実行', stop: '閉じる', showCode: 'コード', hideCode: 'コードを隠す', scriptOff: 'スクリプトは止めてあります（通信もできません）', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
         bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bVid: '動画・アニメ', bSb3: 'sb3',
     },
@@ -3561,6 +3577,7 @@ var GT = {
         saveDraft: 'Save draft', publish: 'Publish', update: 'Update', unpublish: 'Back to draft', saved: 'Saved', published: 'Published', restored: 'Restored your unsaved draft.', scratchAsk: 'Scratch URL (e.g. https://scratch.mit.edu/projects/123456789)', openScratch: 'Open Scratch project', upl: 'Uploading image…',
         e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
         hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated',
+        tutBtn: 'Tutorials from the web', tutTitle: 'Tutorials from the web', tutSub: 'Tutorials from YouTube and other sites, collected automatically.', tutBack: 'Back to articles', tutAddPh: 'Paste a tutorial URL (YouTube or any site)', tutAdd: 'Add', tutSearch: 'Search', tutEmpty: 'Nothing yet. Paste a URL to add one.', tutEmptyQ: 'No results.', tutReport: 'Report', tutDel: 'Delete', tutReported: 'Reported. Thank you.', tutAdded: 'Added.', tutDup: 'Already added.', tutNeedLogin: 'Log in to add a link.', tutPlay: 'Play', tutAuto: 'auto', e_bad_url: 'That URL is not valid (it must start with https://).', e_tut_not_found: 'Could not read that page.', e_tut_hidden: 'This link was hidden after reports.',
         run: 'Run script', stop: 'Close', showCode: 'Code', hideCode: 'Hide code', scriptOff: 'Scripts are off (no network either)', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
         bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bVid: 'Video / animation', bSb3: 'sb3',
     }
@@ -3769,9 +3786,73 @@ function enterGuide() {
 function gdGo(view) { gd.view = view; gdPaint(); updateUrl(true); window.scrollTo(0, 0); }
 function gdPaint() {
     var box = gdBox(); if (!box) return;
-    if (gd.view === 'read') gdReadPaint();
+    if (gd.view === 'ext') gdExtPaint();
+    else if (gd.view === 'read') gdReadPaint();
     else if (gd.view === 'edit') gdEditPaint();
     else gdListPaint();
+}
+// ---- 外部チュートリアル ----
+var tut = { items: [], more: false, q: '', state: '', seq: 0, busy: false };
+function gdExt() { gd.view = 'ext'; gd.mine = false; gd.saved = false; tut.items = []; tut.more = false; tut.q = ''; gdPaint(); tutLoad(true); window.scrollTo(0, 0); }
+function gdExtPaint() {
+    var box = gdBox(); if (!box) return;
+    box.innerHTML = '<div class="gd-head"><h2>' + esc(gt('tutTitle')) + '</h2></div><button class="gd-back" onclick="gdList()">' + esc(gt('tutBack')) + '</button>' +
+        '<div class="gd-sub">' + esc(gt('tutSub')) + '</div>' +
+        (loginUser && apiEnabled() ? '<div class="tut-add"><input type="url" id="tut-url" maxlength="600" placeholder="' + esc(gt('tutAddPh')) + '" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)tutAdd()"><button class="gd-btn primary" id="tut-addb" onclick="tutAdd()">' + esc(gt('tutAdd')) + '</button></div>' : '') +
+        '<input type="search" id="tut-q" class="tut-q" maxlength="60" placeholder="' + esc(gt('tutSearch')) + '" value="' + esc(tut.q) + '" enterkeyhint="search" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)tutSearch()">' +
+        '<div class="gd-grid" id="tut-grid"></div><div class="gd-foot" id="tut-foot"></div>';
+    tutGridPaint();
+}
+function tutSearch() { var el = document.getElementById('tut-q'); tut.q = el ? el.value.trim() : ''; tutLoad(true); }
+function tutCardHTML(t, i) {
+    var img = t.thumb ? '<img src="' + esc(t.thumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">' : '';
+    var th = t.kind === 'youtube'
+        ? '<button class="tut-th" onclick="tutPlay(this,\'' + esc(t.yt_id) + '\')" aria-label="' + esc(gt('tutPlay')) + '">' + img + '<span class="tut-play"></span></button>'
+        : '<a class="tut-th" href="' + esc(t.url) + '" target="_blank" rel="noopener noreferrer">' + img + '</a>';
+    var mine = loginUser && t.mine;
+    return '<div class="tut-card">' + th + '<div class="tut-body"><a class="tut-t" href="' + esc(t.url) + '" target="_blank" rel="noopener noreferrer">' + esc(t.title) + '</a><div class="tut-s">' + esc(t.source || '') + '</div>' +
+        (loginUser ? '<div class="tut-act"><button onclick="tutReport(' + t.id + ')">' + esc(gt('tutReport')) + '</button>' + (mine ? '<button onclick="tutDel(' + t.id + ')">' + esc(gt('tutDel')) + '</button>' : '') + '</div>' : '') + '</div></div>';
+}
+function tutPlay(btn, id) {
+    btn.outerHTML = '<div class="tut-th"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
+}
+function tutGridPaint() {
+    var grid = document.getElementById('tut-grid'), foot = document.getElementById('tut-foot');
+    if (!grid) return;
+    grid.innerHTML = tut.items.map(tutCardHTML).join('');
+    foot.innerHTML = tut.state === 'load' ? '<div class="gd-note">' + esc(gt('loading')) + '</div>' : tut.state === 'err' ? '<div class="gd-note">' + esc(gt('e_other')) + '</div>' :
+        !tut.items.length ? '<div class="gd-note">' + esc(tut.q ? gt('tutEmptyQ') : gt('tutEmpty')) + '</div>' : tut.more ? '<button class="gd-btn" onclick="tutLoad(false)">' + esc(gt('more')) + '</button>' : '';
+}
+async function tutLoad(reset) {
+    var seq = ++tut.seq;
+    if (reset) { tut.items = []; tut.more = false; }
+    tut.state = 'load'; tutGridPaint();
+    try {
+        var d = await apiCall('GET', '/api/chat/tutorials?offset=' + tut.items.length + (tut.q ? '&q=' + encodeURIComponent(tut.q) : ''));
+        if (seq !== tut.seq || gd.view !== 'ext') return;
+        tut.items = tut.items.concat(d.items); tut.more = !!d.more; tut.state = 'done';
+    } catch (e) { if (seq !== tut.seq) return; tut.state = 'err'; }
+    tutGridPaint();
+}
+async function tutAdd() {
+    var el = document.getElementById('tut-url'), btn = document.getElementById('tut-addb');
+    if (!el || tut.busy) return;
+    var url = el.value.trim(); if (!url) return;
+    if (!loginUser) { showToast(gt('tutNeedLogin')); return; }
+    tut.busy = true; if (btn) btn.disabled = true;
+    try {
+        var d = await apiCall('POST', '/api/chat/tutorials', { url: url });
+        el.value = '';
+        if (d.created) { d.item.mine = true; tut.items.unshift(d.item); showToast(gt('tutAdded')); } else showToast(gt('tutDup'));
+        tutGridPaint();
+    } catch (e) { showToast(gdErr(e)); }
+    tut.busy = false; if (btn) btn.disabled = false;
+}
+async function tutReport(id) {
+    try { var d = await apiCall('POST', '/api/chat/tutorials/' + id + '/report'); if (d.hidden) tut.items = tut.items.filter(function(x) { return x.id !== id; }); showToast(gt('tutReported')); tutGridPaint(); } catch (e) { showToast(gdErr(e)); }
+}
+async function tutDel(id) {
+    try { await apiCall('POST', '/api/chat/tutorials/' + id + '/delete'); tut.items = tut.items.filter(function(x) { return x.id !== id; }); tutGridPaint(); } catch (e) { showToast(gdErr(e)); }
 }
 function gdList() { gd.mine = false; gd.saved = false; gd.view = 'list'; gd.items = []; gd.more = false; gdPaint(); gdLoad(true); updateUrl(true); }
 
@@ -3780,7 +3861,7 @@ function gdListPaint() {
     var box = gdBox();
     var h = '<div class="gd-head"><h2>' + esc(gt('title')) + '</h2><div class="gd-head-btns">' +
         (loginUser ? '<button class="gd-btn" onclick="gdSavedList()">' + esc(gt('savedList')) + '</button><button class="gd-btn" onclick="gdMine()">' + esc(gt('mine')) + '</button>' : '') +
-        '<button class="gd-btn primary" onclick="gdNew()">' + esc(gt('write')) + '</button></div></div>';
+        '<button class="gd-btn" onclick="gdExt()">' + esc(gt('tutBtn')) + '</button><button class="gd-btn primary" onclick="gdNew()">' + esc(gt('write')) + '</button></div></div>';
     if (gd.mine || gd.saved) h += '<button class="gd-back" onclick="gdList()">' + esc(gt('all')) + '</button>' + (gd.saved ? '<div class="gd-sub">' + esc(gt('savedList')) + '</div>' : '');
     else {
         h += '<div class="gd-bar"><div class="gd-tabs"><button class="' + (gd.sort === 'new' ? 'on' : '') + '" onclick="gdSetSort(\'new\')">' + esc(gt('sNew')) + '</button><button class="' + (gd.sort === 'hot' ? 'on' : '') + '" onclick="gdSetSort(\'hot\')">' + esc(gt('sHot')) + '</button></div>' +

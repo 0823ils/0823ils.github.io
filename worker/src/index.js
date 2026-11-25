@@ -158,6 +158,9 @@ async function route(request, env) {
   if (path === '/api/notifications' && method === 'GET') return notifList(request, env);
   if (path === '/api/notifications/count' && method === 'GET') return notifCount(request, env);
   if (path === '/api/notifications/read' && method === 'POST') return notifRead(request, env);
+  if (path === '/api/chat/tutorials' && method === 'GET') return tutList(request, env, url);
+  if (path === '/api/chat/tutorials' && method === 'POST') return tutAdd(request, env);
+  { const m = /^\/api\/chat\/tutorials\/(\d+)\/(report|delete)$/.exec(path); if (m && method === 'POST') return tutAct(request, env, Number(m[1]), m[2]); }
   if (path === '/api/notifications/settings' && method === 'GET') return notifSettingsGet(request, env);
   if (path === '/api/notifications/settings' && method === 'PUT') return notifSettingsPut(request, env);
   if (path === '/api/push/key' && method === 'GET') return pushKey(env);
@@ -1539,6 +1542,220 @@ async function notifSettingsPut(request, env) {
   return json({ mode: body.mode, muted: await mutedRooms(env, user.u.toLowerCase()), unread: await unreadCount(env, user) });
 }
 
+
+
+// ---------- 外部チュートリアル（YouTube・サイトのリンクを集めて表示） ----------
+//   GET  /api/chat/tutorials?q=&offset=   -> { items: [{ id, url, kind, yt_id, title, thumb, source, origin }], more }
+//   POST /api/chat/tutorials { url }      -> { item }   (要ログイン。URLからタイトルとサムネイルを自動で取る。承認は不要)
+//   POST /api/chat/tutorials/:id/report   -> { hidden } (要ログイン。3人が報告すると自動で非表示)
+//   POST /api/chat/tutorials/:id/delete   -> { ok }     (追加した本人だけ)
+// 自動収集: 一覧が開かれたとき、前回から6時間たっていれば裏で実行する（cron は要らない）。
+//   YouTube … env.YT_API_KEY があれば、キーワード検索して、再生数・高評価率・長さで自動で絞る
+//   サイト … env.BRAVE_API_KEY か、env.GOOGLE_CSE_KEY と env.GOOGLE_CSE_CX があれば、検索で見つけたページのタイトルと画像だけ取る
+// 保存するのは、リンク・タイトル・サムネイルのURL・サイト名だけ（本文や動画は保存しない）。
+const TUT_PAGE = 24;
+const TUT_REPORT_HIDE = 3;
+const TUT_INTERVAL = 6 * 3600 * 1000;
+const TUT_QUERIES = ['Scratch 使い方 入門', 'スクラッチ プログラミング 作り方', 'Scratch ゲーム 作り方', 'Scratch 3D 作り方', 'Scratch 変数 解説', 'Scratch 拡張機能 使い方', 'Scratch tutorial beginner', 'Scratch game tutorial', 'Scratch 数学 グラフ', 'Scratch 物理 シミュレーション'];
+let tutReady = false;
+async function tutInit(env) {
+  if (tutReady) return;
+  await env.DB.batch([
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS tutorials (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL UNIQUE, kind TEXT NOT NULL, yt_id TEXT, title TEXT NOT NULL, thumb TEXT, source TEXT, origin TEXT NOT NULL, added_by TEXT, created_at INTEGER NOT NULL, hidden INTEGER NOT NULL DEFAULT 0, reports INTEGER NOT NULL DEFAULT 0)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS tutorial_reports (tutorial_id INTEGER NOT NULL, username TEXT NOT NULL, PRIMARY KEY (tutorial_id, username))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS tutorial_meta (k TEXT PRIMARY KEY, v INTEGER NOT NULL)'),
+  ]);
+  tutReady = true;
+}
+
+function tutHostOK(h) {
+  h = String(h || '').toLowerCase();
+  if (!h || !h.includes('.') || h === 'localhost' || /\.(local|internal|localdomain|lan|home|arpa)$/.test(h)) return false;
+  if (/^[\d.]+$/.test(h) || h.includes(':') || h.startsWith('[')) return false;   // IPアドレス直指定は不可
+  return true;
+}
+function tutYtId(u) {
+  const h = u.hostname.replace(/^www\.|^m\./, '');
+  let id = '';
+  if (h === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+  else if (h === 'youtube.com' || h === 'music.youtube.com') {
+    if (u.pathname === '/watch') id = u.searchParams.get('v') || '';
+    else { const m = /^\/(shorts|embed|live)\/([\w-]{11})/.exec(u.pathname); if (m) id = m[2]; }
+  }
+  return /^[\w-]{11}$/.test(id) ? id : '';
+}
+const tutDecode = t => String(t || '').replace(/&(#x?[0-9a-f]+|amp|lt|gt|quot|apos|#39);/gi, (m, e) => {
+  e = e.toLowerCase();
+  if (e === 'amp') return '&'; if (e === 'lt') return '<'; if (e === 'gt') return '>'; if (e === 'quot') return '"'; if (e === 'apos' || e === '#39') return "'";
+  const n = e[1] === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+  return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m;
+}).trim();
+
+// ページのタイトル・画像・サイト名だけを取る（本文は使わない）。リダイレクトは1回ずつホストを確かめて追う
+async function tutFetchMeta(rawUrl) {
+  let u = new URL(rawUrl), html = '';
+  for (let i = 0; i < 4; i++) {
+    if (u.protocol !== 'https:' || u.port || !tutHostOK(u.hostname)) return null;
+    const r = await fetch(u.href, { redirect: 'manual', headers: { 'User-Agent': 'Mozilla/5.0 (compatible; scratch-TWC link preview)', Accept: 'text/html' }, signal: AbortSignal.timeout(7000) });
+    if (r.status >= 300 && r.status < 400 && r.headers.get('location')) { u = new URL(r.headers.get('location'), u); continue; }
+    if (!r.ok || !/html/i.test(r.headers.get('content-type') || '')) return null;
+    const reader = r.body.getReader(); let got = 0;
+    const dec = new TextDecoder('utf-8', { fatal: false });
+    while (got < 300000) { const { done, value } = await reader.read(); if (done) break; got += value.length; html += dec.decode(value, { stream: true }); if (/<\/head>/i.test(html)) break; }
+    reader.cancel().catch(() => {});
+    break;
+  }
+  if (!html) return null;
+  const meta = name => {
+    const re = new RegExp('<meta[^>]+(?:property|name)=["\']' + name + '["\'][^>]*>', 'i');
+    const m = re.exec(html); if (!m) return '';
+    const c = /content=(?:"([^"]*)"|'([^']*)')/i.exec(m[0]);
+    return c ? tutDecode(c[1] || c[2] || '') : '';
+  };
+  const t = meta('og:title') || meta('twitter:title') || tutDecode((/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html) || [])[1] || '');
+  let img = meta('og:image') || meta('twitter:image');
+  try { img = img ? new URL(img, u).href : ''; if (!/^https:/.test(img)) img = ''; } catch (e) { img = ''; }
+  return { url: u.href.split('#')[0], title: t.replace(/\s+/g, ' ').slice(0, 140), thumb: img.slice(0, 500), source: (meta('og:site_name') || u.hostname.replace(/^www\./, '')).slice(0, 60) };
+}
+
+async function tutResolve(rawUrl) {
+  let u; try { u = new URL(rawUrl); } catch (e) { throw new HttpError(400, 'bad_url'); }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') throw new HttpError(400, 'bad_url');
+  u.protocol = 'https:';
+  const yt = tutYtId(u);
+  if (yt) {
+    const o = await fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + yt), { signal: AbortSignal.timeout(7000) });
+    if (!o.ok) throw new HttpError(400, 'tut_not_found');
+    const j = await o.json();
+    return { url: 'https://www.youtube.com/watch?v=' + yt, kind: 'youtube', yt_id: yt, title: String(j.title || '').slice(0, 140), thumb: 'https://i.ytimg.com/vi/' + yt + '/hqdefault.jpg', source: 'YouTube' + (j.author_name ? ' · ' + String(j.author_name).slice(0, 40) : '') };
+  }
+  if (!tutHostOK(u.hostname) || u.port) throw new HttpError(400, 'bad_url');
+  let m = null; try { m = await tutFetchMeta(u.href); } catch (e) {}
+  if (!m || !m.title) throw new HttpError(400, 'tut_not_found');
+  return { url: m.url, kind: 'web', yt_id: null, title: m.title, thumb: m.thumb, source: m.source };
+}
+
+async function tutSave(env, r, origin, by) {
+  const res = await env.DB.prepare(
+    'INSERT OR IGNORE INTO tutorials (url, kind, yt_id, title, thumb, source, origin, added_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(r.url, r.kind, r.yt_id, r.title, r.thumb || '', r.source || '', origin, by || null, Date.now()).run();
+  const row = await env.DB.prepare('SELECT id, url, kind, yt_id, title, thumb, source, origin, hidden FROM tutorials WHERE url = ?').bind(r.url).first();
+  return { row, created: !!(res.meta && res.meta.changes) };
+}
+const tutItem = r => ({ id: r.id, url: r.url, kind: r.kind, yt_id: r.yt_id, title: r.title, thumb: r.thumb, source: r.source, origin: r.origin });
+
+async function tutList(request, env, url) {
+  await tutInit(env);
+  const q = String(url.searchParams.get('q') || '').trim().slice(0, 60);
+  const off = Math.max(0, Math.min(5000, parseInt(url.searchParams.get('offset') || '0', 10) || 0));
+  const where = q ? "WHERE hidden = 0 AND (title LIKE ? ESCAPE '\\' OR source LIKE ? ESCAPE '\\')" : 'WHERE hidden = 0';
+  const like = '%' + q.replace(/[\\%_]/g, c => '\\' + c) + '%';
+  const rows = await env.DB.prepare(`SELECT id, url, kind, yt_id, title, thumb, source, origin FROM tutorials ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`)
+    .bind(...(q ? [like, like] : []), TUT_PAGE + 1, off).all();
+  const items = rows.results.slice(0, TUT_PAGE).map(tutItem);
+  // 前回の自動収集から時間がたっていたら、裏で実行する（先に時刻を書いて、重複して走らないようにする）
+  if (off === 0 && !q) {
+    const meta = await env.DB.prepare("SELECT v FROM tutorial_meta WHERE k = 'collected'").first();
+    if (!meta || Date.now() - meta.v > TUT_INTERVAL) {
+      await env.DB.prepare("INSERT INTO tutorial_meta (k, v) VALUES ('collected', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(Date.now()).run();
+      const job = tutCollect(env).catch(e => console.error('tutorial collect', e));
+      const ctx = CTX.get(request);
+      if (ctx && ctx.waitUntil) ctx.waitUntil(job);
+    }
+  }
+  return json({ items, more: rows.results.length > TUT_PAGE });
+}
+
+async function tutAdd(request, env) {
+  const user = await requireUser(request, env);
+  await tutInit(env);
+  const body = await readJson(request);
+  const raw = String((body && body.url) || '').trim().slice(0, 600);
+  if (!raw) throw new HttpError(400, 'bad_url');
+  const r = await tutResolve(raw);
+  const { row, created } = await tutSave(env, r, 'user', user.u.toLowerCase());
+  if (!created && row && row.hidden) throw new HttpError(409, 'tut_hidden');   // 報告で非表示になったものは、出し直さない
+  return json({ item: tutItem(row), created });
+}
+
+async function tutAct(request, env, id, act) {
+  const user = await requireUser(request, env);
+  await tutInit(env);
+  const me = user.u.toLowerCase();
+  const row = await env.DB.prepare('SELECT id, added_by, origin FROM tutorials WHERE id = ?').bind(id).first();
+  if (!row) throw new HttpError(404, 'not_found');
+  if (act === 'delete') {
+    if (row.added_by !== me) throw new HttpError(403, 'forbidden');
+    await env.DB.prepare('DELETE FROM tutorials WHERE id = ?').bind(id).run();
+    return json({ ok: true });
+  }
+  await env.DB.prepare('INSERT OR IGNORE INTO tutorial_reports (tutorial_id, username) VALUES (?, ?)').bind(id, me).run();
+  const c = await env.DB.prepare('SELECT COUNT(*) AS c FROM tutorial_reports WHERE tutorial_id = ?').bind(id).first();
+  const hidden = c.c >= TUT_REPORT_HIDE ? 1 : 0;
+  await env.DB.prepare('UPDATE tutorials SET reports = ?, hidden = MAX(hidden, ?) WHERE id = ?').bind(c.c, hidden, id).run();
+  return json({ hidden: !!hidden });
+}
+
+// ---- 自動収集 ----
+const tutIsoSec = d => { const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(d || ''); return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0; };
+const TUT_SCRATCH = /scratch|スクラッチ/i;
+
+async function tutCollect(env) {
+  await tutInit(env);
+  const slot = Math.floor(Date.now() / TUT_INTERVAL);
+  const pick = n => Array.from({ length: n }, (_, i) => TUT_QUERIES[(slot * n + i) % TUT_QUERIES.length]);   // 回ごとに、違うキーワードを使う
+  let added = 0;
+  if (env.YT_API_KEY) {
+    for (const q of pick(3)) {
+      try {
+        const s = await (await fetch('https://www.googleapis.com/youtube/v3/search?' + new URLSearchParams({ part: 'snippet', type: 'video', q, maxResults: '20', videoEmbeddable: 'true', safeSearch: 'strict', relevanceLanguage: /[ぁ-んァ-ン一-龥]/.test(q) ? 'ja' : 'en', key: env.YT_API_KEY }), { signal: AbortSignal.timeout(8000) })).json();
+        const ids = (s.items || []).map(i => i.id && i.id.videoId).filter(Boolean);
+        if (!ids.length) continue;
+        const v = await (await fetch('https://www.googleapis.com/youtube/v3/videos?' + new URLSearchParams({ part: 'snippet,statistics,contentDetails', id: ids.join(','), key: env.YT_API_KEY }), { signal: AbortSignal.timeout(8000) })).json();
+        for (const it of v.items || []) {
+          const views = +((it.statistics || {}).viewCount || 0), likes = +((it.statistics || {}).likeCount || 0);
+          const sec = tutIsoSec((it.contentDetails || {}).duration);
+          const title = String((it.snippet || {}).title || '');
+          if (!TUT_SCRATCH.test(title) || sec < 120 || sec > 2400 || views < 500) continue;   // 関係ない・短すぎ・長すぎ・ほぼ見られていないものは入れない
+          if (likes && views && likes / views < 0.008) continue;                              // 評価の低いものは入れない
+          const r = { url: 'https://www.youtube.com/watch?v=' + it.id, kind: 'youtube', yt_id: it.id, title: title.slice(0, 140), thumb: 'https://i.ytimg.com/vi/' + it.id + '/hqdefault.jpg', source: 'YouTube · ' + String((it.snippet || {}).channelTitle || '').slice(0, 40) };
+          if ((await tutSave(env, r, 'auto', null)).created) added++;
+        }
+      } catch (e) { console.error('tutorial youtube', e); }
+    }
+  }
+  const links = [];
+  try {
+    if (env.BRAVE_API_KEY) {
+      for (const q of pick(2)) {
+        const j = await (await fetch('https://api.search.brave.com/res/v1/web/search?' + new URLSearchParams({ q: q + ' チュートリアル', count: '10', country: 'jp' }), { headers: { 'X-Subscription-Token': env.BRAVE_API_KEY, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) })).json();
+        for (const x of (j.web && j.web.results) || []) links.push(x.url);
+      }
+    } else if (env.GOOGLE_CSE_KEY && env.GOOGLE_CSE_CX) {
+      for (const q of pick(2)) {
+        const j = await (await fetch('https://www.googleapis.com/customsearch/v1?' + new URLSearchParams({ key: env.GOOGLE_CSE_KEY, cx: env.GOOGLE_CSE_CX, q: q + ' チュートリアル', num: '10', lr: 'lang_ja' }), { signal: AbortSignal.timeout(8000) })).json();
+        for (const x of j.items || []) links.push(x.link);
+      }
+    }
+  } catch (e) { console.error('tutorial search', e); }
+  let fetched = 0;
+  for (const l of [...new Set(links)]) {
+    if (fetched >= 12) break;
+    try {
+      const u = new URL(l);
+      if (tutYtId(u) || /(^|\.)(scratch\.mit\.edu|twitter\.com|x\.com|facebook\.com|instagram\.com|tiktok\.com)$/.test(u.hostname)) continue;
+      const known = await env.DB.prepare('SELECT 1 FROM tutorials WHERE url = ?').bind(u.href.split('#')[0]).first();
+      if (known) continue;
+      fetched++;
+      const m = await tutFetchMeta(u.href);
+      if (!m || !m.title || !m.thumb || !TUT_SCRATCH.test(m.title)) continue;   // タイトルとサムネイルがあり、Scratch の話のものだけ
+      if ((await tutSave(env, { url: m.url, kind: 'web', yt_id: null, title: m.title, thumb: m.thumb, source: m.source }, 'auto', null)).created) added++;
+    } catch (e) {}
+  }
+  // 古い自動収集分は消す（1年）
+  await env.DB.prepare("DELETE FROM tutorials WHERE origin = 'auto' AND created_at < ?").bind(Date.now() - 365 * 86400000).run();
+  return added;
+}
 
 // ---------- 動画（Backblaze B2 / S3互換API） ----------
 //   POST   /api/chat/videos/start { size, type }  -> { id, upload_url, headers }   (要ログイン。動画(mp4/webm)・写真(jpeg/png/webp)を、B2へ直接アップロードするための一時URL)

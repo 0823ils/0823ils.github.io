@@ -160,6 +160,7 @@ async function route(request, env) {
   if (path === '/api/notifications/read' && method === 'POST') return notifRead(request, env);
   if (path === '/api/chat/tutorials' && method === 'GET') return tutList(request, env, url);
   if (path === '/api/chat/tutorials' && method === 'POST') return tutAdd(request, env);
+  if (path === '/api/chat/tutorials/collect' && method === 'POST') return tutCollectNow(request, env);
   { const m = /^\/api\/chat\/tutorials\/(\d+)\/(report|delete)$/.exec(path); if (m && method === 'POST') return tutAct(request, env, Number(m[1]), m[2]); }
   if (path === '/api/notifications/settings' && method === 'GET') return notifSettingsGet(request, env);
   if (path === '/api/notifications/settings' && method === 'PUT') return notifSettingsPut(request, env);
@@ -1553,7 +1554,7 @@ async function notifSettingsPut(request, env) {
 //   YouTube … env.YT_API_KEY があれば、キーワード検索して、再生数・高評価率・長さで自動で絞る
 //   サイト … env.BRAVE_API_KEY か、env.GOOGLE_CSE_KEY と env.GOOGLE_CSE_CX があれば、検索で見つけたページのタイトルと画像だけ取る
 // 保存するのは、リンク・タイトル・サムネイルのURL・サイト名だけ（本文や動画は保存しない）。
-const TUT_PAGE = 24;
+const TUT_PAGE = 24;   // TUT_V3
 const TUT_REPORT_HIDE = 3;
 const TUT_INTERVAL = 24 * 3600 * 1000;   // 1日1回（TUT_V2）
 const TUT_QUERIES = ['Scratch 使い方', 'スクラッチ プログラミング 作り方', 'Scratch ゲーム 作り方', 'Scratch 3D 作り方', 'Scratch 変数 解説', 'Scratch 拡張機能 使い方', 'Scratch tutorial', 'Scratch game tutorial', 'Scratch 数学 グラフ', 'Scratch 物理 シミュレーション', 'Scratch クローン 使い方', 'Scratch リスト 配列 解説', 'Scratch 関数 ブロック定義 作り方', 'Scratch 当たり判定 作り方', 'Scratch アクションゲーム 作り方', 'Scratch RPG 作り方', 'Scratch シューティング 作り方', 'Scratch クラウド変数 使い方', 'Scratch ペン 描画 作り方', 'Scratch 高速化 テクニック'];
@@ -1656,7 +1657,7 @@ async function tutList(request, env, url) {
   // 前回の自動収集から時間がたっていたら、裏で実行する（先に時刻を書いて、重複して走らないようにする）
   if (off === 0 && !q) {
     const meta = await env.DB.prepare("SELECT v FROM tutorial_meta WHERE k = 'collected'").first();
-    if (!meta || Date.now() - meta.v > TUT_INTERVAL) {
+    if ((!meta || Date.now() - meta.v > TUT_INTERVAL) && (env.YT_API_KEY || env.BRAVE_API_KEY || env.GOOGLE_CSE_KEY)) {   // キーがないときは、時刻を進めない
       await env.DB.prepare("INSERT INTO tutorial_meta (k, v) VALUES ('collected', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(Date.now()).run();
       const job = tutCollect(env).catch(e => console.error('tutorial collect', e));
       const ctx = CTX.get(request);
@@ -1664,6 +1665,18 @@ async function tutList(request, env, url) {
     }
   }
   return json({ items, more: rows.results.length > TUT_PAGE });
+}
+
+// 管理者が、いますぐ自動収集を始める（終わるのを待たずに返す）
+async function tutCollectNow(request, env) {
+  await requireAdmin(request, env);
+  await tutInit(env);
+  if (!(env.YT_API_KEY || env.BRAVE_API_KEY || env.GOOGLE_CSE_KEY)) throw new HttpError(400, 'tut_no_keys');
+  await env.DB.prepare("INSERT INTO tutorial_meta (k, v) VALUES ('collected', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(Date.now()).run();
+  const job = tutCollect(env).catch(e => console.error('tutorial collect', e));
+  const ctx = CTX.get(request);
+  if (ctx && ctx.waitUntil) ctx.waitUntil(job);
+  return json({ started: true });
 }
 
 async function tutAdd(request, env) {

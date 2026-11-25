@@ -315,6 +315,8 @@
         .chat-name { font-weight: bold; color: #4D97FF; margin-right: 5px; }
         mark { background: #fff3c4; color: inherit; padding: 0; border-radius: 2px; }
         .header-mode-tab.has-unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ffd24d; margin-left: 6px; vertical-align: middle; }
+        .chat-tab.has-n::after { display: none !important; }
+        .chat-tab .un-n { display: inline-block; min-width: 18px; padding: 1px 5px; margin-left: 6px; border-radius: 999px; background: #ff6b6b; color: #fff; font-size: 11px; font-weight: bold; line-height: 16px; text-align: center; box-sizing: border-box; }
         .chat-tab.unread::after { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; margin-left: 6px; vertical-align: middle; }
         .rank-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
         /* 通話 */
@@ -9224,7 +9226,8 @@ async function checkAdminTab() {
 }
 
 // --- チャットの未読（画面を見ていない間も、部屋ごとの最新IDを時々だけ確認する） ---
-var chatSeen = {}, chatLatestMap = {};
+var chatSeen = {}, chatLatestMap = {}, chatCounts = {};
+function chatSeenQ() { var a = []; CHAT_ROOMS.forEach(function(r) { if (chatSeen[r] !== undefined && !roomMuted(r)) a.push(r + ':' + chatSeen[r]); }); return a.join(','); }
 try { chatSeen = JSON.parse(localStorage.getItem('twc_chat_seen') || '{}') || {}; } catch (e) {}
 var chatReadSent = {};   // 部屋ごとに、サーバーへ「ここまで読んだ」と伝えたID
 function markChatSeen() {
@@ -9246,8 +9249,8 @@ function markChatSeen() {
 async function pollBackground() {
     if (document.hidden || userIdle() || !apiEnabled()) return;
     try {
-        var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ());
-        chatLatestMap = r.rooms || {};
+        var r = await apiCall('GET', '/api/chat/latest' + notifRoomQ() + (notifRoomQ() ? '&' : '?') + 'seen=' + encodeURIComponent(chatSeenQ()));
+        chatLatestMap = r.rooms || {}; chatCounts = r.counts || {};
         if (typeof r.unread === 'number') setNotifBadge(r.unread);
     } catch (e) { return; }
     updateNavDots();
@@ -9262,7 +9265,13 @@ function updateNavDots() {
         var un = chatRoomUnread(r) && !roomMuted(r) && !(currentMode === 'chat' && r === chatRoom);
         if (un) any = true;
         var b = document.querySelector('#chat-tabs [data-r="' + r + '"]');
-        if (b) b.classList.toggle('unread', un);
+        if (b) {
+            b.classList.toggle('unread', un);
+            var n = un ? (chatCounts[r] || 0) : 0, bd = b.querySelector('.un-n');
+            if (n && !bd) { bd = document.createElement('b'); bd.className = 'un-n'; b.appendChild(bd); }
+            if (bd) { if (n) bd.textContent = n >= 99 ? '99+' : String(n); else bd.remove(); }
+            b.classList.toggle('has-n', !!n);
+        }
     });
     var tab = document.getElementById('mode-chat-btn');
     if (tab) tab.classList.toggle('has-unread', any && currentMode !== 'chat');
@@ -9271,8 +9280,8 @@ function updateNavDots() {
 }
 function initUnread() {
     // 初回は今の最新を「既読」として記録して、古い投稿に点が付かないようにする
-    apiCall('GET', '/api/chat/latest').then(function(r) {
-        chatLatestMap = r.rooms || {};
+    apiCall('GET', '/api/chat/latest' + (Object.keys(chatSeen).length ? '?seen=' + encodeURIComponent(chatSeenQ()) : '')).then(function(r) {
+        chatLatestMap = r.rooms || {}; chatCounts = r.counts || {};
         if (typeof r.unread === 'number') setNotifBadge(r.unread);
         var ch = false;
         CHAT_ROOMS.forEach(function(k) { if (chatSeen[k] === undefined) { chatSeen[k] = chatLatestMap[k] || 0; ch = true; } });

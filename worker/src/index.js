@@ -2844,6 +2844,21 @@ async function chatLatest(request, env) {
   const out = { rooms };
   const user = await getUser(request, env);
   if (user) out.unread = await unreadCount(env, user, undefined, new URL(request.url).searchParams.get('room'));
+  // 部屋ごとの未読の数（seen=部屋:最後に見たID,... を渡されたとき。自分の投稿は数えない。最大99）
+  const seenQ = new URL(request.url).searchParams.get('seen');
+  if (seenQ) {
+    const me = user ? String(user.u).toLowerCase() : '';
+    const counts = {};
+    for (const part of seenQ.slice(0, 400).split(',')) {
+      const [r, v] = part.split(':'); const seen = parseInt(v, 10);
+      if (!CHAT_ROOMS.includes(r) || !(seen >= 0) || !(rooms[r] > seen)) continue;
+      const row = await env.DB.prepare(
+        'SELECT COUNT(*) AS c FROM (SELECT 1 FROM chat_messages WHERE room = ? AND id > ? AND deleted = 0 AND hidden = 0 AND LOWER(username) != ? LIMIT 99)'
+      ).bind(r, seen, me).first();
+      if (row && row.c) counts[r] = row.c;
+    }
+    out.counts = counts;
+  }
   return json(out);
 }
 

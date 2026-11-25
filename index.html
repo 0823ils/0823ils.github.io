@@ -3568,7 +3568,7 @@ var GT = {
         saveDraft: '下書きを保存', publish: '公開する', update: '更新する', unpublish: '下書きに戻す', saved: '保存しました', published: '公開しました', restored: '前回の書きかけを復元しました。', scratchAsk: 'ScratchのURL（例: https://scratch.mit.edu/projects/123456789）', openScratch: 'Scratch作品を開く', upl: '画像を上げています…',
         e_empty_title: '題名を入れてください。', e_body_too_short: '本文を、もう少し書いてください（10字以上）。', e_body_too_long: '本文が長すぎます（30000字まで）。', e_too_fast: '少し時間をおいてください（1日10本まで）。', e_banned: '投稿が制限されています。', e_too_many_images: '画像は20枚までです。', e_image_not_found: '画像が見つかりません。入れ直してください。', e_forbidden: '権限がありません。', e_not_found: '見つかりません。', e_other: 'うまくいきませんでした。もう一度お試しください。', e_unauth: 'ログインが切れました。ログインし直してください。',
         hint: 'Markdownが使えます。画像は「画像」ボタンから。', count: '文字', empty2: '本文がありません。', by: '作者', upd: '更新',
-        tabList: '記事', tutCollect: '今すぐ自動収集（管理者）', tutCollecting: '収集を始めました。数分後に開き直してください。', e_tut_no_keys: 'APIキーが設定されていません（.env の YT_API_KEY など）。', tutBtn: '外部チュートリアル', tutTitle: '外部チュートリアル', tutSub: 'YouTubeやサイトのチュートリアルを、自動で集めています。', tutBack: '記事の一覧へ', tutAddPh: 'チュートリアルのURLを貼る（YouTubeやサイト）', tutAdd: '追加', tutSearch: '検索', tutEmpty: 'まだありません。URLを貼って追加できます。', tutEmptyQ: '見つかりませんでした。', tutReport: '報告', tutDel: '削除', tutReported: '報告しました。ありがとうございます。', tutAdded: '追加しました。', tutDup: 'すでにあります。', tutNeedLogin: '追加するにはログインしてください。', tutPlay: '再生', tutAuto: '自動', e_bad_url: 'URLが正しくありません（https:// で始まるもの）。', e_tut_not_found: 'ページの情報を取れませんでした。', e_tut_hidden: 'このリンクは、報告で非表示になっています。',
+        tutStat: 'YouTubeキー: {yt} / 検索キー: {web} / 登録数: {n} / 前回の収集: {t}', tabList: '記事', tutCollect: '今すぐ自動収集（管理者）', tutCollecting: '収集を始めました。数分後に開き直してください。', e_tut_no_keys: 'APIキーが設定されていません（.env の YT_API_KEY など）。', tutBtn: '外部チュートリアル', tutTitle: '外部チュートリアル', tutSub: 'YouTubeやサイトのチュートリアルを、自動で集めています。', tutBack: '記事の一覧へ', tutAddPh: 'チュートリアルのURLを貼る（YouTubeやサイト）', tutAdd: '追加', tutSearch: '検索', tutEmpty: 'まだありません。URLを貼って追加できます。', tutEmptyQ: '見つかりませんでした。', tutReport: '報告', tutDel: '削除', tutReported: '報告しました。ありがとうございます。', tutAdded: '追加しました。', tutDup: 'すでにあります。', tutNeedLogin: '追加するにはログインしてください。', tutPlay: '再生', tutAuto: '自動', e_bad_url: 'URLが正しくありません（https:// で始まるもの）。', e_tut_not_found: 'ページの情報を取れませんでした。', e_tut_hidden: 'このリンクは、報告で非表示になっています。',
         run: 'スクリプトを実行', stop: '閉じる', showCode: 'コード', hideCode: 'コードを隠す', scriptOff: 'スクリプトは止めてあります（通信もできません）', copy: 'コピー', copied: 'コピーしました', copyFail: 'コピーできません', save: '保存', saved2: '保存済み', savedList: '保存した記事', savedNone: '保存した記事はまだありません。', saveLogin: '保存するには、ログインが必要です。', e_too_many_saved: '保存は500件までです。', e_bad_file: '画像・動画（mp4/webm/mov）・.sb3 を選んでください。', cancel: 'やめる',
         bTable: '表', bBlock: 'コードブロック', bHtml: 'HTML', bVid: '動画・アニメ', bSb3: 'sb3',
     },
@@ -3581,7 +3581,7 @@ var GT = {
         saveDraft: 'Save draft', publish: 'Publish', update: 'Update', unpublish: 'Back to draft', saved: 'Saved', published: 'Published', restored: 'Restored your unsaved draft.', scratchAsk: 'Scratch URL (e.g. https://scratch.mit.edu/projects/123456789)', openScratch: 'Open Scratch project', upl: 'Uploading image…',
         e_empty_title: 'Please enter a title.', e_body_too_short: 'Please write a little more (10+ characters).', e_body_too_long: 'Too long (30000 characters max).', e_too_fast: 'Please wait a bit (10 articles per day).', e_banned: 'Posting is restricted.', e_too_many_images: 'Up to 20 images.', e_image_not_found: 'Image not found. Please insert it again.', e_forbidden: 'Not allowed.', e_not_found: 'Not found.', e_other: 'Something went wrong. Please try again.', e_unauth: 'Your login expired. Please log in again.',
         hint: 'Markdown is supported. Add pictures with the Image button.', count: 'chars', empty2: 'No content.', by: 'By', upd: 'Updated',
-        tabList: 'Articles', tutCollect: 'Collect now (admin)', tutCollecting: 'Collection started. Reopen in a few minutes.', e_tut_no_keys: 'No API keys are set (YT_API_KEY etc. in .env).', tutBtn: 'Tutorials from the web', tutTitle: 'Tutorials from the web', tutSub: 'Tutorials from YouTube and other sites, collected automatically.', tutBack: 'Back to articles', tutAddPh: 'Paste a tutorial URL (YouTube or any site)', tutAdd: 'Add', tutSearch: 'Search', tutEmpty: 'Nothing yet. Paste a URL to add one.', tutEmptyQ: 'No results.', tutReport: 'Report', tutDel: 'Delete', tutReported: 'Reported. Thank you.', tutAdded: 'Added.', tutDup: 'Already added.', tutNeedLogin: 'Log in to add a link.', tutPlay: 'Play', tutAuto: 'auto', e_bad_url: 'That URL is not valid (it must start with https://).', e_tut_not_found: 'Could not read that page.', e_tut_hidden: 'This link was hidden after reports.',
+        tutStat: 'YouTube key: {yt} / search key: {web} / items: {n} / last run: {t}', tabList: 'Articles', tutCollect: 'Collect now (admin)', tutCollecting: 'Collection started. Reopen in a few minutes.', e_tut_no_keys: 'No API keys are set (YT_API_KEY etc. in .env).', tutBtn: 'Tutorials from the web', tutTitle: 'Tutorials from the web', tutSub: 'Tutorials from YouTube and other sites, collected automatically.', tutBack: 'Back to articles', tutAddPh: 'Paste a tutorial URL (YouTube or any site)', tutAdd: 'Add', tutSearch: 'Search', tutEmpty: 'Nothing yet. Paste a URL to add one.', tutEmptyQ: 'No results.', tutReport: 'Report', tutDel: 'Delete', tutReported: 'Reported. Thank you.', tutAdded: 'Added.', tutDup: 'Already added.', tutNeedLogin: 'Log in to add a link.', tutPlay: 'Play', tutAuto: 'auto', e_bad_url: 'That URL is not valid (it must start with https://).', e_tut_not_found: 'Could not read that page.', e_tut_hidden: 'This link was hidden after reports.',
         run: 'Run script', stop: 'Close', showCode: 'Code', hideCode: 'Hide code', scriptOff: 'Scripts are off (no network either)', copy: 'Copy', copied: 'Copied', copyFail: 'Copy failed', save: 'Save', saved2: 'Saved', savedList: 'Saved articles', savedNone: 'No saved articles yet.', saveLogin: 'Please log in to save articles.', e_too_many_saved: 'You can save up to 500 articles.', e_bad_file: 'Choose an image, a video (mp4/webm/mov) or a .sb3.', cancel: 'Cancel',
         bTable: 'Table', bBlock: 'Code block', bHtml: 'HTML', bVid: 'Video / animation', bSb3: 'sb3',
     }
@@ -3814,13 +3814,13 @@ function gdPaint() {
     else gdListPaint();
 }
 // ---- 外部チュートリアル ----
-var tut = { items: [], more: false, q: '', state: '', seq: 0, busy: false };
+var tut = { items: [], more: false, q: '', state: '', seq: 0, busy: false, admin: null };
 function gdExt() { gd.view = 'ext'; gd.mine = false; gd.saved = false; tut.items = []; tut.more = false; tut.q = ''; gdPaint(); tutLoad(true); window.scrollTo(0, 0); }
 function gdExtPaint() {
     var box = gdBox(); if (!box) return;
     box.innerHTML = '<div class="gd-head"><h2>' + esc(gt('tutTitle')) + '</h2></div><button class="gd-back" onclick="gdList()">' + esc(gt('tutBack')) + '</button>' +
         '<div class="gd-sub">' + esc(gt('tutSub')) + '</div>' +
-        (chatIsAdmin ? '<div class="tut-add"><button class="gd-btn" onclick="tutCollectNow(this)">' + esc(gt('tutCollect')) + '</button></div>' : '') +
+        (tut.admin ? '<div class="tut-add"><button class="gd-btn" onclick="tutCollectNow(this)">' + esc(gt('tutCollect')) + '</button><span class="gd-sub" style="margin:0;align-self:center">' + esc(tutAdminLine()) + '</span></div>' : '') +
         (loginUser && apiEnabled() ? '<div class="tut-add"><input type="url" id="tut-url" maxlength="600" placeholder="' + esc(gt('tutAddPh')) + '" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)tutAdd()"><button class="gd-btn primary" id="tut-addb" onclick="tutAdd()">' + esc(gt('tutAdd')) + '</button></div>' : '') +
         '<input type="search" id="tut-q" class="tut-q" maxlength="60" placeholder="' + esc(gt('tutSearch')) + '" value="' + esc(tut.q) + '" enterkeyhint="search" onkeydown="if(event.key===\'Enter\'&&!event.isComposing)tutSearch()">' +
         '<div class="gd-grid" id="tut-grid"></div><div class="gd-foot" id="tut-foot"></div>';
@@ -3830,6 +3830,11 @@ async function tutCollectNow(btn) {
     if (btn) btn.disabled = true;
     try { await apiCall('POST', '/api/chat/tutorials/collect'); showToast(gt('tutCollecting')); } catch (e) { showToast(gdErr(e)); }
     if (btn) btn.disabled = false;
+}
+function tutAdminLine() {
+    var a = tut.admin; if (!a) return '';
+    var last = a.collected ? new Date(a.collected).toLocaleString() : '-';
+    return gt('tutStat').replace('{yt}', a.youtube ? 'OK' : 'NG').replace('{web}', a.web ? 'OK' : 'NG').replace('{n}', a.total).replace('{t}', last);
 }
 function tutSearch() { var el = document.getElementById('tut-q'); tut.q = el ? el.value.trim() : ''; tutLoad(true); }
 function tutCardHTML(t, i) {
@@ -3859,6 +3864,7 @@ async function tutLoad(reset) {
         var d = await apiCall('GET', '/api/chat/tutorials?offset=' + tut.items.length + (tut.q ? '&q=' + encodeURIComponent(tut.q) : ''));
         if (seq !== tut.seq || gd.view !== 'ext') return;
         tut.items = tut.items.concat(d.items); tut.more = !!d.more; tut.state = 'done';
+        if (d.admin !== undefined || reset) { var had = !!tut.admin; tut.admin = d.admin || null; if (!!tut.admin !== had) gdExtPaint(); else { var l = document.querySelector('.tut-add .gd-sub'); if (l) l.textContent = tutAdminLine(); } }
     } catch (e) { if (seq !== tut.seq) return; tut.state = 'err'; }
     tutGridPaint();
 }

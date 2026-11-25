@@ -1554,7 +1554,7 @@ async function notifSettingsPut(request, env) {
 //   YouTube … env.YT_API_KEY があれば、キーワード検索して、再生数・高評価率・長さで自動で絞る
 //   サイト … env.BRAVE_API_KEY か、env.GOOGLE_CSE_KEY と env.GOOGLE_CSE_CX があれば、検索で見つけたページのタイトルと画像だけ取る
 // 保存するのは、リンク・タイトル・サムネイルのURL・サイト名だけ（本文や動画は保存しない）。
-const TUT_PAGE = 24;   // TUT_V3
+const TUT_PAGE = 24;   // TUT_V3 TUT_V4
 const TUT_REPORT_HIDE = 3;
 const TUT_INTERVAL = 24 * 3600 * 1000;   // 1日1回（TUT_V2）
 const TUT_QUERIES = ['Scratch 使い方', 'スクラッチ プログラミング 作り方', 'Scratch ゲーム 作り方', 'Scratch 3D 作り方', 'Scratch 変数 解説', 'Scratch 拡張機能 使い方', 'Scratch tutorial', 'Scratch game tutorial', 'Scratch 数学 グラフ', 'Scratch 物理 シミュレーション', 'Scratch クローン 使い方', 'Scratch リスト 配列 解説', 'Scratch 関数 ブロック定義 作り方', 'Scratch 当たり判定 作り方', 'Scratch アクションゲーム 作り方', 'Scratch RPG 作り方', 'Scratch シューティング 作り方', 'Scratch クラウド変数 使い方', 'Scratch ペン 描画 作り方', 'Scratch 高速化 テクニック'];
@@ -1651,9 +1651,11 @@ async function tutList(request, env, url) {
   const off = Math.max(0, Math.min(5000, parseInt(url.searchParams.get('offset') || '0', 10) || 0));
   const where = q ? "WHERE hidden = 0 AND (title LIKE ? ESCAPE '\\' OR source LIKE ? ESCAPE '\\')" : 'WHERE hidden = 0';
   const like = '%' + q.replace(/[\\%_]/g, c => '\\' + c) + '%';
-  const rows = await env.DB.prepare(`SELECT id, url, kind, yt_id, title, thumb, source, origin FROM tutorials ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`)
+  const me = await getUser(request, env).catch(() => null);
+  const rows = await env.DB.prepare(`SELECT id, url, kind, yt_id, title, thumb, source, origin, added_by FROM tutorials ${where} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`)
     .bind(...(q ? [like, like] : []), TUT_PAGE + 1, off).all();
-  const items = rows.results.slice(0, TUT_PAGE).map(tutItem);
+  const mu = me ? String(me.u).toLowerCase() : '';
+  const items = rows.results.slice(0, TUT_PAGE).map(r => ({ ...tutItem(r), mine: !!mu && r.added_by === mu }));
   // 前回の自動収集から時間がたっていたら、裏で実行する（先に時刻を書いて、重複して走らないようにする）
   if (off === 0 && !q) {
     const meta = await env.DB.prepare("SELECT v FROM tutorial_meta WHERE k = 'collected'").first();
@@ -1664,7 +1666,13 @@ async function tutList(request, env, url) {
       if (ctx && ctx.waitUntil) ctx.waitUntil(job);
     }
   }
-  return json({ items, more: rows.results.length > TUT_PAGE });
+  const out = { items, more: rows.results.length > TUT_PAGE };
+  if (me && isAdmin(me, env)) {   // 管理者には、収集の状態も返す
+    const m2 = await env.DB.prepare("SELECT v FROM tutorial_meta WHERE k = 'collected'").first();
+    const n = await env.DB.prepare('SELECT COUNT(*) AS c FROM tutorials WHERE hidden = 0').first();
+    out.admin = { keys: !!(env.YT_API_KEY || env.BRAVE_API_KEY || env.GOOGLE_CSE_KEY), youtube: !!env.YT_API_KEY, web: !!(env.BRAVE_API_KEY || (env.GOOGLE_CSE_KEY && env.GOOGLE_CSE_CX)), collected: m2 ? m2.v : 0, total: n ? n.c : 0 };
+  }
+  return json(out);
 }
 
 // 管理者が、いますぐ自動収集を始める（終わるのを待たずに返す）

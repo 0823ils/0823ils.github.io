@@ -1549,14 +1549,14 @@ async function notifSettingsPut(request, env) {
 //   POST /api/chat/tutorials { url }      -> { item }   (要ログイン。URLからタイトルとサムネイルを自動で取る。承認は不要)
 //   POST /api/chat/tutorials/:id/report   -> { hidden } (要ログイン。3人が報告すると自動で非表示)
 //   POST /api/chat/tutorials/:id/delete   -> { ok }     (追加した本人だけ)
-// 自動収集: 一覧が開かれたとき、前回から6時間たっていれば裏で実行する（cron は要らない）。
+// 自動収集: 一覧が開かれたとき、前回から1日たっていれば裏で実行する（cron は要らない）。
 //   YouTube … env.YT_API_KEY があれば、キーワード検索して、再生数・高評価率・長さで自動で絞る
 //   サイト … env.BRAVE_API_KEY か、env.GOOGLE_CSE_KEY と env.GOOGLE_CSE_CX があれば、検索で見つけたページのタイトルと画像だけ取る
 // 保存するのは、リンク・タイトル・サムネイルのURL・サイト名だけ（本文や動画は保存しない）。
 const TUT_PAGE = 24;
 const TUT_REPORT_HIDE = 3;
-const TUT_INTERVAL = 6 * 3600 * 1000;
-const TUT_QUERIES = ['Scratch 使い方 入門', 'スクラッチ プログラミング 作り方', 'Scratch ゲーム 作り方', 'Scratch 3D 作り方', 'Scratch 変数 解説', 'Scratch 拡張機能 使い方', 'Scratch tutorial beginner', 'Scratch game tutorial', 'Scratch 数学 グラフ', 'Scratch 物理 シミュレーション'];
+const TUT_INTERVAL = 24 * 3600 * 1000;   // 1日1回（TUT_V2）
+const TUT_QUERIES = ['Scratch 使い方', 'スクラッチ プログラミング 作り方', 'Scratch ゲーム 作り方', 'Scratch 3D 作り方', 'Scratch 変数 解説', 'Scratch 拡張機能 使い方', 'Scratch tutorial', 'Scratch game tutorial', 'Scratch 数学 グラフ', 'Scratch 物理 シミュレーション', 'Scratch クローン 使い方', 'Scratch リスト 配列 解説', 'Scratch 関数 ブロック定義 作り方', 'Scratch 当たり判定 作り方', 'Scratch アクションゲーム 作り方', 'Scratch RPG 作り方', 'Scratch シューティング 作り方', 'Scratch クラウド変数 使い方', 'Scratch ペン 描画 作り方', 'Scratch 高速化 テクニック'];
 let tutReady = false;
 async function tutInit(env) {
   if (tutReady) return;
@@ -1702,13 +1702,11 @@ const TUT_SCRATCH = /scratch|スクラッチ/i;
 
 async function tutCollect(env) {
   await tutInit(env);
-  const slot = Math.floor(Date.now() / TUT_INTERVAL);
-  const pick = n => Array.from({ length: n }, (_, i) => TUT_QUERIES[(slot * n + i) % TUT_QUERIES.length]);   // 回ごとに、違うキーワードを使う
   let added = 0;
   if (env.YT_API_KEY) {
-    for (const q of pick(3)) {
+    for (const q of TUT_QUERIES) {   // 全部のキーワードで検索する
       try {
-        const s = await (await fetch('https://www.googleapis.com/youtube/v3/search?' + new URLSearchParams({ part: 'snippet', type: 'video', q, maxResults: '20', videoEmbeddable: 'true', safeSearch: 'strict', relevanceLanguage: /[ぁ-んァ-ン一-龥]/.test(q) ? 'ja' : 'en', key: env.YT_API_KEY }), { signal: AbortSignal.timeout(8000) })).json();
+        const s = await (await fetch('https://www.googleapis.com/youtube/v3/search?' + new URLSearchParams({ part: 'snippet', type: 'video', q, maxResults: '50', videoEmbeddable: 'true', safeSearch: 'strict', relevanceLanguage: /[ぁ-んァ-ン一-龥]/.test(q) ? 'ja' : 'en', key: env.YT_API_KEY }), { signal: AbortSignal.timeout(8000) })).json();
         const ids = (s.items || []).map(i => i.id && i.id.videoId).filter(Boolean);
         if (!ids.length) continue;
         const v = await (await fetch('https://www.googleapis.com/youtube/v3/videos?' + new URLSearchParams({ part: 'snippet,statistics,contentDetails', id: ids.join(','), key: env.YT_API_KEY }), { signal: AbortSignal.timeout(8000) })).json();
@@ -1727,12 +1725,13 @@ async function tutCollect(env) {
   const links = [];
   try {
     if (env.BRAVE_API_KEY) {
-      for (const q of pick(2)) {
-        const j = await (await fetch('https://api.search.brave.com/res/v1/web/search?' + new URLSearchParams({ q: q + ' チュートリアル', count: '10', country: 'jp' }), { headers: { 'X-Subscription-Token': env.BRAVE_API_KEY, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) })).json();
+      for (const q of TUT_QUERIES) {
+        const j = await (await fetch('https://api.search.brave.com/res/v1/web/search?' + new URLSearchParams({ q: q + ' チュートリアル', count: '20', country: 'jp' }), { headers: { 'X-Subscription-Token': env.BRAVE_API_KEY, Accept: 'application/json' }, signal: AbortSignal.timeout(8000) })).json();
         for (const x of (j.web && j.web.results) || []) links.push(x.url);
+        await new Promise(r => setTimeout(r, 1100));   // 無料プランは1秒に1回まで
       }
     } else if (env.GOOGLE_CSE_KEY && env.GOOGLE_CSE_CX) {
-      for (const q of pick(2)) {
+      for (const q of TUT_QUERIES.slice(0, 10)) {
         const j = await (await fetch('https://www.googleapis.com/customsearch/v1?' + new URLSearchParams({ key: env.GOOGLE_CSE_KEY, cx: env.GOOGLE_CSE_CX, q: q + ' チュートリアル', num: '10', lr: 'lang_ja' }), { signal: AbortSignal.timeout(8000) })).json();
         for (const x of j.items || []) links.push(x.link);
       }
@@ -1740,7 +1739,7 @@ async function tutCollect(env) {
   } catch (e) { console.error('tutorial search', e); }
   let fetched = 0;
   for (const l of [...new Set(links)]) {
-    if (fetched >= 12) break;
+    if (fetched >= 120) break;
     try {
       const u = new URL(l);
       if (tutYtId(u) || /(^|\.)(scratch\.mit\.edu|twitter\.com|x\.com|facebook\.com|instagram\.com|tiktok\.com)$/.test(u.hostname)) continue;

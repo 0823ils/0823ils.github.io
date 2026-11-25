@@ -290,6 +290,7 @@
         .chat-head-link { margin-left: auto; background: none; border: 1px solid #ddd; border-radius: 8px; padding: 5px 8px; cursor: pointer; line-height: 0; }
         .chat-head-link:hover { border-color: #4D97FF; }
         .chat-head-link + .chat-head-link { margin-left: 6px; }
+        .chat-tab.muted { opacity: .55; }
         .chat-search { margin: 10px 0 4px; padding: 10px; border: 1px solid #dbe6fb; background: #f7faff; border-radius: 12px; }
         .chat-search-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
         .chat-search-bar input[type=search] { flex: 1 1 160px; min-width: 0; padding: 9px 12px; font-size: 16px; border: 1px solid #cfdcf5; border-radius: 999px; background: #fff; color: inherit; }
@@ -6268,6 +6269,10 @@ function notifRoomQ() { return (currentMode === 'chat' && !document.hidden) ? '?
 
 async function refreshNotifCount() {
     if (!loginUser) return;
+    if (notifMutedUser !== loginUser.id) {   // ログイン後に一度、部屋ごとの通知設定を取る
+        notifMutedUser = loginUser.id;
+        apiCall('GET', '/api/notifications/settings').then(function(d) { if (d && d.muted) { notifMuted = d.muted; renderChatTabs(); updateNavDots(); } }).catch(function() { notifMutedUser = 0; });
+    }
     try { setNotifBadge((await apiCall('GET', '/api/notifications/count' + notifRoomQ())).unread); } catch (e) {}
 }
 // 通知の未読数は、チャットの未読確認（pollBackground）と一緒に取る。別に定期確認はしない
@@ -6295,7 +6300,8 @@ async function loadNotifs() {
     try {
         var d = await apiCall('GET', '/api/notifications');
         setNotifBadge(d.unread);
-        if (d.mode) { notifMode = d.mode; notifModeKnown = true; }   // 設定メニューの表示に使う
+        if (d.mode) { notifMode = d.mode; notifModeKnown = true; }
+        if (d.muted) { notifMuted = d.muted; renderChatTabs(); }   // 設定メニューの表示に使う
         box.innerHTML = d.items.length ? d.items.map(function(n) {
             var label = n.kind === 'reply' ? 'notifReply' : (n.kind === 'message' ? 'notifMessage' : 'notifMention');
             // 「すべてのメッセージ」の発言は、どの部屋かも添える
@@ -6311,6 +6317,25 @@ async function loadNotifs() {
 // 通知の範囲（すべてのメッセージ / 返信・メンションだけ）。初期設定は「すべて」
 // 表示場所は、ヘッダーの設定メニュー（言語などと同じところ）
 var notifMode = 'all';
+var notifMutedUser = 0;
+var notifMuted = [];   // 通知をオフにした部屋
+function roomMuted(r) { return notifMuted.indexOf(r) >= 0; }
+var BELL_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="#666" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13V8a5 5 0 0110 0v5l1.2 1.5H2.8z"/><path d="M7.5 16.5h3"/></svg>';
+var BELL_OFF_SVG = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="#999" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13V8a5 5 0 0110 0v5l1.2 1.5H2.8z"/><path d="M7.5 16.5h3"/><path d="M2 2l14 14" stroke="#e55"/></svg>';
+function bellBtnHTML() {
+    var off = roomMuted(chatRoom);
+    return '<button class="chat-head-link" id="chat-bell" onclick="toggleRoomMute()" title="' + esc(ct(off ? 'roomNotifOff' : 'roomNotifOn')) + '" aria-pressed="' + (off ? 'true' : 'false') + '">' + (off ? BELL_OFF_SVG : BELL_SVG) + '</button>';
+}
+async function toggleRoomMute() {
+    var room = chatRoom, want = !roomMuted(room);
+    try {
+        var d = await apiCall('PUT', '/api/notifications/settings', { room: room, muted: want });
+        notifMuted = d.muted || [];
+        if (typeof d.unread === 'number') setNotifBadge(d.unread);
+        showToast(ct(want ? 'roomNotifOffMsg' : 'roomNotifOnMsg'));
+    } catch (e) { showToast(ct('e_other')); }
+    renderChatTabs(); updateNavDots();
+}
 var notifModeKnown = false;   // サーバーの設定を取れたか（取れる前に「すべて」を選んだように見せない）
 var notifModeUser = 0;
 function renderNotifMode(mode) {
@@ -6345,6 +6370,7 @@ function renderNotifSettings(refresh) {
     if (refresh || !notifModeKnown) {
         apiCall('GET', '/api/notifications/settings').then(function(d) {
             notifMode = d && d.mode === 'mentions' ? 'mentions' : 'all';
+            if (d && d.muted) { notifMuted = d.muted; if (currentMode === 'chat') renderChatTabs(); updateNavDots(); }
             notifModeKnown = true;
             renderNotifMode(notifMode);
         }).catch(function() {});
@@ -6388,7 +6414,7 @@ var CHAT_T = {
           call_e_micDenied: 'マイクが許可されていません。ブラウザのアドレス欄の鍵アイコンから、マイクを許可してください', call_e_noMic: 'マイクが見つかりません', call_e_full: '満員です（最大{n}人）',
           call_e_kicked: '通話から外されました。しばらく入れません', call_e_banned: 'この部屋は使えません', call_e_too_fast: '操作が早すぎます。少し待ってください', call_e_insecure: '安全な接続（https）でないため、マイクを使えません',
           call_e_stream: 'サーバーにつながりません。もう一度試してください', call_e_lost: '通話が切れました。もう一度参加してください', call_e_other: '通話に参加できませんでした。もう一度試してください',
-          copyLink: 'この部屋のリンクをコピー', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
+          copyLink: 'この部屋のリンクをコピー', roomNotifOn: 'この部屋の通知: オン（押すとオフ）', roomNotifOff: 'この部屋の通知: オフ（押すとオン）', roomNotifOnMsg: 'この部屋の通知をオンにしました', roomNotifOffMsg: 'この部屋の通知をオフにしました', room_general: '一般', room_3d: '3D', room_math: '数学', room_physics: '物理', room_triangle: '三角形', room_feedback: '意見・要望', title: 'チャット', rooms: 'ルーム',
           attachTitle: 'ファイルを添付（{mb}MBまで）', attAll: 'すべて', attPhoto: '写真', attVideo: '動画', attSb3: 'sb3', attFile: 'そのほかのファイル', sb3Run: '実行', sb3Close: '閉じる', sb3Save: '保存', sb3Open: 'TurboWarpで開く', scTitle: 'Scratchの作品', scSite: '作品ページ', scOpen: 'Scratchで開く', uploading: 'アップロード中', attached: '添付済み',
           e_video_too_big: '動画は{mb}MBまでです', e_sb3_too_big: 'sb3は{mb}MBまでです', e_file_too_big: 'ファイルは{mb}MBまでです', e_file_limit: 'ファイルは1日10個までです', e_bad_file_type: '実行ファイル（exe・bat・jarなど）と、HTML・SVGは送れません', e_storage_full: 'サーバーの保存場所がいっぱいです。しばらくしてからやり直してください', e_sb3_limit: 'sb3は1日5個までです', fileGone: 'ファイルは保存期間が過ぎたためダウンロードできません', fileDownload: 'ダウンロード', e_bad_video_type: 'このファイルは送れません', e_image_too_big: '写真が大きすぎます', e_image_limit: '写真は1日10枚までです', e_bad_image: '写真を読み込めませんでした', imageGone: '写真は保存期間が過ぎたため見られません', e_video_limit: '今日送れる動画の数の上限に達しました。24時間たつと、また送れます',
           e_video_disabled: '動画機能は現在使えません', e_not_uploaded: 'アップロードが完了していません', e_upload_failed: 'アップロードに失敗しました。時間をおいてやり直してください',
@@ -6416,7 +6442,7 @@ var CHAT_T = {
           call_e_micDenied: 'Microphone access is blocked. Allow it from the lock icon in the address bar', call_e_noMic: 'No microphone found', call_e_full: 'The call is full (max {n})',
           call_e_kicked: 'You were removed from the call and cannot rejoin for a while', call_e_banned: 'You cannot use this room', call_e_too_fast: 'Too fast. Please wait a moment', call_e_insecure: 'The microphone needs a secure (https) connection',
           call_e_stream: 'Cannot reach the server. Please try again', call_e_lost: 'Disconnected from the call. Please join again', call_e_other: 'Could not join the call. Please try again',
-          copyLink: 'Copy a link to this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
+          copyLink: 'Copy a link to this room', roomNotifOn: 'Notifications for this room: on (click to turn off)', roomNotifOff: 'Notifications for this room: off (click to turn on)', roomNotifOnMsg: 'Notifications on for this room', roomNotifOffMsg: 'Notifications off for this room', room_general: 'General', room_3d: '3D', room_math: 'Math', room_physics: 'Physics', room_triangle: 'Triangles', room_feedback: 'Feedback', title: 'Chat', rooms: 'ROOMS',
           attachTitle: 'Attach a file (up to {mb}MB)', attAll: 'All', attPhoto: 'Photo', attVideo: 'Video', attSb3: 'sb3', attFile: 'Other file', sb3Run: 'Run', sb3Close: 'Close', sb3Save: 'Save', sb3Open: 'Open in TurboWarp', scTitle: 'Scratch project', scSite: 'Project page', scOpen: 'Open on Scratch', uploading: 'Uploading', attached: 'Attached',
           e_video_too_big: 'Videos can be up to {mb}MB', e_sb3_too_big: '.sb3 files can be up to {mb}MB', e_file_too_big: 'Files can be up to {mb}MB', e_file_limit: 'You can send up to 10 files a day', e_bad_file_type: "Programs (exe, bat, jar…) and HTML/SVG files can't be sent", e_storage_full: 'The server storage is full. Please try again later', e_sb3_limit: 'You can send up to 5 .sb3 files a day', fileGone: 'This file has expired and can no longer be downloaded', fileDownload: 'Download', e_bad_video_type: "This file can't be sent", e_image_too_big: 'That photo is too large', e_image_limit: 'You can send up to 10 photos a day', e_bad_image: "Couldn't read that photo", imageGone: 'This photo has expired', e_video_limit: 'You have reached the daily video limit. You can send more after 24 hours',
           e_video_disabled: 'Video is not available right now', e_not_uploaded: 'The upload has not finished', e_upload_failed: 'Upload failed. Please try again later',
@@ -6641,13 +6667,13 @@ function chatTabClick(e, r) {
 
 function renderChatTabs() {
     document.getElementById('chat-tabs').innerHTML = CHAT_ROOMS.map(function(r) {
-        return '<a class="header-mode-tab chat-tab' + (r === chatRoom || (r === 'progress' && pgIsRoom(chatRoom)) ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
+        return '<a class="header-mode-tab chat-tab' + (roomMuted(r) ? ' muted' : '') + (r === chatRoom || (r === 'progress' && pgIsRoom(chatRoom)) ? ' active' : '') + '" data-r="' + r + '" href="' + esc(chatLinkUrl(r)) +
             '" onclick="return chatTabClick(event, this.dataset.r)">' + esc(ct('room_' + r)) + (r === CALL_ROOM ? '<i class="call-count"></i>' : '') + '</a>';
     }).join('');
     var act = document.querySelector('#chat-tabs .chat-tab.active');
     if (act && act.scrollIntoView && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) act.scrollIntoView({ inline: 'center', block: 'nearest' });
     document.getElementById('chat-title').innerHTML = '<span id="chat-title-t">' + esc(pgIsRoom(chatRoom) ? ((pgThread && pgThread.thread && pgThread.thread.title) || ct('room_progress')) : ct('room_' + chatRoom)) + '</span>' +
-        '<button class="chat-head-link" onclick="chatSearchToggle()" title="' + esc(ct('search')) + '">' + SEARCH_SVG + '</button>' +
+        (loginUser && apiEnabled() ? bellBtnHTML() : '') + '<button class="chat-head-link" onclick="chatSearchToggle()" title="' + esc(ct('search')) + '">' + SEARCH_SVG + '</button>' +
         '<button class="chat-head-link" onclick="copyShareLink()" title="' + esc(ct('copyLink')) + '">' + LINK_SVG + '</button>';
     renderCallPanel(); callBadgeSync(); chatSearchRender(); pgSync();
 }
@@ -9111,7 +9137,7 @@ function chatRoomUnread(r) {
 function updateNavDots() {
     var any = false;
     CHAT_ROOMS.forEach(function(r) {
-        var un = chatRoomUnread(r) && !(currentMode === 'chat' && r === chatRoom);
+        var un = chatRoomUnread(r) && !roomMuted(r) && !(currentMode === 'chat' && r === chatRoom);
         if (un) any = true;
         var b = document.querySelector('#chat-tabs [data-r="' + r + '"]');
         if (b) b.classList.toggle('unread', un);

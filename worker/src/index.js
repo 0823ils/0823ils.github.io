@@ -1390,7 +1390,21 @@ const NOTIF_MSG_WHERE = `FROM chat_messages m
   WHERE m.deleted = 0 AND m.hidden = 0 AND lower(m.username) != ?
     AND NOT EXISTS (SELECT 1 FROM chat_notifications n WHERE n.message_id = m.id AND n.to_username = ?)`;
 const NOTIF_MODES = ['all', 'mentions'];
-const NOTIF_UNREAD_CAP = 100;   // 数えるのは100件まで（画面は 99+）
+const NOTIF_UNREAD_CAP = 100;
+// 部屋ごとの通知オフ。オフにした部屋は、未読数・一覧・プッシュのどれにも出さない
+let muteReady = false;
+async function muteInit(env) {
+  if (muteReady) return;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS notif_room_mute (username TEXT NOT NULL, room TEXT NOT NULL, PRIMARY KEY (username, room))').run();
+  muteReady = true;
+}
+async function mutedRooms(env, me) {
+  await muteInit(env);
+  const r = await env.DB.prepare('SELECT room FROM notif_room_mute WHERE username = ?').bind(me).all();
+  return r.results.map(x => x.room);
+}
+const inList = a => a.length ? a.map(() => '?').join(',') : "''";
+   // 数えるのは100件まで（画面は 99+）
 
 async function notifPrefs(env, user) {
   const me = user.u.toLowerCase();
@@ -1411,13 +1425,14 @@ async function notifPrefs(env, user) {
 async function unreadCount(env, user, prefs, room) {
   const me = user.u.toLowerCase();
   const ex = typeof room === 'string' && CHAT_ROOMS.includes(room) ? room : '';
-  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0 AND n.room != ?`).bind(me, ex).first();
+  const mu = await mutedRooms(env, me);
+  const r = await env.DB.prepare(`SELECT COUNT(*) AS c ${NOTIF_VISIBLE} AND n.is_read = 0 AND n.room != ? AND n.room NOT IN (${inList(mu)})`).bind(me, ex, ...mu).first();
   let n = r ? r.c : 0;
   prefs = prefs || await notifPrefs(env, user);
   if (prefs.mode === 'all') {
     const q = await env.DB.prepare(
-      `SELECT COUNT(*) AS c FROM (SELECT 1 ${NOTIF_MSG_WHERE} AND m.room != ? AND m.id > ? LIMIT ${NOTIF_UNREAD_CAP})`
-    ).bind(me, me, ex, prefs.seen).first();
+      `SELECT COUNT(*) AS c FROM (SELECT 1 ${NOTIF_MSG_WHERE} AND m.room != ? AND m.room NOT IN (${inList(mu)}) AND m.id > ? LIMIT ${NOTIF_UNREAD_CAP})`
+    ).bind(me, me, ex, ...mu, prefs.seen).first();
     n += q ? q.c : 0;
   }
   return n;
@@ -1427,18 +1442,19 @@ async function notifList(request, env) {
   const user = await requireUser(request, env);
   const me = user.u.toLowerCase();
   const prefs = await notifPrefs(env, user);
+  const mu = await mutedRooms(env, me);
   const rows = await env.DB.prepare(
     `SELECT n.id, n.kind, n.message_id, n.room, n.from_username, n.snippet, n.created_at, n.is_read
-       ${NOTIF_VISIBLE} ORDER BY n.id DESC LIMIT ?`
-  ).bind(me, NOTIF_PAGE).all();
+       ${NOTIF_VISIBLE} AND n.room NOT IN (${inList(mu)}) ORDER BY n.id DESC LIMIT ?`
+  ).bind(me, ...mu, NOTIF_PAGE).all();
   let items = rows.results.map(r => ({ id: r.id, kind: r.kind, message_id: r.message_id, room: r.room,
     from_username: r.from_username, snippet: r.snippet, created_at: r.created_at, read: !!r.is_read }));
 
   if (prefs.mode === 'all') {
     const msgs = await env.DB.prepare(
-      `SELECT m.id, m.room, m.username, m.content, m.created_at ${NOTIF_MSG_WHERE} AND m.created_at > ?
+      `SELECT m.id, m.room, m.username, m.content, m.created_at ${NOTIF_MSG_WHERE} AND m.created_at > ? AND m.room NOT IN (${inList(mu)})
         ORDER BY m.id DESC LIMIT ?`
-    ).bind(me, me, Date.now() - NOTIF_KEEP, NOTIF_PAGE).all();
+    ).bind(me, me, Date.now() - NOTIF_KEEP, ...mu, NOTIF_PAGE).all();
     for (const r of msgs.results) {
       items.push({ id: 0, kind: 'message', message_id: r.id, room: r.room, from_username: r.username,
         snippet: String(r.content || '').replace(/\s+/g, ' ').slice(0, 80) || '[添付]',
@@ -1447,7 +1463,7 @@ async function notifList(request, env) {
     items.sort((a, b) => (b.created_at - a.created_at) || (b.message_id - a.message_id));
     items = items.slice(0, NOTIF_PAGE);
   }
-  return json({ items, unread: await unreadCount(env, user, prefs), mode: prefs.mode });
+  return json({ items, unread: await unreadCount(env, user, prefs), mode: prefs.mode, muted: mu });
 }
 
 async function notifCount(request, env) {
@@ -1493,12 +1509,22 @@ async function notifRead(request, env) {
 async function notifSettingsGet(request, env) {
   const user = await requireUser(request, env);
   const prefs = await notifPrefs(env, user);
-  return json({ mode: prefs.mode });
+  return json({ mode: prefs.mode, muted: await mutedRooms(env, user.u.toLowerCase()) });
 }
 
 async function notifSettingsPut(request, env) {
   const user = await requireUser(request, env);
   const body = await readJson(request);
+  if (body && typeof body.room === 'string' && typeof body.muted === 'boolean') {
+    // 部屋ごとの通知オン/オフ
+    if (!(CHAT_ROOMS.includes(body.room) || /^progress-/.test(body.room) || body.room.length <= 40 && /^[a-z0-9_-]+$/.test(body.room))) throw new HttpError(400, 'bad_room');
+    const me = user.u.toLowerCase();
+    await muteInit(env);
+    if (body.muted) await env.DB.prepare('INSERT OR IGNORE INTO notif_room_mute (username, room) VALUES (?, ?)').bind(me, body.room).run();
+    else await env.DB.prepare('DELETE FROM notif_room_mute WHERE username = ? AND room = ?').bind(me, body.room).run();
+    const prefs = await notifPrefs(env, user);
+    return json({ mode: prefs.mode, muted: await mutedRooms(env, me), unread: await unreadCount(env, user, prefs) });
+  }
   if (!body || !NOTIF_MODES.includes(body.mode)) throw new HttpError(400, 'bad_mode');
   // 「mentions」から「all」に変えた瞬間は、いまの最新までを既読にする（昔の発言がまとめて未読にならないように）。
   // 同じ設定のまま送られたときは、既読位置を動かさない。
@@ -1510,7 +1536,7 @@ async function notifSettingsPut(request, env) {
        mode = excluded.mode,
        updated_at = excluded.updated_at`
   ).bind(user.u.toLowerCase(), body.mode, Date.now()).run();
-  return json({ mode: body.mode, unread: await unreadCount(env, user) });
+  return json({ mode: body.mode, muted: await mutedRooms(env, user.u.toLowerCase()), unread: await unreadCount(env, user) });
 }
 
 
@@ -2662,10 +2688,12 @@ async function notifyPush(env, targets, from, snippet, room) {
   const names = targets ? [...targets.keys()] : [];
   const jobs = [];   // { sub, kind: 'reply' | 'mention' | 'message' }
 
+  await muteInit(env);
+  const MUTED = ' AND NOT EXISTS (SELECT 1 FROM notif_room_mute z WHERE z.username = SUBJ AND z.room = ?)';
   if (names.length) {
     const rows = await env.DB.prepare(
-      `SELECT endpoint, username, p256dh, auth FROM push_subs WHERE username IN (${names.map(() => '?').join(',')}) LIMIT ${MAX_PUSH_SEND}`
-    ).bind(...names).all();
+      `SELECT endpoint, username, p256dh, auth FROM push_subs WHERE username IN (${names.map(() => '?').join(',')})${MUTED.replace('SUBJ', 'push_subs.username')} LIMIT ${MAX_PUSH_SEND}`
+    ).bind(...names, room).all();
     for (const s of rows.results) jobs.push({ sub: s, kind: targets.get(s.username) });
   }
 
@@ -2676,9 +2704,9 @@ async function notifyPush(env, targets, from, snippet, room) {
     const rows = await env.DB.prepare(
       `SELECT s.endpoint, s.username, s.p256dh, s.auth FROM push_subs s
          LEFT JOIN notif_prefs p ON p.username = s.username
-        WHERE s.username NOT IN (${skip.map(() => '?').join(',')}) AND COALESCE(p.mode, 'all') = 'all'
+        WHERE s.username NOT IN (${skip.map(() => '?').join(',')}) AND COALESCE(p.mode, 'all') = 'all'${MUTED.replace('SUBJ', 's.username')}
         ORDER BY RANDOM() LIMIT ${left}`
-    ).bind(...skip).all();
+    ).bind(...skip, room).all();
     for (const s of rows.results) jobs.push({ sub: s, kind: 'message' });
   }
   if (!jobs.length) return;

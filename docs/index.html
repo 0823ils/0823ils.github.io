@@ -6698,6 +6698,12 @@ function chatTypingRender() {
     if (Object.keys(chatTyping).length) chatTypingTimer = setTimeout(chatTypingRender, 1000);
 }
 
+// 新しい投稿を知らされたら、すぐに、他の部屋の未読の数も取り直す（90秒待たない）
+var chatBgTimer = 0;
+function chatBgPollSoon() {
+    if (chatBgTimer || typeof pollBackground !== 'function') return;
+    chatBgTimer = setTimeout(function() { chatBgTimer = 0; pollBackground(); }, 700);
+}
 var chatES = null, chatESok = false;
 function chatStreamOpen() {
     if (!TWC_CHAT_API || chatES || !window.EventSource) return;
@@ -6705,7 +6711,7 @@ function chatStreamOpen() {
         chatES = new EventSource(TWC_CHAT_API + '/api/chat/stream');
         chatES.onopen = function() { chatESok = true; };
         chatES.onerror = function() { chatESok = false; };
-        chatES.addEventListener('changed', function() { chatFull = true; if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
+        chatES.addEventListener('changed', function() { chatBgPollSoon(); chatFull = true; if (currentMode === 'chat' && !document.hidden) chatSchedule(0); });
         chatES.addEventListener('typing', function(ev) { try { chatTypingEvent(JSON.parse(ev.data)); } catch (e) {} });
         chatES.addEventListener('callroster', function(ev) { try { var d = JSON.parse(ev.data); callRoster[d.room] = d.users || []; callRosterChanged(); } catch (e) {} });
     } catch (e) { chatES = null; chatESok = false; }
@@ -9288,7 +9294,8 @@ function initUnread() {
         if (ch) try { localStorage.setItem('twc_chat_seen', JSON.stringify(chatSeen)); } catch (e) {}
         updateNavDots();
     }).catch(function() {});
-    setInterval(pollBackground, 90000);
+    setInterval(pollBackground, 30000);
+    document.addEventListener('visibilitychange', function() { if (!document.hidden) pollBackground(); });
 }
 (function() {
     var o1 = renderChatTabs; renderChatTabs = function() { o1(); updateNavDots(); };
